@@ -1,0 +1,4 @@
+# Default: any of the 4 devs can review anything except their own PR
+# (GitHub auto-excludes the author). Will be refined into per-module
+# ownership once valimbavaka-core and valimbavaka-ui grow real folders.
+* @ManaJudy @And-matia @Njara-Niaina @Kei-Shiro
