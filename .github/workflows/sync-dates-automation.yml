@@ -1,0 +1,23 @@
+name: Sync Start/Target dates
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
+  workflow_dispatch: {}       # adds a manual "Run workflow" button too
+
+jobs:
+  sync-dates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Sync Start date and Target date
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: python3 .github/scripts/sync_dates.py
