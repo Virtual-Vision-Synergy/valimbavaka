@@ -123,8 +123,10 @@ def get_current_date_values(issue_number):
     if result.returncode != 0:
         return None, None
     values = json.loads(result.stdout)
+    if isinstance(values, dict):
+        values = values.get("issue_field_values", [])
     start, target = None, None
-    for v in values.get("issue_field_values", values if isinstance(values, list) else []):
+    for v in values:
         if v.get("field_id") == START_DATE_FIELD_ID:
             start = v.get("value")
         elif v.get("field_id") == TARGET_DATE_FIELD_ID:
