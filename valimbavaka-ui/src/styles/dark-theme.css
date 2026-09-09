@@ -1,0 +1,55 @@
+/* ============================================================
+   DARK THEME — overrides des tokens sous .dark sur <html>
+   Principes hérités de l'ancienne UI :
+   1. Fonds neutres (pas de teinte bleue/verte parasite)
+   2. 3 niveaux d'élévation distincts : page → surface → surface haute
+   3. Primaire/secondaire inchangés — ils ressortent naturellement
+   4. Textes légèrement chauds pour réduire la fatigue visuelle
+   5. Bordures ultra-subtiles
+
+   Activation : ajouter la classe `dark` sur <html> (ex. via un
+   ThemeService qui persiste le choix, cf. useDarkMode.js de l'ancienne UI).
+   ============================================================ */
+html.dark {
+  /* ── Niveaux de fond ── */
+  --fond: #1A1A1A;
+  --fond-dark: #242424;
+  --gris-fond: #1E1E1E;
+  --blanc: #2E2E2E;
+
+  /* ── Textes ── */
+  --gris-anthracite: #EBEBEB;
+  --gris-moyen: #9E9E9E;
+  --gris-clair: #4A4A4A;
+  --noir: #F5F5F5;
+
+  /* ── Orange — identique, ressort parfaitement sur fond sombre ── */
+  --primary: #F26716;
+  --primary-dark: #D95A10;
+  --primary-light: #F9A86B;
+  --primary-xlight: rgba(242, 103, 22, 0.16);
+
+  /* ── Teal — identique ── */
+  --secondary: #06BFAD;
+  --secondary-dark: #05A898;
+  --secondary-light: #7DDDD6;
+  --secondary-xlight: rgba(6, 191, 173, 0.14);
+
+  /* ── Sémantiques : fonds translucides + textes lumineux ── */
+  --succes-light: rgba(34, 197, 94, 0.15);
+  --succes-dark: #4ADE80;
+  --warning-light: rgba(234, 179, 8, 0.15);
+  --warning-dark: #FACC15;
+  --danger-light: rgba(239, 68, 68, 0.15);
+  --danger-dark: #F87171;
+
+  /* ── Bordures ── */
+  --card-border: rgba(255, 255, 255, 0.07);
+
+  /* ── Ombres ── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.38);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-glow-primary: 0 0 20px rgba(242, 103, 22, 0.40);
+  --shadow-glow-secondary: 0 0 20px rgba(6, 191, 173, 0.35);
+}

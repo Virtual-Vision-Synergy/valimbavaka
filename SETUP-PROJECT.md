@@ -125,13 +125,13 @@ valimbavaka-core/src/main/resources/db/changelog/
     -->
     <includeAll path="db/changelog/changes"
                 relativeToChangelogFile="true"
-                resourceFilter=".*\.sql$"
+                endsWithFilter=".sql"
                 errorIfMissingOrEmpty="false"/>
 
 </databaseChangeLog>
 ```
 
-`resourceFilter=".*\.sql$"` permet de garder un `README.md` dans `changes/` sans que Liquibase n'essaie de le parser. `errorIfMissingOrEmpty="false"` évite une erreur au tout premier démarrage quand le dossier est encore vide.
+`endsWithFilter=".sql"` permet de garder un `README.md` dans `changes/` sans que Liquibase n'essaie de le parser (avec Liquibase 5.x, l'attribut `filter`/`resourceFilter` attend le nom qualifié d'une classe `IncludeAllFilter`, pas une regex — `endsWithFilter` est le bon attribut pour un simple filtre par suffixe). `errorIfMissingOrEmpty="false"` évite une erreur au tout premier démarrage quand le dossier est encore vide.
 
 **`changes/README.md`** (convention pour toute l'équipe)
 ```markdown

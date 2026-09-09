@@ -1,1 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+/* Styles globaux — ordre d'import important : tokens → dark-theme → base */
+@import './styles/tokens.css';
+@import './styles/dark-theme.css';
+@import './styles/base.css';

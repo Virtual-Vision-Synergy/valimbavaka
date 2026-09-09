@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Valimbavaka Cosmetics — Charte graphique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== TOKENS (repris de tokens.css) ===== */
+:root {
+  --primary: #F26716; --primary-dark: #F25116; --primary-light: #F9A86B; --primary-xlight: #FEF0E6;
+  --secondary: #06BFAD; --secondary-dark: #04BF9D; --secondary-light: #7DDDD6; --secondary-xlight: #E0F7F5;
+  --brun: #583426; --brun-light: #8A5A4A;
+  --fond: #F2F2F2; --fond-dark: #E5E5E5; --gris-anthracite: #2C3035; --gris-moyen: #7F8C8D; --gris-clair: #B0BEC0; --gris-fond: #F8F8F8;
+  --blanc: #FFFFFF; --noir: #1A1C1E;
+  --succes: #07AE12; --succes-light: #D4F5D6; --succes-dark: #057A0D;
+  --warning: #F1C40F; --warning-light: #FEF9C3; --warning-dark: #B8950B;
+  --danger: #E50101; --danger-light: #FDDADA; --danger-dark: #A80000;
+  --card-border: rgba(6,191,173,0.12);
+  --font-display: 'Inter', system-ui, sans-serif; --font-body: 'Inter', system-ui, sans-serif;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px;
+  --radius-sm:2px; --radius-md:4px; --radius-lg:6px; --radius-xl:8px; --radius-full:9999px;
+  --shadow-sm: 0 1px 3px rgba(44,48,53,0.08), 0 1px 2px rgba(44,48,53,0.04);
+  --shadow-md: 0 4px 16px rgba(44,48,53,0.10), 0 2px 6px rgba(44,48,53,0.06);
+  --shadow-lg: 0 12px 40px rgba(44,48,53,0.14), 0 4px 12px rgba(44,48,53,0.08);
+  --shadow-glow-primary: 0 0 24px rgba(242,103,22,0.30);
+  --shadow-glow-secondary: 0 0 24px rgba(6,191,173,0.30);
+  --transition-fast:150ms ease; --transition-base:250ms ease;
+}
+html.dark {
+  --fond:#1A1A1A; --fond-dark:#242424; --gris-fond:#1E1E1E; --blanc:#2E2E2E;
+  --gris-anthracite:#EBEBEB; --gris-moyen:#9E9E9E; --gris-clair:#4A4A4A; --noir:#F5F5F5;
+  --primary-dark:#D95A10; --primary-xlight: rgba(242,103,22,0.16);
+  --secondary-dark:#05A898; --secondary-xlight: rgba(6,191,173,0.14);
+  --succes-light: rgba(34,197,94,0.15); --succes-dark:#4ADE80;
+  --warning-light: rgba(234,179,8,0.15); --warning-dark:#FACC15;
+  --danger-light: rgba(239,68,68,0.15); --danger-dark:#F87171;
+  --card-border: rgba(255,255,255,0.07);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.45);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.55), 0 2px 6px rgba(0,0,0,0.38);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.65), 0 4px 12px rgba(0,0,0,0.45);
+}
+
+/* ===== PAGE ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: var(--font-body); background: var(--fond); color: var(--gris-anthracite);
+  padding: var(--space-8); transition: background-color .22s ease, color .12s ease;
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--space-8); }
+header.page-top { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+header.page-top .brand { display: flex; align-items: center; gap: var(--space-4); }
+header.page-top img { height: 56px; }
+h1 { font-family: var(--font-display); font-size: clamp(24px,3vw,32px); font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+h2 { font-family: var(--font-display); font-size: clamp(20px,2.5vw,26px); font-weight: 600; letter-spacing: -0.02em; margin: 0 0 var(--space-4); border-bottom: 1px solid var(--fond-dark); padding-bottom: var(--space-3); }
+h3 { font-family: var(--font-display); font-size: clamp(16px,2vw,20px); font-weight: 600; margin: 0; }
+p { color: var(--gris-moyen); font-size: 14px; line-height: 1.7; margin: 4px 0 0; }
+section { background: var(--blanc); border: 1px solid var(--card-border); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-sm); }
+
+.toggle-btn {
+  display: inline-flex; align-items: center; gap: var(--space-2); padding: 10px 18px; border-radius: var(--radius-full);
+  border: 1.5px solid var(--gris-clair); background: var(--blanc); color: var(--gris-anthracite);
+  font-family: var(--font-body); font-weight: 600; font-size: 13px; cursor: pointer; transition: all var(--transition-base);
+}
+.toggle-btn:hover { border-color: var(--secondary); color: var(--secondary-dark); }
+
+/* ===== SWATCHES ===== */
+.swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: var(--space-4); }
+.swatch { border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--card-border); }
+.swatch__color { height: 64px; }
+.swatch__meta { padding: var(--space-2) var(--space-3); background: var(--blanc); }
+.swatch__meta code { font-size: 11px; color: var(--gris-moyen); display: block; }
+.swatch__meta b { font-size: 12px; }
+
+/* ===== TYPE ===== */
+.type-row { display: flex; align-items: baseline; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px dashed var(--fond-dark); }
+.type-row:last-child { border-bottom: none; }
+.type-row span.tag { font-size: 11px; color: var(--gris-moyen); min-width: 90px; }
+
+/* ===== BUTTONS (copié de components.css) ===== */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); padding:10px 20px; border:none; border-radius:var(--radius-md); font-family:var(--font-body); font-size:14px; font-weight:600; cursor:pointer; transition:all var(--transition-base); white-space:nowrap; position:relative; overflow:hidden; letter-spacing:0.01em; }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background:var(--primary); color:#fff; box-shadow:0 2px 8px rgba(242,103,22,0.35); }
+.btn-primary:hover { background:var(--primary-dark); box-shadow:var(--shadow-glow-primary); transform:translateY(-1px); }
+.btn-secondary { background:var(--fond-dark); color:var(--gris-anthracite); border:1.5px solid var(--gris-clair); }
+.btn-secondary:hover { background:var(--secondary-xlight); border-color:var(--secondary); color:var(--secondary-dark); transform:translateY(-1px); }
+.btn-danger { background:var(--danger); color:#fff; box-shadow:0 2px 8px rgba(229,1,1,0.25); }
+.btn-danger:hover { background:var(--danger-dark); transform:translateY(-1px); }
+.btn-ghost { background:transparent; color:var(--secondary-dark); border:1.5px solid var(--secondary-light); }
+.btn-ghost:hover { background:var(--secondary-xlight); border-color:var(--secondary); transform:translateY(-1px); }
+.row { display:flex; gap:var(--space-3); flex-wrap:wrap; align-items:center; }
+
+/* ===== BADGES ===== */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; }
+.badge--success { background:var(--succes-light); color:var(--succes-dark); }
+.badge--warning { background:var(--warning-light); color:var(--warning-dark); }
+.badge--danger  { background:var(--danger-light);  color:var(--danger-dark); }
+.badge--neutral { background:var(--fond-dark);     color:var(--gris-moyen); }
+.badge--sauge   { background:var(--secondary-xlight); color:var(--secondary-dark); }
+.gamme-tag { display:inline-flex; align-items:center; padding:3px 10px; border-radius:var(--radius-full); font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; }
+.gamme-zezika   { background:#FFF0F5; color:#C2466A; border:1px solid #F9B8CC; }
+.gamme-botanika { background:var(--secondary-xlight); color:var(--secondary-dark); border:1px solid var(--secondary-light); }
+.gamme-solika   { background:var(--warning-light); color:var(--warning-dark); border:1px solid #F0C85A; }
+
+/* ===== CARDS / STAT-CARDS ===== */
+.grid-cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: var(--space-4); }
+.card { background:var(--blanc); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); padding:var(--space-6); border:1px solid var(--card-border); transition: all var(--transition-base); }
+.card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.stat-card { background:var(--blanc); border-radius:var(--radius-lg); padding:var(--space-4); display:flex; flex-direction:column; gap:var(--space-2); border:1px solid var(--card-border); position:relative; overflow:hidden; transition: all var(--transition-base); }
+.stat-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; opacity:0; transition:opacity var(--transition-base); }
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.stat-card:hover::after { opacity: 1; }
+.stat-card--green::after { background: var(--primary); }
+.stat-card--sage::after  { background: var(--secondary); }
+.stat-card--gold::after  { background: var(--warning); }
+.stat-card__icon { width:40px; height:40px; border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:18px; }
+.stat-card__icon--green { background: var(--primary-xlight); color: var(--primary); }
+.stat-card__icon--sage  { background: var(--secondary-xlight); color: var(--secondary); }
+.stat-card__icon--gold  { background: var(--warning-light); color: var(--warning-dark); }
+.stat-card__label { font-size:11px; color:var(--gris-moyen); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+.stat-card__value { font-size:clamp(20px,2vw,26px); font-weight:700; color:var(--gris-anthracite); }
+
+/* ===== FORM ===== */
+.form-group { display:flex; flex-direction:column; gap:var(--space-2); max-width:320px; }
+.form-label { font-size:13px; font-weight:600; letter-spacing:0.02em; }
+.form-input { padding:10px 14px; border:1.5px solid var(--gris-clair); border-radius:var(--radius-md); font-family:var(--font-body); font-size:14px; color:var(--gris-anthracite); background:var(--blanc); outline:none; width:100%; transition: all var(--transition-fast); }
+.form-input:focus { border-color:var(--secondary); box-shadow: 0 0 0 3px rgba(6,191,173,0.18); }
+
+/* ===== TABLE ===== */
+.table-wrapper { overflow-x:auto; border-radius:var(--radius-lg); border:1px solid var(--card-border); }
+.table { width:100%; border-collapse:collapse; font-size:14px; background:var(--blanc); }
+.table th { padding:11px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--gris-moyen); background:var(--gris-fond); border-bottom:2px solid var(--card-border); }
+.table td { padding:12px 16px; border-bottom:1px solid var(--fond-dark); }
+.table tbody tr:hover { background: var(--secondary-xlight); }
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* ===== TOAST ===== */
+.toast { display:flex; align-items:center; gap:var(--space-3); padding:14px 18px; border-radius:var(--radius-md); box-shadow:var(--shadow-md); font-size:14px; font-weight:500; }
+.toast--success { background:var(--succes-light); color:var(--succes-dark); border-left:4px solid var(--succes); }
+.toast--warning { background:var(--warning-light); color:var(--warning-dark); border-left:4px solid var(--warning); }
+.toast--error   { background:var(--danger-light); color:var(--danger-dark); border-left:4px solid var(--danger); }
+
+footer { text-align:center; font-size:12px; color:var(--gris-moyen); padding: var(--space-4) 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-top">
+    <div class="brand">
+      <img id="logoImg" src="assets/logo/logo.png" alt="Valimbavaka Cosmetics">
+      <div>
+        <h1>Charte graphique</h1>
+        <p>Valimbavaka Cosmetics — référence visuelle pour le refonte Angular</p>
+      </div>
+    </div>
+    <button class="toggle-btn" onclick="toggleDark()">🌓 Basculer clair / sombre</button>
+  </header>
+
+  <section>
+    <h2>Couleurs</h2>
+    <p style="margin-bottom:16px">Primaire (orange), secondaire (teal) et brun proviennent directement du logo. Les neutres et sémantiques encadrent le reste de l'UI.</p>
+    <div class="swatch-grid" id="swatches"></div>
+  </section>
+
+  <section>
+    <h2>Typographie — Inter</h2>
+    <div class="type-row"><span class="tag">h1 · 700</span><h1 style="margin:0">Valimbavaka Cosmetics</h1></div>
+    <div class="type-row"><span class="tag">h2 · 600</span><h2 style="margin:0;border:none;padding:0">Gestion des stocks</h2></div>
+    <div class="type-row"><span class="tag">h3 · 600</span><h3>Détail commande #2451</h3></div>
+    <div class="type-row"><span class="tag">body · 400</span><p style="margin:0">Texte courant, 14px, line-height 1.7 — utilisé pour les descriptions et le contenu secondaire.</p></div>
+  </section>
+
+  <section>
+    <h2>Boutons</h2>
+    <div class="row">
+      <button class="btn btn-primary">Bouton primaire</button>
+      <button class="btn btn-secondary">Bouton secondaire</button>
+      <button class="btn btn-ghost">Bouton ghost</button>
+      <button class="btn btn-danger">Supprimer</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Badges &amp; tags de gamme</h2>
+    <div class="row" style="margin-bottom:14px">
+      <span class="badge badge--success">Succès</span>
+      <span class="badge badge--warning">Warning</span>
+      <span class="badge badge--danger">Danger</span>
+      <span class="badge badge--neutral">Neutre</span>
+      <span class="badge badge--sauge">Info</span>
+    </div>
+    <div class="row">
+      <span class="gamme-tag gamme-zezika">Zezika</span>
+      <span class="gamme-tag gamme-botanika">Botanika</span>
+      <span class="gamme-tag gamme-solika">Solika</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Cards &amp; stat-cards</h2>
+    <div class="grid-cards" style="margin-bottom:16px">
+      <div class="stat-card stat-card--green">
+        <div class="stat-card__icon stat-card__icon--green">💰</div>
+        <div class="stat-card__label">Ventes du jour</div>
+        <div class="stat-card__value">1 240 000 Ar</div>
+      </div>
+      <div class="stat-card stat-card--sage">
+        <div class="stat-card__icon stat-card__icon--sage">📦</div>
+        <div class="stat-card__label">Produits en stock</div>
+        <div class="stat-card__value">342</div>
+      </div>
+      <div class="stat-card stat-card--gold">
+        <div class="stat-card__icon stat-card__icon--gold">⚠️</div>
+        <div class="stat-card__label">Stock faible</div>
+        <div class="stat-card__value">7</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Card standard</h3>
+      <p>Fond blanc, ombre douce, léger soulèvement au survol.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Formulaire</h2>
+    <div class="form-group">
+      <label class="form-label">Nom du produit</label>
+      <input class="form-input" placeholder="Ex. Savon Botanika 100g">
+    </div>
+  </section>
+
+  <section>
+    <h2>Tableau</h2>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead><tr><th>Produit</th><th>Gamme</th><th>Stock</th><th>Statut</th></tr></thead>
+        <tbody>
+          <tr><td>Savon noir</td><td><span class="gamme-tag gamme-zezika">Zezika</span></td><td>120</td><td><span class="badge badge--success">Disponible</span></td></tr>
+          <tr><td>Huile de coco</td><td><span class="gamme-tag gamme-botanika">Botanika</span></td><td>8</td><td><span class="badge badge--warning">Stock faible</span></td></tr>
+          <tr><td>Beurre de karité</td><td><span class="gamme-tag gamme-solika">Solika</span></td><td>0</td><td><span class="badge badge--danger">Rupture</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Toasts</h2>
+    <div class="row" style="flex-direction:column;align-items:stretch;max-width:360px">
+      <div class="toast toast--success">Produit enregistré avec succès</div>
+      <div class="toast toast--warning">Stock bientôt épuisé</div>
+      <div class="toast toast--error">Échec de l'enregistrement</div>
+    </div>
+  </section>
+
+  <footer>Charte extraite de l'ancienne UI (Vue.js) — voir <code>charte-graphique.md</code> pour le détail des tokens.</footer>
+</div>
+
+<script>
+const swatches = [
+  ['--primary','#F26716','Primaire'], ['--primary-dark','#F25116','Primaire (hover)'],
+  ['--primary-light','#F9A86B','Primaire clair'], ['--primary-xlight','#FEF0E6','Primaire x-clair'],
+  ['--secondary','#06BFAD','Secondaire'], ['--secondary-dark','#04BF9D','Secondaire (hover)'],
+  ['--secondary-light','#7DDDD6','Secondaire clair'], ['--secondary-xlight','#E0F7F5','Secondaire x-clair'],
+  ['--brun','#583426','Brun'], ['--brun-light','#8A5A4A','Brun clair'],
+  ['--gris-anthracite','#2C3035','Texte principal'], ['--gris-moyen','#7F8C8D','Texte secondaire'],
+  ['--gris-clair','#B0BEC0','Bordures'], ['--fond','#F2F2F2','Fond de page'],
+  ['--succes','#07AE12','Succès'], ['--warning','#F1C40F','Warning'], ['--danger','#E50101','Danger'],
+];
+const grid = document.getElementById('swatches');
+for (const [name, hex, label] of swatches) {
+  const el = document.createElement('div');
+  el.className = 'swatch';
+  const textColor = ['#F1C40F','#F9A86B','#FEF0E6','#E0F7F5','#7DDDD6','#F2F2F2','#B0BEC0'].includes(hex) ? '#2C3035' : '#fff';
+  el.innerHTML = `<div class="swatch__color" style="background:${hex};display:flex;align-items:flex-end;padding:6px;color:${textColor};font-size:11px;font-weight:600">${hex}</div>
+    <div class="swatch__meta"><b>${label}</b><code>${name}</code></div>`;
+  grid.appendChild(el);
+}
+function toggleDark() {
+  document.documentElement.classList.toggle('dark');
+  document.getElementById('logoImg').src = document.documentElement.classList.contains('dark')
+    ? 'assets/logo/logo-negatif.png' : 'assets/logo/logo.png';
+}
+</script>
+</body>
+</html>
