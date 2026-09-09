@@ -1,0 +1,56 @@
+name: Move to In Progress on test-failed label
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  move-to-in-progress:
+    if: github.event.label.name == 'test-failed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Move item to In Progress on Project #15
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+        run: |
+          ISSUE_NODE_ID="${{ github.event.issue.node_id }}"
+          PROJECT_ID="PVT_kwDODDh3Rc4BiOEr"
+          STATUS_FIELD_ID="PVTSSF_lADODDh3Rc4BiOErzhhG6I4"
+          IN_PROGRESS_OPTION_ID="47fc9ee4"
+
+          # Find this issue's item ID within Project #15 specifically
+          # (an issue can belong to multiple projects, so we filter by project.id)
+          ITEM_ID=$(gh api graphql -f query='
+            query($issueId: ID!) {
+              node(id: $issueId) {
+                ... on Issue {
+                  projectItems(first: 10) {
+                    nodes {
+                      id
+                      project { id }
+                    }
+                  }
+                }
+              }
+            }' -f issueId="$ISSUE_NODE_ID" \
+            --jq ".data.node.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id")
+
+          if [ -z "$ITEM_ID" ]; then
+            echo "Issue is not on Project #15 — nothing to do."
+            exit 0
+          fi
+
+          gh api graphql -f query='
+            mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: $projectId
+                itemId: $itemId
+                fieldId: $fieldId
+                value: { singleSelectOptionId: $optionId }
+              }) {
+                projectV2Item { id }
+              }
+            }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" \
+               -f fieldId="$STATUS_FIELD_ID" -f optionId="$IN_PROGRESS_OPTION_ID"
+
+          echo "Moved issue to In Progress."
