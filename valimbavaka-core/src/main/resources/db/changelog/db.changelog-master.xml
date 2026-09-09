@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        Chaque changement de schema = un fichier dans changes/, jamais modifie une fois merge sur main.
+        Nommage : <sequence 4 chiffres>__<feature>__<description-kebab-case>.sql
+        Le tri alphabetique du dossier = ordre d'application (d'ou le zero-padding).
+        Voir changes/README.md pour le detail et le gabarit.
+    -->
+    <includeAll path="db/changelog/changes"
+                relativeToChangelogFile="true"
+                resourceFilter=".*\.sql$"
+                errorIfMissingOrEmpty="false"/>
+
+</databaseChangeLog>
