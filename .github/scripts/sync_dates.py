@@ -118,18 +118,29 @@ def parse_item(item):
 
 
 def get_current_date_values(issue_number):
-    """Reads the issue's current Start date / Target date via REST."""
+    """Reads the issue's current Start date / Target date via REST.
+
+    IMPORTANT: the GET response is a bare JSON array (not wrapped in a
+    dict), and each entry uses the key `issue_field_id` — NOT `field_id`.
+    `field_id` is only the key used when *writing* (POST/PUT). Mixing
+    the two up means every read silently returns None for every field,
+    which defeats the "never overwrite an existing value" guarantee and
+    for Start date actively corrupts it (re-set to today on every run).
+    """
     result = run_gh(["gh", "api", f"repos/{REPO}/issues/{issue_number}/issue-field-values"])
     if result.returncode != 0:
         return None, None
     values = json.loads(result.stdout)
     if isinstance(values, dict):
+        # defensive: current API returns a bare list, but guard against
+        # a future/alternate shape wrapping it in a dict
         values = values.get("issue_field_values", [])
     start, target = None, None
     for v in values:
-        if v.get("field_id") == START_DATE_FIELD_ID:
+        field_id = v.get("issue_field_id")  # <-- the actual fix
+        if field_id == START_DATE_FIELD_ID:
             start = v.get("value")
-        elif v.get("field_id") == TARGET_DATE_FIELD_ID:
+        elif field_id == TARGET_DATE_FIELD_ID:
             target = v.get("value")
     return start, target
 
