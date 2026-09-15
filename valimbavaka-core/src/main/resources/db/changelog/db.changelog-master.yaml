@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/2026_09_15-01-changelog.sql

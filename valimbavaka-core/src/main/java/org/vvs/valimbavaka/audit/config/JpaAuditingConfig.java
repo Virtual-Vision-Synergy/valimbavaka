@@ -1,4 +1,4 @@
-package org.vvs.valimbavaka.core.config;
+package org.vvs.valimbavaka.audit.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;

@@ -1,4 +1,4 @@
-package org.vvs.valimbavaka.shared.dto;
+package org.vvs.valimbavaka.common.dto;
 
 import org.springframework.data.domain.Page;
 

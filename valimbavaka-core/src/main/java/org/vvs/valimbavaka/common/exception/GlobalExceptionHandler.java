@@ -1,4 +1,4 @@
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.vvs.valimbavaka.core.exception.specifics.*;
-import org.vvs.valimbavaka.shared.dto.ApiResponse;
+import org.vvs.valimbavaka.common.exception.specifics.*;
+import org.vvs.valimbavaka.common.dto.ApiResponse;
 
 import java.util.stream.Collectors;
 

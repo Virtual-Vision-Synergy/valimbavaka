@@ -297,7 +297,7 @@ public abstract class BaseEntity {
 ### 3.4 `core/config/JpaAuditingConfig.java`
 
 ```java
-package org.vvs.valimbavaka.core.config;
+package org.vvs.valimbavaka.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -311,7 +311,7 @@ public class JpaAuditingConfig {
 ### 3.5 `core/config/WebConfig.java`
 
 ```java
-package org.vvs.valimbavaka.core.config;
+package org.vvs.valimbavaka.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -339,62 +339,80 @@ public class WebConfig implements WebMvcConfigurer {
 ### 3.6 `core/exception/*` — hiérarchie + handler global
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 public abstract class BaseException extends RuntimeException {
-    protected BaseException(String message) { super(message); }
-    protected BaseException(String message, Throwable cause) { super(message, cause); }
+    protected BaseException(String message) {
+        super(message);
+    }
+
+    protected BaseException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 ```
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 /** 400 Bad Request — erreur de validation métier. */
 public class DomainException extends BaseException {
-    public DomainException(String message) { super(message); }
-    public DomainException(String message, Throwable cause) { super(message, cause); }
+    public DomainException(String message) {
+        super(message);
+    }
+
+    public DomainException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
 ```
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 /** 404 Not Found. */
 public class ResourceNotFoundException extends BaseException {
-    public ResourceNotFoundException(String message) { super(message); }
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
 }
 ```
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 /** 401 Unauthorized — non authentifié. */
 public class UnauthorizedException extends BaseException {
-    public UnauthorizedException(String message) { super(message); }
+    public UnauthorizedException(String message) {
+        super(message);
+    }
 }
 ```
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 /** 403 Forbidden — authentifié mais pas autorisé. */
 public class ForbiddenException extends BaseException {
-    public ForbiddenException(String message) { super(message); }
+    public ForbiddenException(String message) {
+        super(message);
+    }
 }
 ```
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 /** 409 Conflict — doublon, contrainte violée. */
 public class ConflictException extends BaseException {
-    public ConflictException(String message) { super(message); }
+    public ConflictException(String message) {
+        super(message);
+    }
 }
 ```
 
 ```java
-package org.vvs.valimbavaka.core.exception;
+package org.vvs.valimbavaka.common.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
