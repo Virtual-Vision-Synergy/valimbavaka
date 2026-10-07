@@ -52,7 +52,7 @@ jobs:
           fi
 
       # Fichiers de deploiement de la version deployee elle-meme (coherence compose <-> images).
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag }}
           sparse-checkout: deploy

@@ -27,7 +27,7 @@ jobs:
       tag: ${{ steps.pick.outputs.tag }}
     steps:
       - id: pick
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
