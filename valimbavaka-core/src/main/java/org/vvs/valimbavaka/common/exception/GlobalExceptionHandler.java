@@ -7,7 +7,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.vvs.valimbavaka.common.exception.specifics.*;
+import org.vvs.valimbavaka.common.exception.specifics.ConflictException;
+import org.vvs.valimbavaka.common.exception.specifics.DomainException;
+import org.vvs.valimbavaka.common.exception.specifics.ForbiddenException;
+import org.vvs.valimbavaka.common.exception.specifics.ResourceNotFoundException;
+import org.vvs.valimbavaka.common.exception.specifics.UnauthorizedException;
 import org.vvs.valimbavaka.common.dto.ApiResponse;
 
 import java.util.stream.Collectors;

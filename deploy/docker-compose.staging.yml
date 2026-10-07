@@ -1,0 +1,7 @@
+# Staging = environnement de test du client (UAT). Mis a jour a chaque release publiee,
+# puis fige : il ne change plus jusqu'a la release suivante.
+services:
+  db:
+    # Accessible uniquement depuis le poste lui-meme (DBeaver, debug), jamais depuis le reseau.
+    ports:
+      - "127.0.0.1:${DB_PUBLISHED_PORT:-5433}:5432"

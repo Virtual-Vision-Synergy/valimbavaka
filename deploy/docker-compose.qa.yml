@@ -1,0 +1,6 @@
+# QA = poste de Njara (pas l'EliteBook). Tire les images :develop, reconstruites a chaque
+# merge sur develop. Voir deploy/README.md, section "Environnement QA".
+services:
+  db:
+    ports:
+      - "127.0.0.1:${DB_PUBLISHED_PORT:-5434}:5432"

@@ -1,0 +1,101 @@
+name: Images Docker
+
+# Construit les images core et ui sur les runners GitHub (cloud) et les pousse sur GHCR.
+#   - merge sur develop      -> tag :develop, remplace a chaque fois (environnement QA de Njara)
+#   - release publiee vX.Y.Z -> CI complete, tag :vX.Y.Z, puis deploiement automatique du staging
+# L'EliteBook ne compile jamais rien : il ne fait que tirer ces images.
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "valimbavaka-core/**"
+      - "valimbavaka-ui/**"
+      - ".github/workflows/images.yml"
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+concurrency:
+  group: images-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Sur une release seulement : on revérifie tout avant de produire une image livrable.
+  ci:
+    if: github.event_name == 'release'
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Image ${{ matrix.app }}
+    needs: ci
+    if: ${{ always() && (needs.ci.result == 'success' || needs.ci.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true
+      matrix:
+        app: [core, ui]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/virtual-vision-synergy/valimbavaka-${{ matrix.app }}
+          tags: |
+            type=raw,value=develop,enable=${{ github.ref == 'refs/heads/develop' }}
+            type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: valimbavaka-${{ matrix.app }}
+          platforms: linux/amd64
+          push: true
+          # Pas d'attestation de provenance : elle cree des versions sans tag en plus sur GHCR.
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+  # Menage GHCR : supprime les versions sans tag (anciennes images :develop remplacees).
+  # Les releases vX.Y.Z restent sur GHCR ; l'EliteBook garde de toute facon ses 10 dernieres
+  # versions en local pour les retours arriere, meme sans internet.
+  cleanup:
+    needs: build
+    if: ${{ always() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        app: [core, ui]
+    steps:
+      - uses: actions/delete-package-versions@v5
+        with:
+          package-name: valimbavaka-${{ matrix.app }}
+          package-type: container
+          delete-only-untagged-versions: "true"
+          min-versions-to-keep: 0
+
+  # Release publiee -> staging mis a jour tout de suite sur l'EliteBook (runner self-hosted).
+  # La prod suit automatiquement 3 jours plus tard (voir deploy-prod-auto.yml).
+  deploy-staging:
+    needs: build
+    if: ${{ always() && needs.build.result == 'success' && github.event_name == 'release' }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      tag: ${{ github.event.release.tag_name }}
