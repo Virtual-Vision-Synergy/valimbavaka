@@ -82,8 +82,21 @@ wait_healthy() {
   return 1
 }
 
+# Les images de release sont immuables (vX.Y.Z) : si elles sont deja sur le poste, on ne les
+# retelecharge pas. Un retour arriere vers une version locale marche donc meme sans internet.
 up_version() {
-  TAG="$1" compose pull core ui
+  local app missing=()
+  for app in core ui; do
+    if ! docker image inspect "ghcr.io/virtual-vision-synergy/valimbavaka-$app:$1" >/dev/null 2>&1; then
+      missing+=("$app")
+    fi
+  done
+  if [ "${#missing[@]}" -gt 0 ]; then
+    log "Telechargement des images ${missing[*]} ($1)..."
+    TAG="$1" compose pull "${missing[@]}"
+  else
+    log "Images $1 deja presentes sur le poste : pas de telechargement."
+  fi
   TAG="$1" compose up -d --remove-orphans
 }
 

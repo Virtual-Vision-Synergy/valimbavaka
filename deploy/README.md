@@ -79,6 +79,9 @@ release a supprimé ou renommé quelque chose, il faut aussi restaurer une sauve
 
 Le même workflow sert à mettre en prod tout de suite un correctif urgent, sans attendre 3 jours.
 
+L'EliteBook garde en local les images de ses 10 dernières versions. Si la version visée y est
+encore, rien n'est téléchargé : un retour arrière fonctionne même sans connexion internet.
+
 ## Sauvegardes (prod)
 
 - **Automatique** : toutes les 30 minutes, 48 gardées (24 h), fichiers `auto-AAAAMMJJ-HHMM.sql.gz`.
@@ -151,6 +154,13 @@ docker compose -p valimbavaka-qa --env-file deploy/.env.qa -f deploy/docker-comp
 ```
 
 Puis ouvrir http://localhost:8090. Pour repartir d'une base vide : même commande avec `down -v`.
+
+## Images sur GHCR
+
+Le stockage et la bande passante du Container Registry (ghcr.io) sont gratuits pour le moment,
+et ne comptent pas dans les 0,5 Go de packages du plan gratuit. GitHub annonce prévenir un mois
+avant tout changement. Par précaution, `images.yml` supprime quand même les versions sans tag
+(les anciennes images `:develop` remplacées) et ne crée ni tag par commit, ni attestation de provenance.
 
 ## Consommation des minutes GitHub Actions
 
