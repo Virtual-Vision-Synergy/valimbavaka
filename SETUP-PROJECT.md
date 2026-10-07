@@ -12,7 +12,7 @@ Ce guide met en place, pour toute l'équipe, la base de développement de **vali
 |---|---|---|
 | JDK | 21 | `java -version` |
 | Maven | 3.9+ (ou wrapper `./mvnw`) | `mvn -v` |
-| Node.js | 20+ | `node -v` |
+| Node.js | 24 (ou 22.22.3+, exigé par Angular 22) | `node -v` |
 | npm | 11+ | `npm -v` |
 | Docker Desktop | récent | `docker -v` |
 | Git | récent | `git -v` |

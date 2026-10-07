@@ -1,0 +1,87 @@
+name: CI
+
+# Verifie chaque PR (et chaque release, via images.yml) : le code compile, les tests passent,
+# checkstyle et le lint sont propres. Les tests backend tournent sur un vrai PostgreSQL 16,
+# la meme version que sur l'EliteBook (jamais H2 : on teste ce qui tournera en prod).
+
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_call: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (Spring Boot)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: valimbavaka
+          POSTGRES_USER: valimbavaka
+          POSTGRES_PASSWORD: valimbavaka
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U valimbavaka -d valimbavaka"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: valimbavaka
+      DB_USERNAME: valimbavaka
+      DB_PASSWORD: valimbavaka
+    defaults:
+      run:
+        working-directory: valimbavaka-core
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: valimbavaka-core/pom.xml
+
+      - name: Compilation, tests et checkstyle (mvn verify)
+        run: mvn -B -ntp verify
+
+  frontend:
+    name: Frontend (Angular)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: valimbavaka-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      # Angular 22 exige Node >= 22.22.3 ou >= 24.15 : on suit la ligne 24 (LTS).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: valimbavaka-ui/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npx ng test --watch=false
+
+      - name: Build production
+        run: npm run build
