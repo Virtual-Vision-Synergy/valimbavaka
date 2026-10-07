@@ -1,0 +1,92 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Utilisateurs</h1>
+      <p>{{ totalElements() }} utilisateur(s)</p>
+    </div>
+    <a class="btn btn-primary" routerLink="new">+ Nouvel utilisateur</a>
+  </header>
+
+  <div class="card">
+    <form class="toolbar" (submit)="$event.preventDefault(); onSearch(searchInput.value)">
+      <label class="visually-hidden" for="user-search">Rechercher</label>
+      <input
+        #searchInput
+        id="user-search"
+        class="input"
+        type="search"
+        placeholder="Rechercher par email, prénom ou nom"
+        [value]="search()"
+      />
+      <button class="btn btn-ghost" type="submit">Rechercher</button>
+    </form>
+
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Nom</th>
+            <th scope="col">Email</th>
+            <th scope="col">Rôle</th>
+            <th scope="col">Statut</th>
+            <th scope="col" class="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td class="name">{{ user.lastName }} {{ user.firstName }}</td>
+              <td>{{ user.email }}</td>
+              <td><span class="badge badge-secondary">{{ user.role.name }}</span></td>
+              <td>
+                @if (user.active) {
+                  <span class="badge badge-success">Actif</span>
+                } @else {
+                  <span class="badge badge-muted">Inactif</span>
+                }
+              </td>
+              <td class="actions">
+                <a class="btn btn-ghost btn-sm" [routerLink]="[user.id, 'edit']">Modifier</a>
+                <button class="btn btn-danger btn-sm" type="button" (click)="deleteUser(user)">
+                  Supprimer
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="empty" colspan="5">
+                {{ isLoading() ? 'Chargement…' : 'Aucun utilisateur trouvé.' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="pagination" aria-label="Pagination">
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          [disabled]="page() === 0 || isLoading()"
+          (click)="goToPage(page() - 1)"
+        >
+          Précédent
+        </button>
+        <span>Page {{ page() + 1 }} / {{ totalPages() }}</span>
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          [disabled]="page() + 1 >= totalPages() || isLoading()"
+          (click)="goToPage(page() + 1)"
+        >
+          Suivant
+        </button>
+      </nav>
+    }
+  </div>
+</section>
