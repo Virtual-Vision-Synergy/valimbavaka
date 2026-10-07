@@ -55,8 +55,9 @@ jobs:
           cache: maven
           cache-dependency-path: valimbavaka-core/pom.xml
 
+      # checkstyle.skip=true par defaut dans le pom (build local rapide) : la CI, elle, l'impose.
       - name: Compilation, tests et checkstyle (mvn verify)
-        run: mvn -B -ntp verify
+        run: mvn -B -ntp verify -Dcheckstyle.skip=false
 
   frontend:
     name: Frontend (Angular)
