@@ -42,6 +42,11 @@ jobs:
       DB_NAME: valimbavaka
       DB_USERNAME: valimbavaka
       DB_PASSWORD: valimbavaka
+      # Base vide a chaque run : l'admin initial est cree au demarrage du contexte de test.
+      ADMIN_EMAIL: admin@ci.valimbavaka.local
+      ADMIN_PASSWORD: ci-admin-password
+      ADMIN_FIRST_NAME: Admin
+      ADMIN_LAST_NAME: CI
     defaults:
       run:
         working-directory: valimbavaka-core

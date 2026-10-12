@@ -186,6 +186,10 @@
                     <configLocation>${project.basedir}/../checkstyle.xml</configLocation>
                     <consoleOutput>true</consoleOutput>
                     <failOnViolation>true</failOnViolation>
+                    <!-- Uniquement le code ecrit a la main : pas le code genere par MapStruct (target/). -->
+                    <sourceDirectories>
+                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                    </sourceDirectories>
                 </configuration>
                 <executions>
                     <execution>

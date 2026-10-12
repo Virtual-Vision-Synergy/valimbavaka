@@ -7,6 +7,7 @@ export interface UserRDto {
   lastName: string;
   role: RoleRDto;
   active: boolean;
+  mustChangePassword: boolean;
   createdAt: string;
   updatedAt: string;
 }

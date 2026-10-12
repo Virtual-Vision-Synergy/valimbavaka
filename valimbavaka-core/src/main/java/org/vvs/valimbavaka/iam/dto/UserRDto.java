@@ -13,6 +13,7 @@ public record UserRDto(
         String lastName,
         RoleRDto role,
         boolean active,
+        boolean mustChangePassword,
         LocalDateTime createdAt,
         LocalDateTime updatedAt) {
 }

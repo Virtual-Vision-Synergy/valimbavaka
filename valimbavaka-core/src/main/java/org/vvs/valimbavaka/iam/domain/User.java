@@ -35,6 +35,10 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private boolean active = true;
 
+    /** Vrai tant que l'utilisateur doit remplacer son mot de passe initial (ex. admin créé au démarrage). */
+    @Column(nullable = false)
+    private boolean mustChangePassword;
+
     public String getFullName() {
         return lastName + " " + firstName;
     }

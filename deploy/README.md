@@ -131,7 +131,12 @@ Déjà fait : `.wslconfig` (10 Go), Docker Engine dans WSL2 Ubuntu, `docker logi
    ```bash
    sudo ./svc.sh install && sudo ./svc.sh start
    ```
-3. **Test à vide** : publier une release `v0.0.1` du socle actuel, vérifier le staging,
+3. **Premier administrateur** : sur une base neuve, le backend refuse de démarrer tant que
+   `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_FIRST_NAME` et `ADMIN_LAST_NAME` ne sont pas renseignés
+   dans le `.env.<env>`. Au premier démarrage, ce compte est créé avec le rôle Administrateur et
+   devra changer son mot de passe à la première connexion. Une fois un administrateur en base, ces
+   variables ne sont plus lues (on peut les vider).
+4. **Test à vide** : publier une release `v0.0.1` du socle actuel, vérifier le staging,
    forcer la prod avec *Deployer* (prod, `v0.0.1`), puis tester un retour arrière.
 
 ## Environnement QA (Njara)
