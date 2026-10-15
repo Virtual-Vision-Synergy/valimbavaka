@@ -1,8 +1,8 @@
 name: CI
 
 # Verifie chaque PR (et chaque release, via images.yml) : le code compile, les tests passent,
-# checkstyle et le lint sont propres. Les tests backend tournent sur un vrai PostgreSQL 16,
-# la meme version que sur l'EliteBook (jamais H2 : on teste ce qui tournera en prod).
+# checkstyle et le lint sont propres. Les tests d'integration backend (*IT) tournent sur un vrai
+# PostgreSQL 16 via Testcontainers, la meme version que sur l'EliteBook (jamais H2).
 
 on:
   pull_request:
@@ -22,26 +22,7 @@ jobs:
     name: Backend (Spring Boot)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: valimbavaka
-          POSTGRES_USER: valimbavaka
-          POSTGRES_PASSWORD: valimbavaka
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U valimbavaka -d valimbavaka"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DB_HOST: localhost
-      DB_PORT: "5432"
-      DB_NAME: valimbavaka
-      DB_USERNAME: valimbavaka
-      DB_PASSWORD: valimbavaka
+    # PostgreSQL est demarre par Testcontainers (Docker est disponible sur ubuntu-latest).
     defaults:
       run:
         working-directory: valimbavaka-core
