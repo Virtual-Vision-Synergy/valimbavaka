@@ -1,0 +1,36 @@
+# Prod = donnees reelles du client. Postgres n'est publie sur aucun port.
+# Sauvegarde automatique toutes les 30 min (48 conservees = 24 h), en plus de la sauvegarde
+# faite par deploy.sh juste avant chaque mise en prod.
+services:
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: ${DB_USERNAME}
+      PGPASSWORD: ${DB_PASSWORD}
+      PGDATABASE: ${DB_NAME}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-1800}
+      BACKUP_KEEP: ${BACKUP_KEEP:-48}
+    volumes:
+      - ${BACKUP_DIR:?BACKUP_DIR manquant}:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -u
+        while true; do
+          f="/backups/auto-$$(date +%Y%m%d-%H%M).sql.gz"
+          if pg_dump --no-owner | gzip > "$$f.tmp"; then
+            mv "$$f.tmp" "$$f"
+            echo "Sauvegarde OK : $$f"
+          else
+            rm -f "$$f.tmp"
+            echo "ECHEC de la sauvegarde" >&2
+          fi
+          ls -1t /backups/auto-*.sql.gz 2>/dev/null | tail -n +$$((BACKUP_KEEP + 1)) | xargs -r rm -f
+          sleep "$$BACKUP_INTERVAL_SECONDS"
+        done
+    mem_limit: 128m
