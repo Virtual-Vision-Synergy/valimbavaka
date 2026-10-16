@@ -1,0 +1,103 @@
+name: Reopen ticket closed by a PR merge (-> In Test)
+
+# Les PR mergees dans develop (branche par defaut) ferment automatiquement les
+# tickets lies, et le workflow du Project "Item closed" les passe en Done avant
+# que la testeuse ne les ait verifies. Cette Action detecte une fermeture faite
+# par une PR (ou un commit), rouvre le ticket et le remet en In Test.
+# Une fermeture manuelle (bouton Close de la testeuse) n'est pas touchee.
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  reopen-to-in-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Reopen and move to In Test on Project #15
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_PAT }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_NODE_ID: ${{ github.event.issue.node_id }}
+        run: |
+          set -euo pipefail
+          PROJECT_ID="PVT_kwDODDh3Rc4BiOEr"
+          STATUS_FIELD_ID="PVTSSF_lADODDh3Rc4BiOErzhhG6I4"
+
+          # 1. Qui a ferme le ticket ? PullRequest/Commit = merge, vide = clic manuel.
+          CLOSER=$(gh api graphql -f query='
+            query($id: ID!) {
+              node(id: $id) {
+                ... on Issue {
+                  timelineItems(itemTypes: [CLOSED_EVENT], last: 1) {
+                    nodes { ... on ClosedEvent { closer { __typename ... on PullRequest { number } } } }
+                  }
+                }
+              }
+            }' -f id="$ISSUE_NODE_ID" \
+            --jq '.data.node.timelineItems.nodes[0].closer | if . == null then "" else "\(.__typename) \(.number // "")" end')
+
+          if [ -z "$CLOSER" ]; then
+            echo "Fermeture manuelle : rien a faire."
+            exit 0
+          fi
+          echo "Ferme par : $CLOSER"
+
+          # 2. Element du ticket dans le Project #15
+          ITEM_ID=$(gh api graphql -f query='
+            query($id: ID!) {
+              node(id: $id) {
+                ... on Issue { projectItems(first: 10) { nodes { id project { id } } } }
+              }
+            }' -f id="$ISSUE_NODE_ID" \
+            --jq ".data.node.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id")
+          if [ -z "$ITEM_ID" ]; then
+            echo "Ticket absent du Project #15 : rien a faire."
+            exit 0
+          fi
+
+          # 3. Option "In Test" lue par son nom (pas d'ID en dur)
+          IN_TEST_ID=$(gh api graphql -f query='
+            query($id: ID!) {
+              node(id: $id) { ... on ProjectV2SingleSelectField { options { id name } } }
+            }' -f id="$STATUS_FIELD_ID" \
+            --jq '.data.node.options[] | select(.name == "In Test") | .id')
+
+          set_in_test() {
+            gh api graphql --silent -f query='
+              mutation($p: ID!, $i: ID!, $f: ID!, $o: String!) {
+                updateProjectV2ItemFieldValue(input: {
+                  projectId: $p, itemId: $i, fieldId: $f,
+                  value: { singleSelectOptionId: $o }
+                }) { projectV2Item { id } }
+              }' -f p="$PROJECT_ID" -f i="$ITEM_ID" -f f="$STATUS_FIELD_ID" -f o="$IN_TEST_ID"
+          }
+          current_status() {
+            gh api graphql -f query='
+              query($i: ID!) {
+                node(id: $i) { ... on ProjectV2Item {
+                  fieldValueByName(name: "Status") { ... on ProjectV2ItemFieldSingleSelectValue { name } }
+                } }
+              }' -f i="$ITEM_ID" --jq '.data.node.fieldValueByName.name'
+          }
+
+          # 4. Rouvrir, puis laisser le workflow du Project "Item reopened"
+          #    (-> In Progress) passer avant d'imposer In Test.
+          gh api --silent -X PATCH "repos/$REPO/issues/$ISSUE_NUMBER" -f state=open
+          sleep 15
+          set_in_test
+          # Garde-fou : si un workflow du Project a repassé la carte en Done
+          # (et donc refermé le ticket via "Auto-close issue"), on corrige.
+          for _ in 1 2 3; do
+            sleep 10
+            STATE=$(gh api "repos/$REPO/issues/$ISSUE_NUMBER" --jq .state)
+            [ "$STATE" = "closed" ] && gh api --silent -X PATCH "repos/$REPO/issues/$ISSUE_NUMBER" -f state=open
+            [ "$STATE" = "open" ] && [ "$(current_status)" = "In Test" ] && break
+            set_in_test
+          done
+          echo "Statut final : $(current_status)"
+
+          gh api --silent "repos/$REPO/issues/$ISSUE_NUMBER/comments" \
+            -f body="Réouvert automatiquement : fermé par le merge ($CLOSER), remis en **In Test** pour validation QA. La testeuse le fermera après vérification."
