@@ -37,6 +37,11 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      # Premier administrateur : ignore des qu'un administrateur existe en base
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
     # Pas de port publie : le backend n'est joignable que par nginx (service ui), sur /api/.
     mem_limit: ${CORE_MEM_LIMIT:-1g}
 

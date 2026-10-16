@@ -8,29 +8,35 @@ Liquibase est la source de verite unique du schema (`spring.jpa.hibernate.ddl-au
 2. **Jamais modifie une fois merge sur `main`** — Liquibase calcule un checksum par changeset ;
    modifier un fichier deja applique casse la synchro pour toute l'equipe. Besoin de corriger ?
    Nouveau fichier, nouveau changeset.
-3. Nommage : `<sequence>__<feature>__<description-kebab-case>.sql`
-    - `sequence` : 4 chiffres zero-paddes, strictement croissants (`0001`, `0002`, ...).
-    - `feature` : le package feature concerne (`auth`, `stock`, `order`...) ou `core` pour le transverse.
-    - `description` : kebab-case, explicite.
-    - Exemple : `0001__auth__create-users-table.sql`
-4. Chaque fichier est un changelog SQL formate Liquibase avec un `changeSet` unique et un
-   `rollback` explicite.
+3. Nommage (celui deja en place dans le depot) : `<AAAA_MM_JJ>-<NN>-changelog.sql`, declare
+   explicitement dans `db.changelog-master.yaml`. Identifiants de changeset :
+   `<auteur>:<AAAA_MM_JJ>-<NN>-<n>` (ex. `mana:2026_10_15-01-1`). La date evite les collisions
+   entre branches ; un fichier regroupe les changesets d'un meme ticket.
+4. Chaque changeset porte un `-- comment:` (ticket + intention) et un `-- rollback` explicite.
+5. Conventions SQL (convention VVS section 8.2) : tables au pluriel en snake_case, booleens
+   `is_`/`has_`, contraintes `pk_`/`uq_`/`fk_`/`ck_`, index `ix_<table>_<colonnes>`,
+   instants en `TIMESTAMPTZ`, auteurs d'audit en `UUID`.
 
 ## Gabarit
 
-    --liquibase formatted sql
+    -- liquibase formatted sql
 
-    --changeset <auteur>:0001__auth__create-users-table
-    --comment: Table users pour la feature auth
-    CREATE TABLE users (
-        id              UUID PRIMARY KEY,
-        email           VARCHAR(255) NOT NULL UNIQUE,
-        password_hash   VARCHAR(255) NOT NULL,
-        status          VARCHAR(32)  NOT NULL DEFAULT 'ACTIVE',
-        created_at      TIMESTAMP    NOT NULL DEFAULT now(),
-        updated_at      TIMESTAMP    NOT NULL DEFAULT now()
+    -- changeset <auteur>:2026_10_15-01-1
+    -- comment: STK-01 - table des produits
+    CREATE TABLE products
+    (
+        id         UUID         NOT NULL,
+        name       VARCHAR(100) NOT NULL,
+        is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ  NOT NULL,
+        updated_at TIMESTAMPTZ  NOT NULL,
+        created_by UUID,
+        updated_by UUID,
+        version    BIGINT       NOT NULL DEFAULT 0,
+        CONSTRAINT pk_products PRIMARY KEY (id),
+        CONSTRAINT uq_products_name UNIQUE (name)
     );
-    --rollback DROP TABLE users;
+    -- rollback DROP TABLE products;
 
 ## Avant d'ouvrir une PR
 

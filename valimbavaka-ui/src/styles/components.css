@@ -63,3 +63,4 @@
 .badge-success { background: var(--succes-light); color: var(--succes-dark); }
 .badge-muted { background: var(--fond-dark); color: var(--gris-moyen); }
 .badge-secondary { background: var(--secondary-xlight); color: var(--secondary-dark); }
+.badge-warning { background: var(--warning-light); color: var(--warning-dark); }

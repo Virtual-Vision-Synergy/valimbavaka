@@ -3,14 +3,20 @@ import { Routes } from '@angular/router';
 export const USER_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () => import('./components/user-list/user-list').then((m) => m.UserList),
+    title: 'Utilisateurs · Valimbavaka',
+    loadComponent: () =>
+      import('./pages/user-list-page/user-list-page').then((m) => m.UserListPage),
   },
   {
     path: 'new',
-    loadComponent: () => import('./components/user-form/user-form').then((m) => m.UserForm),
+    title: 'Nouvel utilisateur · Valimbavaka',
+    loadComponent: () =>
+      import('./pages/user-form-page/user-form-page').then((m) => m.UserFormPage),
   },
   {
     path: ':id/edit',
-    loadComponent: () => import('./components/user-form/user-form').then((m) => m.UserForm),
+    title: 'Modifier un utilisateur · Valimbavaka',
+    loadComponent: () =>
+      import('./pages/user-form-page/user-form-page').then((m) => m.UserFormPage),
   },
 ];
