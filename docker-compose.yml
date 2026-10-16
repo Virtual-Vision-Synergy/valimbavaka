@@ -1,21 +1,61 @@
+# Stack de dev local. Base Docker seule : `docker compose up -d postgres` (localhost:5433).
+# Stack complete (images construites depuis les sources) : `docker compose up -d --build`
+#   -> front http://localhost:4200 (nginx relaie /api/ vers core), back http://localhost:8080
+# Ce fichier n'est PAS celui de deploy/ (images ghcr.io, staging/prod).
+#
+# La base Docker est independante de ta base locale (PostgreSQL natif/WSL sur 5432, variables
+# DB_* du .env) : identifiants propres (DOCKER_DB_*) et port hote 5433 pour ne pas lui voler le 5432.
 services:
   postgres:
     image: postgres:16-alpine
     container_name: valimbavaka-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_NAME:-valimbavaka}
-      POSTGRES_USER: ${DB_USERNAME:-valimbavaka}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-valimbavaka}
+      POSTGRES_DB: ${DOCKER_DB_NAME:-valimbavaka}
+      POSTGRES_USER: ${DOCKER_DB_USERNAME:-valimbavaka}
+      POSTGRES_PASSWORD: ${DOCKER_DB_PASSWORD:-valimbavaka}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${DOCKER_DB_PORT:-5433}:5432"
     volumes:
       - valimbavaka-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-valimbavaka} -d ${DB_NAME:-valimbavaka}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+  core:
+    build: ./valimbavaka-core
+    container_name: valimbavaka-core
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      # Dans le reseau Docker, la base est le service "postgres" sur son port interne.
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DOCKER_DB_NAME:-valimbavaka}
+      DB_USERNAME: ${DOCKER_DB_USERNAME:-valimbavaka}
+      DB_PASSWORD: ${DOCKER_DB_PASSWORD:-valimbavaka}
+      # Vides = valeurs de dev du profil local (application-local.properties).
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@valimbavaka.mg}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin-local-a-changer}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-Admin}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-Local}
+    ports:
+      - "${CORE_PORT:-8080}:8080"
+
+  ui:
+    build: ./valimbavaka-ui
+    container_name: valimbavaka-ui
+    restart: unless-stopped
+    # nginx.conf relaie /api/ vers http://core:8080 : le nom du service doit rester "core".
+    depends_on:
+      - core
+    ports:
+      - "${UI_PORT:-4200}:80"
 
 volumes:
   valimbavaka-postgres-data:

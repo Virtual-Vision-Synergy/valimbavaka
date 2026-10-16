@@ -18,5 +18,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/valimbavaka-ui/browser /usr/share/nginx/html
 
 EXPOSE 80
+# 127.0.0.1 et non localhost : dans alpine, localhost resout d'abord en ::1 alors que nginx
+# n'ecoute qu'en IPv4 (listen 80) -> healthcheck toujours "unhealthy".
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
-  CMD wget -q --spider http://localhost/ || exit 1
+  CMD wget -q --spider http://127.0.0.1/ || exit 1
