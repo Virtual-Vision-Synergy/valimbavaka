@@ -56,7 +56,7 @@ class UserServiceImplTest {
     @Test
     void createInitialAdministratorIfMissing_administratorExists_createsNothing() {
         // given
-        when(userRepository.existsByRoleName(RoleName.ADMINISTRATEUR)).thenReturn(true);
+        when(userRepository.existsByRoleName(RoleName.ADMIN)).thenReturn(true);
         // when
         boolean created = sut.createInitialAdministratorIfMissing(validAccount());
         // then
@@ -67,7 +67,7 @@ class UserServiceImplTest {
     @Test
     void createInitialAdministratorIfMissing_variablesMissing_refusesStartup() {
         // given
-        when(userRepository.existsByRoleName(RoleName.ADMINISTRATEUR)).thenReturn(false);
+        when(userRepository.existsByRoleName(RoleName.ADMIN)).thenReturn(false);
         var emptyAccount = new AdminAccountProperties("", "", "", "");
         // when / then
         assertThatThrownBy(() -> sut.createInitialAdministratorIfMissing(emptyAccount))
@@ -80,7 +80,7 @@ class UserServiceImplTest {
     @Test
     void createInitialAdministratorIfMissing_passwordTooShort_neverLeaksPasswordInMessage() {
         // given
-        when(userRepository.existsByRoleName(RoleName.ADMINISTRATEUR)).thenReturn(false);
+        when(userRepository.existsByRoleName(RoleName.ADMIN)).thenReturn(false);
         var account = new AdminAccountProperties("admin@valimbavaka.mg", "secret-court", "Rasoa", "Rakoto");
         // when / then
         assertThatThrownBy(() -> sut.createInitialAdministratorIfMissing(account))
@@ -91,8 +91,8 @@ class UserServiceImplTest {
     @Test
     void createInitialAdministratorIfMissing_validVariables_createsAdministratorRequiringPasswordChange() {
         // given
-        when(userRepository.existsByRoleName(RoleName.ADMINISTRATEUR)).thenReturn(false);
-        when(roleRepository.findByName(RoleName.ADMINISTRATEUR)).thenReturn(Optional.of(administratorRole));
+        when(userRepository.existsByRoleName(RoleName.ADMIN)).thenReturn(false);
+        when(roleRepository.findByName(RoleName.ADMIN)).thenReturn(Optional.of(administratorRole));
         when(passwordEncoder.encode(RAW_PASSWORD)).thenReturn(PASSWORD_HASH);
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
         // when

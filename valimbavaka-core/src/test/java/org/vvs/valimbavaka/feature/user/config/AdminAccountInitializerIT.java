@@ -35,7 +35,7 @@ class AdminAccountInitializerIT {
         // when
         var roleNames = roleRepository.findAll().stream().map(Role::getName).toList();
         // then
-        assertThat(roleNames).containsExactlyInAnyOrder(RoleName.ADMINISTRATEUR, RoleName.SELLER,
+        assertThat(roleNames).containsExactlyInAnyOrder(RoleName.ADMIN, RoleName.SELLER,
                 RoleName.DELIVERY_DRIVER);
     }
 
@@ -62,7 +62,7 @@ class AdminAccountInitializerIT {
 
     private List<User> administrators() {
         return userRepository.findAll().stream()
-                .filter(user -> user.getRole().getName() == RoleName.ADMINISTRATEUR)
+                .filter(user -> user.getRole().getName() == RoleName.ADMIN)
                 .toList();
     }
 }

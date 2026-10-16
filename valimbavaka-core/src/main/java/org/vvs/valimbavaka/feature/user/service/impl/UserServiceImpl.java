@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public boolean createInitialAdministratorIfMissing(AdminAccountProperties account) {
-        if (userRepository.existsByRoleName(RoleName.ADMINISTRATEUR)) {
+        if (userRepository.existsByRoleName(RoleName.ADMIN)) {
             return false;
         }
         var violations = account.violations();
@@ -108,9 +108,9 @@ public class UserServiceImpl implements UserService {
         }
         var profile = new UserProfile(account.email(), account.firstName(), account.lastName());
         var administrator = User.createWithTemporaryPassword(profile, passwordEncoder.encode(account.password()),
-                roleRepository.findByName(RoleName.ADMINISTRATEUR)
+                roleRepository.findByName(RoleName.ADMIN)
                         .orElseThrow(() -> new AdminAccountConfigurationException(
-                                "Rôle ADMINISTRATEUR absent : vérifier les migrations Liquibase")));
+                                "Rôle ADMIN absent : vérifier les migrations Liquibase")));
         User saved = userRepository.save(administrator);
         log.info("Administrateur initial {} créé, changement de mot de passe requis", saved.getId());
         return true;

@@ -1,5 +1,5 @@
 /** Rôles métier (SYS-05), valeurs identiques au JSON du backend. */
-export type RoleName = 'ADMINISTRATEUR' | 'SELLER' | 'DELIVERY_DRIVER';
+export type RoleName = 'ADMIN' | 'SELLER' | 'DELIVERY_DRIVER';
 
 export interface RoleRDto {
   id: string;

@@ -26,7 +26,7 @@ class ReferentialServiceImplIT {
         var page = sut.getSalesChannels(FIRST_PAGE);
         // then
         assertThat(page.items()).extracting(SalesChannelRDto::code)
-                .containsExactlyInAnyOrder("BOUTIQUE", "FACEBOOK", "TELEPHONE", "LIVRAISON");
+                .containsExactlyInAnyOrder("STORE", "FACEBOOK", "PHONE", "DELIVERY");
     }
 
     @Test
@@ -44,7 +44,7 @@ class ReferentialServiceImplIT {
         var page = sut.getStockLocations(FIRST_PAGE);
         // then
         assertThat(page.items()).extracting(StockLocationRDto::code)
-                .containsExactlyInAnyOrder("ENTREPOT", "BOUTIQUE", "LIVRAISON", "SALON");
+                .containsExactlyInAnyOrder("WAREHOUSE", "STORE", "DELIVERY", "TRADE_SHOW");
         assertThat(page.page()).isEqualTo(1);
     }
 }

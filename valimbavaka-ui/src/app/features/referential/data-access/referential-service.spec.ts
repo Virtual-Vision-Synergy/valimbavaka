@@ -17,7 +17,7 @@ describe('ReferentialService', () => {
   afterEach(() => httpMock.verify());
 
   it('should list sales channels sorted by label', () => {
-    const channels: SalesChannelRDto[] = [{ id: '1', code: 'BOUTIQUE', label: 'Boutique' }];
+    const channels: SalesChannelRDto[] = [{ id: '1', code: 'STORE', label: 'Boutique' }];
     let result: SalesChannelRDto[] | undefined;
     TestBed.inject(ReferentialService)
       .listSalesChannels()
