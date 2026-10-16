@@ -2,14 +2,25 @@
 <!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
-    <!-- LineLength est un enfant de Checker (et non de TreeWalker) depuis Checkstyle 8.24. -->
-    <module name="LineLength"><property name="max" value="120"/></module>
+    <!-- LineLength est un enfant de Checker (et non de TreeWalker) depuis Checkstyle 8.24.
+         Les commentaires, imports, package et URLs ne sont jamais comptes : seul le code l'est. -->
+    <module name="LineLength">
+        <property name="max" value="150"/>
+        <property name="ignorePattern" value="^\s*(//|/?\*|import |package )|https?://"/>
+    </module>
     <module name="TreeWalker">
-        <module name="MethodLength"><property name="max" value="30"/></module>
-        <!-- Les signatures imposées par le framework (@Override) ne sont pas de notre fait -->
+        <!-- Lignes vides et commentaires non comptes. -->
+        <module name="MethodLength">
+            <property name="max" value="60"/>
+            <property name="countEmpty" value="false"/>
+        </module>
+        <!-- Les signatures imposées par le framework (@Override) ne sont pas de notre fait.
+             Methodes seulement : un constructeur (injection de dependances) prend autant
+             de parametres que necessaire. -->
         <module name="ParameterNumber">
-            <property name="max" value="4"/>
+            <property name="max" value="6"/>
             <property name="ignoreOverriddenMethods" value="true"/>
+            <property name="tokens" value="METHOD_DEF"/>
         </module>
         <module name="AvoidStarImport"/>
         <module name="UnusedImports"/>

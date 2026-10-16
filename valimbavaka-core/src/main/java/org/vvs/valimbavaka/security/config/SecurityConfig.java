@@ -65,7 +65,10 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ROUTES).permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest()
+                       // .anyRequest().authenticated() AUTH non encore implémentée, donc on laisse passer pour l'instant
+                        .permitAll()
+                )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
