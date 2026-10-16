@@ -56,8 +56,8 @@ describe('RoleService', () => {
   it('should return the business roles from the first page', () => {
     const roles: RoleRDto[] = [
       { id: '1', name: 'ADMINISTRATEUR', description: 'Administrateur' },
-      { id: '2', name: 'LIVREUR', description: 'Livreur' },
-      { id: '3', name: 'VENDEUSE', description: 'Vendeuse' },
+      { id: '2', name: 'DELIVERY_DRIVER', description: 'Livreur' },
+      { id: '3', name: 'SELLER', description: 'Vendeuse' },
     ];
     let result: RoleRDto[] | undefined;
     TestBed.inject(RoleService)
@@ -68,6 +68,6 @@ describe('RoleService', () => {
       .expectOne((req) => req.url === '/api/v1/roles')
       .flush({ items: roles, page: 1, pageSize: 100, totalCount: 3, totalPages: 1 });
 
-    expect(result?.map((role) => role.name)).toEqual(['ADMINISTRATEUR', 'LIVREUR', 'VENDEUSE']);
+    expect(result?.map((role) => role.name)).toEqual(['ADMINISTRATEUR', 'DELIVERY_DRIVER', 'SELLER']);
   });
 });

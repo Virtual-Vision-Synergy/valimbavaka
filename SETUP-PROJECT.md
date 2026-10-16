@@ -221,7 +221,7 @@ Règles à retenir (détail dans `resources/convention-dev-VVS-V2.1.pdf`) :
 
 ### 3.1 Premier démarrage — compte administrateur (SYS-05)
 
-Les rôles métier (`ADMINISTRATEUR`, `VENDEUSE`, `LIVREUR`) et les référentiels (canaux de vente, gammes, emplacements de stock) sont créés par Liquibase. Le premier compte administrateur, lui, vient de l'environnement — jamais d'un fichier versionné :
+Les rôles métier (`ADMINISTRATEUR`, `SELLER`, `DELIVERY_DRIVER`) et les référentiels (canaux de vente, gammes, emplacements de stock) sont créés par Liquibase. Le premier compte administrateur, lui, vient de l'environnement — jamais d'un fichier versionné :
 
 ```properties
 # .env (local) ou variables d'environnement (staging / prod, voir deploy/env.example)

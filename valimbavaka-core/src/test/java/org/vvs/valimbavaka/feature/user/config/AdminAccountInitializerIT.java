@@ -35,8 +35,8 @@ class AdminAccountInitializerIT {
         // when
         var roleNames = roleRepository.findAll().stream().map(Role::getName).toList();
         // then
-        assertThat(roleNames).containsExactlyInAnyOrder(RoleName.ADMINISTRATEUR, RoleName.VENDEUSE,
-                RoleName.LIVREUR);
+        assertThat(roleNames).containsExactlyInAnyOrder(RoleName.ADMINISTRATEUR, RoleName.SELLER,
+                RoleName.DELIVERY_DRIVER);
     }
 
     @Test
