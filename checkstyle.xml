@@ -6,10 +6,13 @@
     <module name="LineLength"><property name="max" value="120"/></module>
     <module name="TreeWalker">
         <module name="MethodLength"><property name="max" value="30"/></module>
-        <!-- Les signatures imposées par le framework (@Override) ne sont pas de notre fait -->
+        <!-- Les signatures imposées par le framework (@Override) ne sont pas de notre fait.
+             Methodes seulement : un constructeur (injection de dependances) prend autant
+             de parametres que necessaire. -->
         <module name="ParameterNumber">
             <property name="max" value="4"/>
             <property name="ignoreOverriddenMethods" value="true"/>
+            <property name="tokens" value="METHOD_DEF"/>
         </module>
         <module name="AvoidStarImport"/>
         <module name="UnusedImports"/>
