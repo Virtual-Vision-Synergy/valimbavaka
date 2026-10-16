@@ -1,6 +1,8 @@
 ## Ticket
 Refs #<issue-number>
 
+**Branche cible : `develop`** (jamais `main`). `main` ne reçoit que la PR de release `develop` → `main`, après validation QA.
+
 <!-- Use "Refs #10", not "Closes #10" — the issue closes manually once QA
      verifies the merged change, not automatically on merge. See the
      workflow lifecycle doc for why. -->
