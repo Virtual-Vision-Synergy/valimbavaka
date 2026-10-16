@@ -96,6 +96,47 @@
         }
       </div>
 
+      @if (isSeller()) {
+        <div class="field">
+          <label for="salesChannelId">Canal de vente</label>
+          <select
+            id="salesChannelId"
+            class="input"
+            formControlName="salesChannelId"
+            aria-describedby="salesChannelId-error"
+          >
+            <option value="" disabled>Choisir un canal</option>
+            @for (channel of salesChannels(); track channel.id) {
+              <option [value]="channel.id">{{ channel.label }}</option>
+            }
+          </select>
+          @if (hasError('salesChannelId')) {
+            <span id="salesChannelId-error" class="field-error" aria-live="polite">
+              {{ serverError('salesChannelId') ?? 'Le canal de vente est obligatoire.' }}
+            </span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="commissionRate">Taux de commission (%)</label>
+          <input
+            id="commissionRate"
+            class="input"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            formControlName="commissionRate"
+            aria-describedby="commissionRate-error"
+          />
+          @if (hasError('commissionRate')) {
+            <span id="commissionRate-error" class="field-error" aria-live="polite">
+              {{ serverError('commissionRate') ?? 'Le taux doit être compris entre 0 et 100.' }}
+            </span>
+          }
+        </div>
+      }
+
       @if (isEdit()) {
         <div class="field checkbox">
           <input id="active" type="checkbox" formControlName="active" />

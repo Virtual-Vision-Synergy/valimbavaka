@@ -1,18 +1,23 @@
 package org.vvs.valimbavaka.feature.user.service.impl;
 
+import java.math.BigDecimal;
 import java.util.Set;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
+import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
 import org.vvs.valimbavaka.feature.user.config.AdminAccountProperties;
 import org.vvs.valimbavaka.feature.user.domain.Role;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
+import org.vvs.valimbavaka.feature.user.domain.SellerTerms;
 import org.vvs.valimbavaka.feature.user.domain.User;
 import org.vvs.valimbavaka.feature.user.domain.UserProfile;
 import org.vvs.valimbavaka.feature.user.dto.CreateUserWDto;
@@ -40,13 +45,15 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final ReferentialService referentialService;
 
     public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper, PasswordEncoder passwordEncoder) {
+            UserMapper userMapper, PasswordEncoder passwordEncoder, ReferentialService referentialService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.referentialService = referentialService;
     }
 
     @Override
@@ -67,7 +74,8 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException(EMAIL_ALREADY_USED);
         }
         var profile = new UserProfile(request.email(), request.firstName(), request.lastName());
-        var user = User.create(profile, passwordEncoder.encode(request.password()), findRole(request.roleId()));
+        var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
+        var user = User.create(profile, passwordEncoder.encode(request.password()), findRole(request.roleId()), terms);
         User saved = userRepository.save(user);
         log.info("Utilisateur {} créé", saved.getId());
         return userMapper.toRDto(saved);
@@ -81,7 +89,8 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException(EMAIL_ALREADY_USED);
         }
         var profile = new UserProfile(request.email(), request.firstName(), request.lastName());
-        user.update(profile, findRole(request.roleId()), request.active());
+        var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
+        user.update(profile, findRole(request.roleId()), terms, request.active());
         return userMapper.toRDto(user);
     }
 
@@ -123,6 +132,13 @@ public class UserServiceImpl implements UserService {
     private Role findRole(UUID roleId) {
         return roleRepository.findById(roleId)
                 .orElseThrow(() -> new NotFoundException("Rôle introuvable : " + roleId));
+    }
+
+    private SellerTerms sellerTerms(@Nullable UUID salesChannelId, @Nullable BigDecimal commissionRate) {
+        if (salesChannelId != null && !referentialService.isActiveSalesChannel(salesChannelId)) {
+            throw new BusinessException("Canal de vente introuvable : " + salesChannelId);
+        }
+        return new SellerTerms(salesChannelId, commissionRate);
     }
 
     private static NotFoundException userNotFound(UUID userId) {

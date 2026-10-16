@@ -7,6 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,8 +18,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
+import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
 import org.vvs.valimbavaka.feature.user.config.AdminAccountProperties;
 import org.vvs.valimbavaka.feature.user.domain.Role;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
@@ -44,13 +47,17 @@ class UserServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
     @Mock
+    private ReferentialService referentialService;
+    @Mock
     private Role administratorRole;
+    @Mock
+    private Role sellerRole;
 
     private UserServiceImpl sut;
 
     @BeforeEach
     void setUp() {
-        sut = new UserServiceImpl(userRepository, roleRepository, userMapper, passwordEncoder);
+        sut = new UserServiceImpl(userRepository, roleRepository, userMapper, passwordEncoder, referentialService);
     }
 
     @Test
@@ -111,10 +118,74 @@ class UserServiceImplTest {
     void createUser_emailAlreadyUsed_throwsConflict() {
         // given
         var request = new CreateUserWDto(" Vendeuse@Valimbavaka.mg ", "mot-de-passe", "Hery", "Rabe",
-                UUID.randomUUID());
+                UUID.randomUUID(), null, null);
         when(userRepository.existsByEmail("vendeuse@valimbavaka.mg")).thenReturn(true);
         // when / then
         assertThatThrownBy(() -> sut.createUser(request)).isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void createUser_unknownSalesChannel_throwsBusinessException() {
+        // given
+        var salesChannelId = UUID.randomUUID();
+        var request = new CreateUserWDto("vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe",
+                UUID.randomUUID(), salesChannelId, new BigDecimal("5.00"));
+        when(referentialService.isActiveSalesChannel(salesChannelId)).thenReturn(false);
+        // when / then
+        assertThatThrownBy(() -> sut.createUser(request)).isInstanceOf(BusinessException.class)
+                .hasMessageContaining("Canal de vente introuvable");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void createUser_sellerWithChannelAndCommission_savesSellerTerms() {
+        // given
+        var salesChannelId = UUID.randomUUID();
+        var roleId = UUID.randomUUID();
+        var request = new CreateUserWDto("vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId,
+                salesChannelId, new BigDecimal("7.50"));
+        when(userRepository.existsByEmail("vendeuse@valimbavaka.mg")).thenReturn(false);
+        when(referentialService.isActiveSalesChannel(salesChannelId)).thenReturn(true);
+        when(roleRepository.findById(roleId)).thenReturn(Optional.of(sellerRole));
+        when(sellerRole.getName()).thenReturn(RoleName.SELLER);
+        when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // when
+        sut.createUser(request);
+        // then
+        var saved = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(saved.capture());
+        assertThat(saved.getValue())
+                .extracting(User::getSalesChannelId, User::getCommissionRate)
+                .containsExactly(salesChannelId, new BigDecimal("7.50"));
+    }
+
+    @Test
+    void createUser_sellerWithoutCommission_throwsBusinessException() {
+        // given
+        var roleId = UUID.randomUUID();
+        var request = new CreateUserWDto("vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId,
+                null, null);
+        when(roleRepository.findById(roleId)).thenReturn(Optional.of(sellerRole));
+        when(sellerRole.getName()).thenReturn(RoleName.SELLER);
+        when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
+        // when / then
+        assertThatThrownBy(() -> sut.createUser(request)).isInstanceOf(BusinessException.class)
+                .hasMessageContaining("obligatoires pour une vendeuse");
+    }
+
+    @Test
+    void createUser_administratorWithCommission_throwsBusinessException() {
+        // given
+        var roleId = UUID.randomUUID();
+        var request = new CreateUserWDto("admin@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId,
+                null, new BigDecimal("5.00"));
+        when(roleRepository.findById(roleId)).thenReturn(Optional.of(administratorRole));
+        when(administratorRole.getName()).thenReturn(RoleName.ADMIN);
+        when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
+        // when / then
+        assertThatThrownBy(() -> sut.createUser(request)).isInstanceOf(BusinessException.class)
+                .hasMessageContaining("réservés aux vendeuses");
     }
 
     @Test

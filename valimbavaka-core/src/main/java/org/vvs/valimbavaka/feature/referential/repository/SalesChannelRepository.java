@@ -10,4 +10,6 @@ import org.vvs.valimbavaka.feature.referential.domain.SalesChannel;
 public interface SalesChannelRepository extends JpaRepository<SalesChannel, UUID> {
 
     Page<SalesChannel> findByActiveTrue(Pageable pageable);
+
+    boolean existsByIdAndActiveTrue(UUID id);
 }

@@ -8,12 +8,21 @@ export interface RoleRDto {
   description: string | null;
 }
 
+export interface SalesChannelRDto {
+  id: string;
+  code: string;
+  label: string;
+}
+
 export interface UserRDto {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: RoleRDto;
+  salesChannelId: string | null;
+  /** Pourcentage (0 à 100) ; renseigné uniquement pour une vendeuse. */
+  commissionRate: number | null;
   active: boolean;
   passwordChangeRequired: boolean;
   createdAt: string;
@@ -26,6 +35,8 @@ export interface CreateUserWDto {
   firstName: string;
   lastName: string;
   roleId: string;
+  salesChannelId: string | null;
+  commissionRate: number | null;
 }
 
 export interface UpdateUserWDto {
@@ -33,6 +44,8 @@ export interface UpdateUserWDto {
   firstName: string;
   lastName: string;
   roleId: string;
+  salesChannelId: string | null;
+  commissionRate: number | null;
   active: boolean;
 }
 

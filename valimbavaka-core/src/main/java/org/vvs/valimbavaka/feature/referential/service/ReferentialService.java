@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.referential.service;
 
+import java.util.UUID;
+
 import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
 import org.vvs.valimbavaka.feature.referential.dto.SalesChannelRDto;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
@@ -14,4 +16,7 @@ public interface ReferentialService {
     PageResponse<ProductRangeRDto> getProductRanges(PageQuery query);
 
     PageResponse<StockLocationRDto> getStockLocations(PageQuery query);
+
+    /** Vrai si le canal de vente existe et est actif (contrôle de référence pour les autres features). */
+    boolean isActiveSalesChannel(UUID salesChannelId);
 }

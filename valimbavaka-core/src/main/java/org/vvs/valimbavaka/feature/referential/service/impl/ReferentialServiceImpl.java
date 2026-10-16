@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.referential.service.impl;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,11 @@ public class ReferentialServiceImpl implements ReferentialService {
     public PageResponse<StockLocationRDto> getStockLocations(PageQuery query) {
         return PageResponse.from(stockLocationRepository.findByActiveTrue(pageable(query))
                 .map(referentialMapper::toRDto));
+    }
+
+    @Override
+    public boolean isActiveSalesChannel(UUID salesChannelId) {
+        return salesChannelRepository.existsByIdAndActiveTrue(salesChannelId);
     }
 
     private static Pageable pageable(PageQuery query) {
