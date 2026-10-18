@@ -1,3 +1,5 @@
 .idea/
 tmp
 .env
+deploy/.env*
+!deploy/env.example

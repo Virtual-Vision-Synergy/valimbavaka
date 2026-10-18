@@ -1,0 +1,58 @@
+# Base commune a tous les environnements deployes (qa, staging, prod).
+# A combiner avec docker-compose.<env>.yml (ports, sauvegardes) et un fichier .env.<env>.
+# Chaque environnement tourne sous son propre nom de projet Docker (valimbavaka-<env>) :
+# conteneurs, reseau et volume Postgres sont donc totalement separes.
+#
+# Ce fichier n'est PAS le docker-compose.yml de la racine (Postgres seul, pour le dev local).
+
+name: valimbavaka
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:?DB_NAME manquant dans le fichier .env}
+      POSTGRES_USER: ${DB_USERNAME:?DB_USERNAME manquant}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD manquant}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    mem_limit: ${DB_MEM_LIMIT:-512m}
+
+  core:
+    image: ghcr.io/virtual-vision-synergy/valimbavaka-core:${TAG:?TAG manquant}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-staging}
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Premier administrateur : ignore des qu'un administrateur existe en base
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
+    # Pas de port publie : le backend n'est joignable que par nginx (service ui), sur /api/.
+    mem_limit: ${CORE_MEM_LIMIT:-1g}
+
+  ui:
+    image: ghcr.io/virtual-vision-synergy/valimbavaka-ui:${TAG}
+    restart: unless-stopped
+    depends_on:
+      - core
+    ports:
+      - "${HTTP_PORT:?HTTP_PORT manquant}:80"
+    mem_limit: 128m
+
+volumes:
+  db-data:

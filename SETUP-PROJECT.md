@@ -1,6 +1,6 @@
 # SETUP-PROJECT — Mise en place de l'environnement de développement VVS
 
-Ce guide met en place, pour toute l'équipe, la base de développement de **valimbavaka-core** (backend) et **valimbavaka-ui** (frontend) conforme à [`resources/Convention_Dev_VVS_V2.md`](resources/Convention_Dev_VVS_V2.md), avec **Liquibase comme source unique de vérité du schéma de base de données**.
+Ce guide met en place, pour toute l'équipe, la base de développement de **valimbavaka-core** (backend) et **valimbavaka-ui** (frontend) conforme à [`resources/convention-dev-VVS-V2.1.pdf`](resources/convention-dev-VVS-V2.1.pdf), avec **Liquibase comme source unique de vérité du schéma de base de données**.
 
 À suivre une seule fois par développeur (setup initial), puis à chaque fois qu'une nouvelle feature démarre (squelette de dossiers).
 
@@ -12,7 +12,7 @@ Ce guide met en place, pour toute l'équipe, la base de développement de **vali
 |---|---|---|
 | JDK | 21 | `java -version` |
 | Maven | 3.9+ (ou wrapper `./mvnw`) | `mvn -v` |
-| Node.js | 20+ | `node -v` |
+| Node.js | 24 (ou 22.22.3+, exigé par Angular 22) | `node -v` |
 | npm | 11+ | `npm -v` |
 | Docker Desktop | récent | `docker -v` |
 | Git | récent | `git -v` |
@@ -185,603 +185,98 @@ Liquibase est la source de verite unique du schema (`spring.jpa.hibernate.ddl-au
 
 ---
 
-## 3. Squelette backend — Feature-Based Layering (FBL)
+## 3. Architecture backend — Feature-Based Layering (FBL)
 
-Package racine existant : `org.vvs.valimbavaka`. Créer le transverse (`core/`, `security/`, `shared/`) **avant** la première feature métier — c'est le socle que toutes les features utiliseront.
+Package racine : `org.vvs.valimbavaka`. Le transverse (`core/`, `security/`, `shared/`) ne contient aucune logique métier et ne dépend d'aucune feature ; ces règles sont vérifiées par `ArchitectureTest` (ArchUnit) à chaque build.
 
 ```
 org.vvs.valimbavaka
+├── ValimbavakaCoreApplication.java
 ├── core
-│   ├── config      → WebConfig, JpaAuditingConfig
-│   ├── exception   → BaseException, DomainException, ResourceNotFoundException,
-│   │                 UnauthorizedException, ForbiddenException, ConflictException,
-│   │                 GlobalExceptionHandler
-│   └── util
+│   ├── config        ClockConfig, JpaAuditingConfig, WebConfig + CorsProperties (vvs.cors.*)
+│   └── exception     BusinessException (422) ← NotFound (404), Conflict (409), Unauthorized (401),
+│                     Forbidden (403) ; GlobalExceptionHandler → ProblemDetail RFC 9457 + "code"
 ├── security
-│   ├── annotation  → HasPermission
-│   ├── config      → SecurityConfig
-│   ├── entrypoint  → RestAuthenticationEntryPoint
-│   ├── manager     → PermissionManager
-│   └── middleware  → JwtFilter
-└── shared
-    ├── domain       → BaseEntity
-    ├── dto          → ApiResponse, PageResponse
-    └── mapper
+│   ├── config        SecurityConfig (deny by default, chaîne /actuator/health, DelegatingPasswordEncoder)
+│   ├── jwt           JwtFilter (en attente de la feature auth)
+│   ├── handler       RestAuthenticationEntryPoint (401), RestAccessDeniedHandler (403), ProblemDetailWriter
+│   ├── annotation    @HasPermission("users.create")
+│   └── audit         SecurityAuditorAware (created_by / updated_by)
+├── shared
+│   ├── domain        BaseEntity (audit Instant/UUID + @Version ; l'@Id UUIDv7 est dans chaque entité)
+│   └── dto           PageResponse (items, page base 1, pageSize, totalCount, totalPages), PageQuery, SortDirection
+└── feature
+    ├── user          controller · service/impl · domain · repository · dto · mapper · config · exception
+    └── referential   controller · service/impl · domain · repository · dto · mapper
 ```
 
-### 3.1 `shared/dto/ApiResponse.java`
+Règles à retenir (détail dans `resources/convention-dev-VVS-V2.1.pdf`) :
 
-```java
-package org.vvs.valimbavaka.shared.dto;
+- Controllers minces : ils reçoivent et renvoient des DTO (`XxxRDto` / `XxxWDto`, records), sans enveloppe ni `try/catch`.
+- Services : interface + `service/impl`, `@Transactional(readOnly = true)` sur la classe, `@Transactional` sur les écritures.
+- Entités : constructeur `protected`, factory statique, pas de `@Setter`, `@Enumerated(STRING)`, `LAZY`.
+- Listes : `PageQuery` en entrée (tri en liste blanche), `PageResponse` en sortie.
+- Chaque package porte un `package-info.java` `@NullMarked` (JSpecify).
+- Mappers MapStruct : `unmappedTargetPolicy = ERROR`, injection par constructeur.
 
-import java.time.Instant;
+### 3.1 Premier démarrage — compte administrateur (SYS-05)
 
-public record ApiResponse<T>(boolean success, String message, T data, Instant timestamp) {
+Les rôles métier (`ADMIN`, `SELLER`, `DELIVERY_DRIVER`) et les référentiels (canaux de vente, gammes, emplacements de stock) sont créés par Liquibase. Le premier compte administrateur, lui, vient de l'environnement — jamais d'un fichier versionné :
 
-    public static <T> ApiResponse<T> success(T data, String message) {
-        return new ApiResponse<>(true, message, data, Instant.now());
-    }
-
-    public static <T> ApiResponse<T> fail(String message) {
-        return new ApiResponse<>(false, message, null, Instant.now());
-    }
-}
+```properties
+# .env (local) ou variables d'environnement (staging / prod, voir deploy/env.example)
+ADMIN_EMAIL=admin@valimbavaka.mg
+ADMIN_PASSWORD=un-mot-de-passe-provisoire-d-au-moins-15-caracteres
+ADMIN_FIRST_NAME=Prénom
+ADMIN_LAST_NAME=Nom
 ```
 
-### 3.2 `shared/dto/PageResponse.java`
+- Au démarrage, `AdminAccountInitializer` crée ce compte **uniquement si aucun administrateur n'existe** ; il devra changer son mot de passe à la première connexion.
+- Base sans administrateur et variables absentes ou invalides : le démarrage est refusé avec un message qui nomme les variables en cause (jamais la valeur du mot de passe).
+- Une fois le compte créé, les variables peuvent être retirées : elles sont ignorées.
 
-```java
-package org.vvs.valimbavaka.shared.dto;
+### 3.2 Tests
 
-import org.springframework.data.domain.Page;
-
-import java.util.List;
-
-public record PageResponse<T>(List<T> content, int page, int size, long totalElements, int totalPages) {
-
-    public static <T> PageResponse<T> from(Page<T> page) {
-        return new PageResponse<>(
-                page.getContent(), page.getNumber(), page.getSize(),
-                page.getTotalElements(), page.getTotalPages());
-    }
-}
+```
+src/test/java/org/vvs/valimbavaka
+├── ArchitectureTest                 règles FBL (ArchUnit)
+├── ValimbavakaCoreApplicationIT     démarrage + migrations sur base vierge
+├── support/                         @IntegrationTest, TestcontainersConfiguration (postgres:16-alpine)
+├── core/…, shared/…                 tests unitaires du transverse
+└── feature/<feature>/…              miroir des packages main : *Test (unitaires) et *IT (intégration)
 ```
 
-### 3.3 `shared/domain/BaseEntity.java`
-
-```java
-package org.vvs.valimbavaka.shared.domain;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.MappedSuperclass;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.Instant;
-import java.util.UUID;
-
-@MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
-public abstract class BaseEntity {
-
-    @Id
-    @GeneratedValue
-    private UUID id;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private Instant updatedAt;
-
-    public UUID getId() {
-        return id;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public Instant getUpdatedAt() {
-        return updatedAt;
-    }
-}
-```
-
-### 3.4 `core/config/JpaAuditingConfig.java`
-
-```java
-package org.vvs.valimbavaka.common.config;
-
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-
-@Configuration
-@EnableJpaAuditing
-public class JpaAuditingConfig {
-}
-```
-
-### 3.5 `core/config/WebConfig.java`
-
-```java
-package org.vvs.valimbavaka.common.config;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-/** Origines CORS explicites uniquement — jamais de wildcard "*" (convention section 9.3). */
-@Configuration
-public class WebConfig implements WebMvcConfigurer {
-
-    @Value("${vvs.cors.allowed-origins:http://localhost:4200}")
-    private String allowedOrigins;
-
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins(allowedOrigins.split(","))
-                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
-}
-```
-
-### 3.6 `core/exception/*` — hiérarchie + handler global
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-public abstract class BaseException extends RuntimeException {
-    protected BaseException(String message) {
-        super(message);
-    }
-
-    protected BaseException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-/** 400 Bad Request — erreur de validation métier. */
-public class DomainException extends BaseException {
-    public DomainException(String message) {
-        super(message);
-    }
-
-    public DomainException(String message, Throwable cause) {
-        super(message, cause);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-/** 404 Not Found. */
-public class ResourceNotFoundException extends BaseException {
-    public ResourceNotFoundException(String message) {
-        super(message);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-/** 401 Unauthorized — non authentifié. */
-public class UnauthorizedException extends BaseException {
-    public UnauthorizedException(String message) {
-        super(message);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-/** 403 Forbidden — authentifié mais pas autorisé. */
-public class ForbiddenException extends BaseException {
-    public ForbiddenException(String message) {
-        super(message);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-/** 409 Conflict — doublon, contrainte violée. */
-public class ConflictException extends BaseException {
-    public ConflictException(String message) {
-        super(message);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.common.exception;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.vvs.valimbavaka.shared.dto.ApiResponse;
-
-import java.util.stream.Collectors;
-
-/** Point unique de traduction des exceptions en réponses HTTP — les controllers ne font jamais de try/catch. */
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDomain(DomainException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(ex.getMessage()));
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(ex.getMessage()));
-    }
-
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail(ex.getMessage()));
-    }
-
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ApiResponse<Void>> handleForbidden(ForbiddenException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ApiResponse.fail(ex.getMessage()));
-    }
-
-    @ExceptionHandler(ConflictException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail(ex.getMessage()));
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(message));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception ex) {
-        log.error("Erreur non gérée", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.fail("Une erreur inattendue est survenue"));
-    }
-}
-```
-
-### 3.7 `security/*` — deny by default + JWT
-
-```java
-package org.vvs.valimbavaka.security.annotation;
-
-import org.springframework.security.access.prepost.PreAuthorize;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-/** Ex.: {@code @HasPermission("ORDER_WRITE")} sur une méthode de service. */
-@Target({ElementType.METHOD, ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasAuthority('{value}')")
-public @interface HasPermission {
-    String value();
-}
-```
-
-```java
-package org.vvs.valimbavaka.security.manager;
-
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-
-@Component
-public class PermissionManager {
-
-    public boolean hasPermission(String permission) {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            return false;
-        }
-        return authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals(permission));
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.security.entrypoint;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
-import org.vvs.valimbavaka.shared.dto.ApiResponse;
-
-import java.io.IOException;
-
-@Component
-public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
-
-    private final ObjectMapper objectMapper;
-
-    public RestAuthenticationEntryPoint(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                          AuthenticationException authException) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(
-                objectMapper.writeValueAsString(ApiResponse.fail("Authentification requise")));
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.security.middleware;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-
-/** TODO (feature auth) : extraire le JWT du header Authorization, le valider, peupler le SecurityContext. */
-@Component
-public class JwtFilter extends OncePerRequestFilter {
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                     FilterChain filterChain) throws ServletException, IOException {
-        // TODO : lire "Authorization: Bearer <token>", valider, SecurityContextHolder.setAuthentication(...)
-        filterChain.doFilter(request, response);
-    }
-}
-```
-
-```java
-package org.vvs.valimbavaka.security.config;
-
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.vvs.valimbavaka.security.entrypoint.RestAuthenticationEntryPoint;
-import org.vvs.valimbavaka.security.middleware.JwtFilter;
-
-/** Deny by default : toute route est protégée sauf déclaration explicite (convention section 9.2). */
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-public class SecurityConfig {
-
-    private static final String[] PUBLIC_ROUTES = {
-            "/api/v1/auth/login",
-            "/api/v1/auth/register",
-            "/api/v1/auth/forgot-password"
-    };
-
-    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    private final JwtFilter jwtFilter;
-
-    public SecurityConfig(RestAuthenticationEntryPoint restAuthenticationEntryPoint, JwtFilter jwtFilter) {
-        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
-        this.jwtFilter = jwtFilter;
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> { })
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(handler -> handler.authenticationEntryPoint(restAuthenticationEntryPoint))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ROUTES).permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    // Nécessaire pour que le "{value}" de @HasPermission soit résolu (Spring Security 6.4+).
-    @Bean
-    static AnnotationTemplateExpressionDefaults templateExpressionDefaults() {
-        return new AnnotationTemplateExpressionDefaults();
-    }
-}
-```
-
-> Ce squelette sécurité est transverse et volontairement minimal (deny-by-default + filtre JWT en attente d'implémentation). La feature `auth` elle-même (User, AuthService, login, génération du JWT...) est une feature métier à créer séparément selon le patron de la section 4.2 de la convention — elle n'est pas du setup transverse.
+- `mvn test` : tests unitaires (Mockito, < 100 ms, pas de base). `mvn verify` : + tests `*IT` sur PostgreSQL via Testcontainers (**Docker requis**) + Checkstyle si `-Dcheckstyle.skip=false`.
+- Nom des tests : `methode_scenario_resultatAttendu`, sujet testé nommé `sut`, blocs `// given / when / then`.
 
 ---
 
-## 4. Squelette frontend — Angular Feature-Based
+## 4. Architecture frontend — Angular par feature
 
 ```
-valimbavaka-ui/src/app/
-├── guards/           → auth-guard.ts
-├── interceptors/      → auth-interceptor.ts
-├── directives/        → has-permission-directive.ts
-├── layouts/
-│   └── main-layout/   → main-layout.ts / .html / .css
-├── models/            → api-response.ts, page.ts
-├── services/           (vide au départ — un *-service.ts par ressource, par feature)
-├── shared/
-│   └── components/     (vide au départ — composants réutilisables)
-├── utils/
-└── features/           (vide au départ — une feature = un sous-dossier)
+src/app
+├── app.ts · app.html · app.config.ts · app.routes.ts
+├── core
+│   ├── http        auth-interceptor.ts, error-interceptor.ts (HttpErrorResponse → ApiError), problem-detail.ts
+│   ├── auth        auth-store.ts (jeton en mémoire), auth-guard.ts, has-permission-directive.ts
+│   └── layout      main-layout/
+├── shared
+│   ├── components/
+│   └── models      page-response.ts (PageResponse, PageQuery), http-params.ts
+└── features
+    ├── user
+    │   ├── user.routes.ts      chargé en lazy loading depuis app.routes.ts
+    │   ├── data-access/        user-models.ts (UserRDto, RoleName…), user-service.ts, role-service.ts
+    │   └── pages/              user-list-page/, user-form-page/
+    └── referential
+        └── data-access/        referential-models.ts, referential-service.ts
 ```
 
-### 4.1 `tsconfig.json` — activer le mode strict
-
-Dans `compilerOptions`, ajouter :
-```json
-"strict": true,
-```
-
-### 4.2 `models/api-response.ts` / `models/page.ts`
-
-```typescript
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T | null;
-  timestamp: string;
-}
-```
-
-```typescript
-export interface Page<T> {
-  content: T[];
-  number: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
-```
-
-### 4.3 `interceptors/auth-interceptor.ts`
-
-```typescript
-import { HttpInterceptorFn } from '@angular/common/http';
-
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // TODO (feature auth) : récupérer le token depuis le service d'auth
-  const token: string | null = null;
-
-  if (!token) {
-    return next(req);
-  }
-
-  return next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
-};
-```
-
-### 4.4 `guards/auth-guard.ts`
-
-```typescript
-import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
-
-export const authGuard: CanActivateFn = () => {
-  const router = inject(Router);
-  // TODO (feature auth) : vérifier l'état d'authentification réel
-  const isAuthenticated = false;
-
-  return isAuthenticated ? true : router.createUrlTree(['/login']);
-};
-```
-
-### 4.5 `directives/has-permission-directive.ts`
-
-```typescript
-import { Directive, TemplateRef, ViewContainerRef, inject, input, effect } from '@angular/core';
-
-@Directive({ selector: '[appHasPermission]' })
-export class HasPermissionDirective {
-  private readonly templateRef = inject(TemplateRef<unknown>);
-  private readonly viewContainerRef = inject(ViewContainerRef);
-
-  readonly appHasPermission = input.required<string>();
-
-  constructor() {
-    effect(() => {
-      // TODO (feature auth) : vérifier la permission réelle de l'utilisateur courant
-      const hasPermission = false;
-      this.viewContainerRef.clear();
-      if (hasPermission) {
-        this.viewContainerRef.createEmbeddedView(this.templateRef);
-      }
-    });
-  }
-}
-```
-
-### 4.6 Câbler l'intercepteur — `app.config.ts`
-
-```typescript
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
-import { routes } from './app.routes';
-import { authInterceptor } from './interceptors/auth-interceptor';
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
-  ],
-};
-```
-
-### 4.7 `layouts/main-layout/main-layout.ts`
-
-```typescript
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-
-@Component({
-  selector: 'app-main-layout',
-  standalone: true,
-  imports: [RouterOutlet],
-  templateUrl: './main-layout.html',
-  styleUrl: './main-layout.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class MainLayout {}
-```
-
-`main-layout.html` :
-```html
-<router-outlet />
-```
+- Composants standalone, `OnPush`, `inject()`, signaux ; zoneless (`provideZonelessChangeDetection`).
+- Sélecteurs préfixés `vvs-` ; fichiers sans suffixe `.component` (`user-list-page.ts` → `UserListPage`), services `xxx-service.ts`.
+- Une feature n'importe jamais une autre feature : le partagé va dans `shared/`.
+- Les types reprennent exactement les DTO backend ; les erreurs 422 (`errors[].field`) sont réaffectées aux champs du formulaire.
+- Tests : `npx ng test --watch=false` (Vitest), `npm run lint`, `npm run build`.
 
 ---
 
@@ -851,12 +346,13 @@ Lancer : `npm run lint`
 - [ ] `docker compose up -d postgres` démarre sans erreur
 - [ ] `.env` créé localement (jamais commité)
 - [ ] `application.properties` pointe sur Liquibase (`spring.liquibase.change-log=...`) et `ddl-auto=validate`
-- [ ] `db/changelog/db.changelog-master.xml` + `changes/README.md` en place
+- [ ] `db/changelog/db.changelog-master.yaml` + `changes/README.md` en place
 - [ ] `mvn spring-boot:run` démarre sans erreur (Liquibase s'exécute au boot, log `liquibase.changelog : Reading from ...`)
-- [ ] Packages `core/`, `security/`, `shared/` créés côté backend
-- [ ] Dossiers `guards/`, `interceptors/`, `directives/`, `layouts/`, `models/`, `services/`, `shared/`, `utils/`, `features/` créés côté frontend
+- [ ] Variables `ADMIN_*` renseignées dans `.env` (premier démarrage sur base vide, section 3.1)
+- [ ] `mvn verify` passe (Docker démarré pour les tests Testcontainers)
+- [ ] `npm run lint`, `npx ng test --watch=false` et `npm run build` passent
 - [ ] `tsconfig.json` : `"strict": true`
 - [ ] `npm start` (Angular) et `mvn spring-boot:run` (backend) tournent en parallèle sans erreur CORS
 - [ ] (recommandé) Checkstyle backend + ESLint frontend branchés
 
-Pour toute règle non couverte ici (nommage détaillé, SOLID, patterns, tests, grille de revue de code...), se référer à [`resources/Convention_Dev_VVS_V2.md`](resources/Convention_Dev_VVS_V2.md).
+Pour toute règle non couverte ici (nommage détaillé, SOLID, patterns, tests, grille de revue de code...), se référer à [`resources/convention-dev-VVS-V2.1.pdf`](resources/convention-dev-VVS-V2.1.pdf).

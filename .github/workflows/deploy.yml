@@ -1,0 +1,65 @@
+name: Deployer
+
+# Deploie une version sur l'EliteBook via le runner self-hosted "workstation".
+#   - appele automatiquement : staging a chaque release (images.yml), prod apres 3 jours
+#     (deploy-prod-auto.yml) ;
+#   - lance a la main (Actions -> Deployer -> Run workflow) : retour arriere vers une version
+#     precedente, ou mise en prod immediate d'un correctif urgent.
+# Le runner ne recupere que le dossier deploy/ (sparse checkout) : aucun code source sur le poste.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        type: string
+        required: true
+      tag:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environnement"
+        type: choice
+        options: [staging, prod]
+        required: true
+      tag:
+        description: "Version a deployer (ex. v0.3.0) — une version precedente = retour arriere"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: ${{ inputs.environment }} <- ${{ inputs.tag }}
+    runs-on: [self-hosted, workstation]
+    timeout-minutes: 20
+    # Jamais deux deploiements du meme environnement en meme temps.
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - name: Verifier les parametres
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          case "$ENVIRONMENT" in staging|prod) ;; *) echo "Environnement inconnu : $ENVIRONMENT"; exit 1;; esac
+          if ! printf '%s' "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Version invalide : '$TAG' (attendu : vX.Y.Z)"; exit 1
+          fi
+
+      # Fichiers de deploiement de la version deployee elle-meme (coherence compose <-> images).
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+          sparse-checkout: deploy
+          sparse-checkout-cone-mode: true
+
+      - name: Deployer
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          TAG: ${{ inputs.tag }}
+        run: bash deploy/deploy.sh "$ENVIRONMENT" "$TAG"

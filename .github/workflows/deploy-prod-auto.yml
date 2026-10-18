@@ -1,0 +1,68 @@
+name: Mise en prod automatique (J+3)
+
+# Remplace le "wait timer" des GitHub Environments, indisponible sur un depot prive avec le
+# plan gratuit. Plusieurs fois par jour (heures ouvrees), le runner de l'EliteBook verifie :
+#   1. la derniere release publiee n'est PAS marquee "pre-release" (= bloquee par Njara ou Randy) ;
+#   2. elle a ete publiee il y a au moins 3 jours ;
+#   3. c'est bien elle qui tourne en staging (ton oncle a teste exactement cette version) ;
+#   4. elle n'est pas deja en prod.
+# Si tout est vrai, elle part en prod. Sinon, rien ne se passe.
+# Pour annuler une mise en prod : editer la release sur GitHub et cocher "Set as a pre-release".
+# Une nouvelle release publiee remet le compteur a zero (c'est elle qui devra attendre 3 jours).
+
+on:
+  schedule:
+    # Lun-sam, 9h/12h/15h/18h heure de Madagascar (UTC+3) : le poste est allume.
+    - cron: "0 6,9,12,15 * * 1-6"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  decide:
+    runs-on: [self-hosted, workstation]
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.pick.outputs.tag }}
+    steps:
+      - id: pick
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const DAYS = 3;
+            const home = process.env.VVS_HOME || path.join(process.env.HOME, 'valimbavaka');
+            const read = (env) => {
+              try { return fs.readFileSync(path.join(home, 'state', `${env}.tag`), 'utf8').trim(); }
+              catch { return ''; }
+            };
+
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner, repo: context.repo.repo, per_page: 10,
+            });
+            const latest = releases.find((r) => !r.draft);
+            if (!latest) { core.notice('Aucune release publiee.'); return; }
+
+            const tag = latest.tag_name;
+            const ageDays = (Date.now() - new Date(latest.published_at).getTime()) / 86400000;
+            const staging = read('staging');
+            const prod = read('prod');
+            core.info(`Derniere release : ${tag} (${ageDays.toFixed(1)} j) | staging=${staging || '-'} | prod=${prod || '-'}`);
+
+            if (latest.prerelease) { core.notice(`${tag} est marquee pre-release : mise en prod bloquee.`); return; }
+            if (ageDays < DAYS) { core.notice(`${tag} est en test client depuis ${ageDays.toFixed(1)} j (< ${DAYS} j).`); return; }
+            if (staging !== tag) { core.warning(`${tag} n'est pas en staging (staging=${staging || 'aucun'}) : pas de mise en prod.`); return; }
+            if (prod === tag) { core.info(`${tag} est deja en prod.`); return; }
+
+            core.notice(`${tag} part en prod.`);
+            core.setOutput('tag', tag);
+
+  deploy-prod:
+    needs: decide
+    if: needs.decide.outputs.tag != ''
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      tag: ${{ needs.decide.outputs.tag }}
