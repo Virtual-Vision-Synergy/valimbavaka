@@ -97,3 +97,12 @@ CREATE TABLE refresh_tokens
 CREATE INDEX ix_refresh_tokens_user_id ON refresh_tokens (user_id);
 CREATE INDEX ix_refresh_tokens_family_id ON refresh_tokens (family_id);
 -- rollback DROP TABLE refresh_tokens;
+
+-- changeset randy:2026_10_19-01-6
+-- comment: AUTH-01 - champs d'audit et verrou optimiste communs (BaseEntity) sur refresh_tokens
+ALTER TABLE refresh_tokens
+    ADD COLUMN updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    ADD COLUMN created_by UUID,
+    ADD COLUMN updated_by UUID,
+    ADD COLUMN version    BIGINT      NOT NULL DEFAULT 0;
+-- rollback ALTER TABLE refresh_tokens DROP COLUMN version, DROP COLUMN updated_by, DROP COLUMN created_by, DROP COLUMN updated_at;

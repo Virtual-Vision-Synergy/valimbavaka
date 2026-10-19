@@ -3,38 +3,44 @@ import { visibleSections } from './menu';
 
 const labelsFor = (role: string): string[] =>
   visibleSections((permission) => ROLE_PERMISSIONS[role].includes(permission)).flatMap((section) =>
-    section.items.map((item) => item.label),
+    section.items.map((item) => item.labelKey),
   );
 
 describe('visibleSections', () => {
   it('should show every module to the administrator', () => {
     const labels = labelsFor('ADMIN');
 
-    expect(labels).toContain('Utilisateurs');
-    expect(labels).toContain('Fournisseurs');
-    expect(labels).toContain('Rapports');
+    expect(labels).toContain('menu.item.users');
+    expect(labels).toContain('menu.item.suppliers');
+    expect(labels).toContain('menu.item.reports');
   });
 
   it('should show sales and catalogue modules but no administration to a seller', () => {
     const labels = labelsFor('SELLER');
 
     expect(labels).toEqual(
-      expect.arrayContaining(['Tableau de bord', 'Articles', 'Stocks', 'Ventes', 'Commissions']),
+      expect.arrayContaining([
+        'menu.item.dashboard',
+        'menu.item.articles',
+        'menu.item.stocks',
+        'menu.item.sales',
+        'menu.item.commissions',
+      ]),
     );
-    expect(labels).not.toContain('Utilisateurs');
-    expect(labels).not.toContain('Livraisons');
-    expect(labels).not.toContain('Production');
+    expect(labels).not.toContain('menu.item.users');
+    expect(labels).not.toContain('menu.item.deliveries');
+    expect(labels).not.toContain('menu.item.production');
   });
 
   it('should show only the dashboard and deliveries to a delivery driver', () => {
-    expect(labelsFor('DELIVERY_DRIVER')).toEqual(['Tableau de bord', 'Livraisons']);
+    expect(labelsFor('DELIVERY_DRIVER')).toEqual(['menu.item.dashboard', 'menu.item.deliveries']);
   });
 
   it('should drop sections that have no allowed item', () => {
     const titles = visibleSections((permission) => permission === 'deliveries.read').map(
-      (section) => section.title,
+      (section) => section.titleKey,
     );
 
-    expect(titles).toEqual(['Commerce']);
+    expect(titles).toEqual(['menu.section.commerce']);
   });
 });

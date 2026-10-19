@@ -1,0 +1,59 @@
+{
+  "app": {
+    "name": "Valimbavaka"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "mg": "Malagasy"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "email": "Email",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "emailInvalid": "Une adresse email valide est obligatoire.",
+      "passwordRequired": "Le mot de passe est obligatoire.",
+      "invalidCredentials": "Identifiants invalides"
+    }
+  },
+  "layout": {
+    "navigation": "Navigation principale",
+    "logout": "Déconnexion"
+  },
+  "menu": {
+    "section": {
+      "main": "Principal",
+      "catalog": "Catalogue",
+      "operations": "Opérations",
+      "commerce": "Commerce",
+      "analysis": "Analyse",
+      "administration": "Administration"
+    },
+    "item": {
+      "dashboard": "Tableau de bord",
+      "suppliers": "Fournisseurs",
+      "articles": "Articles",
+      "stocks": "Stocks",
+      "production": "Production",
+      "transfers": "Transferts",
+      "inventory": "Inventaire",
+      "sales": "Ventes",
+      "deliveries": "Livraisons",
+      "promotions": "Promotions",
+      "commissions": "Commissions",
+      "services": "Services",
+      "reports": "Rapports",
+      "users": "Utilisateurs"
+    }
+  },
+  "placeholder": {
+    "comingSoon": "Ce module sera disponible prochainement.",
+    "noAccess": {
+      "title": "Aucun accès",
+      "message": "Aucun module n'est accessible avec le rôle de votre compte. Contactez l'administrateur."
+    }
+  }
+}

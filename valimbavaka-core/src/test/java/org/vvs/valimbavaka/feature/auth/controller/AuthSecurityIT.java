@@ -162,6 +162,26 @@ class AuthSecurityIT {
         mockMvc.perform(post("/api/v1/auth/refresh")).andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void refresh_fromForeignOrigin_returns403EvenWithAValidCookie() throws Exception {
+        // Arrange
+        var cookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(cookie).header(HttpHeaders.ORIGIN, "https://evil.example"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void refresh_fromAllowedOrigin_returns200() throws Exception {
+        // Arrange
+        var cookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(cookie).header(HttpHeaders.ORIGIN, "http://localhost:4200"))
+                .andExpect(status().isOk());
+    }
+
     private org.springframework.test.web.servlet.ResultActions login(String email, String password) throws Exception {
         var body = "{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password);
         return mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body));

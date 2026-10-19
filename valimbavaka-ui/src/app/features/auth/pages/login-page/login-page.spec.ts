@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
+import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { LoginPage } from './login-page';
 
 describe('LoginPage', () => {
@@ -28,6 +29,7 @@ describe('LoginPage', () => {
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
+        provideTestTranslations(),
       ],
     }).compileComponents();
     httpMock = TestBed.inject(HttpTestingController);
