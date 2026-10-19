@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
-import { CreateUserWDto, UpdateUserWDto, UserRDto } from './user-models';
+import { CreateUserWDto, UpdateUserWDto, UserRDto, UserStatusWDto } from './user-models';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -24,6 +24,11 @@ export class UserService {
 
   update(id: string, body: UpdateUserWDto): Observable<UserRDto> {
     return this.http.put<UserRDto>(`${this.baseUrl}/${id}`, body);
+  }
+
+  setActive(id: string, active: boolean): Observable<UserRDto> {
+    const body: UserStatusWDto = { active };
+    return this.http.patch<UserRDto>(`${this.baseUrl}/${id}/status`, body);
   }
 
   delete(id: string): Observable<void> {

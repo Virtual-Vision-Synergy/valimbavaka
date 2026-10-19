@@ -19,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.vvs.valimbavaka.core.exception.BusinessException;
@@ -62,7 +63,13 @@ class UserServiceImplTest {
     private JournalService journalService;
 
     @Mock
+    private AuditorAware<UUID> auditorAware;
+
+    @Mock
     private User deletedUser;
+
+    @Mock
+    private User targetUser;
 
     @Mock
     private Role administratorRole;
@@ -75,7 +82,13 @@ class UserServiceImplTest {
     @BeforeEach
     void setUp() {
         sut = new UserServiceImpl(
-                userRepository, roleRepository, userMapper, passwordEncoder, referentialService, journalService);
+                userRepository,
+                roleRepository,
+                userMapper,
+                passwordEncoder,
+                referentialService,
+                journalService,
+                auditorAware);
     }
 
     @Test
@@ -287,6 +300,98 @@ class UserServiceImplTest {
         when(userRepository.findByIdWithRole(unknownId)).thenReturn(Optional.empty());
         // when / then
         assertThatThrownBy(() -> sut.getUserById(unknownId)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void setActive_deactivateActiveSeller_deactivatesAndRecordsInJournal() {
+        // given
+        var userId = UUID.randomUUID();
+        when(userRepository.findByIdWithRole(userId)).thenReturn(Optional.of(targetUser));
+        when(targetUser.isActive()).thenReturn(true);
+        when(targetUser.getId()).thenReturn(userId);
+        when(targetUser.getRole()).thenReturn(sellerRole);
+        when(sellerRole.getName()).thenReturn(RoleName.SELLER);
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(UUID.randomUUID()));
+        when(targetUser.getEmail()).thenReturn("vendeuse@valimbavaka.mg");
+        // when
+        sut.setActive(userId, false);
+        // then
+        verify(targetUser).deactivate();
+        verify(journalService)
+                .record(JournalAction.UPDATE, "USER", userId, "Désactivation de l'utilisateur vendeuse@valimbavaka.mg");
+    }
+
+    @Test
+    void setActive_activateInactiveUser_activatesAndRecordsInJournal() {
+        // given
+        var userId = UUID.randomUUID();
+        when(userRepository.findByIdWithRole(userId)).thenReturn(Optional.of(targetUser));
+        when(targetUser.isActive()).thenReturn(false);
+        when(targetUser.getEmail()).thenReturn("vendeuse@valimbavaka.mg");
+        // when
+        sut.setActive(userId, true);
+        // then
+        verify(targetUser).activate();
+        verify(journalService)
+                .record(JournalAction.UPDATE, "USER", userId, "Activation de l'utilisateur vendeuse@valimbavaka.mg");
+    }
+
+    @Test
+    void setActive_stateUnchanged_changesNothingAndRecordsNothing() {
+        // given
+        var userId = UUID.randomUUID();
+        when(userRepository.findByIdWithRole(userId)).thenReturn(Optional.of(targetUser));
+        when(targetUser.isActive()).thenReturn(true);
+        // when
+        sut.setActive(userId, true);
+        // then
+        verify(targetUser, never()).activate();
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void setActive_ownAccount_throwsBusinessExceptionAndRecordsNothing() {
+        // given
+        var userId = UUID.randomUUID();
+        when(userRepository.findByIdWithRole(userId)).thenReturn(Optional.of(targetUser));
+        when(targetUser.isActive()).thenReturn(true);
+        when(targetUser.getId()).thenReturn(userId);
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(userId));
+        // when / then
+        assertThatThrownBy(() -> sut.setActive(userId, false))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("propre compte");
+        verify(targetUser, never()).deactivate();
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void setActive_lastActiveAdministrator_throwsBusinessExceptionAndRecordsNothing() {
+        // given
+        var userId = UUID.randomUUID();
+        when(userRepository.findByIdWithRole(userId)).thenReturn(Optional.of(targetUser));
+        when(targetUser.isActive()).thenReturn(true);
+        when(targetUser.getId()).thenReturn(userId);
+        when(targetUser.getRole()).thenReturn(administratorRole);
+        when(administratorRole.getName()).thenReturn(RoleName.ADMIN);
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(UUID.randomUUID()));
+        when(userRepository.countByRoleNameAndActiveTrue(RoleName.ADMIN)).thenReturn(1L);
+        // when / then
+        assertThatThrownBy(() -> sut.setActive(userId, false))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("dernier administrateur");
+        verify(targetUser, never()).deactivate();
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void setActive_unknownId_throwsNotFound() {
+        // given
+        var unknownId = UUID.randomUUID();
+        when(userRepository.findByIdWithRole(unknownId)).thenReturn(Optional.empty());
+        // when / then
+        assertThatThrownBy(() -> sut.setActive(unknownId, false)).isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(journalService);
     }
 
     private static AdminAccountProperties validAccount() {

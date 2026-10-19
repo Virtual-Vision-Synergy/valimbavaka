@@ -14,13 +14,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import org.jspecify.annotations.Nullable;
-import org.vvs.valimbavaka.core.exception.BusinessException;
-import org.vvs.valimbavaka.security.LockPolicy;
-import org.vvs.valimbavaka.shared.domain.BaseEntity;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.security.LockPolicy;
+import org.vvs.valimbavaka.shared.domain.BaseEntity;
 
 @Entity
 @Table(name = "users")
@@ -90,6 +91,14 @@ public class User extends BaseEntity {
     public void update(UserProfile profile, Role role, SellerTerms terms, boolean isActive) {
         applyProfile(profile, role, terms);
         this.active = isActive;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
     }
 
     /** Compte l'échec ; au-delà du seuil, verrouille pour une durée croissante (convention §9.2). */

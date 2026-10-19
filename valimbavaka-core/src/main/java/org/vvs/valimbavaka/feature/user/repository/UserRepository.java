@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 import org.vvs.valimbavaka.feature.user.domain.User;
 
@@ -34,8 +35,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             where lower(u.email) like lower(concat('%', :search, '%'))
                or lower(u.firstName) like lower(concat('%', :search, '%'))
                or lower(u.lastName) like lower(concat('%', :search, '%'))
-            """,
-            countQuery = """
+            """, countQuery = """
             select count(u) from User u
             where lower(u.email) like lower(concat('%', :search, '%'))
                or lower(u.firstName) like lower(concat('%', :search, '%'))
@@ -48,4 +48,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmailAndIdNot(String email, UUID id);
 
     boolean existsByRoleName(RoleName roleName);
+
+    long countByRoleNameAndActiveTrue(RoleName roleName);
 }

@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ReferentialService referentialService;
     private final JournalService journalService;
+    private final AuditorAware<UUID> auditorAware;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -59,13 +61,15 @@ public class UserServiceImpl implements UserService {
             UserMapper userMapper,
             PasswordEncoder passwordEncoder,
             ReferentialService referentialService,
-            JournalService journalService) {
+            JournalService journalService,
+            AuditorAware<UUID> auditorAware) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.referentialService = referentialService;
         this.journalService = journalService;
+        this.auditorAware = auditorAware;
     }
 
     @Override
@@ -113,6 +117,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public UserRDto setActive(UUID userId, boolean active) {
+        User user = findUserWithRole(userId);
+        if (user.isActive() == active) {
+            return userMapper.toRDto(user);
+        }
+        if (!active) {
+            ensureCanDeactivate(user);
+            user.deactivate();
+        } else {
+            user.activate();
+        }
+        String action = active ? "Activation" : "Désactivation";
+        journalService.record(
+                JournalAction.UPDATE, RESOURCE_TYPE, userId, action + " de l'utilisateur " + user.getEmail());
+        log.info("Utilisateur {} {}", userId, active ? "activé" : "désactivé");
+        return userMapper.toRDto(user);
+    }
+
+    @Override
+    @Transactional
     public void deleteUserById(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> userNotFound(userId));
         userRepository.delete(user);
@@ -152,6 +176,16 @@ public class UserServiceImpl implements UserService {
 
     private User findUserWithRole(UUID userId) {
         return userRepository.findByIdWithRole(userId).orElseThrow(() -> userNotFound(userId));
+    }
+
+    private void ensureCanDeactivate(User user) {
+        if (auditorAware.getCurrentAuditor().filter(user.getId()::equals).isPresent()) {
+            throw new BusinessException("Vous ne pouvez pas désactiver votre propre compte.");
+        }
+        boolean isAdmin = user.getRole().getName() == RoleName.ADMIN;
+        if (isAdmin && userRepository.countByRoleNameAndActiveTrue(RoleName.ADMIN) <= 1) {
+            throw new BusinessException("Le dernier administrateur actif ne peut pas être désactivé.");
+        }
     }
 
     private Role findRole(UUID roleId) {
