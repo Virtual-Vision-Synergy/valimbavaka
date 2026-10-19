@@ -31,6 +31,9 @@
         <java.version>21</java.version>
         <!-- Checkstyle désactivé par défaut ; réactiver avec -Dcheckstyle.skip=false -->
         <checkstyle.skip>true</checkstyle.skip>
+        <checkstyle.version>14.1.0</checkstyle.version>
+        <spotless.version>3.10.3</spotless.version>
+        <palantir-java-format.version>2.98.0</palantir-java-format.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <archunit.version>1.4.1</archunit.version>
@@ -177,6 +180,14 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- §2.2 : 0 avertissement de compilation, le build échoue sur warning.
+                         -processing : bruit des processeurs d'annotations (Lombok, MapStruct), sans rapport avec le code. -->
+                    <compilerArgs>
+                        <arg>-Xlint:all,-processing</arg>
+                        <arg>-Werror</arg>
+                    </compilerArgs>
+                </configuration>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -247,8 +258,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.6.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
                 <configuration>
                     <configLocation>${project.basedir}/../checkstyle.xml</configLocation>
+                    <!-- Seules les violations P0 (severity=error) font échouer le build ;
+                         P1/P2 sont remontées en annotations par le workflow conventions.yml. -->
+                    <violationSeverity>error</violationSeverity>
                     <!-- Code écrit à la main uniquement : le code généré (MapStruct) n'est pas contrôlé -->
                     <sourceDirectories>
                         <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
@@ -262,6 +283,27 @@
                         <goals><goal>check</goal></goals>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Formatage unique (§12, D19) : palantir-java-format, 4 espaces, 120 caractères.
+                 ratchetFrom : seuls les fichiers modifiés depuis develop sont contrôlés/formatés.
+                 Corriger : mvn spotless:apply -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless.version}</version>
+                <configuration>
+                    <ratchetFrom>origin/develop</ratchetFrom>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>${palantir-java-format.version}</version>
+                        </palantirJavaFormat>
+                        <!-- §2.2 : java/javax → jakarta → org → autres → projet ; statiques en tête. -->
+                        <importOrder>
+                            <order>\#,java|javax,jakarta,org,,org.vvs</order>
+                        </importOrder>
+                        <removeUnusedImports/>
+                    </java>
+                </configuration>
             </plugin>
         </plugins>
     </build>
