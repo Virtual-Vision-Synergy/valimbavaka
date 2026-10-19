@@ -1,7 +1,5 @@
 package org.vvs.valimbavaka.feature.auth.controller;
 
-import java.util.UUID;
-
 import jakarta.validation.Valid;
 
 import org.jspecify.annotations.Nullable;
@@ -21,7 +19,8 @@ import org.vvs.valimbavaka.feature.auth.dto.AuthRDto;
 import org.vvs.valimbavaka.feature.auth.dto.CurrentUserRDto;
 import org.vvs.valimbavaka.feature.auth.dto.LoginWDto;
 import org.vvs.valimbavaka.feature.auth.mapper.AuthMapper;
-import org.vvs.valimbavaka.security.AuthService;
+import org.vvs.valimbavaka.security.jwt.JwtSubject;
+import org.vvs.valimbavaka.security.service.AuthService;
 
 /** Login, refresh, logout publics ; {@code /me} exige un access token valide (voir SecurityConfig). */
 @RestController
@@ -63,7 +62,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public CurrentUserRDto me(@AuthenticationPrincipal Jwt jwt) {
-        return authMapper.toRDto(authService.currentUser(UUID.fromString(jwt.getSubject())));
+        return authMapper.toRDto(authService.currentUser(JwtSubject.requireUserId(jwt)));
     }
 
     private ResponseEntity<AuthRDto> withRefreshCookie(String refreshToken, AuthRDto body) {

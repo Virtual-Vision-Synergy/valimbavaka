@@ -1,4 +1,4 @@
-package org.vvs.valimbavaka.security;
+package org.vvs.valimbavaka.security.service.impl;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -16,18 +16,24 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.vvs.valimbavaka.core.exception.UnauthorizedException;
+import org.vvs.valimbavaka.security.AuthProperties;
+import org.vvs.valimbavaka.security.AuthenticatedUser;
+import org.vvs.valimbavaka.security.AuthenticatedUserLoader;
+import org.vvs.valimbavaka.security.RefreshTokenStore;
 import org.vvs.valimbavaka.security.RefreshTokenStore.StoredRefreshToken;
+import org.vvs.valimbavaka.security.TokenPair;
 import org.vvs.valimbavaka.security.jwt.JwtProperties;
 import org.vvs.valimbavaka.security.jwt.JwtService;
+import org.vvs.valimbavaka.security.service.AuthService;
 
 /**
  * Connexion, rotation du refresh token et déconnexion. Volontairement sans {@code @Transactional} :
  * un échec doit rester enregistré alors qu'une exception est levée (chaque appel au port a sa transaction).
  */
 @Service
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private static final String INVALID_CREDENTIALS = "Identifiants invalides";
     private static final String INVALID_SESSION = "Session expirée, veuillez vous reconnecter";
     private static final int REFRESH_TOKEN_BYTES = 32;
@@ -43,7 +49,7 @@ public class AuthService {
     /** Hash factice calculé une fois avec le même encodeur : temps de réponse comparable si l'email est inconnu. */
     private final String dummyHash;
 
-    public AuthService(AuthenticatedUserLoader users, RefreshTokenStore refreshTokens,
+    public AuthServiceImpl(AuthenticatedUserLoader users, RefreshTokenStore refreshTokens,
             PasswordEncoder passwordEncoder, JwtService jwtService, JwtProperties jwtProperties,
             AuthProperties authProperties, Clock clock) {
         this.users = users;
@@ -56,6 +62,7 @@ public class AuthService {
         this.dummyHash = passwordEncoder.encode("not-a-real-password");
     }
 
+    @Override
     public TokenPair login(String email, String rawPassword) {
         var user = users.findByEmail(email.strip().toLowerCase(Locale.ROOT));
         var hash = user.map(AuthenticatedUser::passwordHash).orElse(dummyHash);
@@ -69,7 +76,7 @@ public class AuthService {
         return issue(user.get(), UUID.randomUUID());
     }
 
-    /** Rotation : l'ancien jeton est révoqué ; sa réutilisation révoque toute la famille. */
+    @Override
     public TokenPair refresh(String rawRefreshToken) {
         var stored = refreshTokens.findByHash(hash(rawRefreshToken))
                 .orElseThrow(() -> new UnauthorizedException(INVALID_SESSION));
@@ -86,12 +93,13 @@ public class AuthService {
         return issue(user, stored.familyId());
     }
 
+    @Override
     public void logout(String rawRefreshToken) {
         refreshTokens.findByHash(hash(rawRefreshToken))
                 .ifPresent(stored -> refreshTokens.revokeFamily(stored.familyId()));
     }
 
-    /** Profil relu en base : le rôle renvoyé est toujours celui du compte, jamais celui d'un jeton ancien. */
+    @Override
     public AuthenticatedUser currentUser(UUID userId) {
         return users.findById(userId).filter(AuthenticatedUser::enabled)
                 .orElseThrow(() -> new UnauthorizedException(INVALID_SESSION));

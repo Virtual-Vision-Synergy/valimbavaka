@@ -1,4 +1,4 @@
-package org.vvs.valimbavaka.security;
+package org.vvs.valimbavaka.security.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,12 +25,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.vvs.valimbavaka.core.exception.UnauthorizedException;
+import org.vvs.valimbavaka.security.AuthProperties;
+import org.vvs.valimbavaka.security.AuthenticatedUser;
+import org.vvs.valimbavaka.security.AuthenticatedUserLoader;
+import org.vvs.valimbavaka.security.LockPolicy;
+import org.vvs.valimbavaka.security.RefreshTokenStore;
 import org.vvs.valimbavaka.security.RefreshTokenStore.StoredRefreshToken;
 import org.vvs.valimbavaka.security.jwt.JwtProperties;
 import org.vvs.valimbavaka.security.jwt.JwtService;
 
 @ExtendWith(MockitoExtension.class)
-class AuthServiceTest {
+class AuthServiceImplTest {
 
     private static final Instant NOW = Instant.parse("2026-10-19T08:00:00Z");
     private static final String EMAIL = "vendeuse@valimbavaka.mg";
@@ -49,7 +54,7 @@ class AuthServiceTest {
     @Mock
     private JwtService jwtService;
 
-    private AuthService sut;
+    private AuthServiceImpl sut;
 
     @BeforeEach
     void setUp() {
@@ -57,7 +62,7 @@ class AuthServiceTest {
         var jwtProperties = new JwtProperties("secret-de-test-de-32-caracteres-min!", Duration.ofMinutes(15),
                 Duration.ofDays(7), Duration.ofSeconds(30));
         var authProperties = new AuthProperties(5, Duration.ofMinutes(5), false);
-        sut = new AuthService(users, refreshTokens, passwordEncoder, jwtService, jwtProperties, authProperties,
+        sut = new AuthServiceImpl(users, refreshTokens, passwordEncoder, jwtService, jwtProperties, authProperties,
                 Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
