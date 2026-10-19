@@ -1,8 +1,4 @@
-.page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: var(--space-8) var(--space-4);
-}
+.page { max-width: 1100px; margin: 0 auto; padding: var(--space-8) var(--space-4); }
 
 .page-header {
   display: flex;
@@ -12,28 +8,13 @@
   margin-bottom: var(--space-6);
 }
 
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
+.card { display: flex; flex-direction: column; gap: var(--space-4); }
 
-.toolbar {
-  display: flex;
-  gap: var(--space-2);
-}
-.toolbar .input {
-  max-width: 360px;
-}
+.toolbar { display: flex; gap: var(--space-2); }
+.toolbar .input { max-width: 360px; }
 
-.table-wrapper {
-  overflow-x: auto;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th {
   text-align: left;
   font-size: 12px;
@@ -44,30 +25,12 @@ th {
   padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--fond-dark);
 }
-td {
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--fond-dark);
-  white-space: nowrap;
-}
-tbody tr:hover {
-  background: var(--gris-fond);
-}
-.name {
-  font-weight: 600;
-}
-.actions {
-  text-align: right;
-}
-td.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-2);
-}
-.empty {
-  text-align: center;
-  color: var(--gris-moyen);
-  padding: var(--space-8);
-}
+td { padding: var(--space-3); border-bottom: 1px solid var(--fond-dark); white-space: nowrap; }
+tbody tr:hover { background: var(--gris-fond); }
+.name { font-weight: 600; }
+.actions { text-align: right; }
+td.actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+.empty { text-align: center; color: var(--gris-moyen); padding: var(--space-8); }
 
 .pagination {
   display: flex;
@@ -87,11 +50,6 @@ td.actions {
 }
 
 @media (max-width: 640px) {
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .toolbar .input {
-    max-width: none;
-  }
+  .page-header { flex-direction: column; align-items: stretch; }
+  .toolbar .input { max-width: none; }
 }
