@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import org.vvs.valimbavaka.feature.user.domain.Permission;
 import org.vvs.valimbavaka.feature.user.domain.User;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
@@ -29,7 +30,9 @@ public class AuthenticatedUserLoaderImpl implements AuthenticatedUserLoader {
 
     @Override
     public Optional<AuthenticatedUser> findByEmail(String email) {
-        return userRepository.findByEmailWithRoleAndPermissions(User.normalizeEmail(email)).map(this::toAuthenticated);
+        return userRepository
+                .findByEmailWithRoleAndPermissions(User.normalizeEmail(email))
+                .map(this::toAuthenticated);
     }
 
     @Override
@@ -51,10 +54,19 @@ public class AuthenticatedUserLoaderImpl implements AuthenticatedUserLoader {
 
     private AuthenticatedUser toAuthenticated(User user) {
         var role = user.getRole();
-        var permissions = role.getPermissions().stream().map(Permission::getCode).collect(Collectors.toUnmodifiableSet());
-        return new AuthenticatedUser(user.getId(), user.getEmail(), user.getFirstName(), user.getLastName(),
-                role.getName().name(), role.getDescription() == null ? role.getName().name() : role.getDescription(),
-                user.getPasswordHash(), permissions, user.isActive(), user.isPasswordChangeRequired(),
+        var permissions =
+                role.getPermissions().stream().map(Permission::getCode).collect(Collectors.toUnmodifiableSet());
+        return new AuthenticatedUser(
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                role.getName().name(),
+                role.getDescription() == null ? role.getName().name() : role.getDescription(),
+                user.getPasswordHash(),
+                permissions,
+                user.isActive(),
+                user.isPasswordChangeRequired(),
                 user.getLockedUntil());
     }
 }

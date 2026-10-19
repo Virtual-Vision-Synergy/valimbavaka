@@ -1,34 +1,122 @@
 <?xml version="1.0"?>
 <!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!-- Seuils de la convention VVS V2.1 (§2.2). La sévérité de chaque règle suit la grille §15 :
+       error   = P0, bloque la PR sur les lignes modifiées
+       warning = P1, à corriger avant la fusion
+       info    = P2, suggestion
+     Défaut : warning. Le workflow conventions.yml ne bloque que sur les lignes ajoutées (ratchet). -->
 <module name="Checker">
-    <!-- LineLength est un enfant de Checker (et non de TreeWalker) depuis Checkstyle 8.24.
-         Les commentaires, imports, package et URLs ne sont jamais comptes : seul le code l'est. -->
+    <property name="severity" value="warning"/>
+
+    <!-- Commentaires, imports, package et URLs non comptés : seul le code l'est. -->
     <module name="LineLength">
-        <property name="max" value="150"/>
+        <property name="max" value="120"/>
         <property name="ignorePattern" value="^\s*(//|/?\*|import |package )|https?://"/>
     </module>
+    <module name="FileLength">
+        <property name="max" value="300"/>
+        <property name="severity" value="info"/>
+    </module>
+
     <module name="TreeWalker">
-        <!-- Lignes vides et commentaires non comptes. -->
+        <!-- P0 : imports interdits (bloquant en CI, §2.2) -->
+        <module name="AvoidStarImport">
+            <property name="severity" value="error"/>
+        </module>
+        <module name="UnusedImports">
+            <property name="severity" value="error"/>
+        </module>
+
+        <!-- P0 : grille §15 -->
+        <module name="EmptyCatchBlock">
+            <property name="severity" value="error"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="noSystemOut"/>
+            <property name="format" value="System\.(out|err)\.|\.printStackTrace\(\)"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="System.out / printStackTrace interdits : utiliser SLF4J (§15 P0)."/>
+            <property name="severity" value="error"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="noTodoException"/>
+            <property name="format" value="new (UnsupportedOperationException|NotImplementedException)\(\s*&quot;TODO"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="Code non implémenté (TODO) interdit dans une PR (§15 P0)."/>
+            <property name="severity" value="error"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <property name="id" value="noEagerFetch"/>
+            <property name="format" value="FetchType\.EAGER"/>
+            <property name="ignoreComments" value="true"/>
+            <property name="message" value="Association EAGER interdite : LAZY par défaut (§8, §15 P0)."/>
+            <property name="severity" value="error"/>
+        </module>
+        <module name="IllegalInstantiation">
+            <property name="classes" value="java.lang.RuntimeException"/>
+            <property name="severity" value="error"/>
+        </module>
+
+        <!-- P1 : tailles et complexité (§2.2) -->
         <module name="MethodLength">
-            <property name="max" value="60"/>
+            <property name="max" value="30"/>
             <property name="countEmpty" value="false"/>
         </module>
         <!-- Les signatures imposées par le framework (@Override) ne sont pas de notre fait.
-             Methodes seulement : un constructeur (injection de dependances) prend autant
-             de parametres que necessaire. -->
+             Méthodes seulement : un constructeur (injection de dépendances) prend autant
+             de paramètres que nécessaire. -->
         <module name="ParameterNumber">
-            <property name="max" value="6"/>
+            <property name="max" value="4"/>
             <property name="ignoreOverriddenMethods" value="true"/>
             <property name="tokens" value="METHOD_DEF"/>
         </module>
-        <module name="AvoidStarImport"/>
-        <module name="UnusedImports"/>
+        <!-- 3 niveaux d'imbrication au total : un if/for de premier niveau + 2 imbriqués. -->
+        <module name="NestedIfDepth">
+            <property name="max" value="2"/>
+        </module>
+        <module name="NestedForDepth">
+            <property name="max" value="2"/>
+        </module>
+        <module name="NestedTryDepth">
+            <property name="max" value="2"/>
+        </module>
+        <module name="CyclomaticComplexity">
+            <property name="max" value="10"/>
+        </module>
+        <module name="OneTopLevelClass"/>
+
+        <!-- P1 : nommage (§1.1) -->
         <module name="TypeName"/>
         <module name="MethodName"/>
         <module name="MemberName"/>
-        <!-- "log" autorise : nom standard du logger SLF4J (et celui genere par @Slf4j). -->
-        <module name="ConstantName"><property name="format" value="^log$|^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/></module>
-        <module name="PackageName"><property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/></module>
+        <module name="LocalVariableName"/>
+        <module name="ParameterName"/>
+        <!-- "log" autorisé : nom standard du logger SLF4J (et celui généré par @Slf4j). -->
+        <module name="ConstantName">
+            <property name="format" value="^log$|^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$"/>
+        </module>
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <module name="ClassTypeParameterName">
+            <property name="format" value="^([A-Z]|ID)$"/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="^([A-Z]|ID)$"/>
+        </module>
+        <!-- §1.4 : pas de préfixe I sur les interfaces. -->
+        <module name="TypeName">
+            <property name="id" value="noInterfacePrefix"/>
+            <property name="format" value="^(?!I[A-Z])[A-Z][a-zA-Z0-9]*$"/>
+            <property name="tokens" value="INTERFACE_DEF"/>
+        </module>
+        <!-- 1 : autorise le suffixe RDto / WDto (§1.1). -->
+        <module name="AbbreviationAsWordInName">
+            <property name="allowedAbbreviationLength" value="1"/>
+            <property name="ignoreStatic" value="false"/>
+            <property name="allowedAbbreviations" value="ID"/>
+            <property name="severity" value="info"/>
+        </module>
     </module>
 </module>
