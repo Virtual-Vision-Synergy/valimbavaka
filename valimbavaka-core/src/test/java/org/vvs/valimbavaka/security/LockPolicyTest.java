@@ -9,7 +9,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 class LockPolicyTest {
 
-    private final LockPolicy sut = new LockPolicy(5, Duration.ofMinutes(5));
+    private final LockPolicy sut = new LockPolicy(5, Duration.ofMinutes(5), Duration.ofHours(1));
 
     @ParameterizedTest
     @CsvSource({"1,0", "4,0", "5,5", "6,10", "7,15", "100,60"})

@@ -15,9 +15,10 @@ import org.springframework.validation.annotation.Validated;
 public record AuthProperties(
         @DefaultValue("5") @Min(1) int maxFailedAttempts,
         @DefaultValue("5m") @NotNull Duration lockDuration,
+        @DefaultValue("1h") @NotNull Duration maxLockDuration,
         @DefaultValue("true") boolean refreshCookieSecure) {
 
     public LockPolicy lockPolicy() {
-        return new LockPolicy(maxFailedAttempts, lockDuration);
+        return new LockPolicy(maxFailedAttempts, lockDuration, maxLockDuration);
     }
 }

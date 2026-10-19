@@ -33,6 +33,7 @@ import org.vvs.valimbavaka.security.RefreshTokenStore;
 import org.vvs.valimbavaka.security.RefreshTokenStore.StoredRefreshToken;
 import org.vvs.valimbavaka.security.jwt.JwtProperties;
 import org.vvs.valimbavaka.security.jwt.JwtService;
+import org.vvs.valimbavaka.security.jwt.TokenIssuer;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
@@ -43,7 +44,7 @@ class AuthServiceImplTest {
     private static final String PASSWORD_HASH = "{bcrypt}hash";
     private static final String DUMMY_HASH = "{bcrypt}dummy";
     private static final String ACCESS_TOKEN = "access.jwt.token";
-    private static final LockPolicy LOCK_POLICY = new LockPolicy(5, Duration.ofMinutes(5));
+    private static final LockPolicy LOCK_POLICY = new LockPolicy(5, Duration.ofMinutes(5), Duration.ofHours(1));
 
     @Mock
     private AuthenticatedUserLoader users;
@@ -61,9 +62,10 @@ class AuthServiceImplTest {
         when(passwordEncoder.encode(anyString())).thenReturn(DUMMY_HASH);
         var jwtProperties = new JwtProperties("secret-de-test-de-32-caracteres-min!", Duration.ofMinutes(15),
                 Duration.ofDays(7), Duration.ofSeconds(30));
-        var authProperties = new AuthProperties(5, Duration.ofMinutes(5), false);
-        sut = new AuthServiceImpl(users, refreshTokens, passwordEncoder, jwtService, jwtProperties, authProperties,
-                Clock.fixed(NOW, ZoneOffset.UTC));
+        var authProperties = new AuthProperties(5, Duration.ofMinutes(5), Duration.ofHours(1), false);
+        var clock = Clock.fixed(NOW, ZoneOffset.UTC);
+        var tokenIssuer = new TokenIssuer(jwtService, refreshTokens, jwtProperties, clock);
+        sut = new AuthServiceImpl(users, refreshTokens, passwordEncoder, tokenIssuer, authProperties, clock);
     }
 
     @Test
