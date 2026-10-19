@@ -41,7 +41,8 @@ class MaxPageSizeValidatorTest {
         var violations = sut.validate(new PageQuery(1, 101, null, null, null));
 
         // Assert
-        assertThat(violations).singleElement()
+        assertThat(violations)
+                .singleElement()
                 .satisfies(v -> assertThat(v.getPropertyPath()).hasToString("size"))
                 .satisfies(v -> assertThat(v.getMessage()).isEqualTo("doit être inférieur ou égal à 100"));
     }
@@ -69,7 +70,8 @@ class MaxPageSizeValidatorTest {
         var violations = sut.validate(new PageQuery(1, 10_001, null, null, null));
 
         // Assert
-        assertThat(violations).singleElement()
+        assertThat(violations)
+                .singleElement()
                 .satisfies(v -> assertThat(v.getMessage()).isEqualTo("doit être inférieur ou égal à 10000"));
     }
 

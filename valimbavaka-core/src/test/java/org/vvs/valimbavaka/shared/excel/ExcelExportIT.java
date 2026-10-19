@@ -40,6 +40,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.jayway.jsonpath.JsonPath;
+
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
@@ -48,8 +51,6 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
 import org.vvs.valimbavaka.shared.excel.event.ExcelExportedEvent;
 import org.vvs.valimbavaka.shared.excel.web.ExcelHttpMessageConverter;
 import org.vvs.valimbavaka.support.IntegrationTest;
-
-import com.jayway.jsonpath.JsonPath;
 
 /** Route jumelle {@code /export} sur un contrôleur de démonstration,, pile complète (sécurité incluse). */
 @IntegrationTest
@@ -75,9 +76,12 @@ class ExcelExportIT {
 
     @BeforeEach
     void logIn() throws Exception {
-        var login = mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
+        var login = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(ADMIN_LOGIN))
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         token = JsonPath.read(login, "$.accessToken");
     }
 
@@ -87,10 +91,12 @@ class ExcelExportIT {
         var response = mockMvc.perform(get(BASE + "/products/export").header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(ExcelHttpMessageConverter.XLSX))
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, allOf(
-                        startsWith("attachment"),
-                        containsString("filename=\"produits.xlsx\""))))
-                .andReturn().getResponse().getContentAsByteArray();
+                .andExpect(header().string(
+                                HttpHeaders.CONTENT_DISPOSITION,
+                                allOf(startsWith("attachment"), containsString("filename=\"produits.xlsx\""))))
+                .andReturn()
+                .getResponse()
+                .getContentAsByteArray();
 
         // Assert
         try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(response))) {
@@ -103,7 +109,8 @@ class ExcelExportIT {
 
     @Test
     void export_sizeAboveMaxRows_returns422() throws Exception {
-        mockMvc.perform(get(BASE + "/products/export").param("size", String.valueOf(MAX_ROWS + 1))
+        mockMvc.perform(get(BASE + "/products/export")
+                        .param("size", String.valueOf(MAX_ROWS + 1))
                         .header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
@@ -117,7 +124,8 @@ class ExcelExportIT {
 
     @Test
     void export_streamLongerThanMaxRows_returns422WithoutFile() throws Exception {
-        mockMvc.perform(get(BASE + "/products/stream/export").param("count", String.valueOf(MAX_ROWS + 1))
+        mockMvc.perform(get(BASE + "/products/stream/export")
+                        .param("count", String.valueOf(MAX_ROWS + 1))
                         .header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(header().doesNotExist(HttpHeaders.CONTENT_DISPOSITION))
@@ -129,10 +137,14 @@ class ExcelExportIT {
     @Test
     void export_pagedRoute_appliesTheSameQueryParameters() throws Exception {
         // Act
-        var response = mockMvc.perform(get(BASE + "/products/export").param("page", "2").param("size", "1")
+        var response = mockMvc.perform(get(BASE + "/products/export")
+                        .param("page", "2")
+                        .param("size", "1")
                         .header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsByteArray();
+                .andReturn()
+                .getResponse()
+                .getContentAsByteArray();
 
         // Assert
         try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(response))) {
@@ -144,12 +156,14 @@ class ExcelExportIT {
     @Test
     void export_streamRoute_exportsEveryElement() throws Exception {
         // Act
-        var response = mockMvc.perform(get(BASE + "/products/stream/export")
-                        .header(HttpHeaders.AUTHORIZATION, bearer()))
+        var response = mockMvc.perform(
+                        get(BASE + "/products/stream/export").header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        containsString("filename=\"DemoProductRDto.xlsx\"")))
-                .andReturn().getResponse().getContentAsByteArray();
+                .andExpect(header().string(
+                                HttpHeaders.CONTENT_DISPOSITION, containsString("filename=\"DemoProductRDto.xlsx\"")))
+                .andReturn()
+                .getResponse()
+                .getContentAsByteArray();
 
         // Assert
         try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(response))) {
@@ -181,7 +195,8 @@ class ExcelExportIT {
 
     @Test
     void originalRoute_askingForXlsx_isNotExported() throws Exception {
-        mockMvc.perform(get(BASE + "/products").accept(ExcelHttpMessageConverter.XLSX)
+        mockMvc.perform(get(BASE + "/products")
+                        .accept(ExcelHttpMessageConverter.XLSX)
                         .header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isNotAcceptable());
     }
@@ -216,34 +231,47 @@ class ExcelExportIT {
         return values;
     }
 
-    record DemoRangeRDto(String name) {
-    }
+    record DemoRangeRDto(String name) {}
 
     record DemoProductRDto(
             @ExcelColumn(header = "Libellé", order = 1) String label,
-            @ExcelColumn(header = "Gamme", order = 2, expression = "range?.name.toUpperCase()") DemoRangeRDto range,
-            @ExcelColumn(header = "Prix", order = 3, format = "#,##0.00", width = 12) BigDecimal price,
+
+            @ExcelColumn(header = "Gamme", order = 2, expression = "range?.name.toUpperCase()")
+            DemoRangeRDto range,
+
+            @ExcelColumn(header = "Prix", order = 3, format = "#,##0.00", width = 12)
+            BigDecimal price,
+
             @ExcelColumn(header = "Mis en vente", order = 4) LocalDate onSaleSince,
-            String internalNote) {
-    }
+            String internalNote) {}
 
     @RestController
     @RequestMapping(BASE)
     static class DemoController {
 
         private static final List<DemoProductRDto> PRODUCTS = Stream.concat(
-                Stream.of(new DemoProductRDto("Riz", new DemoRangeRDto("Épicerie"), new BigDecimal("2500"),
-                                LocalDate.of(2026, 10, 19), "non exporté"),
-                        new DemoProductRDto("Savon", null, new BigDecimal("800.5"), LocalDate.of(2026, 1, 2), "")),
-                IntStream.rangeClosed(3, PRODUCT_COUNT).mapToObj(i ->
-                        new DemoProductRDto("Produit " + i, null, BigDecimal.valueOf(i), null, "")))
+                        Stream.of(
+                                new DemoProductRDto(
+                                        "Riz",
+                                        new DemoRangeRDto("Épicerie"),
+                                        new BigDecimal("2500"),
+                                        LocalDate.of(2026, 10, 19),
+                                        "non exporté"),
+                                new DemoProductRDto(
+                                        "Savon", null, new BigDecimal("800.5"), LocalDate.of(2026, 1, 2), "")),
+                        IntStream.rangeClosed(3, PRODUCT_COUNT)
+                                .mapToObj(i ->
+                                        new DemoProductRDto("Produit " + i, null, BigDecimal.valueOf(i), null, "")))
                 .toList();
 
         @GetMapping("/products")
         @ExcelExport(target = "PRODUCT", filename = "produits", sheet = "Produits")
         @HasPermission("users.read")
         public PageResponse<DemoProductRDto> getProducts(@Valid PageQuery query) {
-            var items = PRODUCTS.stream().skip((long) (query.page() - 1) * query.size()).limit(query.size()).toList();
+            var items = PRODUCTS.stream()
+                    .skip((long) (query.page() - 1) * query.size())
+                    .limit(query.size())
+                    .toList();
             return new PageResponse<>(items, query.page(), query.size(), PRODUCTS.size(), 1);
         }
 

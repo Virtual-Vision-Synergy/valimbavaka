@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.springframework.stereotype.Component;
+
 import org.vvs.valimbavaka.shared.excel.config.ExcelProperties;
 
 /**
@@ -31,8 +32,7 @@ public class ExcelExporter {
     }
 
     /** Un onglet : type du DTO (colonnes {@code @ExcelColumn}), nom de l'onglet et données. */
-    public record Sheet<T>(Class<T> type, String name, Stream<T> data) {
-    }
+    public record Sheet<T>(Class<T> type, String name, Stream<T> data) {}
 
     public static <T> Sheet<T> sheet(Class<T> type, String name, Stream<T> data) {
         return new Sheet<>(type, name, data);
@@ -56,11 +56,9 @@ public class ExcelExporter {
     }
 
     private void writeSheet(SXSSFWorkbook workbook, ExcelCellWriter cellWriter, Sheet<?> source) {
-        List<ExcelColumnDefinition> columns = columnsByType.computeIfAbsent(source.type(),
-                ExcelColumnDefinition::scan);
+        List<ExcelColumnDefinition> columns = columnsByType.computeIfAbsent(source.type(), ExcelColumnDefinition::scan);
         ExcelSheetWriter writer = new ExcelSheetWriter(
-                workbook.createSheet(WorkbookUtil.createSafeSheetName(source.name())),
-                columns, cellWriter, properties);
+                workbook.createSheet(WorkbookUtil.createSafeSheetName(source.name())), columns, cellWriter, properties);
         writer.writeHeader();
         source.data().forEachOrdered(writer::writeRow);
         writer.applyColumnWidths();

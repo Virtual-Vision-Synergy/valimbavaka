@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +23,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.expression.spel.SpelEvaluationException;
+
 import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
 import org.vvs.valimbavaka.shared.excel.config.ExcelProperties;
 import org.vvs.valimbavaka.shared.excel.exception.ExcelRowLimitExceededException;
@@ -32,7 +32,8 @@ class ExcelExporterTest {
 
     private static final int MAX_ROWS = 5;
 
-    private static final ExcelProperties PROPERTIES = new ExcelProperties(MAX_ROWS,
+    private static final ExcelProperties PROPERTIES = new ExcelProperties(
+            MAX_ROWS,
             new ExcelProperties.Column(40, 2),
             new ExcelProperties.Format("dd/mm/yyyy", "dd/mm/yyyy hh:mm"),
             ZoneId.of("Indian/Antananarivo"));
@@ -60,8 +61,14 @@ class ExcelExporterTest {
     @Test
     void export_record_readsComponentsAndExpressions() throws IOException {
         // Arrange
-        var item = new RecordRow("Rasoa", new Category("Épicerie"), Status.ACTIVE, BigDecimal.valueOf(1234.5),
-                LocalDate.of(2026, 10, 19), Instant.parse("2026-10-19T07:30:00Z"), true);
+        var item = new RecordRow(
+                "Rasoa",
+                new Category("Épicerie"),
+                Status.ACTIVE,
+                BigDecimal.valueOf(1234.5),
+                LocalDate.of(2026, 10, 19),
+                Instant.parse("2026-10-19T07:30:00Z"),
+                true);
 
         // Act
         XSSFSheet sheet = export(RecordRow.class, Stream.of(item));
@@ -139,7 +146,8 @@ class ExcelExporterTest {
         var out = new ByteArrayOutputStream();
 
         // Act
-        sut.export(out,
+        sut.export(
+                out,
                 ExcelExporter.sheet(ChildRow.class, "Enfants", Stream.of(new ChildRow("a", "b", Status.ACTIVE))),
                 ExcelExporter.sheet(BrokenRow.class, "Nom d'onglet trop long pour Excel [x]", Stream.empty()));
 
@@ -168,23 +176,31 @@ class ExcelExporterTest {
         return values;
     }
 
-    enum Status { ACTIVE }
-
-    record Category(String name) {
+    enum Status {
+        ACTIVE
     }
+
+    record Category(String name) {}
 
     record RecordRow(
-            @ExcelColumn(header = "Nom", order = 1, expression = "name.toUpperCase()") String name,
-            @ExcelColumn(header = "Catégorie", order = 2, expression = "category?.name") Category category,
+            @ExcelColumn(header = "Nom", order = 1, expression = "name.toUpperCase()")
+            String name,
+
+            @ExcelColumn(header = "Catégorie", order = 2, expression = "category?.name")
+            Category category,
+
             @ExcelColumn(header = "Statut", order = 3) Status status,
-            @ExcelColumn(header = "Solde", order = 4, format = "#,##0.00", width = 12) BigDecimal balance,
+
+            @ExcelColumn(header = "Solde", order = 4, format = "#,##0.00", width = 12)
+            BigDecimal balance,
+
             @ExcelColumn(header = "Jour", order = 5) LocalDate day,
             @ExcelColumn(header = "Créé le", order = 6) Instant createdAt,
-            @ExcelColumn(header = "Actif", order = 7) boolean active) {
-    }
+            @ExcelColumn(header = "Actif", order = 7) boolean active) {}
 
-    record BrokenRow(@ExcelColumn(header = "Erreur", expression = "missing") String value) {
-    }
+    record BrokenRow(
+            @ExcelColumn(header = "Erreur", expression = "missing")
+            String value) {}
 
     static class ParentRow {
 

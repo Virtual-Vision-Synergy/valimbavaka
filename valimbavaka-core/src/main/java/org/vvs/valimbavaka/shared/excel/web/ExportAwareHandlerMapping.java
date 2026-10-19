@@ -9,6 +9,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
 import org.vvs.valimbavaka.shared.dto.PageSizeLimit;
 import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
 
@@ -37,10 +38,13 @@ public class ExportAwareHandlerMapping extends RequestMappingHandlerMapping {
         String[] exportPaths = paths.getPatternValues().stream()
                 .map(path -> path.endsWith("/") ? path + EXPORT_SEGMENT : path + "/" + EXPORT_SEGMENT)
                 .toArray(String[]::new);
-        super.registerHandlerMethod(handler, method, mapping.mutate()
-                .paths(exportPaths)
-                .produces(ExcelHttpMessageConverter.XLSX_VALUE)
-                .build());
+        super.registerHandlerMethod(
+                handler,
+                method,
+                mapping.mutate()
+                        .paths(exportPaths)
+                        .produces(ExcelHttpMessageConverter.XLSX_VALUE)
+                        .build());
     }
 
     // Appelé avant la liaison des paramètres : PageQuery lit alors les bornes de l'export

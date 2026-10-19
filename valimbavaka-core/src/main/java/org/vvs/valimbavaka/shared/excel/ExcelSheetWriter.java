@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
+
 import org.vvs.valimbavaka.shared.excel.config.ExcelProperties;
 import org.vvs.valimbavaka.shared.excel.exception.ExcelRowLimitExceededException;
 
@@ -19,7 +20,10 @@ final class ExcelSheetWriter {
     private final int[] maxLengths;
     private int nextRow;
 
-    ExcelSheetWriter(SXSSFSheet sheet, List<ExcelColumnDefinition> columns, ExcelCellWriter cellWriter,
+    ExcelSheetWriter(
+            SXSSFSheet sheet,
+            List<ExcelColumnDefinition> columns,
+            ExcelCellWriter cellWriter,
             ExcelProperties properties) {
         this.sheet = sheet;
         this.columns = columns;

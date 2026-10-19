@@ -15,6 +15,7 @@ import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
+
 import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
 
 /** Colonne lue sur un champ {@link ExcelColumn} ; l'expression SpEL est analysée une seule fois par type. */
@@ -23,8 +24,9 @@ record ExcelColumnDefinition(String header, int width, String format, Expression
     private static final ExpressionParser PARSER = new SpelExpressionParser();
 
     // Lecture seule + méthodes d'instance : aucun accès aux types, constructeurs ni beans
-    private static final EvaluationContext CONTEXT =
-            SimpleEvaluationContext.forReadOnlyDataBinding().withInstanceMethods().build();
+    private static final EvaluationContext CONTEXT = SimpleEvaluationContext.forReadOnlyDataBinding()
+            .withInstanceMethods()
+            .build();
 
     // Chemin interrompu par un null (ex. "role.name" avec role null) : cellule vide, pas d'erreur
     private static final Set<SpelMessage> NULL_IN_PATH = Set.of(
@@ -33,18 +35,19 @@ record ExcelColumnDefinition(String header, int width, String format, Expression
     /** Champs annotés, ceux des classes parentes d'abord, puis triés (de façon stable) par {@code order}. */
     static List<ExcelColumnDefinition> scan(Class<?> type) {
         List<Field> fields = new ArrayList<>();
-        for (Class<?> current = type; current != null && current != Object.class;
-                current = current.getSuperclass()) {
+        for (Class<?> current = type; current != null && current != Object.class; current = current.getSuperclass()) {
             fields.addAll(0, Arrays.asList(current.getDeclaredFields()));
         }
         return fields.stream()
                 .filter(field -> field.isAnnotationPresent(ExcelColumn.class))
-                .sorted(Comparator.comparingInt(field -> field.getAnnotation(ExcelColumn.class).order()))
+                .sorted(Comparator.comparingInt(
+                        field -> field.getAnnotation(ExcelColumn.class).order()))
                 .map(ExcelColumnDefinition::of)
                 .toList();
     }
 
-    @Nullable Object valueOf(Object item) {
+    @Nullable
+    Object valueOf(Object item) {
         try {
             return expression.getValue(CONTEXT, item);
         } catch (SpelEvaluationException e) {
@@ -58,7 +61,7 @@ record ExcelColumnDefinition(String header, int width, String format, Expression
     private static ExcelColumnDefinition of(Field field) {
         ExcelColumn column = field.getAnnotation(ExcelColumn.class);
         String expression = column.expression().isBlank() ? field.getName() : column.expression();
-        return new ExcelColumnDefinition(column.header(), column.width(), column.format(),
-                PARSER.parseExpression(expression));
+        return new ExcelColumnDefinition(
+                column.header(), column.width(), column.format(), PARSER.parseExpression(expression));
     }
 }

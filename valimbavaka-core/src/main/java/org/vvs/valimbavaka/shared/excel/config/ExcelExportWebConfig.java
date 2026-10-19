@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverters;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
 import org.vvs.valimbavaka.shared.excel.ExcelExporter;
 import org.vvs.valimbavaka.shared.excel.web.ExcelHttpMessageConverter;
 import org.vvs.valimbavaka.shared.excel.web.ExportAwareHandlerMapping;
@@ -21,8 +22,8 @@ public class ExcelExportWebConfig implements WebMvcRegistrations, WebMvcConfigur
     private final ExcelExporter exporter;
     private final ApplicationEventPublisher eventPublisher;
 
-    public ExcelExportWebConfig(ExcelProperties properties, ExcelExporter exporter,
-            ApplicationEventPublisher eventPublisher) {
+    public ExcelExportWebConfig(
+            ExcelProperties properties, ExcelExporter exporter, ApplicationEventPublisher eventPublisher) {
         this.properties = properties;
         this.exporter = exporter;
         this.eventPublisher = eventPublisher;

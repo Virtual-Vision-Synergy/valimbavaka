@@ -16,8 +16,8 @@ public record PageSizeLimit(int defaultSize, int maxSize) {
     /** Bornes de la requête HTTP en cours ; {@link #STANDARD} hors requête ou sans dérogation. */
     static PageSizeLimit current() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
-        Object override = attributes == null
-                ? null : attributes.getAttribute(REQUEST_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+        Object override =
+                attributes == null ? null : attributes.getAttribute(REQUEST_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
         return override instanceof PageSizeLimit limit ? limit : STANDARD;
     }
 }

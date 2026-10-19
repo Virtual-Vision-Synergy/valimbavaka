@@ -31,11 +31,9 @@ public record ExcelProperties(
     /** Largeurs en caractères ; Excel plafonne une colonne à 255. */
     public record Column(
             @DefaultValue("255") @Min(1) @Max(255) int maxWidth,
-            @DefaultValue("2") @PositiveOrZero int padding) {
-    }
+            @DefaultValue("2") @PositiveOrZero int padding) {}
 
     public record Format(
             @DefaultValue("dd/mm/yyyy") @NotBlank String date,
-            @DefaultValue("dd/mm/yyyy hh:mm") @NotBlank String datetime) {
-    }
+            @DefaultValue("dd/mm/yyyy hh:mm") @NotBlank String datetime) {}
 }

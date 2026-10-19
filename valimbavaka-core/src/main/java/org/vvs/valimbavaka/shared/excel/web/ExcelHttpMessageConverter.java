@@ -22,6 +22,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
+
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 import org.vvs.valimbavaka.shared.excel.ExcelExporter;
 import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
@@ -49,8 +50,7 @@ public class ExcelHttpMessageConverter extends AbstractSmartHttpMessageConverter
     }
 
     /** Données à exporter et type de leurs éléments (qui porte les {@code @ExcelColumn}). */
-    private record Rows(Stream<?> data, Class<?> elementType) {
-    }
+    private record Rows(Stream<?> data, Class<?> elementType) {}
 
     @Override
     protected boolean supports(Class<?> clazz) {
@@ -73,15 +73,19 @@ public class ExcelHttpMessageConverter extends AbstractSmartHttpMessageConverter
     }
 
     @Override
-    protected void writeInternal(Object body, ResolvableType type, HttpOutputMessage outputMessage,
-            @Nullable Map<String, Object> hints) throws IOException {
+    protected void writeInternal(
+            Object body, ResolvableType type, HttpOutputMessage outputMessage, @Nullable Map<String, Object> hints)
+            throws IOException {
         Rows rows = toRows(body, type);
         @Nullable ExcelExport annotation = currentAnnotation();
         String simpleName = rows.elementType().getSimpleName();
         String filename = filename(annotation == null ? "" : annotation.filename(), simpleName);
         String sheetName = annotation == null || annotation.sheet().isBlank() ? simpleName : annotation.sheet();
-        outputMessage.getHeaders().setContentDisposition(
-                ContentDisposition.attachment().filename(filename, StandardCharsets.UTF_8).build());
+        outputMessage
+                .getHeaders()
+                .setContentDisposition(ContentDisposition.attachment()
+                        .filename(filename, StandardCharsets.UTF_8)
+                        .build());
         try (Stream<?> data = rows.data()) {
             exporter.export(new DeferredOutputStream(outputMessage), sheet(rows.elementType(), sheetName, data));
         }
@@ -92,8 +96,12 @@ public class ExcelHttpMessageConverter extends AbstractSmartHttpMessageConverter
 
     private static Rows toRows(Object body, ResolvableType type) {
         return switch (body) {
-            case Stream<?> stream -> new Rows(stream, declaredElementType(type, Stream.class)
-                    .orElseThrow(() -> new HttpMessageNotWritableException("Déclarez Stream<MonDto> en retour")));
+            case Stream<?> stream ->
+                new Rows(
+                        stream,
+                        declaredElementType(type, Stream.class)
+                                .orElseThrow(() ->
+                                        new HttpMessageNotWritableException("Déclarez Stream<MonDto> en retour")));
             case Page<?> page -> fromItems(page.getContent(), type, Page.class);
             case PageResponse<?> page -> fromItems(page.items(), type, PageResponse.class);
             case Collection<?> items -> fromItems(items, type, Collection.class);
@@ -110,8 +118,7 @@ public class ExcelHttpMessageConverter extends AbstractSmartHttpMessageConverter
 
     private static Optional<Class<?>> declaredElementType(ResolvableType type, Class<?> container) {
         Class<?> declared = type.as(container).getGeneric(0).resolve();
-        return declared == null || declared == Object.class
-                ? Optional.empty() : Optional.of(declared);
+        return declared == null || declared == Object.class ? Optional.empty() : Optional.of(declared);
     }
 
     // Typage sans cast non vérifié : chaque élément est converti vers le type déclaré

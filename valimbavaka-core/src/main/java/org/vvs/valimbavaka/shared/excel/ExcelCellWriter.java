@@ -15,6 +15,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.jspecify.annotations.Nullable;
+
 import org.vvs.valimbavaka.shared.excel.config.ExcelProperties;
 
 /** Écrit les cellules d'un classeur ; un style par format pour tout le classeur (Excel limite leur nombre). */
