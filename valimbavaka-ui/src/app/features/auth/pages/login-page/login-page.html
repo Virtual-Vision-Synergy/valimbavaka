@@ -1,0 +1,48 @@
+<main class="login">
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <img class="logo" src="logo/logo-min.png" alt="" width="56" height="56" />
+    <h1>Connexion</h1>
+
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input
+        id="email"
+        class="input"
+        type="email"
+        formControlName="email"
+        autocomplete="username"
+        aria-describedby="email-error"
+      />
+      @if (hasError('email')) {
+        <span id="email-error" class="field-error" aria-live="polite">
+          Une adresse email valide est obligatoire.
+        </span>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password">Mot de passe</label>
+      <input
+        id="password"
+        class="input"
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        aria-describedby="password-error"
+      />
+      @if (hasError('password')) {
+        <span id="password-error" class="field-error" aria-live="polite">
+          Le mot de passe est obligatoire.
+        </span>
+      }
+    </div>
+
+    <button class="btn btn-primary" type="submit" [disabled]="isSubmitting()">
+      {{ isSubmitting() ? 'Connexion…' : 'Se connecter' }}
+    </button>
+  </form>
+</main>

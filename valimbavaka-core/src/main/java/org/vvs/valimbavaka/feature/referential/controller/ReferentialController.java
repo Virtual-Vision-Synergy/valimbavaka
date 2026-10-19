@@ -10,6 +10,7 @@ import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
 import org.vvs.valimbavaka.feature.referential.dto.SalesChannelRDto;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
+import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
@@ -26,16 +27,19 @@ public class ReferentialController {
     }
 
     @GetMapping("/sales-channels")
+    @HasPermission("referentials.read")
     public PageResponse<SalesChannelRDto> getSalesChannels(@Valid PageQuery query) {
         return referentialService.getSalesChannels(query);
     }
 
     @GetMapping("/product-ranges")
+    @HasPermission("referentials.read")
     public PageResponse<ProductRangeRDto> getProductRanges(@Valid PageQuery query) {
         return referentialService.getProductRanges(query);
     }
 
     @GetMapping("/stock-locations")
+    @HasPermission("referentials.read")
     public PageResponse<StockLocationRDto> getStockLocations(@Valid PageQuery query) {
         return referentialService.getStockLocations(query);
     }

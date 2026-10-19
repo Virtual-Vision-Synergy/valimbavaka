@@ -4,24 +4,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.vvs.valimbavaka.security.jwt.JwtSubject;
 
-/**
- * Auteur des écritures auditées (created_by / updated_by) : l'utilisateur connecté.
- * Vide hors requête authentifiée (migrations, initialisation) : un auteur inconnu vaut mieux qu'un identifiant inventé.
- */
+/** Auteur des écritures auditées : l'identifiant du compte authentifié (claim {@code sub}), sinon vide. */
 @Component
 public class SecurityAuditorAware implements AuditorAware<UUID> {
 
     @Override
     public Optional<UUID> getCurrentAuditor() {
-        return Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                .filter(authentication -> authentication.isAuthenticated()
-                        && !(authentication instanceof AnonymousAuthenticationToken))
-                .map(authentication -> authentication.getPrincipal())
-                .filter(AuditableUser.class::isInstance)
-                .map(principal -> ((AuditableUser) principal).getId());
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof JwtAuthenticationToken jwtAuthentication) {
+            return JwtSubject.userIdOf(jwtAuthentication.getToken());
+        }
+        return Optional.empty();
     }
 }

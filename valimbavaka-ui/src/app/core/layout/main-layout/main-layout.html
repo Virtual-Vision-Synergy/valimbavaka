@@ -1,12 +1,39 @@
-<header class="header">
+<aside class="sidebar">
   <a class="brand" routerLink="/">
     <img src="logo/logo-min.png" alt="" width="32" height="32" />
     <span>Valimbavaka</span>
   </a>
+
   <nav aria-label="Navigation principale">
-    <a routerLink="/users" routerLinkActive="active" ariaCurrentWhenActive="page">Utilisateurs</a>
+    @for (section of sections(); track section.title) {
+      <div class="section">
+        <p class="section-title">{{ section.title }}</p>
+        <ul>
+          @for (item of section.items; track item.route) {
+            <li>
+              <a [routerLink]="item.route" routerLinkActive="active" ariaCurrentWhenActive="page">
+                {{ item.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </nav>
-</header>
+
+  @if (user(); as currentUser) {
+    <div class="account">
+      <div class="identity">
+        <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+        <div>
+          <p class="name">{{ currentUser.firstName }} {{ currentUser.lastName }}</p>
+          <p class="role">{{ currentUser.roleLabel }}</p>
+        </div>
+      </div>
+      <button class="logout" type="button" (click)="logout()">Déconnexion</button>
+    </div>
+  }
+</aside>
 
 <main class="content">
   <router-outlet />
