@@ -42,7 +42,9 @@ export class UserFormPage implements OnInit {
   protected readonly roleLabel = roleLabel;
   protected readonly isEdit = computed(() => !!this.id());
   protected readonly roles = toSignal(inject(RoleService).listAll(), { initialValue: [] });
-  protected readonly salesChannels = toSignal(inject(SalesChannelService).listAll(), { initialValue: [] });
+  protected readonly salesChannels = toSignal(inject(SalesChannelService).listAll(), {
+    initialValue: [],
+  });
   protected readonly isSaving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly minPasswordLength = MIN_PASSWORD_LENGTH;
@@ -121,7 +123,8 @@ export class UserFormPage implements OnInit {
   }
 
   private saveRequest(): Observable<UserRDto> {
-    const { email, password, firstName, lastName, roleId, active, ...terms } = this.form.getRawValue();
+    const { email, password, firstName, lastName, roleId, active, ...terms } =
+      this.form.getRawValue();
     const salesChannelId = this.isSeller() ? terms.salesChannelId || null : null;
     const commissionRate = this.isSeller() ? terms.commissionRate : null;
     const id = this.id();

@@ -85,5 +85,15 @@
       "next": "Suivant",
       "status": "Page {{page}} / {{total}}"
     }
+  },
+  "user": {
+    "status": {
+      "active": "ACTIF",
+      "inactive": "DÉSACTIVÉ",
+      "activate": "Activer",
+      "deactivate": "Désactiver",
+      "confirmActivate": "Activer l'utilisateur {{name}} ?",
+      "confirmDeactivate": "Désactiver l'utilisateur {{name}} ?"
+    }
   }
 }

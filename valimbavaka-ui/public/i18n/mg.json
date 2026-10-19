@@ -85,5 +85,15 @@
       "next": "Manaraka",
       "status": "Pejy {{page}} / {{total}}"
     }
+  },
+  "user": {
+    "status": {
+      "active": "MIASA",
+      "inactive": "NATSAHATRA",
+      "activate": "Alefaso",
+      "deactivate": "Atsaharo",
+      "confirmActivate": "Alefa ny mpampiasa {{name}} ?",
+      "confirmDeactivate": "Atsahatra ny mpampiasa {{name}} ?"
+    }
   }
 }

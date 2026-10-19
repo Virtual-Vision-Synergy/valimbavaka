@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
+import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { errorMessage } from '../../../../core/http/problem-detail';
 import { UserService } from '../../data-access/user-service';
 import { UserRDto, roleLabel } from '../../data-access/user-models';
@@ -10,7 +12,7 @@ const PAGE_SIZE = 10;
 
 @Component({
   selector: 'vvs-user-list-page',
-  imports: [RouterLink],
+  imports: [RouterLink, HasPermissionDirective, TranslatePipe],
   templateUrl: './user-list-page.html',
   styleUrl: './user-list-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -18,6 +20,7 @@ const PAGE_SIZE = 10;
 export class UserListPage {
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
 
   protected readonly roleLabel = roleLabel;
   protected readonly users = signal<UserRDto[]>([]);
@@ -42,6 +45,21 @@ export class UserListPage {
   protected goToPage(page: number): void {
     this.page.set(page);
     this.loadUsers();
+  }
+
+  protected toggleActive(user: UserRDto): void {
+    const key = user.active ? 'user.status.confirmDeactivate' : 'user.status.confirmActivate';
+    const name = `${user.firstName} ${user.lastName}`;
+    if (!confirm(this.translate.instant(key, { name }))) {
+      return;
+    }
+    this.userService
+      .setActive(user.id, !user.active)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadUsers(),
+        error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
+      });
   }
 
   protected deleteUser(user: UserRDto): void {
