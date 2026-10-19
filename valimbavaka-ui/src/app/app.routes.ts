@@ -23,6 +23,12 @@ export const routes: Routes = [
         canActivate: [permissionGuard('users.read')],
         loadChildren: () => import('./features/user/user.routes').then((m) => m.USER_ROUTES),
       },
+      {
+        path: 'journal',
+        canActivate: [permissionGuard('journal.read')],
+        loadChildren: () =>
+          import('./features/journal/journal.routes').then((m) => m.JOURNAL_ROUTES),
+      },
       ...PLACEHOLDER_ROUTES,
     ],
   },

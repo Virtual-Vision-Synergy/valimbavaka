@@ -46,7 +46,8 @@
       "commissions": "Commissions",
       "services": "Services",
       "reports": "Rapports",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "journal": "Journal"
     }
   },
   "placeholder": {
@@ -54,6 +55,35 @@
     "noAccess": {
       "title": "Aucun accès",
       "message": "Aucun module n'est accessible avec le rôle de votre compte. Contactez l'administrateur."
+    }
+  },
+  "journal": {
+    "title": "Journal des opérations",
+    "count": "{{count}} opération(s)",
+    "loading": "Chargement…",
+    "empty": "Aucune opération enregistrée.",
+    "search": {
+      "label": "Rechercher",
+      "placeholder": "Rechercher par auteur, ressource ou description",
+      "submit": "Rechercher"
+    },
+    "column": {
+      "date": "Date",
+      "author": "Auteur",
+      "action": "Action",
+      "resource": "Ressource",
+      "description": "Description"
+    },
+    "action": {
+      "CREATE": "Création",
+      "UPDATE": "Modification",
+      "DELETE": "Suppression"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "status": "Page {{page}} / {{total}}"
     }
   }
 }

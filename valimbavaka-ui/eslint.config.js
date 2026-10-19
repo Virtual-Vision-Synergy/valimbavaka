@@ -70,6 +70,8 @@ module.exports = defineConfig([
     files: ['**/*.spec.ts'],
     rules: {
       'max-lines-per-function': 'off',
+      // Les tests de la préférence de langue lisent et vident le stockage du navigateur.
+      'no-restricted-globals': 'off',
     },
   },
   {

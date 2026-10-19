@@ -48,7 +48,10 @@ export const MENU_SECTIONS: readonly MenuSection[] = [
   },
   {
     titleKey: 'menu.section.administration',
-    items: [{ labelKey: 'menu.item.users', route: '/users', permission: 'users.read' }],
+    items: [
+      { labelKey: 'menu.item.users', route: '/users', permission: 'users.read' },
+      { labelKey: 'menu.item.journal', route: '/journal', permission: 'journal.read' },
+    ],
   },
 ];
 

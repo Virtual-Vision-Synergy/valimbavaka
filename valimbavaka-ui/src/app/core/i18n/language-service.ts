@@ -25,6 +25,7 @@ export class LanguageService {
 
   use(language: AppLanguage): void {
     try {
+      // eslint-disable-next-line no-restricted-globals -- préférence d'affichage, aucune donnée sensible (§9)
       localStorage.setItem(STORAGE_KEY, language);
     } catch {
       // Stockage indisponible (navigation privée) : la préférence vaut pour la session seulement.
@@ -40,6 +41,7 @@ export class LanguageService {
 
   private storedLanguage(): AppLanguage {
     try {
+      // eslint-disable-next-line no-restricted-globals -- préférence d'affichage, aucune donnée sensible (§9)
       const stored = localStorage.getItem(STORAGE_KEY);
       return SUPPORTED_LANGUAGES.find((language) => language === stored) ?? DEFAULT_LANGUAGE;
     } catch {

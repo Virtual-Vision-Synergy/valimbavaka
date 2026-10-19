@@ -46,7 +46,8 @@
       "commissions": "Komisiona",
       "services": "Serivisy",
       "reports": "Tatitra",
-      "users": "Mpampiasa"
+      "users": "Mpampiasa",
+      "journal": "Tahirin-kevitra"
     }
   },
   "placeholder": {
@@ -54,6 +55,35 @@
     "noAccess": {
       "title": "Tsy misy fidirana",
       "message": "Tsy misy modely azonao idirana amin'ny andraikitry ny kaontinao. Mifandraisa amin'ny mpitantana."
+    }
+  },
+  "journal": {
+    "title": "Tahirin-kevitra momba ny asa vita",
+    "count": "{{count}} asa vita",
+    "loading": "Eo am-pakàna…",
+    "empty": "Tsy misy asa voasoratra.",
+    "search": {
+      "label": "Hikaroka",
+      "placeholder": "Hikaroka araka ny mpanao, ny loharano na ny filazana",
+      "submit": "Hikaroka"
+    },
+    "column": {
+      "date": "Daty",
+      "author": "Mpanao",
+      "action": "Hetsika",
+      "resource": "Loharano",
+      "description": "Filazana"
+    },
+    "action": {
+      "CREATE": "Famoronana",
+      "UPDATE": "Fanovana",
+      "DELETE": "Famafana"
+    },
+    "pagination": {
+      "label": "Pejy",
+      "previous": "Teo aloha",
+      "next": "Manaraka",
+      "status": "Pejy {{page}} / {{total}}"
     }
   }
 }
