@@ -19,14 +19,21 @@ final class DeferredOutputStream extends OutputStream {
         this.message = message;
     }
 
+    // Corps de la réponse : ouvert ici, fermé par Spring, d'où l'absence de try-with-resources
     @Override
     public void write(int b) throws IOException {
-        body().write(b);
+        if (body == null) {
+            body = message.getBody();
+        }
+        body.write(b);
     }
 
     @Override
     public void write(byte[] bytes, int offset, int length) throws IOException {
-        body().write(bytes, offset, length);
+        if (body == null) {
+            body = message.getBody();
+        }
+        body.write(bytes, offset, length);
     }
 
     @Override
@@ -34,12 +41,5 @@ final class DeferredOutputStream extends OutputStream {
         if (body != null) {
             body.flush();
         }
-    }
-
-    private OutputStream body() throws IOException {
-        if (body == null) {
-            body = message.getBody();
-        }
-        return body;
     }
 }
