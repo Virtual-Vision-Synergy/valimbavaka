@@ -11,7 +11,11 @@ import { errorInterceptor } from './error-interceptor';
 import { sessionInterceptor } from './session-interceptor';
 
 const UNAUTHORIZED = { status: 401, statusText: 'Unauthorized' };
-const UNAUTHENTICATED_BODY = { status: 401, code: 'UNAUTHENTICATED', detail: 'Authentification requise' };
+const UNAUTHENTICATED_BODY = {
+  status: 401,
+  code: 'UNAUTHENTICATED',
+  detail: 'Authentification requise',
+};
 
 describe('sessionInterceptor', () => {
   let http: HttpClient;
@@ -22,7 +26,9 @@ describe('sessionInterceptor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([authInterceptor, sessionInterceptor, errorInterceptor])),
+        provideHttpClient(
+          withInterceptors([authInterceptor, sessionInterceptor, errorInterceptor]),
+        ),
         provideHttpClientTesting(),
       ],
     });
@@ -86,5 +92,28 @@ describe('sessionInterceptor', () => {
     httpMock.expectOne('/api/v1/auth/login').flush(UNAUTHENTICATED_BODY, UNAUTHORIZED);
 
     expect((failure as ApiError).status).toBe(401);
+  });
+});
+
+describe('sessionInterceptor at startup', () => {
+  it('should not need the Router to send a request (translations load before the Router exists)', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptors([sessionInterceptor])),
+        provideHttpClientTesting(),
+        {
+          provide: Router,
+          useFactory: () => {
+            throw new Error('Router instancié trop tôt');
+          },
+        },
+      ],
+    });
+    const httpMock = TestBed.inject(HttpTestingController);
+
+    TestBed.inject(HttpClient).get('/i18n/fr.json').subscribe();
+
+    httpMock.expectOne('/i18n/fr.json').flush({});
+    httpMock.verify();
   });
 });
