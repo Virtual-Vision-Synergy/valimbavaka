@@ -2,9 +2,6 @@ import { Route, Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 import { MENU_SECTIONS } from '../../core/layout/menu';
 
-const NO_ACCESS_MESSAGE =
-  "Aucun module n'est accessible avec le rôle de votre compte. Contactez l'administrateur.";
-
 /** Routes provisoires des modules du menu (hors utilisateurs), chacune protégée par sa permission. */
 export const PLACEHOLDER_ROUTES: Routes = [
   ...MENU_SECTIONS.flatMap((section) => section.items)
@@ -12,16 +9,19 @@ export const PLACEHOLDER_ROUTES: Routes = [
     .map(
       (item): Route => ({
         path: item.route.slice(1),
-        title: `${item.label} · Valimbavaka`,
+        title: item.labelKey,
         canActivate: [permissionGuard(item.permission)],
-        data: { heading: item.label },
+        data: { headingKey: item.labelKey },
         loadComponent: () => import('./module-placeholder').then((m) => m.ModulePlaceholder),
       }),
     ),
   {
     path: 'no-access',
-    title: 'Aucun accès · Valimbavaka',
-    data: { heading: 'Aucun accès', message: NO_ACCESS_MESSAGE },
+    title: 'placeholder.noAccess.title',
+    data: {
+      headingKey: 'placeholder.noAccess.title',
+      messageKey: 'placeholder.noAccess.message',
+    },
     loadComponent: () => import('./module-placeholder').then((m) => m.ModulePlaceholder),
   },
 ];

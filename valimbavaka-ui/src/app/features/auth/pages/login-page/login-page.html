@@ -1,14 +1,14 @@
 <main class="login">
   <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <img class="logo" src="logo/logo-min.png" alt="" width="56" height="56" />
-    <h1>Connexion</h1>
+    <h1>{{ 'auth.login.title' | translate }}</h1>
 
     @if (errorMessage(); as message) {
       <div class="alert alert-danger" role="alert">{{ message }}</div>
     }
 
     <div class="field">
-      <label for="email">Email</label>
+      <label for="email">{{ 'auth.login.email' | translate }}</label>
       <input
         id="email"
         class="input"
@@ -19,13 +19,13 @@
       />
       @if (hasError('email')) {
         <span id="email-error" class="field-error" aria-live="polite">
-          Une adresse email valide est obligatoire.
+          {{ 'auth.login.emailInvalid' | translate }}
         </span>
       }
     </div>
 
     <div class="field">
-      <label for="password">Mot de passe</label>
+      <label for="password">{{ 'auth.login.password' | translate }}</label>
       <input
         id="password"
         class="input"
@@ -36,13 +36,15 @@
       />
       @if (hasError('password')) {
         <span id="password-error" class="field-error" aria-live="polite">
-          Le mot de passe est obligatoire.
+          {{ 'auth.login.passwordRequired' | translate }}
         </span>
       }
     </div>
 
     <button class="btn btn-primary" type="submit" [disabled]="isSubmitting()">
-      {{ isSubmitting() ? 'Connexion…' : 'Se connecter' }}
+      {{ (isSubmitting() ? 'auth.login.submitting' : 'auth.login.submit') | translate }}
     </button>
+
+    <vvs-language-switcher />
   </form>
 </main>

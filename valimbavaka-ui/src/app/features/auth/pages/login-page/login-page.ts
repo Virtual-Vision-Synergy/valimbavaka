@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth-service';
 import { ApiError, errorMessage } from '../../../../core/http/problem-detail';
+import { LanguageSwitcher } from '../../../../core/i18n/language-switcher';
 
-const GENERIC_LOGIN_ERROR = 'Identifiants invalides';
 const HTTP_UNAUTHORIZED = 401;
 
 /** Connexion : on n'envoie que l'email et le mot de passe, le rôle est celui du compte (AUTH-01). */
 @Component({
   selector: 'vvs-login-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, TranslatePipe, LanguageSwitcher],
   templateUrl: './login-page.html',
   styleUrl: './login-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +20,7 @@ const HTTP_UNAUTHORIZED = 401;
 export class LoginPage {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
@@ -51,7 +53,7 @@ export class LoginPage {
 
   private messageFor(error: unknown): string {
     return error instanceof ApiError && error.status === HTTP_UNAUTHORIZED
-      ? GENERIC_LOGIN_ERROR
+      ? this.translate.instant('auth.login.invalidCredentials')
       : errorMessage(error);
   }
 }

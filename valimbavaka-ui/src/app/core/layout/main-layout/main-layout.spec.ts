@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { AuthStore } from '../../auth/auth-store';
+import { provideTestTranslations } from '../../i18n/i18n-testing';
 import { buildUser } from '../../auth/auth-testing';
 import { MainLayout } from './main-layout';
 
@@ -10,7 +11,12 @@ describe('MainLayout', () => {
   async function render(role: 'ADMIN' | 'SELLER' | 'DELIVERY_DRIVER'): Promise<HTMLElement> {
     await TestBed.configureTestingModule({
       imports: [MainLayout],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTestTranslations(),
+      ],
     }).compileComponents();
     TestBed.inject(AuthStore).signIn('jeton', buildUser(role));
     const fixture = TestBed.createComponent(MainLayout);

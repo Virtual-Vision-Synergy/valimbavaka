@@ -1,0 +1,59 @@
+{
+  "app": {
+    "name": "Valimbavaka"
+  },
+  "language": {
+    "label": "Fiteny",
+    "fr": "Frantsay",
+    "mg": "Malagasy"
+  },
+  "auth": {
+    "login": {
+      "title": "Fidirana",
+      "email": "Mailaka",
+      "password": "Teny miafina",
+      "submit": "Hiditra",
+      "submitting": "Miditra…",
+      "emailInvalid": "Ilaina ny adiresy mailaka manan-kery.",
+      "passwordRequired": "Ilaina ny teny miafina.",
+      "invalidCredentials": "Diso ny mailaka na ny teny miafina"
+    }
+  },
+  "layout": {
+    "navigation": "Fandehanana lehibe",
+    "logout": "Hivoaka"
+  },
+  "menu": {
+    "section": {
+      "main": "Fototra",
+      "catalog": "Katalaogy",
+      "operations": "Asa andavanandro",
+      "commerce": "Fivarotana",
+      "analysis": "Fanadihadiana",
+      "administration": "Fitantanana"
+    },
+    "item": {
+      "dashboard": "Tabilao fanaraha-maso",
+      "suppliers": "Mpamatsy",
+      "articles": "Entana",
+      "stocks": "Tahiry",
+      "production": "Famokarana",
+      "transfers": "Famindrana",
+      "inventory": "Fanisana",
+      "sales": "Varotra",
+      "deliveries": "Fanaterana",
+      "promotions": "Fampiroboroboana",
+      "commissions": "Komisiona",
+      "services": "Serivisy",
+      "reports": "Tatitra",
+      "users": "Mpampiasa"
+    }
+  },
+  "placeholder": {
+    "comingSoon": "Ho azo ampiasaina tsy ho ela ity modely ity.",
+    "noAccess": {
+      "title": "Tsy misy fidirana",
+      "message": "Tsy misy modely azonao idirana amin'ny andraikitry ny kaontinao. Mifandraisa amin'ny mpitantana."
+    }
+  }
+}

@@ -1,60 +1,61 @@
 /** Entrée de menu : visible seulement si l'utilisateur a la permission (même code que `@HasPermission` du backend). */
 export interface MenuItem {
-  readonly label: string;
+  /** Clé de traduction (`menu.item.*`). */
+  readonly labelKey: string;
   readonly route: string;
   readonly permission: string;
 }
 
 export interface MenuSection {
-  readonly title: string;
+  readonly titleKey: string;
   readonly items: readonly MenuItem[];
 }
 
 export const MENU_SECTIONS: readonly MenuSection[] = [
   {
-    title: 'Principal',
-    items: [{ label: 'Tableau de bord', route: '/dashboard', permission: 'dashboard.read' }],
+    titleKey: 'menu.section.main',
+    items: [{ labelKey: 'menu.item.dashboard', route: '/dashboard', permission: 'dashboard.read' }],
   },
   {
-    title: 'Catalogue',
+    titleKey: 'menu.section.catalog',
     items: [
-      { label: 'Fournisseurs', route: '/suppliers', permission: 'suppliers.read' },
-      { label: 'Articles', route: '/articles', permission: 'articles.read' },
+      { labelKey: 'menu.item.suppliers', route: '/suppliers', permission: 'suppliers.read' },
+      { labelKey: 'menu.item.articles', route: '/articles', permission: 'articles.read' },
     ],
   },
   {
-    title: 'Opérations',
+    titleKey: 'menu.section.operations',
     items: [
-      { label: 'Stocks', route: '/stocks', permission: 'stocks.read' },
-      { label: 'Production', route: '/production', permission: 'production.read' },
-      { label: 'Transferts', route: '/transfers', permission: 'transfers.read' },
-      { label: 'Inventaire', route: '/inventory', permission: 'inventory.read' },
+      { labelKey: 'menu.item.stocks', route: '/stocks', permission: 'stocks.read' },
+      { labelKey: 'menu.item.production', route: '/production', permission: 'production.read' },
+      { labelKey: 'menu.item.transfers', route: '/transfers', permission: 'transfers.read' },
+      { labelKey: 'menu.item.inventory', route: '/inventory', permission: 'inventory.read' },
     ],
   },
   {
-    title: 'Commerce',
+    titleKey: 'menu.section.commerce',
     items: [
-      { label: 'Ventes', route: '/sales', permission: 'sales.read' },
-      { label: 'Livraisons', route: '/deliveries', permission: 'deliveries.read' },
-      { label: 'Promotions', route: '/promotions', permission: 'promotions.read' },
-      { label: 'Commissions', route: '/commissions', permission: 'commissions.read' },
-      { label: 'Services', route: '/services', permission: 'services.read' },
+      { labelKey: 'menu.item.sales', route: '/sales', permission: 'sales.read' },
+      { labelKey: 'menu.item.deliveries', route: '/deliveries', permission: 'deliveries.read' },
+      { labelKey: 'menu.item.promotions', route: '/promotions', permission: 'promotions.read' },
+      { labelKey: 'menu.item.commissions', route: '/commissions', permission: 'commissions.read' },
+      { labelKey: 'menu.item.services', route: '/services', permission: 'services.read' },
     ],
   },
   {
-    title: 'Analyse',
-    items: [{ label: 'Rapports', route: '/reports', permission: 'reports.read' }],
+    titleKey: 'menu.section.analysis',
+    items: [{ labelKey: 'menu.item.reports', route: '/reports', permission: 'reports.read' }],
   },
   {
-    title: 'Administration',
-    items: [{ label: 'Utilisateurs', route: '/users', permission: 'users.read' }],
+    titleKey: 'menu.section.administration',
+    items: [{ labelKey: 'menu.item.users', route: '/users', permission: 'users.read' }],
   },
 ];
 
 /** Sections réduites aux entrées autorisées ; une section vide disparaît. */
 export function visibleSections(hasPermission: (permission: string) => boolean): MenuSection[] {
   return MENU_SECTIONS.map((section) => ({
-    title: section.title,
+    titleKey: section.titleKey,
     items: section.items.filter((item) => hasPermission(item.permission)),
   })).filter((section) => section.items.length > 0);
 }
