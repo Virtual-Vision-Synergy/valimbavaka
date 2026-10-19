@@ -22,6 +22,14 @@ public interface UserService {
     void deleteUserById(UUID userId);
 
     /**
+     * Active ou désactive un compte (idempotent : aucun effet ni trace si l'état est déjà celui demandé).
+     *
+     * @throws org.vvs.valimbavaka.core.exception.BusinessException si l'administrateur cible son propre compte ou
+     *         désactive le dernier administrateur actif
+     */
+    UserRDto setActive(UUID userId, boolean active);
+
+    /**
      * Crée le premier administrateur si aucun n'existe (idempotent). Le compte doit changer son mot
      * de passe à la première connexion.
      *
