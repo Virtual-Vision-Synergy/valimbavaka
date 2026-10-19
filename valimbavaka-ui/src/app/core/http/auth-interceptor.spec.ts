@@ -2,6 +2,7 @@ import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { AuthStore } from '../auth/auth-store';
+import { buildUser } from '../auth/auth-testing';
 import { authInterceptor } from './auth-interceptor';
 
 describe('authInterceptor', () => {
@@ -17,7 +18,7 @@ describe('authInterceptor', () => {
     });
     http = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
-    TestBed.inject(AuthStore).signIn('jeton-acces', []);
+    TestBed.inject(AuthStore).signIn('jeton-acces', buildUser('ADMIN'));
   });
 
   afterEach(() => httpMock.verify());

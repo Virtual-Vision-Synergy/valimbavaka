@@ -15,6 +15,19 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("select u from User u join fetch u.role where u.id = :userId")
     Optional<User> findByIdWithRole(UUID userId);
 
+    /** Chargement pour l'authentification : rôle et permissions en une requête (pas de N+1). */
+    @Query("""
+            select distinct u from User u join fetch u.role r left join fetch r.permissions
+            where u.email = :email
+            """)
+    Optional<User> findByEmailWithRoleAndPermissions(String email);
+
+    @Query("""
+            select distinct u from User u join fetch u.role r left join fetch r.permissions
+            where u.id = :userId
+            """)
+    Optional<User> findByIdWithRoleAndPermissions(UUID userId);
+
     /** Recherche insensible à la casse sur email, prénom et nom ; {@code search} vide = tout. */
     @Query(value = """
             select u from User u join fetch u.role

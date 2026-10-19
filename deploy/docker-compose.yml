@@ -37,6 +37,10 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      # Secret de signature des JWT (>= 32 caracteres) : obligatoire, le backend refuse de demarrer sans.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET manquant}
+      # Cookie du refresh token : Secure par defaut ; mettre false si l'environnement est servi en HTTP.
+      REFRESH_COOKIE_SECURE: ${REFRESH_COOKIE_SECURE:-true}
       # Premier administrateur : ignore des qu'un administrateur existe en base
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}

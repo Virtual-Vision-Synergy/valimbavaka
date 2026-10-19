@@ -1,25 +1,28 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { CurrentUserRDto } from './auth-models';
 
 /**
  * État d'authentification en mémoire (jamais dans localStorage, convention §9.2).
- * Alimenté par la feature auth (login / refresh) quand elle sera livrée.
+ * Alimenté par AuthService (login / refresh) ; le rôle et les permissions viennent du serveur.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
   private readonly token = signal<string | null>(null);
-  private readonly grantedPermissions = signal<ReadonlySet<string>>(new Set());
+  private readonly user = signal<CurrentUserRDto | null>(null);
 
   readonly accessToken = this.token.asReadonly();
+  readonly currentUser = this.user.asReadonly();
   readonly isAuthenticated = computed(() => this.token() !== null);
+  private readonly grantedPermissions = computed(() => new Set(this.user()?.permissions ?? []));
 
-  signIn(accessToken: string, permissions: readonly string[]): void {
+  signIn(accessToken: string, user: CurrentUserRDto): void {
     this.token.set(accessToken);
-    this.grantedPermissions.set(new Set(permissions));
+    this.user.set(user);
   }
 
   signOut(): void {
     this.token.set(null);
-    this.grantedPermissions.set(new Set());
+    this.user.set(null);
   }
 
   hasPermission(permission: string): boolean {

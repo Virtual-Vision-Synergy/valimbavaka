@@ -1,13 +1,14 @@
-:host { display: flex; flex-direction: column; min-height: 100vh; }
+:host { display: flex; min-height: 100vh; }
 
-.header {
+.sidebar {
   display: flex;
-  align-items: center;
-  gap: var(--space-6);
-  height: var(--header-height);
-  padding: 0 var(--space-6);
-  background: var(--blanc);
-  box-shadow: var(--shadow-sm);
+  flex-direction: column;
+  gap: var(--space-4);
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  padding: var(--space-4);
+  background: linear-gradient(180deg, var(--secondary), var(--secondary-dark));
+  color: var(--blanc);
 }
 
 .brand {
@@ -15,12 +16,60 @@
   align-items: center;
   gap: var(--space-2);
   font-weight: 700;
-  color: var(--brun);
+  color: var(--blanc);
   text-decoration: none;
 }
 
-nav { display: flex; gap: var(--space-4); }
-nav a { color: var(--gris-moyen); text-decoration: none; font-weight: 500; }
-nav a:hover, nav a.active { color: var(--primary); }
+nav { flex: 1; overflow-y: auto; }
+.section { margin-bottom: var(--space-4); }
+.section-title {
+  margin: 0 0 var(--space-1);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+ul { list-style: none; margin: 0; padding: 0; }
+nav a {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--blanc);
+  text-decoration: none;
+  font-weight: 500;
+}
+nav a:hover { background: rgba(255, 255, 255, 0.15); }
+nav a.active { background: rgba(255, 255, 255, 0.25); }
 
-.content { flex: 1; }
+.account { display: flex; flex-direction: column; gap: var(--space-2); }
+.identity { display: flex; align-items: center; gap: var(--space-3); }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  font-weight: 700;
+}
+.name, .role { margin: 0; }
+.name { font-weight: 600; }
+.role { font-size: 12px; color: rgba(255, 255, 255, 0.8); }
+.logout {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--blanc);
+  cursor: pointer;
+  font: inherit;
+}
+.logout:hover { background: rgba(255, 255, 255, 0.15); }
+
+.content { flex: 1; min-width: 0; }
+
+@media (max-width: 768px) {
+  :host { flex-direction: column; }
+  .sidebar { width: auto; }
+}

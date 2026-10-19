@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.vvs.valimbavaka.feature.user.dto.RoleRDto;
 import org.vvs.valimbavaka.feature.user.service.RoleService;
+import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
@@ -24,6 +25,7 @@ public class RoleController {
     }
 
     @GetMapping
+    @HasPermission("roles.read")
     public PageResponse<RoleRDto> getRoles(@Valid PageQuery query) {
         return roleService.getRoles(query);
     }
