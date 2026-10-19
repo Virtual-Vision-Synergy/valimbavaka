@@ -1,0 +1,92 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>{{ 'journal.title' | translate }}</h1>
+      <p>{{ 'journal.count' | translate: { count: totalCount() } }}</p>
+    </div>
+  </header>
+
+  <div class="card">
+    <form class="toolbar" (submit)="$event.preventDefault(); onSearch(searchInput.value)">
+      <label class="visually-hidden" for="journal-search">{{
+        'journal.search.label' | translate
+      }}</label>
+      <input
+        #searchInput
+        id="journal-search"
+        class="input"
+        type="search"
+        [placeholder]="'journal.search.placeholder' | translate"
+        [value]="search()"
+      />
+      <button class="btn btn-ghost" type="submit">{{ 'journal.search.submit' | translate }}</button>
+    </form>
+
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{{ 'journal.column.date' | translate }}</th>
+            <th scope="col">{{ 'journal.column.author' | translate }}</th>
+            <th scope="col">{{ 'journal.column.action' | translate }}</th>
+            <th scope="col">{{ 'journal.column.resource' | translate }}</th>
+            <th scope="col">{{ 'journal.column.description' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of entries(); track entry.id) {
+            <tr>
+              <td>
+                <time [attr.datetime]="entry.occurredAt">{{
+                  entry.occurredAt | date: 'dd/MM/yyyy HH:mm:ss'
+                }}</time>
+              </td>
+              <td class="name">{{ entry.actorName }}</td>
+              <td>
+                <span class="badge" [class]="'badge-action-' + entry.action.toLowerCase()">{{
+                  'journal.action.' + entry.action | translate
+                }}</span>
+              </td>
+              <td>{{ entry.resourceType }}</td>
+              <td class="description">{{ entry.description }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td class="empty" colspan="5">
+                {{ (isLoading() ? 'journal.loading' : 'journal.empty') | translate }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <nav class="pagination" [attr.aria-label]="'journal.pagination.label' | translate">
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          [disabled]="page() === 1 || isLoading()"
+          (click)="goToPage(page() - 1)"
+        >
+          {{ 'journal.pagination.previous' | translate }}
+        </button>
+        <span>{{
+          'journal.pagination.status' | translate: { page: page(), total: totalPages() }
+        }}</span>
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          [disabled]="page() >= totalPages() || isLoading()"
+          (click)="goToPage(page() + 1)"
+        >
+          {{ 'journal.pagination.next' | translate }}
+        </button>
+      </nav>
+    }
+  </div>
+</section>

@@ -6,7 +6,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     'dashboard.read', 'suppliers.read', 'articles.read', 'stocks.read', 'production.read',
     'transfers.read', 'inventory.read', 'sales.read', 'deliveries.read', 'promotions.read',
     'commissions.read', 'services.read', 'reports.read', 'referentials.read', 'roles.read',
-    'users.read', 'users.create', 'users.update', 'users.delete',
+    'users.read', 'users.create', 'users.update', 'users.delete', 'journal.read',
   ],
   SELLER: [
     'dashboard.read', 'articles.read', 'stocks.read', 'sales.read', 'promotions.read',
