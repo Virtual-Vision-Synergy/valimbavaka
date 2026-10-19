@@ -21,9 +21,14 @@ public record PageQuery(
 
     private static final int DEFAULT_SIZE = 20;
 
-    public PageQuery {
-        page = page == null ? 1 : page;
-        size = size == null ? DEFAULT_SIZE : size;
+    /** page et size sont absents de l'URL quand non fournis : défauts appliqués ici, jamais null ensuite. */
+    public PageQuery(@Nullable Integer page, @Nullable Integer size, @Nullable String search,
+            @Nullable String sortBy, @Nullable SortDirection sortDirection) {
+        this.page = page == null ? 1 : page;
+        this.size = size == null ? DEFAULT_SIZE : size;
+        this.search = search;
+        this.sortBy = sortBy;
+        this.sortDirection = sortDirection;
     }
 
     /** Terme de recherche normalisé : jamais null, sans espaces superflus. */

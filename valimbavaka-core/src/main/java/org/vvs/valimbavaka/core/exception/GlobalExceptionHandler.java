@@ -75,7 +75,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /** Ajoute le code machine aux ProblemDetail produits par Spring MVC (400 requête mal formée, 405…). */
     @Override
-    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
+    protected @Nullable ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
             HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         if (body instanceof ProblemDetail problem && problem.getProperties() == null) {
             problem.setProperty(CODE, statusCode.value() == HttpStatus.BAD_REQUEST.value()
