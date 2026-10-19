@@ -8,12 +8,10 @@ import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-import org.hibernate.annotations.UuidGenerator;
 import org.jspecify.annotations.Nullable;
 import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.shared.domain.BaseEntity;
@@ -27,10 +25,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
-
-    @Id
-    @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
-    private UUID id;
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
