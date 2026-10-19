@@ -106,16 +106,14 @@ describe('UserListPage', () => {
     await fixture.whenStable();
 
     toggleButton().click();
-    httpMock
-      .expectOne('/api/v1/users/0195f0a0-0000-7000-8000-0000000000a1/status')
-      .flush(
-        {
-          status: 422,
-          code: 'VALIDATION_FAILED',
-          detail: 'Vous ne pouvez pas désactiver votre propre compte.',
-        },
-        { status: 422, statusText: 'Unprocessable Entity' },
-      );
+    httpMock.expectOne('/api/v1/users/0195f0a0-0000-7000-8000-0000000000a1/status').flush(
+      {
+        status: 422,
+        code: 'VALIDATION_FAILED',
+        detail: 'Vous ne pouvez pas désactiver votre propre compte.',
+      },
+      { status: 422, statusText: 'Unprocessable Entity' },
+    );
     await fixture.whenStable();
 
     expect(element.querySelector('[role="alert"]')?.textContent).toContain('propre compte');
