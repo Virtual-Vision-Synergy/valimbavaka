@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.user.service.impl;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -115,8 +116,11 @@ public class UserServiceImpl implements UserService {
             throw new AdminAccountConfigurationException("Aucun administrateur en base : renseigner les variables "
                     + "d'environnement du premier compte. " + String.join(" ; ", violations));
         }
-        var profile = new UserProfile(account.email(), account.firstName(), account.lastName());
-        var administrator = User.createWithTemporaryPassword(profile, passwordEncoder.encode(account.password()),
+        // Champs non null : garanti par violations() ci-dessus.
+        var profile = new UserProfile(Objects.requireNonNull(account.email()),
+                Objects.requireNonNull(account.firstName()), Objects.requireNonNull(account.lastName()));
+        var passwordHash = Objects.requireNonNull(passwordEncoder.encode(Objects.requireNonNull(account.password())));
+        var administrator = User.createWithTemporaryPassword(profile, passwordHash,
                 roleRepository.findByName(RoleName.ADMIN)
                         .orElseThrow(() -> new AdminAccountConfigurationException(
                                 "Rôle ADMIN absent : vérifier les migrations Liquibase")));
