@@ -39,6 +39,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       # Secret de signature des JWT (>= 32 caracteres) : obligatoire, le backend refuse de demarrer sans.
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET manquant}
+      # Origines autorisees en CORS (separees par des virgules) : l'URL exacte servie par nginx,
+      # ex. http://localhost:8090. Sans elle, refresh et logout sont refuses en 403.
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS manquant}
       # Cookie du refresh token : Secure par defaut ; mettre false si l'environnement est servi en HTTP.
       REFRESH_COOKIE_SECURE: ${REFRESH_COOKIE_SECURE:-true}
       # Premier administrateur : ignore des qu'un administrateur existe en base
