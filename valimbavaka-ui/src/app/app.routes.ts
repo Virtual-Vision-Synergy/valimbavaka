@@ -29,6 +29,10 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/journal/journal.routes').then((m) => m.JOURNAL_ROUTES),
       },
+      {
+        path: 'synchronisation',
+        loadChildren: () => import('./features/sync/sync.routes').then((m) => m.SYNC_ROUTES),
+      },
       ...PLACEHOLDER_ROUTES,
     ],
   },

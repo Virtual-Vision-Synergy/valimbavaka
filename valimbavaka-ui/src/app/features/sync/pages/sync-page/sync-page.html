@@ -1,0 +1,47 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>{{ 'sync.page.title' | translate }}</h1>
+      <p>{{ 'sync.pending' | translate: { count: pendingCount() } }}</p>
+    </div>
+  </header>
+
+  <div class="card">
+    @if (failed().length === 0) {
+      <p>{{ 'sync.page.empty' | translate }}</p>
+    } @else {
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'sync.page.request' | translate }}</th>
+              <th scope="col">{{ 'sync.page.reason' | translate }}</th>
+              <th scope="col" class="actions">{{ 'sync.page.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of failed(); track entry.id) {
+              <tr>
+                <td class="request">{{ entry.method }} {{ entry.url }}</td>
+                <td>{{ entry.errorMessage }}</td>
+                <td class="actions">
+                  <button
+                    class="btn btn-ghost btn-sm"
+                    type="button"
+                    [disabled]="isSyncing()"
+                    (click)="retry(entry.id)"
+                  >
+                    {{ 'sync.page.retry' | translate }}
+                  </button>
+                  <button class="btn btn-ghost btn-sm" type="button" (click)="discard(entry.id)">
+                    {{ 'sync.page.discard' | translate }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</section>

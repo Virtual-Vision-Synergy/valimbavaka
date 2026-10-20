@@ -19,16 +19,20 @@ import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import tools.jackson.databind.json.JsonMapper;
+
 import org.vvs.valimbavaka.core.config.CorsProperties;
 import org.vvs.valimbavaka.security.handler.ProblemDetailWriter;
 import org.vvs.valimbavaka.security.handler.RestAccessDeniedHandler;
 import org.vvs.valimbavaka.security.handler.RestAuthenticationEntryPoint;
+import org.vvs.valimbavaka.security.idempotency.IdempotencyFilter;
+import org.vvs.valimbavaka.security.idempotency.IdempotencyStore;
 import org.vvs.valimbavaka.security.ratelimit.LoginRateLimitFilter;
 import org.vvs.valimbavaka.security.ratelimit.RateLimitProperties;
-
-import tools.jackson.databind.json.JsonMapper;
 
 /** Deny by default : toute route est protégée sauf déclaration explicite (convention §9.3). */
 @Configuration
@@ -49,9 +53,13 @@ public class SecurityConfig {
     private final CorsProperties corsProperties;
     private final LoginRateLimitFilter loginRateLimitFilter;
 
-    public SecurityConfig(RestAuthenticationEntryPoint authenticationEntryPoint,
-            RestAccessDeniedHandler accessDeniedHandler, CorsProperties corsProperties,
-            RateLimitProperties rateLimitProperties, ProblemDetailWriter problemDetailWriter, JsonMapper jsonMapper) {
+    public SecurityConfig(
+            RestAuthenticationEntryPoint authenticationEntryPoint,
+            RestAccessDeniedHandler accessDeniedHandler,
+            CorsProperties corsProperties,
+            RateLimitProperties rateLimitProperties,
+            ProblemDetailWriter problemDetailWriter,
+            JsonMapper jsonMapper) {
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
         this.corsProperties = corsProperties;
@@ -73,20 +81,28 @@ public class SecurityConfig {
 
     @Bean
     @Order(2)
-    public SecurityFilterChain apiFilterChain(HttpSecurity http, JwtAuthenticationConverter jwtConverter)
+    public SecurityFilterChain apiFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationConverter jwtConverter,
+            IdempotencyStore idempotencyStore,
+            ProblemDetailWriter problemDetailWriter)
             throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> { })
+                .cors(cors -> {})
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(handler -> handler
-                        .authenticationEntryPoint(authenticationEntryPoint)
+                .exceptionHandling(handler -> handler.authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
-                .addFilterBefore(new OriginCheckFilter(Set.copyOf(corsProperties.allowedOrigins()),
-                        accessDeniedHandler), BasicAuthenticationFilter.class)
+                .addFilterBefore(
+                        new OriginCheckFilter(Set.copyOf(corsProperties.allowedOrigins()), accessDeniedHandler),
+                        BasicAuthenticationFilter.class)
                 .addFilterBefore(loginRateLimitFilter, BasicAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(PUBLIC_ROUTES).permitAll()
-                        .anyRequest().authenticated())
+                .addFilterAfter(
+                        new IdempotencyFilter(idempotencyStore, problemDetailWriter),
+                        BearerTokenAuthenticationFilter.class)
+                .authorizeHttpRequests(auth -> auth.requestMatchers(PUBLIC_ROUTES)
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .oauth2ResourceServer(resourceServer -> resourceServer
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter))
                         .authenticationEntryPoint(authenticationEntryPoint)
@@ -107,8 +123,9 @@ public class SecurityConfig {
         roles.setAuthoritiesClaimName("roles");
         roles.setAuthorityPrefix("ROLE_");
         var converter = new JwtAuthenticationConverter();
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> Stream
-                .concat(permissions.convert(jwt).stream(), roles.convert(jwt).stream()).toList());
+        converter.setJwtGrantedAuthoritiesConverter(
+                jwt -> Stream.concat(permissions.convert(jwt).stream(), roles.convert(jwt).stream())
+                        .toList());
         return converter;
     }
 
