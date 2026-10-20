@@ -1,9 +1,17 @@
 -- liquibase formatted sql
 
 -- changeset randy:2026_10_20-01-1
--- comment: JNL-02 - le journal trace l'annulation a chaud (CANCEL) et la contre-passation (REVERSE)
-ALTER TABLE journal_entries DROP CONSTRAINT ck_journal_entries_action;
-ALTER TABLE journal_entries
-    ADD CONSTRAINT ck_journal_entries_action CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'CANCEL', 'REVERSE'));
--- rollback ALTER TABLE journal_entries DROP CONSTRAINT ck_journal_entries_action;
--- rollback ALTER TABLE journal_entries ADD CONSTRAINT ck_journal_entries_action CHECK (action IN ('CREATE', 'UPDATE', 'DELETE'));
+-- comment: SYS-02 - cles d'idempotence : un rejeu apres coupure reseau renvoie la reponse deja produite
+CREATE TABLE idempotency_keys
+(
+    user_id         UUID        NOT NULL,
+    idempotency_key UUID        NOT NULL,
+    http_method     VARCHAR(10) NOT NULL,
+    request_path    VARCHAR(500) NOT NULL,
+    response_status INTEGER,
+    response_body   TEXT,
+    created_at      TIMESTAMPTZ NOT NULL,
+    CONSTRAINT pk_idempotency_keys PRIMARY KEY (user_id, idempotency_key)
+);
+CREATE INDEX ix_idempotency_keys_created_at ON idempotency_keys (created_at);
+-- rollback DROP TABLE idempotency_keys;

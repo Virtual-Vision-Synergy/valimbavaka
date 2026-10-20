@@ -16,6 +16,7 @@ import { errorInterceptor } from './core/http/error-interceptor';
 import { sessionInterceptor } from './core/http/session-interceptor';
 import { LanguageService } from './core/i18n/language-service';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
+import { OutboxService } from './core/offline/outbox-service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,6 +29,8 @@ export const appConfig: ApplicationConfig = {
       loader: provideTranslateHttpLoader({ prefix: '/i18n/', suffix: '.json' }),
     }),
     provideAppInitializer(() => firstValueFrom(inject(LanguageService).init())),
+    // Instancie la file d'attente hors ligne dès le démarrage : elle se synchronise seule (SYS-02).
+    provideAppInitializer(() => void inject(OutboxService)),
     provideHttpClient(
       withFetch(),
       withInterceptors([authInterceptor, sessionInterceptor, errorInterceptor]),

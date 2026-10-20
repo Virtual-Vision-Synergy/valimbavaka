@@ -19,6 +19,20 @@
       "invalidCredentials": "Diso ny mailaka na ny teny miafina"
     }
   },
+  "sync": {
+    "offline": "Tsy mifandray : voatahiry ny nampidirinao",
+    "pending": "{{count}} miandry ny fampifanarahana",
+    "failed": "{{count}} nolavin'ny mpizara",
+    "page": {
+      "title": "Fampifanarahana",
+      "empty": "Tsy misy nolavina : voafanaraka daholo.",
+      "request": "Fampidirana",
+      "reason": "Antony nanoloana",
+      "actions": "Hetsika",
+      "retry": "Alefaso indray",
+      "discard": "Foano"
+    }
+  },
   "layout": {
     "navigation": "Fandehanana lehibe",
     "logout": "Hivoaka"

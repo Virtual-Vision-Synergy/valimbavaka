@@ -35,9 +35,9 @@ public class OriginCheckFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-            FilterChain chain) throws ServletException, IOException {
-        var origin = request.getHeader(HttpHeaders.ORIGIN);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+        String origin = request.getHeader(HttpHeaders.ORIGIN);
         if (origin != null && !allowedOrigins.contains(origin)) {
             accessDeniedHandler.handle(request, response, new AccessDeniedException("Origine non autorisée"));
             return;
