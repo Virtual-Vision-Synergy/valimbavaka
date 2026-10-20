@@ -17,8 +17,18 @@ Pattern **outbox** côté Angular (`core/offline/`) :
 - Chaque entrée porte un UUID envoyé dans l'en-tête `Idempotency-Key` ; l'en-tête est autorisé en CORS.
 - La file est vidée à la déconnexion : les saisies d'un compte ne partent jamais sous un autre.
 
+## Côté serveur
+`IdempotencyFilter` (`security/idempotency`, après l'authentification) traite les écritures
+(POST/PUT/PATCH/DELETE) portant `Idempotency-Key` :
+- la clé est réservée par un INSERT atomique dans `idempotency_keys` (clé primaire `(user_id, key)`) ;
+- la réponse (< 500, hors 401/403) est mémorisée ; un rejeu reçoit la même réponse avec
+  `Idempotency-Replayed: true` ; les erreurs 5xx libèrent la clé pour permettre un nouvel essai ;
+- même clé pour une autre requête : 422 ; requête identique en cours : 409 ; clé non UUID : 400 ;
+- conservation 24 h (purge à chaque réservation). L'en-tête `Location` n'est pas rejoué.
+
+## Côté interface
+Les entrées `FAILED` sont listées sur `/synchronisation` (badges du menu) : renvoyer ou abandonner.
+
 ## Conséquences
 - Les features appellent `submit` au lieu de `HttpClient` pour leurs écritures.
-- **Suivi** : le backend doit dédupliquer sur `Idempotency-Key` (rejeu après coupure en cours d'envoi) ;
-  l'UI de résolution des entrées `FAILED` reste à construire avec les premiers modules.
 - Hors périmètre : service worker / PWA, résolution de conflits métier.
