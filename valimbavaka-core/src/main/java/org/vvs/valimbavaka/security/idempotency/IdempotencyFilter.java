@@ -79,7 +79,7 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         var done = false;
         try {
             chain.doFilter(request, wrapper);
-            var status = wrapper.getStatus();
+            int status = wrapper.getStatus();
             if (status < 500 && !NOT_REPLAYABLE.contains(status)) {
                 var body = new String(wrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
                 store.complete(owner.userId(), owner.key(), status, body);
