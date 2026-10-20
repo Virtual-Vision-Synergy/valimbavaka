@@ -1,0 +1,11 @@
+<div class="sync-status" role="status">
+  @if (!isOnline()) {
+    <p class="badge offline">{{ 'sync.offline' | translate }}</p>
+  }
+  @if (pendingCount() > 0) {
+    <p class="badge">{{ 'sync.pending' | translate: { count: pendingCount() } }}</p>
+  }
+  @if (failedCount() > 0) {
+    <p class="badge failed">{{ 'sync.failed' | translate: { count: failedCount() } }}</p>
+  }
+</div>

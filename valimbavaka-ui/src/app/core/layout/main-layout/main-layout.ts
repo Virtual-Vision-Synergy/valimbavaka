@@ -4,12 +4,20 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../auth/auth-service';
 import { AuthStore } from '../../auth/auth-store';
 import { LanguageSwitcher } from '../../i18n/language-switcher';
+import { SyncStatus } from '../../offline/sync-status';
 import { visibleSections } from '../menu';
 
 /** Coquille applicative : le menu n'affiche que les modules autorisés par le rôle du compte (AUTH-01). */
 @Component({
   selector: 'vvs-main-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, TranslatePipe, LanguageSwitcher],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    TranslatePipe,
+    LanguageSwitcher,
+    SyncStatus,
+  ],
   templateUrl: './main-layout.html',
   styleUrl: './main-layout.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

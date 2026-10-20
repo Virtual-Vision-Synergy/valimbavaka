@@ -19,6 +19,11 @@
       "invalidCredentials": "Identifiants invalides"
     }
   },
+  "sync": {
+    "offline": "Hors ligne : vos saisies sont conservées",
+    "pending": "{{count}} saisie(s) en attente de synchronisation",
+    "failed": "{{count}} saisie(s) refusée(s) par le serveur"
+  },
   "layout": {
     "navigation": "Navigation principale",
     "logout": "Déconnexion"

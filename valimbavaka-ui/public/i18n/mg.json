@@ -19,6 +19,11 @@
       "invalidCredentials": "Diso ny mailaka na ny teny miafina"
     }
   },
+  "sync": {
+    "offline": "Tsy mifandray : voatahiry ny nampidirinao",
+    "pending": "{{count}} miandry ny fampifanarahana",
+    "failed": "{{count}} nolavin'ny mpizara"
+  },
   "layout": {
     "navigation": "Fandehanana lehibe",
     "logout": "Hivoaka"
