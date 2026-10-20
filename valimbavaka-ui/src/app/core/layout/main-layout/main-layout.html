@@ -1,12 +1,44 @@
-<header class="header">
+<aside class="sidebar">
   <a class="brand" routerLink="/">
     <img src="logo/logo-min.png" alt="" width="32" height="32" />
-    <span>Valimbavaka</span>
+    <span>{{ 'app.name' | translate }}</span>
   </a>
-  <nav aria-label="Navigation principale">
-    <a routerLink="/users" routerLinkActive="active" ariaCurrentWhenActive="page">Utilisateurs</a>
+
+  <nav [attr.aria-label]="'layout.navigation' | translate">
+    @for (section of sections(); track section.titleKey) {
+      <div class="section">
+        <p class="section-title">{{ section.titleKey | translate }}</p>
+        <ul>
+          @for (item of section.items; track item.route) {
+            <li>
+              <a [routerLink]="item.route" routerLinkActive="active" ariaCurrentWhenActive="page">
+                {{ item.labelKey | translate }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </nav>
-</header>
+
+  <vvs-sync-status />
+
+  @if (user(); as currentUser) {
+    <div class="account">
+      <div class="identity">
+        <span class="avatar" aria-hidden="true">{{ initial() }}</span>
+        <div>
+          <p class="name">{{ currentUser.firstName }} {{ currentUser.lastName }}</p>
+          <p class="role">{{ currentUser.roleLabel }}</p>
+        </div>
+      </div>
+      <vvs-language-switcher />
+      <button class="logout" type="button" (click)="logout()">
+        {{ 'layout.logout' | translate }}
+      </button>
+    </div>
+  }
+</aside>
 
 <main class="content">
   <router-outlet />

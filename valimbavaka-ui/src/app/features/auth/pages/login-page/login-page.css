@@ -1,0 +1,25 @@
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: linear-gradient(135deg, var(--secondary-xlight), var(--primary-xlight));
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 400px;
+}
+
+.logo {
+  align-self: center;
+}
+h1 {
+  margin: 0;
+  text-align: center;
+  color: var(--brun);
+  font-size: 24px;
+}

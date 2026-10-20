@@ -1,0 +1,115 @@
+{
+  "app": {
+    "name": "Valimbavaka"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "mg": "Malagasy"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "email": "Email",
+      "password": "Mot de passe",
+      "submit": "Se connecter",
+      "submitting": "Connexion…",
+      "emailInvalid": "Une adresse email valide est obligatoire.",
+      "passwordRequired": "Le mot de passe est obligatoire.",
+      "invalidCredentials": "Identifiants invalides"
+    }
+  },
+  "sync": {
+    "offline": "Hors ligne : vos saisies sont conservées",
+    "pending": "{{count}} saisie(s) en attente de synchronisation",
+    "failed": "{{count}} saisie(s) refusée(s) par le serveur",
+    "page": {
+      "title": "Synchronisation",
+      "empty": "Aucune saisie refusée : tout est synchronisé.",
+      "request": "Saisie",
+      "reason": "Motif du refus",
+      "actions": "Actions",
+      "retry": "Renvoyer",
+      "discard": "Abandonner"
+    }
+  },
+  "layout": {
+    "navigation": "Navigation principale",
+    "logout": "Déconnexion"
+  },
+  "menu": {
+    "section": {
+      "main": "Principal",
+      "catalog": "Catalogue",
+      "operations": "Opérations",
+      "commerce": "Commerce",
+      "analysis": "Analyse",
+      "administration": "Administration"
+    },
+    "item": {
+      "dashboard": "Tableau de bord",
+      "suppliers": "Fournisseurs",
+      "articles": "Articles",
+      "stocks": "Stocks",
+      "production": "Production",
+      "transfers": "Transferts",
+      "inventory": "Inventaire",
+      "sales": "Ventes",
+      "deliveries": "Livraisons",
+      "promotions": "Promotions",
+      "commissions": "Commissions",
+      "services": "Services",
+      "reports": "Rapports",
+      "users": "Utilisateurs",
+      "journal": "Journal"
+    }
+  },
+  "placeholder": {
+    "comingSoon": "Ce module sera disponible prochainement.",
+    "noAccess": {
+      "title": "Aucun accès",
+      "message": "Aucun module n'est accessible avec le rôle de votre compte. Contactez l'administrateur."
+    }
+  },
+  "journal": {
+    "title": "Journal des opérations",
+    "count": "{{count}} opération(s)",
+    "loading": "Chargement…",
+    "empty": "Aucune opération enregistrée.",
+    "search": {
+      "label": "Rechercher",
+      "placeholder": "Rechercher par auteur, ressource ou description",
+      "submit": "Rechercher"
+    },
+    "column": {
+      "date": "Date",
+      "author": "Auteur",
+      "action": "Action",
+      "resource": "Ressource",
+      "description": "Description"
+    },
+    "action": {
+      "CREATE": "Création",
+      "UPDATE": "Modification",
+      "DELETE": "Suppression",
+      "CANCEL": "Annulation",
+      "REVERSE": "Contre-passation"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "status": "Page {{page}} / {{total}}"
+    }
+  },
+  "user": {
+    "status": {
+      "active": "ACTIF",
+      "inactive": "DÉSACTIVÉ",
+      "activate": "Activer",
+      "deactivate": "Désactiver",
+      "confirmActivate": "Activer l'utilisateur {{name}} ?",
+      "confirmDeactivate": "Désactiver l'utilisateur {{name}} ?"
+    }
+  }
+}

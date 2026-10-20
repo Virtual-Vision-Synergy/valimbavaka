@@ -46,9 +46,9 @@
               </td>
               <td>
                 @if (user.active) {
-                  <span class="badge badge-success">Actif</span>
+                  <span class="badge badge-success">{{ 'user.status.active' | translate }}</span>
                 } @else {
-                  <span class="badge badge-muted">Inactif</span>
+                  <span class="badge badge-muted">{{ 'user.status.inactive' | translate }}</span>
                 }
                 @if (user.passwordChangeRequired) {
                   <span class="badge badge-warning">Mot de passe à changer</span>
@@ -56,6 +56,16 @@
               </td>
               <td class="actions">
                 <a class="btn btn-ghost btn-sm" [routerLink]="[user.id, 'edit']">Modifier</a>
+                <button
+                  *vvsHasPermission="'users.update'"
+                  class="btn btn-ghost btn-sm"
+                  type="button"
+                  (click)="toggleActive(user)"
+                >
+                  {{
+                    (user.active ? 'user.status.deactivate' : 'user.status.activate') | translate
+                  }}
+                </button>
                 <button class="btn btn-danger btn-sm" type="button" (click)="deleteUser(user)">
                   Supprimer
                 </button>

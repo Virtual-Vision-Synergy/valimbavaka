@@ -247,6 +247,7 @@ src/test/java/org/vvs/valimbavaka
 ```
 
 - `mvn test` : tests unitaires (Mockito, < 100 ms, pas de base). `mvn verify` : + tests `*IT` sur PostgreSQL via Testcontainers (**Docker requis**) + Checkstyle si `-Dcheckstyle.skip=false`.
+- **Aucune suppression d'opération validée (JNL-02)** : seules l'annulation à chaud ou la contre-passation (avoir) existent. Les repositories d'une feature métier étendent `shared.operation.OperationRepository` (jamais `JpaRepository`), les services d'opération implémentent `ReversibleOperationService`, et `ArchitectureTest` interdit tout `@DeleteMapping` hors `feature.user`.
 - Nom des tests : `methode_scenario_resultatAttendu`, sujet testé nommé `sut`, blocs `// given / when / then`.
 
 ---
@@ -280,64 +281,45 @@ src/app
 
 ---
 
-## 5. Qualité automatisée (recommandé)
+## 5. Qualité automatisée — contrôle de la convention
 
-### 5.1 Backend — Checkstyle
+Chaque PR passe par le workflow `.github/workflows/conventions.yml` (convention §12). Les écarts sont annotés
+sur les lignes de la PR avec leur niveau de la grille §15 :
 
-Ajouter dans `valimbavaka-core/pom.xml` (fait respecter automatiquement : ligne 120 car., méthode 30 lignes, 4 paramètres max, pas d'import wildcard) :
+| Niveau | Annotation | Effet |
+|---|---|---|
+| P0 — bloquant | error | le job échoue, la PR ne peut pas être fusionnée |
+| P1 — à corriger avant fusion | warning | signalé, non bloquant |
+| P2 — suggestion | notice | signalé, non bloquant |
 
-```xml
-<plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-checkstyle-plugin</artifactId>
-    <version>3.6.0</version>
-    <configuration>
-        <configLocation>checkstyle.xml</configLocation>
-        <consoleOutput>true</consoleOutput>
-        <failOnViolation>true</failOnViolation>
-    </configuration>
-    <executions>
-        <execution>
-            <phase>verify</phase>
-            <goals><goal>check</goal></goals>
-        </execution>
-    </executions>
-</plugin>
-```
+| Contrôle | Outil | Configuration |
+|---|---|---|
+| Formatage Java (fichiers modifiés uniquement) | Spotless + palantir-java-format | `valimbavaka-core/pom.xml` |
+| Tailles, nommage, complexité, interdits (System.out, EAGER, TODO…) | Checkstyle | `checkstyle.xml` (sévérité par règle) |
+| 0 avertissement de compilation | `-Xlint:all -Werror` | `valimbavaka-core/pom.xml` |
+| Architecture (couches, DTO, @HasPermission, enums, transactions) | ArchUnit (dans `ci.yml`) | `ArchitectureTest.java` |
+| Formatage front (fichiers modifiés uniquement) | Prettier | `valimbavaka-ui/.prettierrc` |
+| Qualité front (any, innerHTML, OnPush, tailles…) | ESLint | `valimbavaka-ui/eslint.config.js` |
+| Titre/corps de PR, branche, commits, taille, migrations Liquibase | script | `.github/scripts/check_conventions.py` |
+| Secrets | gitleaks | `conventions.yml` |
 
-`valimbavaka-core/checkstyle.xml` (extrait minimal — à enrichir au besoin) :
-```xml
-<?xml version="1.0"?>
-<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
-        "https://checkstyle.org/dtds/configuration_1_3.dtd">
-<module name="Checker">
-    <module name="TreeWalker">
-        <module name="LineLength"><property name="max" value="120"/></module>
-        <module name="MethodLength"><property name="max" value="30"/></module>
-        <module name="ParameterNumber"><property name="max" value="4"/></module>
-        <module name="AvoidStarImport"/>
-        <module name="UnusedImports"/>
-        <module name="TypeName"/>
-        <module name="MethodName"/>
-        <module name="MemberName"/>
-        <module name="ConstantName"/>
-        <module name="PackageName"><property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/></module>
-    </module>
-</module>
-```
+Pour changer le niveau d'une règle, modifier sa sévérité dans l'outil (`severity` Checkstyle, `error`/`warn` ESLint).
 
-Lancer : `mvn verify`
-
-### 5.2 Frontend — ESLint
+### Vérifier avant de pousser
 
 ```bash
-cd valimbavaka-ui
-npx ng add @angular-eslint/schematics
+# Backend (depuis valimbavaka-core)
+mvn spotless:apply                                   # formate les fichiers modifiés depuis develop
+mvn checkstyle:check -Dcheckstyle.skip=false         # échoue sur les P0 ; P1/P2 dans target/checkstyle-result.xml
+mvn verify                                           # build -Werror, tests, ArchUnit
+
+# Frontend (depuis valimbavaka-ui)
+npx prettier --write <fichiers modifiés>
+npm run lint
+
+# PR et migrations (depuis la racine)
+python .github/scripts/check_conventions.py --base origin/develop
 ```
-
-Ajoute automatiquement la config recommandée + le target `lint` dans `angular.json`. Compléter ensuite `eslint.config.js` avec `"@typescript-eslint/no-explicit-any": "error"` pour interdire `any` sans dérogation explicite (convention section 1.4).
-
-Lancer : `npm run lint`
 
 ---
 

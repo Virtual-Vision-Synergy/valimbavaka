@@ -1,18 +1,23 @@
 package org.vvs.valimbavaka.feature.user.service.impl;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
+import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
+import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
 import org.vvs.valimbavaka.feature.user.config.AdminAccountProperties;
 import org.vvs.valimbavaka.feature.user.domain.Role;
@@ -38,6 +43,7 @@ public class UserServiceImpl implements UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
+    private static final String RESOURCE_TYPE = "USER";
     private static final String EMAIL_ALREADY_USED = "Un utilisateur avec cet email existe déjà.";
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "email", "firstName", "lastName");
 
@@ -46,20 +52,31 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final ReferentialService referentialService;
+    private final JournalService journalService;
+    private final AuditorAware<UUID> auditorAware;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository,
-            UserMapper userMapper, PasswordEncoder passwordEncoder, ReferentialService referentialService) {
+    public UserServiceImpl(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder,
+            ReferentialService referentialService,
+            JournalService journalService,
+            AuditorAware<UUID> auditorAware) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
         this.referentialService = referentialService;
+        this.journalService = journalService;
+        this.auditorAware = auditorAware;
     }
 
     @Override
     public PageResponse<UserRDto> getUsers(PageQuery query) {
         var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
-        return PageResponse.from(userRepository.search(query.searchTerm(), pageable).map(userMapper::toRDto));
+        return PageResponse.from(
+                userRepository.search(query.searchTerm(), pageable).map(userMapper::toRDto));
     }
 
     @Override
@@ -77,6 +94,8 @@ public class UserServiceImpl implements UserService {
         var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
         var user = User.create(profile, passwordEncoder.encode(request.password()), findRole(request.roleId()), terms);
         User saved = userRepository.save(user);
+        journalService.record(
+                JournalAction.CREATE, RESOURCE_TYPE, saved.getId(), "Création de l'utilisateur " + saved.getEmail());
         log.info("Utilisateur {} créé", saved.getId());
         return userMapper.toRDto(saved);
     }
@@ -91,16 +110,38 @@ public class UserServiceImpl implements UserService {
         var profile = new UserProfile(request.email(), request.firstName(), request.lastName());
         var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
         user.update(profile, findRole(request.roleId()), terms, request.active());
+        journalService.record(
+                JournalAction.UPDATE, RESOURCE_TYPE, userId, "Modification de l'utilisateur " + user.getEmail());
+        return userMapper.toRDto(user);
+    }
+
+    @Override
+    @Transactional
+    public UserRDto setActive(UUID userId, boolean active) {
+        User user = findUserWithRole(userId);
+        if (user.isActive() == active) {
+            return userMapper.toRDto(user);
+        }
+        if (!active) {
+            ensureCanDeactivate(user);
+            user.deactivate();
+        } else {
+            user.activate();
+        }
+        String action = active ? "Activation" : "Désactivation";
+        journalService.record(
+                JournalAction.UPDATE, RESOURCE_TYPE, userId, action + " de l'utilisateur " + user.getEmail());
+        log.info("Utilisateur {} {}", userId, active ? "activé" : "désactivé");
         return userMapper.toRDto(user);
     }
 
     @Override
     @Transactional
     public void deleteUserById(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw userNotFound(userId);
-        }
-        userRepository.deleteById(userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> userNotFound(userId));
+        userRepository.delete(user);
+        journalService.record(
+                JournalAction.DELETE, RESOURCE_TYPE, userId, "Suppression de l'utilisateur " + user.getEmail());
         log.info("Utilisateur {} supprimé", userId);
     }
 
@@ -115,9 +156,17 @@ public class UserServiceImpl implements UserService {
             throw new AdminAccountConfigurationException("Aucun administrateur en base : renseigner les variables "
                     + "d'environnement du premier compte. " + String.join(" ; ", violations));
         }
-        var profile = new UserProfile(account.email(), account.firstName(), account.lastName());
-        var administrator = User.createWithTemporaryPassword(profile, passwordEncoder.encode(account.password()),
-                roleRepository.findByName(RoleName.ADMIN)
+        // Champs non null : garanti par violations() ci-dessus.
+        var profile = new UserProfile(
+                Objects.requireNonNull(account.email()),
+                Objects.requireNonNull(account.firstName()),
+                Objects.requireNonNull(account.lastName()));
+        var passwordHash = Objects.requireNonNull(passwordEncoder.encode(Objects.requireNonNull(account.password())));
+        var administrator = User.createWithTemporaryPassword(
+                profile,
+                passwordHash,
+                roleRepository
+                        .findByName(RoleName.ADMIN)
                         .orElseThrow(() -> new AdminAccountConfigurationException(
                                 "Rôle ADMIN absent : vérifier les migrations Liquibase")));
         User saved = userRepository.save(administrator);
@@ -129,9 +178,18 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByIdWithRole(userId).orElseThrow(() -> userNotFound(userId));
     }
 
+    private void ensureCanDeactivate(User user) {
+        if (auditorAware.getCurrentAuditor().filter(user.getId()::equals).isPresent()) {
+            throw new BusinessException("Vous ne pouvez pas désactiver votre propre compte.");
+        }
+        boolean isAdmin = user.getRole().getName() == RoleName.ADMIN;
+        if (isAdmin && userRepository.countByRoleNameAndActiveTrue(RoleName.ADMIN) <= 1) {
+            throw new BusinessException("Le dernier administrateur actif ne peut pas être désactivé.");
+        }
+    }
+
     private Role findRole(UUID roleId) {
-        return roleRepository.findById(roleId)
-                .orElseThrow(() -> new NotFoundException("Rôle introuvable : " + roleId));
+        return roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Rôle introuvable : " + roleId));
     }
 
     private SellerTerms sellerTerms(@Nullable UUID salesChannelId, @Nullable BigDecimal commissionRate) {

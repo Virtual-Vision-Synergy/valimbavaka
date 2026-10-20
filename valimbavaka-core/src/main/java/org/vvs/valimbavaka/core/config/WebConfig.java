@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(corsProperties.allowedOrigins().toArray(String[]::new))
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
-                .allowedHeaders("Authorization", "Content-Type", "X-Request-Id")
+                .allowedHeaders("Authorization", "Content-Type", "X-Request-Id", "Idempotency-Key")
                 .allowCredentials(true);
     }
 }

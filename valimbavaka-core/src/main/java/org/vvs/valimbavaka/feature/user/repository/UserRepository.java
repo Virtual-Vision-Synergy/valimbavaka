@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 import org.vvs.valimbavaka.feature.user.domain.User;
 
@@ -15,14 +16,26 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("select u from User u join fetch u.role where u.id = :userId")
     Optional<User> findByIdWithRole(UUID userId);
 
+    /** Chargement pour l'authentification : rôle et permissions en une requête (pas de N+1). */
+    @Query("""
+            select distinct u from User u join fetch u.role r left join fetch r.permissions
+            where u.email = :email
+            """)
+    Optional<User> findByEmailWithRoleAndPermissions(String email);
+
+    @Query("""
+            select distinct u from User u join fetch u.role r left join fetch r.permissions
+            where u.id = :userId
+            """)
+    Optional<User> findByIdWithRoleAndPermissions(UUID userId);
+
     /** Recherche insensible à la casse sur email, prénom et nom ; {@code search} vide = tout. */
     @Query(value = """
             select u from User u join fetch u.role
             where lower(u.email) like lower(concat('%', :search, '%'))
                or lower(u.firstName) like lower(concat('%', :search, '%'))
                or lower(u.lastName) like lower(concat('%', :search, '%'))
-            """,
-            countQuery = """
+            """, countQuery = """
             select count(u) from User u
             where lower(u.email) like lower(concat('%', :search, '%'))
                or lower(u.firstName) like lower(concat('%', :search, '%'))
@@ -35,4 +48,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmailAndIdNot(String email, UUID id);
 
     boolean existsByRoleName(RoleName roleName);
+
+    long countByRoleNameAndActiveTrue(RoleName roleName);
 }

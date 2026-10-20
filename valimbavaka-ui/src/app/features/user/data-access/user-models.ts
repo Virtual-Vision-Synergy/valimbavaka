@@ -29,6 +29,10 @@ export interface UserRDto {
   updatedAt: string;
 }
 
+export interface UserStatusWDto {
+  active: boolean;
+}
+
 export interface CreateUserWDto {
   email: string;
   password: string;

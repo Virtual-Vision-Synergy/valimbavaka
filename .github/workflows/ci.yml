@@ -1,7 +1,7 @@
 name: CI
 
-# Verifie chaque PR (et chaque release, via images.yml) : le code compile, les tests passent,
-# checkstyle et le lint sont propres. Les tests d'integration backend (*IT) tournent sur un vrai
+# Verifie chaque PR (et chaque release, via images.yml) : le code compile, les tests et ArchUnit
+# passent (le reste de la convention : conventions.yml). Les tests d'integration backend (*IT) tournent sur un vrai
 # PostgreSQL 16 via Testcontainers, la meme version que sur l'EliteBook (jamais H2).
 
 on:
@@ -36,9 +36,9 @@ jobs:
           cache: maven
           cache-dependency-path: valimbavaka-core/pom.xml
 
-      # checkstyle.skip=true par defaut dans le pom (build local rapide) : la CI, elle, l'impose.
-      - name: Compilation, tests et checkstyle (mvn verify)
-        run: mvn -B -ntp verify -Dcheckstyle.skip=false
+      # Checkstyle, Spotless et le lint sont dans conventions.yml (annotations P0/P1/P2).
+      - name: Compilation, tests et ArchUnit (mvn verify)
+        run: mvn -B -ntp verify
 
   frontend:
     name: Frontend (Angular)

@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.user.domain;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -8,29 +9,25 @@ import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
-import org.hibernate.annotations.UuidGenerator;
 import org.jspecify.annotations.Nullable;
-import org.vvs.valimbavaka.core.exception.BusinessException;
-import org.vvs.valimbavaka.shared.domain.BaseEntity;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.security.LockPolicy;
+import org.vvs.valimbavaka.shared.domain.BaseEntity;
 
 @Entity
 @Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
-
-    @Id
-    @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
-    private UUID id;
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
@@ -65,6 +62,13 @@ public class User extends BaseEntity {
     @Column(name = "commission_rate", precision = 5, scale = 2)
     private @Nullable BigDecimal commissionRate;
 
+    /** Échecs de connexion consécutifs ; remis à zéro au succès. */
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts;
+
+    @Column(name = "locked_until")
+    private @Nullable Instant lockedUntil;
+
     public static User create(UserProfile profile, String passwordHash, Role role) {
         return create(profile, passwordHash, role, SellerTerms.NONE);
     }
@@ -87,6 +91,28 @@ public class User extends BaseEntity {
     public void update(UserProfile profile, Role role, SellerTerms terms, boolean isActive) {
         applyProfile(profile, role, terms);
         this.active = isActive;
+    }
+
+    public void activate() {
+        this.active = true;
+    }
+
+    public void deactivate() {
+        this.active = false;
+    }
+
+    /** Compte l'échec ; au-delà du seuil, verrouille pour une durée croissante (convention §9.2). */
+    public void registerFailedLogin(Instant now, LockPolicy policy) {
+        this.failedAttempts++;
+        var lockDuration = policy.lockDurationFor(this.failedAttempts);
+        if (!lockDuration.isZero()) {
+            this.lockedUntil = now.plus(lockDuration);
+        }
+    }
+
+    public void registerSuccessfulLogin() {
+        this.failedAttempts = 0;
+        this.lockedUntil = null;
     }
 
     public static String normalizeEmail(String email) {
