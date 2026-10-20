@@ -11,8 +11,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -57,20 +59,21 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         }
         var key = parseKey(request.getHeader(KEY_HEADER));
         if (key.isEmpty()) {
-            reject(request, response, HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", KEY_HEADER + " doit être un UUID.");
+            reject(
+                    request,
+                    response,
+                    problem(HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST", KEY_HEADER + " doit être un UUID."));
             return;
         }
-        var method = request.getMethod();
-        var path = request.getRequestURI();
-        if (store.claim(userId.get(), key.get(), method, path)) {
-            execute(userId.get(), key.get(), request, response, chain);
+        var owner = new KeyOwner(userId.get(), key.get());
+        if (store.claim(owner.userId(), owner.key(), request.getMethod(), request.getRequestURI())) {
+            execute(owner, request, response, chain);
         } else {
-            replay(userId.get(), key.get(), method + " " + path, request, response);
+            replay(owner, request, response);
         }
     }
 
-    private void execute(
-            UUID userId, UUID key, HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+    private void execute(KeyOwner owner, HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         var wrapper = new ContentCachingResponseWrapper(response);
         var done = false;
@@ -78,42 +81,39 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             chain.doFilter(request, wrapper);
             var status = wrapper.getStatus();
             if (status < 500 && !NOT_REPLAYABLE.contains(status)) {
-                store.complete(
-                        userId, key, status, new String(wrapper.getContentAsByteArray(), StandardCharsets.UTF_8));
+                var body = new String(wrapper.getContentAsByteArray(), StandardCharsets.UTF_8);
+                store.complete(owner.userId(), owner.key(), status, body);
                 done = true;
             }
         } finally {
             if (!done) {
-                store.release(userId, key);
+                store.release(owner.userId(), owner.key());
             }
             wrapper.copyBodyToResponse();
         }
     }
 
-    private void replay(
-            UUID userId, UUID key, String signature, HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        var stored = store.find(userId, key);
-        if (stored.isEmpty()) { // libérée entre-temps : le client réessaiera
-            reject(request, response, HttpStatus.CONFLICT, "CONFLICT", "Requête en cours de traitement.");
-        } else if (!(stored.get().method() + " " + stored.get().path()).equals(signature)) {
+    private void replay(KeyOwner owner, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        var stored = store.find(owner.userId(), owner.key()).orElse(null);
+        if (stored == null || stored.status() == null) { // en cours, ou libérée entre-temps : le client réessaiera
+            reject(request, response, problem(HttpStatus.CONFLICT, "CONFLICT", "Requête en cours de traitement."));
+        } else if (!stored.method().equals(request.getMethod())
+                || !stored.path().equals(request.getRequestURI())) {
             reject(
                     request,
                     response,
-                    HttpStatus.UNPROCESSABLE_CONTENT,
-                    "VALIDATION_FAILED",
-                    KEY_HEADER + " déjà utilisée pour une autre requête.");
-        } else if (stored.get().status() == null) {
-            reject(request, response, HttpStatus.CONFLICT, "CONFLICT", "Requête en cours de traitement.");
+                    problem(
+                            HttpStatus.UNPROCESSABLE_CONTENT,
+                            "VALIDATION_FAILED",
+                            KEY_HEADER + " déjà utilisée pour une autre requête."));
         } else {
-            writeStored(response, stored.get());
+            writeStored(response, stored.status(), stored.body());
         }
     }
 
-    private void writeStored(HttpServletResponse response, IdempotencyStore.StoredRequest stored) throws IOException {
-        response.setStatus(stored.status());
+    private void writeStored(HttpServletResponse response, int status, @Nullable String body) throws IOException {
+        response.setStatus(status);
         response.setHeader(REPLAYED_HEADER, "true");
-        var body = stored.body();
         if (body != null && !body.isEmpty()) {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
@@ -121,11 +121,17 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         }
     }
 
-    private void reject(
-            HttpServletRequest request, HttpServletResponse response, HttpStatus status, String code, String detail)
+    private void reject(HttpServletRequest request, HttpServletResponse response, ProblemDetail problem)
             throws IOException {
-        problemWriter.write(request, response, ProblemDetails.of(status, code, detail));
+        problemWriter.write(request, response, problem);
     }
+
+    private static ProblemDetail problem(HttpStatus status, String code, String detail) {
+        return ProblemDetails.of(status, code, detail);
+    }
+
+    /** Propriétaire d'une clé : une même clé est indépendante d'un utilisateur à l'autre. */
+    private record KeyOwner(UUID userId, UUID key) {}
 
     private static Optional<UUID> authenticatedUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
