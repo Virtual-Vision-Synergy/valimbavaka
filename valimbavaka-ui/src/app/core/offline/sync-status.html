@@ -3,9 +3,13 @@
     <p class="badge offline">{{ 'sync.offline' | translate }}</p>
   }
   @if (pendingCount() > 0) {
-    <p class="badge">{{ 'sync.pending' | translate: { count: pendingCount() } }}</p>
+    <a class="badge" routerLink="/synchronisation">{{
+      'sync.pending' | translate: { count: pendingCount() }
+    }}</a>
   }
   @if (failedCount() > 0) {
-    <p class="badge failed">{{ 'sync.failed' | translate: { count: failedCount() } }}</p>
+    <a class="badge failed" routerLink="/synchronisation">{{
+      'sync.failed' | translate: { count: failedCount() }
+    }}</a>
   }
 </div>

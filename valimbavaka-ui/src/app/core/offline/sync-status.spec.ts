@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { provideTestTranslations } from '../i18n/i18n-testing';
 import { ConnectivityService } from './connectivity-service';
 import { OutboxService } from './outbox-service';
@@ -16,6 +17,7 @@ describe('SyncStatus', () => {
     await TestBed.configureTestingModule({
       imports: [SyncStatus],
       providers: [
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideTestTranslations(),
