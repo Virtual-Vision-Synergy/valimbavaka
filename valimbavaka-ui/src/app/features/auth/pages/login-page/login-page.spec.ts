@@ -74,7 +74,9 @@ describe('LoginPage', () => {
       );
     await fixture.whenStable();
 
-    expect(element.querySelector('[role="alert"]')?.textContent).toContain('Identifiants invalides');
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain(
+      'Identifiants invalides',
+    );
     expect(TestBed.inject(AuthStore).isAuthenticated()).toBe(false);
   });
 
