@@ -7,6 +7,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,6 +36,22 @@ class JournalAppendOnlyIT {
 
         // Assert
         assertThat(saved.getId()).isNotNull();
+        assertThat(count(saved.getId())).isEqualTo(1);
+    }
+
+    @ParameterizedTest
+    @EnumSource(
+            value = JournalAction.class,
+            names = {"CANCEL", "REVERSE"})
+    void save_cancellationOrReversal_isAcceptedByTheDatabase(JournalAction action) {
+        // Act
+        var saved = sut.save(JournalEntry.of(
+                Instant.now(),
+                new Actor(UUID.randomUUID(), "Rasoa Rakoto"),
+                action,
+                new Subject("OPERATION", UUID.randomUUID(), "Opération " + action)));
+
+        // Assert
         assertThat(count(saved.getId())).isEqualTo(1);
     }
 

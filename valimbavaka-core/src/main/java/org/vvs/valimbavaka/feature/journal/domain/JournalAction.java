@@ -4,5 +4,7 @@ package org.vvs.valimbavaka.feature.journal.domain;
 public enum JournalAction {
     CREATE,
     UPDATE,
-    DELETE
+    DELETE,
+    CANCEL,
+    REVERSE
 }
