@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.auth.domain;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -13,10 +14,8 @@ import lombok.Getter;
 import org.vvs.valimbavaka.security.audit.AuditableUser;
 
 /** Principal de l'utilisateur connecté ; son identifiant alimente created_by / updated_by. */
-// UserDetails est Serializable (javac l'exige) ; Qodana ne le voit pas sans les sources de Spring Security.
-@SuppressWarnings("NonSerializableWithSerialVersionUIDField")
 @Getter
-public class UserDetailsImpl implements UserDetails, AuditableUser {
+public class UserDetailsImpl implements UserDetails, AuditableUser, Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

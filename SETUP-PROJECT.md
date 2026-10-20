@@ -247,6 +247,7 @@ src/test/java/org/vvs/valimbavaka
 ```
 
 - `mvn test` : tests unitaires (Mockito, < 100 ms, pas de base). `mvn verify` : + tests `*IT` sur PostgreSQL via Testcontainers (**Docker requis**) + Checkstyle si `-Dcheckstyle.skip=false`.
+- **Aucune suppression d'opération validée (JNL-02)** : seules l'annulation à chaud ou la contre-passation (avoir) existent. Les repositories d'une feature métier étendent `shared.operation.OperationRepository` (jamais `JpaRepository`), les services d'opération implémentent `ReversibleOperationService`, et `ArchitectureTest` interdit tout `@DeleteMapping` hors `feature.user`.
 - Nom des tests : `methode_scenario_resultatAttendu`, sujet testé nommé `sut`, blocs `// given / when / then`.
 
 ---

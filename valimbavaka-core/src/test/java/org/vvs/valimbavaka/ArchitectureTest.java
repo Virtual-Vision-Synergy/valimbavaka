@@ -5,6 +5,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noMethods;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
 import java.util.Arrays;
@@ -14,9 +15,11 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,6 +32,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 import org.vvs.valimbavaka.security.annotation.HasPermission;
+import org.vvs.valimbavaka.shared.operation.OperationRepository;
 
 /** Règles Feature-Based Layering vérifiées à chaque build (convention §2.5 et §4.3). */
 @AnalyzeClasses(packagesOf = ValimbavakaCoreApplication.class, importOptions = ImportOption.DoNotIncludeTests.class)
@@ -161,4 +165,33 @@ class ArchitectureTest {
             .areAnnotatedWith(Service.class)
             .should()
             .beAnnotatedWith(READ_ONLY_TRANSACTION);
+
+    // JNL-02 : aucune suppression définitive d'opération validée. Seul le référentiel utilisateur expose un DELETE
+    // (un utilisateur n'est pas une opération, et sa suppression est tracée au journal).
+    @ArchTest
+    static final ArchRule delete_endpoints_are_limited_to_the_user_reference = noMethods()
+            .that()
+            .areAnnotatedWith(DeleteMapping.class)
+            .should()
+            .beDeclaredInClassesThat()
+            .resideOutsideOfPackage("..feature.user..");
+
+    // JNL-02 : un repository de feature métier n'hérite ni de JpaRepository ni de CrudRepository (delete*) ;
+    // il passe par OperationRepository. Le référentiel et l'authentification sont des données, pas des opérations.
+    @ArchTest
+    static final ArchRule operation_features_have_no_deleting_repository = noClasses()
+            .that()
+            .resideInAPackage("..feature..repository..")
+            .and()
+            .resideOutsideOfPackages("..feature.user..", "..feature.referential..", "..feature.auth..")
+            .should()
+            .beAssignableTo(CrudRepository.class);
+
+    @ArchTest
+    static final ArchRule operation_repositories_declare_no_delete = noMethods()
+            .that()
+            .areDeclaredInClassesThat()
+            .areAssignableTo(OperationRepository.class)
+            .should()
+            .haveNameMatching("(delete|remove).*");
 }

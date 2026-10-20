@@ -1,4 +1,4 @@
-export type JournalAction = 'CREATE' | 'UPDATE' | 'DELETE';
+export type JournalAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'CANCEL' | 'REVERSE';
 
 /** Ligne du journal append-only (JNL-01), miroir de `JournalEntryRDto`. */
 export interface JournalEntryRDto {

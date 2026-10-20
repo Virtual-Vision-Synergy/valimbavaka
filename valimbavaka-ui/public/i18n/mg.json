@@ -91,7 +91,9 @@
     "action": {
       "CREATE": "Famoronana",
       "UPDATE": "Fanovana",
-      "DELETE": "Famafana"
+      "DELETE": "Famafana",
+      "CANCEL": "Fanafoanana",
+      "REVERSE": "Fanitsiana"
     },
     "pagination": {
       "label": "Pejy",
