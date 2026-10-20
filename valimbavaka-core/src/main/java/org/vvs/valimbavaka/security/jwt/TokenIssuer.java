@@ -10,6 +10,7 @@ import java.util.HexFormat;
 import java.util.UUID;
 
 import org.springframework.stereotype.Component;
+
 import org.vvs.valimbavaka.security.AuthenticatedUser;
 import org.vvs.valimbavaka.security.RefreshTokenStore;
 import org.vvs.valimbavaka.security.TokenPair;
@@ -26,8 +27,7 @@ public class TokenIssuer {
     private final Clock clock;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public TokenIssuer(JwtService jwtService, RefreshTokenStore refreshTokens, JwtProperties properties,
-            Clock clock) {
+    public TokenIssuer(JwtService jwtService, RefreshTokenStore refreshTokens, JwtProperties properties, Clock clock) {
         this.jwtService = jwtService;
         this.refreshTokens = refreshTokens;
         this.properties = properties;
@@ -39,15 +39,15 @@ public class TokenIssuer {
         var rawRefreshToken = newRefreshToken();
         var expiresAt = clock.instant().plus(properties.refreshTokenTtl());
         refreshTokens.save(user.id(), familyId, hashOf(rawRefreshToken), expiresAt);
-        return new TokenPair(jwtService.issueAccessToken(user), jwtService.accessTokenTtlSeconds(),
-                rawRefreshToken, user);
+        return new TokenPair(
+                jwtService.issueAccessToken(user), jwtService.accessTokenTtlSeconds(), rawRefreshToken, user);
     }
 
     /** Empreinte SHA-256 stockée à la place du jeton : une fuite de la base ne donne aucune session. */
     public String hashOf(String rawRefreshToken) {
         try {
-            var digest = MessageDigest.getInstance("SHA-256")
-                    .digest(rawRefreshToken.getBytes(StandardCharsets.UTF_8));
+            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+            byte[] digest = sha256.digest(rawRefreshToken.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(digest);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 indisponible", e);
