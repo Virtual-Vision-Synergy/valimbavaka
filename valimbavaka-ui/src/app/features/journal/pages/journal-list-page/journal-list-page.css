@@ -104,3 +104,8 @@ tbody tr:hover {
   background: var(--danger-light);
   color: var(--danger-dark);
 }
+.badge-action-cancel,
+.badge-action-reverse {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
