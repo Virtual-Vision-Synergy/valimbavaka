@@ -9,11 +9,19 @@ import { OutboxStorage } from './outbox-storage';
 
 const IDEMPOTENCY_HEADER = 'Idempotency-Key';
 const TRANSIENT_STATUSES = new Set([0, 401, 408, 429]);
+const MAX_ATTEMPTS = 5;
+const RETRY_BASE_DELAY_MS = 1_000;
+const RETRY_MAX_DELAY_MS = 8_000;
+
+type SyncAttemptResult =
+  | { readonly type: 'done' }
+  | { readonly type: 'stopped' }
+  | { readonly type: 'retry'; readonly entry: OutboxEntry };
 
 /**
  * File d'attente des saisies (pattern outbox) : toute écriture passe par `submit`. Hors connexion elle est
- * persistée puis rejouée dans l'ordre au retour du réseau ou à la connexion. Les refus serveur (4xx) restent
- * visibles (FAILED) sans bloquer les saisies suivantes.
+ * persistée puis rejouée dans l'ordre avec des relances bornées. Les refus serveur et les relances épuisées
+ * restent visibles (FAILED) sans bloquer les saisies suivantes.
  */
 @Injectable({ providedIn: 'root' })
 export class OutboxService {
@@ -25,6 +33,8 @@ export class OutboxService {
   private readonly entries = signal<OutboxEntry[]>([]);
   private readonly syncing = signal(false);
   private lastStamp = 0;
+  private syncGeneration = 0;
+  private cancelRetryDelay: (() => void) | undefined;
 
   readonly isSyncing = this.syncing.asReadonly();
   readonly failed = computed(() => this.entries().filter((entry) => entry.status === 'FAILED'));
@@ -44,6 +54,7 @@ export class OutboxService {
 
   /** Envoie la saisie, ou la met en file si le réseau est coupé ou si des saisies plus anciennes attendent. */
   submit(method: OutboxMethod, url: string, body?: unknown): Observable<SubmitResult> {
+    const generation = this.syncGeneration;
     const entry = this.newEntry(method, url, body);
     if (!this.connectivity.isOnline() || this.pendingCount() > 0) {
       return this.enqueue(entry, true);
@@ -51,35 +62,49 @@ export class OutboxService {
     return this.send(entry).pipe(
       map(() => ({ queued: false })),
       catchError((error: unknown) =>
-        error instanceof ApiError && error.status === 0
-          ? this.enqueue(entry, false)
+        error instanceof ApiError && this.isTransient(error) && generation === this.syncGeneration
+          ? this.enqueue({ ...entry, attempts: 1, errorMessage: errorMessage(error) }, true)
           : throwError(() => error),
       ),
     );
   }
 
-  /** Rejoue les saisies en attente, de la plus ancienne à la plus récente ; s'arrête si le réseau retombe. */
+  /** Rejoue les saisies FIFO ; une erreur transitoire déclenche des relances avant la suivante. */
   async flush(): Promise<void> {
     if (this.syncing()) {
       return;
     }
+    const generation = this.syncGeneration;
     this.syncing.set(true);
     try {
       await this.reload();
-      for (const entry of this.entries().filter((candidate) => candidate.status === 'PENDING')) {
-        if (!(await this.sync(entry))) {
+      while (generation === this.syncGeneration) {
+        const entry = this.entries().find((candidate) => candidate.status === 'PENDING');
+        if (!entry || !(await this.sync(entry, generation))) {
           break;
         }
       }
     } finally {
       this.syncing.set(false);
+      if (
+        this.authStore.isAuthenticated() &&
+        this.connectivity.isOnline() &&
+        (generation !== this.syncGeneration || this.pendingCount() > 0)
+      ) {
+        void this.flush();
+      }
     }
   }
 
   async retry(id: string): Promise<void> {
     const entry = this.entries().find((candidate) => candidate.id === id);
     if (entry) {
-      await this.storage.put({ ...entry, status: 'PENDING', errorMessage: undefined });
+      await this.storage.put({
+        ...entry,
+        attempts: 0,
+        status: 'PENDING',
+        errorMessage: undefined,
+      });
       await this.flush();
     }
   }
@@ -91,6 +116,8 @@ export class OutboxService {
 
   /** Vide la file (déconnexion) : les saisies d'un compte ne doivent jamais partir sous un autre. */
   async clear(): Promise<void> {
+    this.syncGeneration += 1;
+    this.cancelRetryDelay?.();
     await this.storage.clear();
     this.entries.set([]);
   }
@@ -106,24 +133,76 @@ export class OutboxService {
     return from(stored);
   }
 
-  /** Renvoie false quand la synchronisation doit s'arrêter (réseau, session ou serveur indisponible). */
-  private async sync(entry: OutboxEntry): Promise<boolean> {
-    try {
-      await firstValueFrom(this.send(entry));
-      await this.storage.remove(entry.id);
-    } catch (error: unknown) {
-      if (this.isTransient(error)) {
+  /** Relance les erreurs transitoires avant de passer à la saisie suivante dans la file FIFO. */
+  private async sync(entry: OutboxEntry, generation: number): Promise<boolean> {
+    let current = entry;
+    while (generation === this.syncGeneration) {
+      if (!this.connectivity.isOnline()) {
         return false;
       }
-      await this.storage.put({
-        ...entry,
-        attempts: entry.attempts + 1,
-        status: 'FAILED',
-        errorMessage: errorMessage(error),
-      });
+      if (current.attempts > 0 && !(await this.waitForRetry(current.attempts, generation))) {
+        return false;
+      }
+      if (!this.connectivity.isOnline()) {
+        return false;
+      }
+      const result = await this.syncAttempt(current, generation);
+      if (result.type === 'done') {
+        return true;
+      }
+      if (result.type === 'stopped') {
+        return false;
+      }
+      current = result.entry;
     }
+    return false;
+  }
+
+  private async syncAttempt(entry: OutboxEntry, generation: number): Promise<SyncAttemptResult> {
+    try {
+      await firstValueFrom(this.send(entry));
+    } catch (error: unknown) {
+      if (generation !== this.syncGeneration) {
+        return { type: 'stopped' };
+      }
+      const retry = await this.recordFailure(entry, error);
+      return retry ? { type: 'retry', entry: retry } : { type: 'done' };
+    }
+    if (generation !== this.syncGeneration) {
+      return { type: 'stopped' };
+    }
+    await this.storage.remove(entry.id);
     await this.reload();
-    return true;
+    return { type: 'done' };
+  }
+
+  private async recordFailure(entry: OutboxEntry, error: unknown): Promise<OutboxEntry | null> {
+    const attempts = entry.attempts + 1;
+    const canRetry = this.isTransient(error) && attempts < MAX_ATTEMPTS;
+    const updated: OutboxEntry = {
+      ...entry,
+      attempts,
+      status: canRetry ? 'PENDING' : 'FAILED',
+      errorMessage: errorMessage(error),
+    };
+    await this.storage.put(updated);
+    await this.reload();
+    return canRetry ? updated : null;
+  }
+
+  private waitForRetry(attempts: number, generation: number): Promise<boolean> {
+    const delayMs = Math.min(RETRY_MAX_DELAY_MS, RETRY_BASE_DELAY_MS * 2 ** (attempts - 1));
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        this.cancelRetryDelay = undefined;
+        resolve(generation === this.syncGeneration);
+      }, delayMs);
+      this.cancelRetryDelay = () => {
+        clearTimeout(timeout);
+        this.cancelRetryDelay = undefined;
+        resolve(false);
+      };
+    });
   }
 
   private send(entry: OutboxEntry): Observable<unknown> {
