@@ -3,7 +3,7 @@ import { permissionGuard } from '../../core/auth/permission-guard';
 import { MENU_SECTIONS } from '../../core/layout/menu';
 
 /** Modules déjà livrés : ils ont leur propre route, pas de page provisoire. */
-const DELIVERED_ROUTES = ['/users', '/journal'];
+const DELIVERED_ROUTES = ['/users', '/journal', '/suppliers'];
 
 /** Routes provisoires des modules du menu (hors utilisateurs), chacune protégée par sa permission. */
 export const PLACEHOLDER_ROUTES: Routes = [

@@ -111,5 +111,48 @@
       "confirmActivate": "Alefa ny mpampiasa {{name}} ?",
       "confirmDeactivate": "Atsahatra ny mpampiasa {{name}} ?"
     }
+  },
+  "supplier": {
+    "title": "Mpamatsy",
+    "list": {
+      "new": "+ Mpamatsy vaovao",
+      "status": "Toetra",
+      "actions": "Asa",
+      "edit": "Ovaina",
+      "loading": "Eo am-pakana…",
+      "empty": "Tsy misy mpamatsy"
+    },
+    "field": {
+      "name": "Anarana",
+      "type": "Karazana",
+      "contactName": "Olona hifandraisana",
+      "phone": "Finday",
+      "email": "Mailaka",
+      "address": "Adiresy",
+      "notes": "Fanamarihana"
+    },
+    "type": {
+      "LOCAL": "Eto an-toerana",
+      "FOREIGN": "Avy any ivelany"
+    },
+    "status": {
+      "active": "MIASA",
+      "inactive": "NATSAHATRA",
+      "activate": "Alefaso",
+      "deactivate": "Atsaharo"
+    },
+    "form": {
+      "newTitle": "Mpamatsy vaovao",
+      "editTitle": "Hanova mpamatsy",
+      "back": "← Hiverina any amin'ny lisitra",
+      "save": "Tehirizina",
+      "cancel": "Foanana",
+      "nameRequired": "Tsy maintsy fenoina ny anarana",
+      "emailInvalid": "Tsy mety ny mailaka"
+    },
+    "articles": {
+      "title": "Entana omena",
+      "empty": "Ho hita rehefa vita ny mody Entana."
+    }
   }
 }

@@ -30,6 +30,12 @@ export const routes: Routes = [
           import('./features/journal/journal.routes').then((m) => m.JOURNAL_ROUTES),
       },
       {
+        path: 'suppliers',
+        canActivate: [permissionGuard('suppliers.read')],
+        loadChildren: () =>
+          import('./features/supplier/supplier.routes').then((m) => m.SUPPLIER_ROUTES),
+      },
+      {
         path: 'synchronisation',
         loadChildren: () => import('./features/sync/sync.routes').then((m) => m.SYNC_ROUTES),
       },
