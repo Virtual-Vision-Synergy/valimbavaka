@@ -11,9 +11,12 @@ Pattern **outbox** côté Angular (`core/offline/`) :
   jamais dans `localStorage`. Sans IndexedDB, repli en mémoire pour la session.
 - Rejeu **FIFO séquentiel** au retour du réseau, à la connexion et au démarrage. Une nouvelle saisie
   attend derrière les plus anciennes pour préserver l'ordre.
-- Erreurs transitoires (réseau, 401, 408, 429, 5xx) : la synchronisation s'arrête et reprend plus tard.
-  Refus métier (autres 4xx) : l'entrée passe en `FAILED`, reste visible et ne bloque pas la suite
-  (`retry` / `discard`).
+- Erreurs transitoires (réseau, 401, 408, 429, 5xx) : jusqu'à 5 tentatives automatiques par cycle,
+  première tentative comprise, avec un délai exponentiel de 1, 2, 4 puis 8 secondes entre relances.
+  Après épuisement, l'entrée passe en `FAILED`, reste visible et ne bloque pas la suite (`retry` / `discard`).
+- Un renvoi manuel réinitialise le compteur et démarre un nouveau cycle.
+- Refus métier (autres 4xx) : l'entrée passe immédiatement en `FAILED`, reste visible et ne bloque pas
+  la suite (`retry` / `discard`).
 - Chaque entrée porte un UUID envoyé dans l'en-tête `Idempotency-Key` ; l'en-tête est autorisé en CORS.
 - La file est vidée à la déconnexion : les saisies d'un compte ne partent jamais sous un autre.
 

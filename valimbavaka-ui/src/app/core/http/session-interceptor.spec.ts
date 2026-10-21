@@ -60,6 +60,43 @@ describe('sessionInterceptor', () => {
     expect(received).toEqual([{ items: [] }]);
   });
 
+  it('should not refresh a request after another account has signed in', () => {
+    let failure: unknown;
+    http.get('/api/v1/articles').subscribe({ error: (error: unknown) => (failure = error) });
+    const request = httpMock.expectOne('/api/v1/articles');
+    const otherUser = { ...buildUser('ADMIN'), id: '0195f0a0-0000-7000-8000-000000000002' };
+    authStore.signIn('jeton-compte-b', otherUser);
+
+    request.flush(UNAUTHENTICATED_BODY, UNAUTHORIZED);
+
+    expect(failure).toBeInstanceOf(ApiError);
+    expect(authStore.currentUser()?.id).toBe(otherUser.id);
+    expect(authStore.accessToken()).toBe('jeton-compte-b');
+    httpMock.expectNone('/api/v1/auth/refresh');
+    httpMock.expectNone('/api/v1/articles');
+  });
+
+  it('should not replace a new account when an earlier refresh completes', () => {
+    let failure: unknown;
+    http.get('/api/v1/articles').subscribe({ error: (error: unknown) => (failure = error) });
+    httpMock.expectOne('/api/v1/articles').flush(UNAUTHENTICATED_BODY, UNAUTHORIZED);
+    const refresh = httpMock.expectOne('/api/v1/auth/refresh');
+    const otherUser = { ...buildUser('ADMIN'), id: '0195f0a0-0000-7000-8000-000000000002' };
+    authStore.signIn('jeton-compte-b', otherUser);
+
+    refresh.flush({
+      accessToken: 'jeton-compte-a-renouvele',
+      tokenType: 'Bearer',
+      expiresIn: 900,
+      user: buildUser('SELLER'),
+    });
+
+    expect(failure).toBeTruthy();
+    expect(authStore.currentUser()?.id).toBe(otherUser.id);
+    expect(authStore.accessToken()).toBe('jeton-compte-b');
+    httpMock.expectNone('/api/v1/articles');
+  });
+
   it('should sign out and go to the login page when the refresh fails', () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     let failure: unknown;

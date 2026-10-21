@@ -1,11 +1,13 @@
 export type OutboxMethod = 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-/** PENDING : à envoyer ; FAILED : refusée par le serveur (erreur 4xx), conservée pour décision de l'utilisateur. */
+/** PENDING : à envoyer ; FAILED : refusée ou relances épuisées, conservée pour décision de l'utilisateur. */
 export type OutboxStatus = 'PENDING' | 'FAILED';
 
 /** Saisie mise en file hors connexion ; `id` sert aussi de clé d'idempotence côté serveur. */
 export interface OutboxEntry {
   readonly id: string;
+  /** Identifiant du compte créateur ; absent uniquement sur les anciennes entrées non attribuables. */
+  readonly ownerId?: string;
   readonly method: OutboxMethod;
   readonly url: string;
   readonly body: unknown;
