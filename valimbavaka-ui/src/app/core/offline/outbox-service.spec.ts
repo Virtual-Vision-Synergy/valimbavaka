@@ -2,6 +2,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { AuthStore } from '../auth/auth-store';
+import { buildUser } from '../auth/auth-testing';
 import { errorInterceptor } from '../http/error-interceptor';
 import { ConnectivityService } from './connectivity-service';
 import { OutboxService } from './outbox-service';
@@ -11,6 +13,7 @@ describe('OutboxService', () => {
   const online = signal(true);
   let sut: OutboxService;
   let httpMock: HttpTestingController;
+  let authStore: AuthStore;
 
   beforeEach(() => {
     online.set(true);
@@ -21,6 +24,8 @@ describe('OutboxService', () => {
         { provide: ConnectivityService, useValue: { isOnline: online.asReadonly() } },
       ],
     });
+    authStore = TestBed.inject(AuthStore);
+    authStore.signIn('jeton-a', buildUser('SELLER'));
     sut = TestBed.inject(OutboxService);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -38,6 +43,13 @@ describe('OutboxService', () => {
   const answer = async (url: string, status: number): Promise<void> => {
     const request = await vi.waitFor(() => httpMock.expectOne(url));
     request.flush({ status, detail: 'refus' }, { status, statusText: 'x' });
+  };
+
+  const completeUntilEmpty = async (url: string): Promise<void> => {
+    await vi.waitFor(() => {
+      httpMock.match(url).forEach((request) => request.flush({}));
+      expect(sut.pendingCount()).toBe(0);
+    });
   };
 
   it('should send the request with an idempotency key when online', async () => {
@@ -58,6 +70,55 @@ describe('OutboxService', () => {
     expect(result).toEqual({ queued: true });
     expect(sut.pendingCount()).toBe(1);
     httpMock.expectNone('/api/v1/items');
+  });
+
+  it('should reject a submission without an authenticated account', async () => {
+    authStore.signOut();
+
+    await expect(submit('/api/v1/items')).rejects.toMatchObject({ status: 401 });
+    httpMock.expectNone('/api/v1/items');
+  });
+
+  it('should retain queued requests until their creating account reconnects', async () => {
+    online.set(false);
+    const owner = buildUser('SELLER');
+    await submit('/api/v1/items');
+
+    authStore.signOut();
+    expect(sut.pendingCount()).toBe(0);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    authStore.signIn('nouveau-jeton-a', owner);
+    expect(sut.pendingCount()).toBe(1);
+    online.set(true);
+
+    const flushing = sut.flush();
+    await completeUntilEmpty('/api/v1/items');
+    await flushing;
+
+    expect(sut.pendingCount()).toBe(0);
+  });
+
+  it('should not send one account’s queued requests while another account is connected', async () => {
+    online.set(false);
+    const owner = buildUser('SELLER');
+    await submit('/api/v1/items');
+    authStore.signIn('jeton-b', {
+      ...buildUser('ADMIN'),
+      id: '0195f0a0-0000-7000-8000-000000000002',
+    });
+
+    expect(sut.pendingCount()).toBe(0);
+    online.set(true);
+    await sut.flush();
+    httpMock.expectNone('/api/v1/items');
+
+    authStore.signIn('nouveau-jeton-a', owner);
+    expect(sut.pendingCount()).toBe(1);
+    const flushing = sut.flush();
+    await completeUntilEmpty('/api/v1/items');
+    await flushing;
+
+    expect(sut.pendingCount()).toBe(0);
   });
 
   it('should queue the request when the network fails while sending', async () => {
