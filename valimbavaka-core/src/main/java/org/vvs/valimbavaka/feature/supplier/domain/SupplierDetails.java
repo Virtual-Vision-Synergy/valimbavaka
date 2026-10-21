@@ -10,5 +10,4 @@ public record SupplierDetails(
         @Nullable String phone,
         @Nullable String email,
         @Nullable String address,
-        @Nullable String notes) {
-}
+        @Nullable String notes) {}

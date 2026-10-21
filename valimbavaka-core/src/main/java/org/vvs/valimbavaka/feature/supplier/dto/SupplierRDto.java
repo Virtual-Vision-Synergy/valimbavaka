@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
+
 import org.vvs.valimbavaka.feature.supplier.domain.SupplierType;
 
 /** Read DTO for the supplier sheet. */
@@ -18,5 +19,4 @@ public record SupplierRDto(
         @Nullable String notes,
         boolean active,
         Instant createdAt,
-        Instant updatedAt) {
-}
+        Instant updatedAt) {}

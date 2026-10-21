@@ -212,8 +212,8 @@ class SupplierSecurityIT {
     }
 
     private UUID createSupplier(String token, String name) throws Exception {
-        MvcResult result = mockMvc.perform(postJson(SUPPLIERS, body(name))
-                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+        MvcResult result = mockMvc.perform(
+                        postJson(SUPPLIERS, body(name)).header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isCreated())
                 .andReturn();
         return UUID.fromString(JsonPath.read(result.getResponse().getContentAsString(), "$.id"));

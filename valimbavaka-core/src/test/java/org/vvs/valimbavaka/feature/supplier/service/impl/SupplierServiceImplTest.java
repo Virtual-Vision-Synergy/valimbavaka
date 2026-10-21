@@ -91,9 +91,16 @@ class SupplierServiceImplTest {
         // Arrange
         var supplier = existingSupplier();
         when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
-        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Import Océan", SUPPLIER_ID)).thenReturn(false);
-        var request = new SupplierWDto("Import Océan", SupplierType.FOREIGN, "Mr Lee", "+33 1 00 00 00 00",
-                "lee@ocean.com", "Marseille", "Raw materials");
+        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Import Océan", SUPPLIER_ID))
+                .thenReturn(false);
+        var request = new SupplierWDto(
+                "Import Océan",
+                SupplierType.FOREIGN,
+                "Mr Lee",
+                "+33 1 00 00 00 00",
+                "lee@ocean.com",
+                "Marseille",
+                "Raw materials");
 
         // Act
         sut.updateSupplier(SUPPLIER_ID, request);
@@ -106,15 +113,15 @@ class SupplierServiceImplTest {
         assertThat(supplier.getEmail()).isEqualTo("lee@ocean.com");
         assertThat(supplier.getAddress()).isEqualTo("Marseille");
         assertThat(supplier.getNotes()).isEqualTo("Raw materials");
-        verify(journalService)
-                .record(JournalAction.UPDATE, "SUPPLIER", SUPPLIER_ID, "Supplier updated: Import Océan");
+        verify(journalService).record(JournalAction.UPDATE, "SUPPLIER", SUPPLIER_ID, "Supplier updated: Import Océan");
     }
 
     @Test
     void updateSupplier_nameUsedByAnotherSupplier_throwsConflict() {
         // Arrange
         when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(existingSupplier()));
-        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Import Océan", SUPPLIER_ID)).thenReturn(true);
+        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Import Océan", SUPPLIER_ID))
+                .thenReturn(true);
 
         // Act + Assert
         assertThatThrownBy(() -> sut.updateSupplier(SUPPLIER_ID, request("Import Océan")))

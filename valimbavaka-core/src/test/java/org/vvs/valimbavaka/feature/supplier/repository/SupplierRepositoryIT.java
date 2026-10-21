@@ -39,7 +39,8 @@ class SupplierRepositoryIT {
 
         // Act + Assert
         assertThat(sut.existsByNameIgnoreCase(name.toUpperCase())).isTrue();
-        assertThat(sut.existsByNameIgnoreCaseAndIdNot(name.toUpperCase(), saved.getId())).isFalse();
+        assertThat(sut.existsByNameIgnoreCaseAndIdNot(name.toUpperCase(), saved.getId()))
+                .isFalse();
     }
 
     @Test
