@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
-import { OutboxService } from '../offline/outbox-service';
 import { AuthRDto, LoginWDto } from './auth-models';
 import { AuthStore } from './auth-store';
 
@@ -11,7 +10,6 @@ export const AUTH_URL_PREFIX = '/api/v1/auth';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly authStore = inject(AuthStore);
-  private readonly outbox = inject(OutboxService);
   private inflightRefresh: Observable<AuthRDto> | null = null;
 
   login(credentials: LoginWDto): Observable<AuthRDto> {
@@ -21,12 +19,8 @@ export class AuthService {
   }
 
   /** Un seul refresh à la fois : les appels simultanés partagent la même requête (rotation du cookie). */
-  refresh(): Observable<AuthRDto> {
-    this.inflightRefresh ??= this.http.post<AuthRDto>(`${AUTH_URL_PREFIX}/refresh`, null).pipe(
-      tap((response) => this.authStore.signIn(response.accessToken, response.user)),
-      finalize(() => (this.inflightRefresh = null)),
-      shareReplay({ bufferSize: 1, refCount: false }),
-    );
+  refresh(expectedUserId?: string): Observable<AuthRDto> {
+    this.inflightRefresh ??= this.refreshRequest(expectedUserId);
     return this.inflightRefresh;
   }
 
@@ -42,12 +36,33 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
+    const userId = this.authStore.currentUser()?.id ?? null;
     return this.http.post<void>(`${AUTH_URL_PREFIX}/logout`, null).pipe(
       catchError(() => of(undefined)),
       finalize(() => {
-        this.authStore.signOut();
-        void this.outbox.clear();
+        if ((this.authStore.currentUser()?.id ?? null) === userId) {
+          this.authStore.signOut();
+        }
       }),
+    );
+  }
+
+  private refreshRequest(expectedUserId?: string): Observable<AuthRDto> {
+    const sessionRevision = this.authStore.sessionRevision();
+    return this.http.post<AuthRDto>(`${AUTH_URL_PREFIX}/refresh`, null).pipe(
+      tap((response) => {
+        const sameSession = this.authStore.sessionRevision() === sessionRevision;
+        const sameUser =
+          expectedUserId === undefined ||
+          (this.authStore.currentUser()?.id === expectedUserId &&
+            response.user.id === expectedUserId);
+        if (!sameSession || !sameUser) {
+          throw new Error('La session a changé pendant son renouvellement.');
+        }
+        this.authStore.signIn(response.accessToken, response.user);
+      }),
+      finalize(() => (this.inflightRefresh = null)),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
   }
 }

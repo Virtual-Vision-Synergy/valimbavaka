@@ -6,6 +6,8 @@ export type OutboxStatus = 'PENDING' | 'FAILED';
 /** Saisie mise en file hors connexion ; `id` sert aussi de clé d'idempotence côté serveur. */
 export interface OutboxEntry {
   readonly id: string;
+  /** Identifiant du compte créateur ; absent uniquement sur les anciennes entrées non attribuables. */
+  readonly ownerId?: string;
   readonly method: OutboxMethod;
   readonly url: string;
   readonly body: unknown;
