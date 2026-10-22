@@ -106,17 +106,20 @@ export const routes: Routes = [
       {
         path: 'commissions',
         canActivate: [permissionGuard('commissions.read')],
-        loadChildren: () => import('./features/commissions/commissions.routes').then((m) => m.COMMISSIONS_ROUTES),
+        loadChildren: () =>
+          import('./features/commissions/commissions.routes').then((m) => m.COMMISSIONS_ROUTES),
       },
       {
         path: 'services',
         canActivate: [permissionGuard('services.read')],
-        loadChildren: () => import('./features/services/services.routes').then((m) => m.SERVICES_ROUTES),
+        loadChildren: () =>
+          import('./features/services/services.routes').then((m) => m.SERVICES_ROUTES),
       },
       {
         path: 'reports',
         canActivate: [permissionGuard('reports.read')],
-        loadChildren: () => import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
+        loadChildren: () =>
+          import('./features/reports/reports.routes').then((m) => m.REPORTS_ROUTES),
       },
       {
         path: 'users',

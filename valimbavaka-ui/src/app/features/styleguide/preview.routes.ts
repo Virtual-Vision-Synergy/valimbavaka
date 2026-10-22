@@ -71,7 +71,8 @@ export const PREVIEW_ROUTES: Routes = [
       },
       {
         path: 'commissions',
-        loadChildren: () => import('../commissions/commissions.routes').then((m) => m.COMMISSIONS_ROUTES),
+        loadChildren: () =>
+          import('../commissions/commissions.routes').then((m) => m.COMMISSIONS_ROUTES),
       },
       {
         path: 'services',
