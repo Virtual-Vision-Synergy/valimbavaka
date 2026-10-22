@@ -1271,5 +1271,48 @@
       "units": "{{count}} unités",
       "all": "Top 20 →"
     }
+  },
+  "supplier": {
+    "title": "Fournisseurs",
+    "list": {
+      "new": "+ Nouveau fournisseur",
+      "status": "Statut",
+      "actions": "Actions",
+      "edit": "Modifier",
+      "loading": "Chargement…",
+      "empty": "Aucun fournisseur"
+    },
+    "field": {
+      "name": "Nom",
+      "type": "Type",
+      "contactName": "Personne de contact",
+      "phone": "Téléphone",
+      "email": "Email",
+      "address": "Adresse",
+      "notes": "Notes"
+    },
+    "type": {
+      "LOCAL": "Local",
+      "FOREIGN": "Étranger"
+    },
+    "status": {
+      "active": "ACTIF",
+      "inactive": "DÉSACTIVÉ",
+      "activate": "Activer",
+      "deactivate": "Désactiver"
+    },
+    "form": {
+      "newTitle": "Nouveau fournisseur",
+      "editTitle": "Modifier un fournisseur",
+      "back": "← Retour à la liste",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "nameRequired": "Le nom est obligatoire",
+      "emailInvalid": "L'email n'est pas valide"
+    },
+    "articles": {
+      "title": "Articles fournis",
+      "empty": "Disponible dès la livraison du module Articles."
+    }
   }
 }

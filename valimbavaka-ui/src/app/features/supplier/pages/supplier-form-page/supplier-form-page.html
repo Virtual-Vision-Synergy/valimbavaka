@@ -1,0 +1,83 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" routerLink="/suppliers">{{ 'supplier.form.back' | translate }}</a>
+    <h1>{{ (isEdit() ? 'supplier.form.editTitle' : 'supplier.form.newTitle') | translate }}</h1>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="grid">
+      <div class="field">
+        <label for="name">{{ 'supplier.field.name' | translate }} *</label>
+        <input id="name" class="input" formControlName="name" aria-describedby="name-error" />
+        @if (isInvalid('name')) {
+          <span id="name-error" class="field-error" aria-live="polite">{{
+            'supplier.form.nameRequired' | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="type">{{ 'supplier.field.type' | translate }} *</label>
+        <select id="type" class="input" formControlName="type">
+          @for (type of types; track type) {
+            <option [value]="type">{{ 'supplier.type.' + type | translate }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="contactName">{{ 'supplier.field.contactName' | translate }}</label>
+        <input id="contactName" class="input" formControlName="contactName" />
+      </div>
+
+      <div class="field">
+        <label for="phone">{{ 'supplier.field.phone' | translate }}</label>
+        <input id="phone" class="input" type="tel" formControlName="phone" />
+      </div>
+
+      <div class="field full">
+        <label for="email">{{ 'supplier.field.email' | translate }}</label>
+        <input
+          id="email"
+          class="input"
+          type="email"
+          formControlName="email"
+          aria-describedby="email-error"
+        />
+        @if (isInvalid('email')) {
+          <span id="email-error" class="field-error" aria-live="polite">{{
+            'supplier.form.emailInvalid' | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field full">
+        <label for="address">{{ 'supplier.field.address' | translate }}</label>
+        <input id="address" class="input" formControlName="address" />
+      </div>
+
+      <div class="field full">
+        <label for="notes">{{ 'supplier.field.notes' | translate }}</label>
+        <textarea id="notes" class="input" rows="3" formControlName="notes"></textarea>
+      </div>
+    </div>
+
+    @if (isEdit()) {
+      <section class="articles" aria-labelledby="articles-title">
+        <h2 id="articles-title">{{ 'supplier.articles.title' | translate }}</h2>
+        <p class="muted">{{ 'supplier.articles.empty' | translate }}</p>
+      </section>
+    }
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" routerLink="/suppliers">{{ 'supplier.form.cancel' | translate }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="isSaving()">
+        {{ 'supplier.form.save' | translate }}
+      </button>
+    </div>
+  </form>
+</section>

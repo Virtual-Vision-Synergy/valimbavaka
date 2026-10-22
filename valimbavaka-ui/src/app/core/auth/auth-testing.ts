@@ -5,6 +5,8 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
   ADMIN: [
     'dashboard.read',
     'suppliers.read',
+    'suppliers.create',
+    'suppliers.update',
     'articles.read',
     'stocks.read',
     'production.read',

@@ -80,12 +80,6 @@ export const routes: Routes = [
         loadChildren: () => import('./features/day/day.routes').then((m) => m.DAY_ROUTES),
       },
       {
-        path: 'suppliers',
-        canActivate: [permissionGuard('suppliers.read')],
-        loadChildren: () =>
-          import('./features/suppliers/suppliers.routes').then((m) => m.SUPPLIERS_ROUTES),
-      },
-      {
         path: 'production',
         canActivate: [permissionGuard('production.read')],
         loadChildren: () =>
@@ -134,6 +128,12 @@ export const routes: Routes = [
         canActivate: [permissionGuard('journal.read')],
         loadChildren: () =>
           import('./features/journal/journal.routes').then((m) => m.JOURNAL_ROUTES),
+      },
+      {
+        path: 'suppliers',
+        canActivate: [permissionGuard('suppliers.read')],
+        loadChildren: () =>
+          import('./features/supplier/supplier.routes').then((m) => m.SUPPLIER_ROUTES),
       },
       {
         path: 'synchronisation',
