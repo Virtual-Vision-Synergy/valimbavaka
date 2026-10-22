@@ -1,4 +1,6 @@
-<section class="page">
-  <h1>{{ headingKey | translate }}</h1>
-  <p class="message">{{ messageKey | translate }}</p>
-</section>
+<div class="page">
+  <vvs-page-header [heading]="headingKey | translate" />
+  <section class="card">
+    <vvs-list-state kind="empty" titleKey="placeholder.pending.title" [messageKey]="messageKey" />
+  </section>
+</div>

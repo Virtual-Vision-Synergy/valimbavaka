@@ -1,0 +1,33 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.list li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+}
+.list li + li {
+  border-top: 1px solid var(--border-subtle);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.foot {
+  flex-wrap: wrap;
+}
+.items {
+  font-weight: 500;
+}
+.muted {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+.empty {
+  text-align: center;
+}

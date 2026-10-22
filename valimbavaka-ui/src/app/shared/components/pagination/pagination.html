@@ -1,0 +1,26 @@
+<nav class="pagination" [attr.aria-label]="'pagination.label' | translate">
+  <p class="range num" aria-live="polite">
+    {{ 'pagination.range' | translate: { from: from(), to: to(), total: total() } }}
+  </p>
+  <div class="buttons">
+    <button
+      class="btn btn-secondary btn-icon btn-sm"
+      type="button"
+      [disabled]="page() <= 1"
+      [attr.aria-label]="'pagination.previous' | translate"
+      (click)="page.set(page() - 1)"
+    >
+      <svg [vvsIcon]="icons.ChevronLeft" [size]="18"></svg>
+    </button>
+    <span class="current num">{{ page() }} / {{ pageCount() }}</span>
+    <button
+      class="btn btn-secondary btn-icon btn-sm"
+      type="button"
+      [disabled]="page() >= pageCount()"
+      [attr.aria-label]="'pagination.next' | translate"
+      (click)="page.set(page() + 1)"
+    >
+      <svg [vvsIcon]="icons.ChevronRight" [size]="18"></svg>
+    </button>
+  </div>
+</nav>

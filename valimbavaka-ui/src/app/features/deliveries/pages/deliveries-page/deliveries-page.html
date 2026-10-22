@@ -1,0 +1,60 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'deliveries.title' | translate"
+    [subtitle]="board.value() ? ('deliveries.subtitle' | translate: summary()) : ''"
+    [codes]="['LIV-01', 'LIV-06', 'LIV-07']"
+  >
+    <vvs-filter-chips
+      [label]="'deliveries.roundFilter' | translate"
+      [options]="roundOptions()"
+      [(value)]="round"
+    />
+    <button class="btn btn-primary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'deliveries.newOrder' | translate }}
+    </button>
+  </vvs-page-header>
+
+  @if (board.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="board.reload()" /></div>
+  } @else if (board.value()) {
+    <div class="layout">
+      <div class="board">
+        @for (column of columns(); track column.status) {
+          <section class="column" [attr.aria-labelledby]="'col-' + column.status">
+            <h2 class="column-title" [id]="'col-' + column.status">
+              <span class="dot" [attr.data-status]="column.status" aria-hidden="true"></span>
+              {{ 'deliveries.column.' + column.status | translate }}
+              <span class="count num">{{ column.items.length }}</span>
+            </h2>
+            <ul class="cards">
+              @for (delivery of column.items; track delivery.id) {
+                <li>
+                  <vvs-delivery-card
+                    [delivery]="delivery"
+                    [stopCount]="stopCount(delivery.roundId)"
+                    [selected]="delivery.id === selectedId()"
+                    (picked)="selectedId.set($event)"
+                  />
+                </li>
+              } @empty {
+                <li class="empty">{{ 'deliveries.emptyColumn' | translate }}</li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+      @if (selected(); as delivery) {
+        <vvs-side-panel
+          [label]="'deliveries.detail.label' | translate: { number: delivery.number }"
+          [focusKey]="delivery.id"
+          (closed)="selectedId.set(null)"
+        >
+          <vvs-delivery-detail [delivery]="delivery" (action)="demoAction()" />
+        </vvs-side-panel>
+      }
+    </div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</div>

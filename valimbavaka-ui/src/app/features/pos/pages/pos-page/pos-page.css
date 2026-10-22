@@ -1,0 +1,58 @@
+.pos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 420px);
+  align-items: start;
+  gap: var(--space-6);
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.aside {
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-4));
+}
+.held {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--primary-xlight);
+  color: var(--primary-strong);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  line-height: 20px;
+}
+.shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+  list-style: none;
+}
+kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--blanc);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+@media (max-width: 1100px) {
+  .pos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .aside {
+    position: static;
+  }
+}
+/* Pas de clavier physique au doigt : la légende des raccourcis n'apporte rien. */
+@media (pointer: coarse) {
+  .shortcuts {
+    display: none;
+  }
+}

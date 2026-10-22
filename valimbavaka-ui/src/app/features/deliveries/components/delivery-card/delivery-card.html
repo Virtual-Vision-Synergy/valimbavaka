@@ -1,0 +1,24 @@
+@let d = delivery();
+<button
+  class="card-btn"
+  type="button"
+  [class.failed]="d.status === 'FAILED'"
+  [attr.aria-pressed]="selected()"
+  (click)="picked.emit(d.id)"
+>
+  <span class="row">
+    <span class="mono number">{{ d.number }}</span>
+    <span class="time num">{{ d.time }}</span>
+  </span>
+  <span class="customer">{{ d.customerName }}</span>
+  <span class="district">
+    <svg [vvsIcon]="icons.MapPin" [size]="14"></svg>
+    {{ d.district }}
+  </span>
+  <span class="row foot">
+    <strong class="num">{{ d.amount | ariary }}</strong>
+    <span class="state" [attr.data-tone]="footer().tone">
+      {{ footer().key | translate: footer().params }}
+    </span>
+  </span>
+</button>

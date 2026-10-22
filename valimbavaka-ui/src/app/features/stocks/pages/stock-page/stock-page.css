@@ -1,0 +1,75 @@
+.flush {
+  padding: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+}
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+.tick {
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+  background: var(--gris-anthracite);
+}
+.check {
+  width: 48px;
+  padding-right: 0;
+}
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-strong);
+  cursor: pointer;
+}
+tr.selected {
+  background: var(--primary-xlight);
+}
+.cell-sub {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.c-location.focus {
+  background: var(--secondary-xlight);
+  font-weight: 700;
+}
+.zero {
+  color: var(--danger-dark);
+  font-weight: 700;
+}
+.level {
+  display: grid;
+  grid-template-columns: minmax(100px, 200px) auto;
+  align-items: center;
+  gap: var(--space-4);
+}
+.ratio {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.muted {
+  color: var(--gris-moyen);
+}
+@container (max-width: 1000px) {
+  .c-value {
+    display: none;
+  }
+}
+@container (max-width: 760px) {
+  .c-location:not(.focus) {
+    display: none;
+  }
+}

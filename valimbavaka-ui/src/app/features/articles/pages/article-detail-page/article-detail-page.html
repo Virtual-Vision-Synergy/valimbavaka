@@ -1,0 +1,218 @@
+<div class="page">
+  <a class="back link-arrow" routerLink="/articles">
+    <svg [vvsIcon]="icons.ChevronLeft" [size]="16"></svg>
+    {{ 'articles.backToList' | translate }}
+  </a>
+
+  @if (article.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="article.reload()" /></div>
+  } @else if (article.value(); as a) {
+    @let eco = economics();
+    <section class="card identity" aria-labelledby="article-title">
+      <div class="top">
+        <vvs-article-thumb [name]="a.name" [range]="a.range" size="lg" />
+        <div class="intro">
+          <div class="title-row">
+            <h1 id="article-title">{{ a.name }}</h1>
+            <span class="code-chip" aria-hidden="true">ART-01 · ART-06</span>
+            <vvs-under-construction />
+          </div>
+          <p class="tags">
+            <span class="mono">{{ a.reference }}</span>
+            @if (a.range) {
+              <vvs-range-tag [range]="a.range" />
+            }
+            <span class="badge badge-dot badge-muted">
+              {{ 'articles.type.' + a.type | translate }}
+              @if (a.manufactured) {
+                · {{ 'articles.detail.manufactured' | translate }}
+              }
+            </span>
+            <vvs-status-badge
+              [tone]="tones[a.status]"
+              [label]="'articles.status.' + a.status | translate"
+            />
+          </p>
+          <p class="description">
+            {{ a.description }}
+            {{ 'articles.detail.barcode' | translate }} <span class="mono">{{ a.barcode }}</span
+            >.
+          </p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" (click)="demoAction()">
+            <svg [vvsIcon]="icons.Pencil" [size]="18"></svg>
+            {{ 'articles.detail.edit' | translate }}
+          </button>
+          @if (a.manufactured) {
+            <a class="btn btn-primary" routerLink="/production">
+              <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+              {{ 'articles.detail.newLot' | translate }}
+            </a>
+          }
+        </div>
+      </div>
+
+      <dl class="kpis">
+        <div>
+          <dt>{{ 'articles.detail.price' | translate }}</dt>
+          <dd class="num">{{ a.price ? (a.price | ariary) : '—' }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'articles.detail.cost' | translate }}</dt>
+          <dd class="num">{{ a.cost | ariary }}</dd>
+          @if (eco?.margin !== null && eco?.margin !== undefined) {
+            <dd class="sub positive">
+              {{ 'articles.detail.margin' | translate: { rate: eco?.margin } }}
+            </dd>
+          }
+        </div>
+        <div>
+          <dt>{{ 'articles.detail.totalStock' | translate }}</dt>
+          <dd class="num">{{ a.totalStock }} u.</dd>
+          <dd class="sub">{{ 'articles.detail.threshold' | translate: { count: a.threshold } }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'articles.detail.sold30' | translate }}</dt>
+          <dd class="num">{{ a.soldLast30Days }} u.</dd>
+          <dd class="sub">{{ 'articles.detail.perDay' | translate: { count: eco?.perDay } }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'articles.detail.coverage' | translate }}</dt>
+          <dd class="num">
+            {{
+              eco?.coverage !== null
+                ? ('articles.detail.days' | translate: { count: eco?.coverage })
+                : '—'
+            }}
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <div class="grid grid-2">
+      <section class="card" aria-labelledby="locations-title">
+        <header class="card-header">
+          <h2 id="locations-title">
+            {{ 'articles.detail.byLocation' | translate }}
+            <span class="code-chip" aria-hidden="true">STK-01</span>
+          </h2>
+          <a class="link-arrow" routerLink="/stocks">{{
+            'articles.detail.movements' | translate
+          }}</a>
+        </header>
+        <ul class="locations">
+          @for (item of a.stockByLocation; track item.location) {
+            <li>
+              <span>{{ 'stocks.location.' + item.location | translate }}</span>
+              <span class="bar" aria-hidden="true"
+                ><span
+                  [class.low]="item.quantity < a.threshold / 4"
+                  [style.width.%]="(item.quantity / (eco?.maxLocation ?? 1)) * 100"
+                ></span
+              ></span>
+              <strong class="num">{{ item.quantity }}</strong>
+            </li>
+          }
+        </ul>
+        <p class="total">
+          <span>{{ 'articles.detail.valueAtCost' | translate }}</span>
+          <strong class="num">{{ eco?.value ?? 0 | ariary }}</strong>
+        </p>
+      </section>
+
+      <section class="card" aria-labelledby="lots-title">
+        <header class="card-header">
+          <h2 id="lots-title">
+            {{ 'articles.detail.lots' | translate }}
+            <span class="code-chip" aria-hidden="true">PRD-05</span>
+          </h2>
+          <a class="link-arrow" routerLink="/production">{{
+            'articles.detail.allLots' | translate
+          }}</a>
+        </header>
+        @if (a.lots.length) {
+          <ul class="rows">
+            @for (lot of a.lots; track lot.number) {
+              <li>
+                <span class="mono">{{ lot.number }}</span>
+                <span>· {{ lot.quantity }} u. · {{ lot.operator }}</span>
+                <span class="end">
+                  @if (lot.unitCost) {
+                    <span class="muted num">{{ lot.unitCost | ariary }} / u.</span>
+                  } @else {
+                    <span class="muted">
+                      {{ 'articles.detail.curing' | translate: { days: lot.curingDaysLeft } }}
+                    </span>
+                  }
+                  <vvs-status-badge
+                    [tone]="lot.validated ? 'success' : 'info'"
+                    [label]="
+                      (lot.validated ? 'articles.detail.validated' : 'articles.detail.inProgress')
+                        | translate
+                    "
+                  />
+                </span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">{{ 'articles.detail.noLots' | translate }}</p>
+        }
+      </section>
+
+      <section class="card" aria-labelledby="promos-title">
+        <header class="card-header">
+          <h2 id="promos-title">
+            {{ 'articles.detail.promotions' | translate }}
+            <span class="code-chip" aria-hidden="true">PRO-03</span>
+          </h2>
+          <a class="link-arrow" routerLink="/promotions">{{
+            'articles.detail.manage' | translate
+          }}</a>
+        </header>
+        @if (a.promotion; as promo) {
+          <div class="promo">
+            <span class="rate num">−{{ promo.rate }}%</span>
+            <span class="promo-text">
+              <strong>{{ promo.name }} · {{ promo.rule }}</strong>
+              <span class="muted">
+                {{
+                  'articles.detail.promoMeta'
+                    | translate: { period: promo.period, code: promo.code, uses: promo.uses }
+                }}
+              </span>
+            </span>
+            <vvs-status-badge tone="success" [label]="'articles.detail.active' | translate" />
+          </div>
+        }
+        <p class="muted">
+          {{ 'articles.detail.endedPromotions' | translate: { count: a.endedPromotions } }}
+        </p>
+      </section>
+
+      <section class="card" aria-labelledby="journal-title">
+        <header class="card-header">
+          <h2 id="journal-title">
+            {{ 'articles.detail.journal' | translate }}
+            <span class="code-chip" aria-hidden="true">JNL-03</span>
+          </h2>
+          <a class="link-arrow" routerLink="/journal">{{ 'common.seeAll' | translate }}</a>
+        </header>
+        <ul class="rows">
+          @for (move of a.movements; track $index) {
+            <li>
+              <span class="mono muted when">{{ move.when }}</span>
+              <span class="grow">{{ move.label }}</span>
+              <strong class="num delta" [class.out]="move.delta < 0">
+                {{ move.delta > 0 ? '+' : '−' }}{{ move.delta < 0 ? -move.delta : move.delta }}
+              </strong>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</div>

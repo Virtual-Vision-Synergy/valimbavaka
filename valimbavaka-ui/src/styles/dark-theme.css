@@ -3,45 +3,64 @@
    Principes hérités de l'ancienne UI :
    1. Fonds neutres (pas de teinte bleue/verte parasite)
    2. 3 niveaux d'élévation distincts : page → surface → surface haute
-   3. Primaire/secondaire inchangés — ils ressortent naturellement
+   3. Teintes « -strong » éclaircies : sur fond sombre, le texte de marque doit s'éclairer
    4. Textes légèrement chauds pour réduire la fatigue visuelle
    5. Bordures ultra-subtiles
 
-   Activation : ajouter la classe `dark` sur <html> (ex. via un
-   ThemeService qui persiste le choix, cf. useDarkMode.js de l'ancienne UI).
+   Activation : ThemeService (core/layout/theme-service.ts) pose `dark` sur <html>
+   selon le choix mémorisé ou, à défaut, prefers-color-scheme.
    ============================================================ */
 html.dark {
+  color-scheme: dark;
+
   /* ── Niveaux de fond ── */
-  --fond: #1A1A1A;
+  --fond: #1a1a1a;
   --fond-dark: #242424;
-  --gris-fond: #1E1E1E;
-  --blanc: #2E2E2E;
+  --gris-fond: #222222;
+  --blanc: #2e2e2e;
 
   /* ── Textes ── */
-  --gris-anthracite: #EBEBEB;
-  --gris-moyen: #9E9E9E;
-  --gris-clair: #4A4A4A;
-  --noir: #F5F5F5;
+  --gris-anthracite: #ebebeb;
+  --gris-moyen: #a3a3a3;
+  --gris-clair: #4a4a4a;
+  --noir: #f5f5f5;
+  --border-control: #7a7a7a;
+  --border-subtle: rgba(255, 255, 255, 0.08);
 
-  /* ── Orange — identique, ressort parfaitement sur fond sombre ── */
-  --primary: #F26716;
-  --primary-dark: #D95A10;
-  --primary-light: #F9A86B;
+  /* ── Orange : texte éclairci ; un CTA orange porte un texte sombre (7,4:1) ── */
+  --primary: #f26716;
+  --primary-dark: #d95a10;
+  --primary-light: #f9a86b;
   --primary-xlight: rgba(242, 103, 22, 0.16);
+  --primary-strong: #ff8a4c;
+  --primary-strong-hover: #ffa273;
+  --on-primary-strong: #1a1a1a;
 
-  /* ── Teal — identique ── */
-  --secondary: #06BFAD;
-  --secondary-dark: #05A898;
-  --secondary-light: #7DDDD6;
+  /* ── Teal ── */
+  --secondary: #06bfad;
+  --secondary-dark: #05a898;
+  --secondary-light: #7dddd6;
   --secondary-xlight: rgba(6, 191, 173, 0.14);
+  --secondary-strong: #2ee0cc;
+  --secondary-deep: #0b3f39;
 
   /* ── Sémantiques : fonds translucides + textes lumineux ── */
   --succes-light: rgba(34, 197, 94, 0.15);
-  --succes-dark: #4ADE80;
+  --succes-dark: #4ade80;
   --warning-light: rgba(234, 179, 8, 0.15);
-  --warning-dark: #FACC15;
+  --warning-dark: #facc15;
   --danger-light: rgba(239, 68, 68, 0.15);
-  --danger-dark: #F87171;
+  --danger-dark: #f87171;
+  --info-light: rgba(47, 111, 222, 0.18);
+  --info-dark: #7fa9f5;
+
+  /* ── Gammes ── */
+  --range-botanika-bg: rgba(6, 191, 173, 0.14);
+  --range-botanika-fg: #2ee0cc;
+  --range-zezika-bg: rgba(194, 70, 106, 0.18);
+  --range-zezika-fg: #f28cab;
+  --range-solika-bg: rgba(217, 164, 0, 0.16);
+  --range-solika-fg: #facc15;
 
   /* ── Bordures ── */
   --card-border: rgba(255, 255, 255, 0.07);
@@ -50,6 +69,17 @@ html.dark {
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.45);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.38);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.65), 0 4px 12px rgba(0, 0, 0, 0.45);
-  --shadow-glow-primary: 0 0 20px rgba(242, 103, 22, 0.40);
+  --shadow-glow-primary: 0 0 20px rgba(242, 103, 22, 0.4);
   --shadow-glow-secondary: 0 0 20px rgba(6, 191, 173, 0.35);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* ── Verre ── */
+  --glass-bg: rgba(36, 36, 36, 0.72);
+  --glass-bg-fallback: #242424;
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  /* ── Dégradés ── */
+  --gradient-hero: linear-gradient(115deg, #e0601a 0%, #f26716 50%, #f59a5b 100%);
+  --on-hero: #2b1406;
+  --gradient-nav: linear-gradient(180deg, #0d3b36 0%, #0a2e2a 100%);
 }

@@ -1,0 +1,121 @@
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-6);
+  overflow: hidden;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  border-radius: var(--radius-2xl);
+  background: var(--gradient-hero);
+  box-shadow: 0 12px 32px rgba(242, 103, 22, 0.3);
+  color: var(--on-hero);
+  isolation: isolate;
+}
+.intro {
+  max-width: 560px;
+}
+.date {
+  color: var(--on-hero);
+  font-size: var(--text-sm);
+}
+/* Majuscule initiale seulement (« Mercredi 21 octobre ») : capitalize mettrait aussi « Octobre ». */
+.date::first-letter {
+  text-transform: uppercase;
+}
+.greeting {
+  margin: var(--space-1) 0 var(--space-2);
+  color: var(--on-hero);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+}
+.lead {
+  color: var(--on-hero);
+  font-size: var(--text-md);
+}
+.goal {
+  margin-top: var(--space-5);
+}
+.goal-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.goal-track {
+  height: 8px;
+  margin: var(--space-2) 0;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.4);
+}
+.goal-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--on-hero);
+  transition: width var(--transition-slow);
+}
+.goal-caption {
+  color: var(--on-hero);
+  font-size: var(--text-xs);
+}
+.quick {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 220px;
+}
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-lg);
+  /* Verre clair : encre sombre ≥ 10:1 quel que soit le point du dégradé. */
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 2px 8px rgba(43, 20, 6, 0.12);
+  color: var(--on-hero);
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  transition:
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.quick-link:hover {
+  background: #fff;
+  transform: translateX(2px);
+}
+.quick-link:focus-visible {
+  outline-color: var(--on-hero);
+  box-shadow: none;
+}
+.updated {
+  grid-column: 1 / -1;
+  color: var(--on-hero);
+  font-size: var(--text-xs);
+}
+.leaves {
+  position: absolute;
+  right: 220px;
+  bottom: -20px;
+  z-index: -1;
+  width: 260px;
+  fill: rgba(255, 255, 255, 0.22);
+}
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-6);
+  }
+  .quick {
+    flex-flow: row wrap;
+    min-width: 0;
+  }
+  .leaves {
+    right: -40px;
+  }
+}

@@ -67,3 +67,6 @@ jobs:
 
       - name: Build production
         run: npm run build
+
+      - name: Lighthouse (page de connexion, build de production)
+        run: npx --yes @lhci/cli@0.14.0 autorun --config=lighthouserc.json

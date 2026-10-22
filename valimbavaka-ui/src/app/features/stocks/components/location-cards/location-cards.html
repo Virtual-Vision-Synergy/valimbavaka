@@ -1,0 +1,27 @@
+<div class="cards" role="group" [attr.aria-label]="'stocks.locationFilter' | translate">
+  @for (card of cards(); track card.location) {
+    <button
+      class="location"
+      type="button"
+      [attr.aria-pressed]="card.location === selected()"
+      (click)="selected.set(card.location)"
+    >
+      <span class="head">
+        <span class="label">{{ 'stocks.location.' + card.location | translate }}</span>
+        @if (card.alerts) {
+          <span class="alerts badge badge-dot badge-warning">
+            {{ card.alerts }}
+            <span class="sr-only">{{ 'stocks.alerts' | translate: { count: card.alerts } }}</span>
+          </span>
+        }
+      </span>
+      <span class="units">
+        <strong class="num">{{ card.units | ariary: 'plain' }}</strong>
+        {{ 'stocks.units' | translate }}
+      </span>
+      <span class="value num">
+        {{ 'stocks.value' | translate: { amount: (card.value | ariary: 'compact') } }}
+      </span>
+    </button>
+  }
+</div>

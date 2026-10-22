@@ -1,0 +1,22 @@
+<ol class="steps" [attr.aria-label]="label()">
+  @for (step of steps(); track step.labelKey; let index = $index) {
+    <li
+      class="step"
+      [attr.data-state]="step.state"
+      [attr.aria-current]="step.state === 'current' ? 'step' : null"
+    >
+      <span class="marker" aria-hidden="true">
+        @if (step.state === 'done') {
+          <svg [vvsIcon]="icons.Check" [size]="18" [strokeWidth]="2.5"></svg>
+        } @else {
+          {{ index + 1 }}
+        }
+      </span>
+      <span class="text">
+        <span class="label">{{ step.labelKey | translate }}</span>
+        <span class="caption">{{ step.captionKey | translate: step.params }}</span>
+        <span class="sr-only">— {{ 'stepper.' + step.state | translate }}</span>
+      </span>
+    </li>
+  }
+</ol>

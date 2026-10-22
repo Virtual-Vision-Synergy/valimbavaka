@@ -1,0 +1,100 @@
+.detail {
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--blanc);
+  box-shadow: var(--shadow-md);
+}
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-right: var(--space-12);
+}
+.title-row h2 {
+  font-size: var(--text-xl);
+}
+.muted {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+.block {
+  display: block;
+}
+.route {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+.end {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--gris-fond);
+}
+.end.to {
+  border: 1px solid var(--secondary-light);
+  background: var(--secondary-xlight);
+}
+.end-label {
+  color: var(--gris-moyen);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.to .end-label {
+  color: var(--secondary-strong);
+}
+.arrow {
+  color: var(--secondary-strong);
+}
+.lines {
+  margin: 0;
+  padding: 0 var(--space-6);
+  list-style: none;
+}
+.lines li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+.lines li + li {
+  border-top: 1px solid var(--border-subtle);
+}
+.qty {
+  text-align: right;
+}
+.ok {
+  color: var(--succes-dark);
+  font-size: var(--text-sm);
+}
+.gap {
+  color: var(--warning-dark);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.lines .more {
+  color: var(--gris-moyen);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--gris-fond);
+}

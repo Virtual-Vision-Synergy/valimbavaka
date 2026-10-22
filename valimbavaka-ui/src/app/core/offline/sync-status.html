@@ -1,14 +1,22 @@
 <div class="sync-status" role="status">
   @if (!isOnline()) {
-    <p class="badge offline">{{ 'sync.offline' | translate }}</p>
+    <p class="pill offline">
+      <svg [vvsIcon]="icons.WifiOff" [size]="16"></svg>
+      {{ 'sync.offline' | translate }}
+    </p>
+  } @else if (pendingCount() === 0 && failedCount() === 0) {
+    <p class="pill synced">
+      <svg [vvsIcon]="icons.Check" [size]="16" [strokeWidth]="2.5"></svg>
+      {{ 'sync.synced' | translate }}
+    </p>
   }
   @if (pendingCount() > 0) {
-    <a class="badge" routerLink="/synchronisation">{{
+    <a class="pill pending" routerLink="/synchronisation">{{
       'sync.pending' | translate: { count: pendingCount() }
     }}</a>
   }
   @if (failedCount() > 0) {
-    <a class="badge failed" routerLink="/synchronisation">{{
+    <a class="pill failed" routerLink="/synchronisation">{{
       'sync.failed' | translate: { count: failedCount() }
     }}</a>
   }

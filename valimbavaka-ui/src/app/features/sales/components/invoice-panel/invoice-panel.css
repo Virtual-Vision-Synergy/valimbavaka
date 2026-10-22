@@ -1,0 +1,42 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.head h2 {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-xl);
+}
+.head .mono {
+  font-size: var(--text-lg);
+}
+.code-chip {
+  margin-left: auto;
+}
+.actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+.actions.two {
+  grid-template-columns: repeat(2, 1fr);
+}
+.note {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+@media print {
+  .head,
+  .actions,
+  .note {
+    display: none;
+  }
+}

@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ListState } from '../../shared/components/list-state/list-state';
+import { PageHeader } from '../../shared/components/page-header/page-header';
 
 /** Page d'attente d'un module pas encore livré (ou « aucun accès ») : textes = clés de la donnée de route. */
 @Component({
   selector: 'vvs-module-placeholder',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, PageHeader, ListState],
   templateUrl: './module-placeholder.html',
-  styleUrl: './module-placeholder.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ModulePlaceholder {

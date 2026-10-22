@@ -1,0 +1,207 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'day.open.title' | translate"
+    [subtitle]="subtitle() ? ('day.open.subtitle' | translate: { date: subtitle() }) : ''"
+    [codes]="['JR-01', 'JR-02', 'TRF-02']"
+  />
+
+  @if (opening.value(); as data) {
+    <vvs-stepper [label]="'day.open.stepsLabel' | translate" [steps]="steps()" />
+
+    <div class="layout">
+      @if (vouchers(); as done) {
+        <section class="card success" aria-labelledby="done-title">
+          <svg class="success-icon" [vvsIcon]="icons.CircleCheck" [size]="40"></svg>
+          <h2 id="done-title">{{ 'day.open.doneTitle' | translate: { count: done.length } }}</h2>
+          <p>{{ 'day.open.doneHint' | translate }}</p>
+          <ul class="vouchers">
+            @for (voucher of done; track voucher.number) {
+              <li>
+                <span class="mono">{{ voucher.number }}</span>
+                <strong>{{ 'day.destination.' + voucher.destination | translate }}</strong>
+                <span class="muted">
+                  {{
+                    'day.open.voucherLines'
+                      | translate: { lines: voucher.lineCount, units: voucher.units }
+                  }}
+                </span>
+              </li>
+            }
+          </ul>
+          <div class="success-actions">
+            <a class="btn btn-primary" routerLink="/pos">{{ 'day.open.goPos' | translate }}</a>
+            <a class="btn btn-secondary" routerLink="/dashboard">{{
+              'day.open.goDashboard' | translate
+            }}</a>
+          </div>
+        </section>
+      } @else {
+        <section class="card grid-card" [attr.aria-label]="'day.open.gridLabel' | translate">
+          <div class="toolbar">
+            <p>
+              <strong>{{ 'day.open.articles' | translate: { count: rows().length } }}</strong>
+              <span class="muted">
+                · {{ 'day.open.basis' | translate: { day: weekdayName() } }}</span
+              >
+            </p>
+            <div class="toolbar-actions">
+              <button class="btn btn-secondary btn-sm" type="button" (click)="useYesterday()">
+                <svg [vvsIcon]="icons.Undo2" [size]="16"></svg>
+                {{ 'day.open.useYesterday' | translate }}
+              </button>
+              <button class="btn btn-ghost btn-sm" type="button" (click)="reset()">
+                <svg [vvsIcon]="icons.RotateCcw" [size]="16"></svg>
+                {{ 'day.open.reset' | translate }}
+              </button>
+            </div>
+          </div>
+          <p class="sr-only" id="grid-help">{{ 'day.open.keyboardHelp' | translate }}</p>
+          <div class="scroller">
+            <table class="grid" aria-describedby="grid-help">
+              <thead>
+                <tr>
+                  <th scope="col" rowspan="2" class="col-article">
+                    {{ 'day.col.article' | translate }}
+                  </th>
+                  <th scope="col" rowspan="2" class="cell-num">
+                    {{ 'day.col.warehouse' | translate }}
+                  </th>
+                  <th scope="colgroup" colspan="3" class="group">
+                    {{ 'day.col.dispatch' | translate }}
+                  </th>
+                  <th scope="col" rowspan="2" class="cell-num">
+                    {{ 'day.col.remaining' | translate }}
+                  </th>
+                </tr>
+                <tr>
+                  @for (destination of destinations; track destination) {
+                    <th scope="col" class="cell-num">
+                      {{ 'day.destination.' + destination | translate }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of rows(); track row.line.articleId; let index = $index) {
+                  <tr [attr.data-level]="row.level">
+                    <th scope="row" class="col-article">
+                      <span class="name">{{ row.line.name }}</span>
+                      <span class="ref">
+                        <span class="mono">{{ row.line.reference }}</span>
+                        @if (row.line.carryOver; as carry) {
+                          ·
+                          {{
+                            'day.open.carryOver'
+                              | translate
+                                : {
+                                    quantity: carry.quantity,
+                                    destination:
+                                      ('day.destination.' + carry.destination
+                                      | translate
+                                      | lowercase),
+                                  }
+                          }}
+                        }
+                      </span>
+                    </th>
+                    <td class="cell-num muted">{{ row.line.warehouse }}</td>
+                    @for (destination of destinations; track destination) {
+                      <td class="cell-qty">
+                        <input
+                          #qty
+                          class="qty num"
+                          type="number"
+                          inputmode="numeric"
+                          min="0"
+                          [id]="'qty-' + destination + '-' + index"
+                          [value]="row.quantities[destination]"
+                          [attr.aria-label]="
+                            ('day.destination.' + destination | translate) + ' — ' + row.line.name
+                          "
+                          [attr.aria-invalid]="row.level === 'error'"
+                          (focus)="qty.select()"
+                          (input)="setQuantity(row.line.articleId, destination, qty.value)"
+                          (keydown.enter)="moveDown($event, index, destination)"
+                        />
+                      </td>
+                    }
+                    <td class="cell-num remaining num" [attr.data-level]="row.level">
+                      {{ row.remaining < 0 ? '−' + -row.remaining : row.remaining }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+
+      <aside class="aside">
+        <section class="card summary" aria-labelledby="summary-title">
+          <h2 id="summary-title" class="caption">{{ 'day.open.summary' | translate }}</h2>
+          <ul class="destinations">
+            @for (item of summary(); track item.destination) {
+              <li>
+                <span>
+                  <strong>{{ 'day.destination.' + item.destination | translate }}</strong>
+                  <span class="muted">
+                    {{ 'day.open.lines' | translate: { count: item.lines } }}
+                    @if (item.destination === 'DELIVERY') {
+                      · {{ 'day.open.rounds' | translate: { count: data.rounds } }}
+                    }
+                  </span>
+                </span>
+                <strong class="units num">{{
+                  'day.open.units' | translate: { count: item.units }
+                }}</strong>
+              </li>
+            }
+          </ul>
+          @if (!vouchers()) {
+            @for (conflict of conflicts(); track conflict.line.articleId) {
+              <button class="conflict" type="button" (click)="focusRow(conflict.line.articleId)">
+                <svg [vvsIcon]="icons.TriangleAlert" [size]="18"></svg>
+                <span>
+                  {{
+                    'day.open.conflict'
+                      | translate
+                        : {
+                            name: conflict.line.name,
+                            asked: conflict.line.warehouse - conflict.remaining,
+                            available: conflict.line.warehouse,
+                          }
+                  }}
+                </span>
+              </button>
+            }
+            <button
+              class="btn btn-primary btn-lg btn-block"
+              type="button"
+              [disabled]="submitting() || voucherCount() === 0"
+              [attr.aria-describedby]="conflicts().length ? null : 'validate-hint'"
+              (click)="validate()"
+            >
+              {{ 'day.open.validate' | translate: { count: voucherCount() } }}
+            </button>
+            <p id="validate-hint" class="hint">{{ 'day.open.validateHint' | translate }}</p>
+          }
+        </section>
+        <section class="card after" aria-labelledby="after-title">
+          <h2 id="after-title" class="caption">
+            {{ 'day.open.after' | translate }}
+            <span class="code-chip" aria-hidden="true">JR-03</span>
+          </h2>
+          <p>
+            {{ 'day.open.afterText' | translate }}
+            <a routerLink="/dashboard">{{ 'day.open.cockpit' | translate }}</a
+            >.
+          </p>
+        </section>
+      </aside>
+    </div>
+  } @else if (opening.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="opening.reload()" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="8" /></div>
+  }
+</div>

@@ -16,7 +16,22 @@
       "submitting": "Connexion…",
       "emailInvalid": "Une adresse email valide est obligatoire.",
       "passwordRequired": "Le mot de passe est obligatoire.",
-      "invalidCredentials": "Identifiants invalides"
+      "invalidCredentials": "Identifiants invalides",
+      "eyebrow": "Back-office Valimbavaka",
+      "headline": "La boutique, l'atelier et les tournées, au même endroit.",
+      "lead": "Stocks par emplacement, caisse multicanal, production et clôture du soir : chaque opération est tracée au journal.",
+      "rolesLabel": "Rôles disponibles",
+      "roles": {
+        "admin": "Administrateur",
+        "seller": "Vendeuse",
+        "driver": "Livreur"
+      },
+      "offline": "Fonctionne hors ligne : les saisies sont synchronisées au retour du réseau.",
+      "subtitle": "Le menu s'adapte à votre rôle après connexion.",
+      "show": "Afficher le mot de passe",
+      "hide": "Masquer le mot de passe",
+      "capsLock": "Verrouillage des majuscules activé.",
+      "noAccount": "Pas de compte ? Seul un administrateur peut en créer un."
     }
   },
   "sync": {
@@ -31,11 +46,24 @@
       "actions": "Actions",
       "retry": "Renvoyer",
       "discard": "Abandonner"
-    }
+    },
+    "synced": "Synchronisé"
   },
   "layout": {
     "navigation": "Navigation principale",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "skipToContent": "Aller au contenu",
+    "sidebar": "Barre latérale",
+    "home": "Valimbavaka — accueil",
+    "expandMenu": "Déplier le menu",
+    "collapseMenu": "Replier le menu",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "online": "En ligne",
+    "createAccount": "Créer un compte",
+    "breadcrumb": "Fil d'Ariane",
+    "lightTheme": "Passer au thème clair",
+    "darkTheme": "Passer au thème sombre"
   },
   "menu": {
     "section": {
@@ -44,7 +72,8 @@
       "operations": "Opérations",
       "commerce": "Commerce",
       "analysis": "Analyse",
-      "administration": "Administration"
+      "administration": "Administration",
+      "day": "Journée"
     },
     "item": {
       "dashboard": "Tableau de bord",
@@ -54,14 +83,17 @@
       "production": "Production",
       "transfers": "Transferts",
       "inventory": "Inventaire",
-      "sales": "Ventes",
+      "sales": "Ventes & factures",
       "deliveries": "Livraisons",
       "promotions": "Promotions",
       "commissions": "Commissions",
-      "services": "Services",
+      "services": "Salon & shooting",
       "reports": "Rapports",
       "users": "Utilisateurs",
-      "journal": "Journal"
+      "journal": "Journal",
+      "dayOpen": "Ouverture",
+      "dayClose": "Clôture",
+      "pos": "Caisse"
     }
   },
   "placeholder": {
@@ -69,6 +101,9 @@
     "noAccess": {
       "title": "Aucun accès",
       "message": "Aucun module n'est accessible avec le rôle de votre compte. Contactez l'administrateur."
+    },
+    "pending": {
+      "title": "Écran en préparation"
     }
   },
   "journal": {
@@ -100,6 +135,11 @@
       "previous": "Précédent",
       "next": "Suivant",
       "status": "Page {{page}} / {{total}}"
+    },
+    "subtitle": "Chaque mouvement de stock, vente ou correction, dans l'ordre où il a eu lieu.",
+    "appendOnly": {
+      "title": "Journal en ajout seul.",
+      "text": "Une opération validée ne peut être ni modifiée ni supprimée : une correction crée une contre-opération liée à l'originale."
     }
   },
   "user": {
@@ -110,6 +150,1126 @@
       "deactivate": "Désactiver",
       "confirmActivate": "Activer l'utilisateur {{name}} ?",
       "confirmDeactivate": "Désactiver l'utilisateur {{name}} ?"
+    },
+    "title": "Utilisateurs",
+    "subtitle": "Comptes, rôles et accès au back-office.",
+    "new": "Nouvel utilisateur",
+    "search": "Rechercher un utilisateur",
+    "searchPlaceholder": "Nom, prénom ou identifiant…",
+    "count": "{{count}} utilisateur(s)",
+    "passwordChange": "Mot de passe à changer",
+    "col": {
+      "user": "Utilisateur",
+      "role": "Rôle",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer"
+    },
+    "empty": {
+      "title": "Aucun utilisateur trouvé",
+      "message": "Essayez un autre nom ou retirez la recherche."
+    },
+    "confirm": {
+      "deleteTitle": "Supprimer ce compte ?",
+      "delete": "Le compte de {{name}} sera supprimé. Cette action est définitive.",
+      "activateTitle": "Activer ce compte ?",
+      "deactivateTitle": "Désactiver ce compte ?"
+    }
+  },
+  "common": {
+    "underConstruction": "En construction",
+    "underConstructionHint": "Données de démonstration — module backend à venir",
+    "close": "Fermer",
+    "escKey": "Échap",
+    "seeAll": "Tout voir",
+    "demoAction": "Action de démonstration : disponible avec le module backend",
+    "cancel": "Annuler",
+    "optional": "(facultatif)"
+  },
+  "listState": {
+    "loading": "Chargement en cours",
+    "empty": {
+      "title": "Rien à afficher",
+      "message": "Aucun élément ne correspond aux filtres."
+    },
+    "error": {
+      "title": "Chargement impossible",
+      "message": "Une erreur est survenue. Vérifiez la connexion puis réessayez.",
+      "retry": "Réessayer"
+    }
+  },
+  "stepper": {
+    "done": "terminée",
+    "current": "en cours",
+    "upcoming": "à venir"
+  },
+  "search": {
+    "placeholder": "Rechercher un article, une vente…",
+    "open": "Rechercher un article, une vente… (Ctrl K)",
+    "title": "Recherche globale",
+    "hint": "Saisissez au moins 2 caractères : article, référence, vente, livraison, fournisseur.",
+    "results": "{{count}} résultat(s)",
+    "type": {
+      "article": "Article",
+      "sale": "Vente",
+      "delivery": "Livraison",
+      "supplier": "Fournisseur",
+      "material": "Matière"
+    },
+    "none": "Aucun résultat pour « {{query}} ».",
+    "articleMeta": "{{reference}} · {{stock}} en stock · {{price}} Ar",
+    "group": {
+      "articles": "Articles",
+      "records": "Ventes, livraisons, fournisseurs",
+      "actions": "Actions",
+      "goto": "Aller à"
+    },
+    "action": {
+      "newSale": "Nouvelle vente avec « {{name}} »",
+      "createArticle": "Créer un article"
+    },
+    "navigate": "naviguer",
+    "openKey": "ouvrir"
+  },
+  "notifications": {
+    "button": "Notifications, {{count}} non lue(s)",
+    "title": "Notifications",
+    "unread": "non lue",
+    "markAllRead": "Tout marquer comme lu",
+    "item": {
+      "stockOut": "Rupture : {{article}}",
+      "deliveryFailed": "Échec de livraison {{reference}} ({{driver}})",
+      "lowStock": "{{count}} articles sous le seuil minimum",
+      "closingSoon": "Clôture de journée prévue à {{time}}"
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Pilotage de la journée en temps réel",
+    "tab": {
+      "label": "Vues du tableau de bord",
+      "overview": "Vue d'ensemble",
+      "analysis": "Analyse détaillée"
+    },
+    "hero": {
+      "morning": "Bonjour {{name}} !",
+      "afternoon": "Bon après-midi {{name}} !",
+      "evening": "Bonsoir {{name}} !",
+      "lead": "Journée ouverte à {{time}} par {{name}} — voici l'essentiel de votre activité.",
+      "monthlyGoal": "Objectif mensuel",
+      "goalText": "{{done}} réalisés sur {{target}}",
+      "quickActions": "Actions rapides",
+      "openPos": "Ouvrir la caisse",
+      "newArticle": "Nouvel article",
+      "prepareClosing": "Préparer la clôture",
+      "updatedAt": "Mis à jour à {{time}}"
+    },
+    "step": {
+      "title": "Déroulement de la journée",
+      "OPENING": {
+        "label": "Ouverture",
+        "caption": "Répartition validée à {{time}}"
+      },
+      "SALES": {
+        "label": "Ventes",
+        "caption": "{{tickets}} tickets · caisse ouverte"
+      },
+      "DELIVERIES": {
+        "label": "Livraisons",
+        "caption": "{{done}} / {{total}} terminées"
+      },
+      "CLOSING": {
+        "label": "Clôture",
+        "caption": "Prévue à {{time}}"
+      }
+    },
+    "kpi": {
+      "revenue": "Chiffre d'affaires",
+      "revenueCompare": "vs même jour la semaine dernière · {{amount}}",
+      "revenueGoal": "{{percent}} % de l'objectif journalier ({{target}})",
+      "sales": "Ventes",
+      "tickets": "tickets",
+      "averageBasket": "Panier moyen {{amount}}",
+      "deliveries": "Livraisons",
+      "failures": "{{count}} échecs",
+      "deliveriesDetail": "{{inProgress}} en cours · {{rounds}} tournées actives",
+      "collected": "Encaissé à la livraison : {{amount}}",
+      "stockGap": "Écart de stock",
+      "units": "unités",
+      "toJustify": "À justifier",
+      "stockGapDetail": "sur {{count}} articles · estimation avant clôture",
+      "reconcile": "Voir la réconciliation",
+      "failure": "{{count}} échec"
+    },
+    "channel": {
+      "SHOP": "Boutique",
+      "FACEBOOK": "Facebook",
+      "PHONE": "Téléphone"
+    },
+    "chart": {
+      "week": "7 jours",
+      "month": "4 semaines",
+      "window": "Période du graphique",
+      "today": "Aujourd'hui",
+      "thisWeek": "Cette semaine",
+      "titleWeek": "Chiffre d'affaires · 7 derniers jours",
+      "titleMonth": "Chiffre d'affaires · 4 dernières semaines",
+      "summary": "Total {{total}} · moyenne {{average}}",
+      "previous": "Périodes précédentes"
+    },
+    "split": {
+      "title": "Répartition du CA",
+      "subtitle": "Par gamme et par canal, aujourd'hui",
+      "byChannel": "Par canal"
+    },
+    "stockAlerts": {
+      "title": "Alertes de stock",
+      "subtitle": "{{count}} articles sous le seuil minimum",
+      "reorder": "Générer le bon de réappro.",
+      "article": "Article",
+      "range": "Gamme",
+      "location": "Emplacement",
+      "level": "Stock / seuil",
+      "state": "État",
+      "out": "Rupture",
+      "low": "Stock faible"
+    },
+    "activity": {
+      "title": "En direct",
+      "live": "Temps réel",
+      "openJournal": "Ouvrir le journal complet",
+      "kind": {
+        "SALE": "a encaissé {{reference}} · {{amount}}",
+        "DELIVERY": "a livré {{reference}} à {{place}} · {{amount}} encaissés",
+        "DELIVERY_FAILED": "a signalé un échec sur {{reference}} : {{reason}}",
+        "SERVICE": "a enregistré une prestation {{service}}",
+        "SHOOTING": "a sorti {{count}} articles pour un shooting",
+        "TRANSFER": "a validé le transfert {{reference}} ({{from}} → {{to}})"
+      }
+    },
+    "top": {
+      "title": "Meilleurs articles du jour",
+      "subtitle": "Classés par chiffre d'affaires",
+      "units": "{{count}} vendus"
+    },
+    "sellers": {
+      "title": "Performance des vendeuses",
+      "subtitle": "Chiffre d'affaires du jour vs objectif",
+      "tickets": "{{count}} tickets",
+      "progress": "Objectif de {{name}}"
+    }
+  },
+  "pagination": {
+    "label": "Pagination",
+    "range": "{{from}}–{{to}} sur {{total}}",
+    "previous": "Page précédente",
+    "next": "Page suivante"
+  },
+  "pos": {
+    "title": "Caisse",
+    "subtitle": "{{place}} · {{cashier}}",
+    "held": "En attente",
+    "catalog": {
+      "label": "Catalogue",
+      "searchLabel": "Rechercher un article ou scanner un code-barres",
+      "searchPlaceholder": "Scanner un code-barres ou taper un nom…",
+      "filterLabel": "Catégorie d'articles",
+      "category": {
+        "ALL": "Tout",
+        "FAVORITES": "Favoris",
+        "BOTANIKA": "Botanika",
+        "ZEZIKA": "Zezika",
+        "SOLIKA": "Solika",
+        "BOXES": "Coffrets"
+      },
+      "out": "Rupture",
+      "remaining": "{{count}} restants",
+      "inCart": "dans le ticket",
+      "emptyTitle": "Aucun article trouvé",
+      "emptyMessage": "Essayez un autre nom, une référence ou une autre catégorie."
+    },
+    "ticket": {
+      "title": "Ticket",
+      "channelLabel": "Canal de vente",
+      "channel": {
+        "SHOP": "Boutique",
+        "FACEBOOK": "Facebook",
+        "PHONE": "Téléphone"
+      },
+      "customer": "Associer une cliente (facultatif)",
+      "emptyTitle": "Ticket vide",
+      "emptyMessage": "Scannez un article ou touchez une carte pour l'ajouter.",
+      "linesLabel": "Articles du ticket",
+      "decrease": "Retirer une unité : {{name}}",
+      "remove": "Retirer {{name}} du ticket",
+      "increase": "Ajouter une unité : {{name}}",
+      "quantity": "Quantité",
+      "lineDiscount": "−{{rate}} % · −{{amount}}",
+      "promoApplied": "{{name}} appliquée automatiquement",
+      "subtotal": "Sous-total",
+      "discount": "Remise",
+      "promoCode": "Code promo",
+      "addPromo": "Ajouter",
+      "total": "Net à payer",
+      "paymentLabel": "Mode de paiement",
+      "payment": {
+        "CASH": "Espèces",
+        "MVOLA": "MVola",
+        "ORANGE_MONEY": "Orange Money",
+        "CARD": "Carte"
+      },
+      "received": "Reçu",
+      "change": "Rendu",
+      "missing": "Manque {{amount}}",
+      "keypad": "Pavé numérique du montant reçu",
+      "backspace": "Effacer le dernier chiffre",
+      "hold": "Attente",
+      "checkout": "Encaisser {{amount}}",
+      "invoiceNote": "Une facture numérotée est générée à l'encaissement.",
+      "added": "{{name}} ajouté · quantité {{quantity}}",
+      "decreased": "{{name}} · quantité {{quantity}}",
+      "removed": "{{name}} retiré du ticket"
+    },
+    "shortcuts": {
+      "label": "Raccourcis clavier",
+      "search": "rechercher",
+      "quantity": "quantité",
+      "promo": "code promo",
+      "hold": "mettre en attente",
+      "checkout": "encaisser"
+    },
+    "toast": {
+      "paid": "Vente {{ticket}} encaissée · {{amount}}",
+      "held": "Ticket {{ticket}} mis en attente",
+      "cannotCheckout": "Montant reçu insuffisant pour encaisser",
+      "outOfStock": "Stock insuffisant pour {{name}}"
+    }
+  },
+  "sales": {
+    "title": "Ventes du jour",
+    "subtitle": "{{count}} ventes · {{amount}}",
+    "book": "Livre des ventes",
+    "newSale": "Nouvelle vente",
+    "listLabel": "Ventes de la journée",
+    "showInvoice": "Afficher la facture de {{number}}",
+    "col": {
+      "sale": "Vente",
+      "time": "Heure",
+      "channel": "Canal",
+      "seller": "Vendeuse",
+      "payment": "Règlement",
+      "amount": "Montant",
+      "invoice": "Facture"
+    },
+    "channel": {
+      "filterLabel": "Filtrer par canal",
+      "ALL": "Tous les canaux",
+      "SHOP": "Boutique",
+      "FACEBOOK": "Facebook",
+      "PHONE": "Téléphone",
+      "count": "{{count}} ventes"
+    },
+    "payment": {
+      "CASH": "Espèces",
+      "MVOLA": "MVola",
+      "ORANGE_MONEY": "Orange Money",
+      "CARD": "Carte",
+      "ON_DELIVERY": "À la livraison"
+    },
+    "status": {
+      "PAID": "Payée",
+      "SENT": "Envoyée",
+      "PENDING": "En attente",
+      "CREDITED": "Avoir"
+    },
+    "invoice": {
+      "title": "Facture",
+      "kind": "FACTURE",
+      "issuer": "Émetteur",
+      "sale": "Vente",
+      "nifMissing": "[à compléter]",
+      "linesCaption": "Articles facturés",
+      "article": "Article",
+      "quantity": "Qté",
+      "total": "Total",
+      "subtotal": "Sous-total",
+      "discount": "Remise {{label}}",
+      "grandTotal": "Total",
+      "print": "Imprimer",
+      "pdf": "PDF",
+      "send": "Envoyer",
+      "regenerate": "Régénérer",
+      "credit": "Émettre un avoir…",
+      "creditNote": "Une facture émise ne se supprime pas : un avoir motivé l'annule partiellement ou totalement."
+    }
+  },
+  "stocks": {
+    "location": {
+      "WAREHOUSE": "Entrepôt",
+      "SHOP": "Boutique",
+      "DELIVERY": "Livraison",
+      "SALON": "Salon",
+      "ALL": "Tous"
+    },
+    "title": "Stocks",
+    "subtitle": "Calculé à partir des mouvements du journal — jamais modifié à la main.",
+    "reception": "Réception fournisseur",
+    "locationFilter": "Filtrer par emplacement",
+    "alerts": "{{count}} rupture(s) dans cet emplacement",
+    "units": "unités",
+    "value": "Valeur {{amount}} Ar",
+    "listLabel": "Stock par article et par emplacement",
+    "levelFilter": "Niveau de stock",
+    "level": {
+      "ALL": "Tous les articles",
+      "LOW": "Sous le seuil",
+      "OUT": "En rupture"
+    },
+    "thresholdLegend": "Seuil minimum",
+    "select": "Sélection",
+    "selectOne": "Ajouter {{name}} au bon de réapprovisionnement",
+    "col": {
+      "article": "Article",
+      "totalThreshold": "Total / seuil",
+      "value": "Valeur"
+    },
+    "restock": {
+      "start": "Bon de réapprovisionnement",
+      "title": "Bon de réapprovisionnement · brouillon",
+      "subtitle": "{{count}} article(s) sélectionné(s) · quantités proposées pour couvrir {{days}} jours de ventes",
+      "exportPdf": "Exporter PDF",
+      "validate": "Valider le bon",
+      "leadTime": "délai {{days}} j",
+      "inHouse": "Fabrication interne (atelier)",
+      "orderBefore": "Commander avant le {{date}} pour éviter une rupture prolongée.",
+      "validated": "Bon de réapprovisionnement validé · {{count}} article(s) (démonstration)"
+    }
+  },
+  "articles": {
+    "title": "Articles",
+    "subtitle": "{{total}} articles : {{finished}} produits finis, {{raw}} matières premières, {{packaging}} emballages.",
+    "import": "Importer",
+    "export": "Exporter",
+    "new": "Nouvel article",
+    "listLabel": "Liste des articles",
+    "backToList": "Retour aux articles",
+    "noRange": "Sans gamme",
+    "notForSale": "Non vendu",
+    "filter": {
+      "searchLabel": "Rechercher un article",
+      "searchPlaceholder": "Nom, référence, code-barres…",
+      "rangeLabel": "Gamme",
+      "allRanges": "Toutes gammes",
+      "typeLabel": "Type d'article",
+      "lowOnly": "Stock faible"
+    },
+    "range": {
+      "BOTANIKA": "Botanika",
+      "ZEZIKA": "Zezika",
+      "SOLIKA": "Solika",
+      "hint": {
+        "BOTANIKA": "Plantes & huiles",
+        "ZEZIKA": "Gourmand & soin",
+        "SOLIKA": "Beurres & soleil"
+      }
+    },
+    "type": {
+      "ALL": "Tous les types",
+      "FINISHED": "Produit fini",
+      "RAW_MATERIAL": "Matière première",
+      "PACKAGING": "Emballage",
+      "hint": {
+        "FINISHED": "Vendu en caisse",
+        "RAW_MATERIAL": "Consommée en production",
+        "PACKAGING": "Pots, étiquettes…"
+      }
+    },
+    "unit": {
+      "PIECE": "Pièce",
+      "KILOGRAM": "Kilogramme",
+      "LITER": "Litre"
+    },
+    "status": {
+      "AVAILABLE": "Disponible",
+      "LOW": "Stock faible",
+      "OUT": "Rupture"
+    },
+    "col": {
+      "article": "Article",
+      "range": "Gamme",
+      "type": "Type",
+      "price": "Prix",
+      "stock": "Stock total",
+      "status": "Statut"
+    },
+    "selection": {
+      "label": "Actions sur la sélection",
+      "count": "{{count}} sélectionné(s)",
+      "export": "Exporter la sélection",
+      "changeRange": "Changer de gamme",
+      "clear": "Désélectionner",
+      "all": "Sélectionner les articles de la page",
+      "one": "Sélectionner {{name}}"
+    },
+    "form": {
+      "title": "Nouvel article",
+      "subtitle": "Les champs marqués * sont obligatoires. Le brouillon est conservé pendant la saisie.",
+      "draftSaved": "Brouillon sauvegardé à {{time}}",
+      "identity": "Identité",
+      "identityHint": "Ce qui s'affiche en caisse et sur les factures.",
+      "name": "Nom de l'article",
+      "nameError": "Le nom est obligatoire ({{max}} caractères max).",
+      "range": "Gamme",
+      "reference": "Référence",
+      "referenceHint": "Attribuée automatiquement.",
+      "barcode": "Code-barres",
+      "barcodeLength": "Un code EAN-13 comporte 13 chiffres ({{count}} saisis).",
+      "barcodeChecksum": "Clé de contrôle invalide : vérifiez le dernier chiffre.",
+      "usage": "Type & usage",
+      "usageHint": "Détermine où l'article apparaît : caisse, production, ou les deux.",
+      "type": "Type d'article",
+      "manufactured": "Fabriqué à l'atelier",
+      "manufacturedHint": "Le stock augmente via un lot de production, pas via une réception fournisseur.",
+      "salonUsable": "Utilisable au salon",
+      "salonUsableHint": "Peut être consommé lors d'une prestation.",
+      "priceStock": "Prix & stock",
+      "priceStockHint": "Le seuil minimum déclenche une alerte sur le cockpit.",
+      "price": "Prix de vente",
+      "priceError": "Indiquez un prix de vente supérieur à 0 Ar.",
+      "unit": "Unité",
+      "threshold": "Seuil minimum",
+      "thresholdHint": "Par emplacement de vente.",
+      "supplier": "Fournisseur principal",
+      "inHouse": "— Fabrication interne —",
+      "photo": "Photo",
+      "photoHint": "Affichée dans la grille de la caisse.",
+      "saveAndNew": "Enregistrer et créer un autre",
+      "save": "Enregistrer l'article",
+      "created": "Article {{reference}} « {{name}} » enregistré (démonstration)",
+      "preview": "Aperçu en caisse",
+      "previewName": "Nom de l'article",
+      "previewNotSold": "Cet article n'apparaît pas en caisse.",
+      "bulkTitle": "Import en masse",
+      "bulkText": "Plus de 10 articles ? Importez un fichier Excel à partir du modèle.",
+      "downloadTemplate": "Télécharger le modèle"
+    },
+    "photo": {
+      "drop": "Glissez une image ou",
+      "browse": "parcourez",
+      "hint": "JPG, PNG ou WebP, carré de préférence, 2 Mo max.",
+      "typeError": "Format non pris en charge : choisissez une image JPG, PNG ou WebP.",
+      "sizeError": "Image trop lourde : 2 Mo maximum.",
+      "previewAlt": "Aperçu de la photo de l'article",
+      "remove": "Retirer la photo"
+    },
+    "detail": {
+      "title": "Fiche article",
+      "manufactured": "fabriqué",
+      "barcode": "Code-barres",
+      "edit": "Modifier",
+      "newLot": "Nouveau lot",
+      "price": "Prix de vente",
+      "cost": "Coût de revient",
+      "margin": "Marge {{rate}} %",
+      "totalStock": "Stock total",
+      "threshold": "Seuil {{count}} u.",
+      "sold30": "Vendus (30 j)",
+      "perDay": "≈ {{count}} / jour",
+      "coverage": "Couverture",
+      "days": "{{count}} jours",
+      "byLocation": "Stock par emplacement",
+      "movements": "Mouvements",
+      "valueAtCost": "Valeur au coût de revient",
+      "lots": "Lots de production",
+      "allLots": "Tous les lots",
+      "noLots": "Article non fabriqué à l'atelier.",
+      "curing": "en cure · J-{{days}}",
+      "validated": "Validé",
+      "inProgress": "En cours",
+      "promotions": "Promotions",
+      "manage": "Gérer",
+      "promoMeta": "{{period}} · code {{code}} · utilisé {{uses}} fois",
+      "active": "Active",
+      "endedPromotions": "{{count}} promotion(s) terminée(s)",
+      "journal": "Journal de l'article"
+    }
+  },
+  "deliveries": {
+    "title": "Livraisons",
+    "subtitle": "{{count}} commandes aujourd'hui · {{rounds}} tournées · {{collected}} encaissés sur {{total}}",
+    "roundFilter": "Filtrer par tournée",
+    "allRounds": "Toutes les tournées",
+    "newOrder": "Nouvelle commande",
+    "emptyColumn": "Aucune commande",
+    "column": {
+      "TO_PREPARE": "À préparer",
+      "ON_ROUND": "En tournée",
+      "DELIVERED": "Livrées",
+      "FAILED": "Échecs"
+    },
+    "status": {
+      "TO_PREPARE": "À préparer",
+      "ON_ROUND": "En tournée",
+      "DELIVERED": "Livrée",
+      "FAILED": "Échec"
+    },
+    "card": {
+      "stop": "Arrêt {{stop}}/{{count}}",
+      "prepaid": "Payée MVola",
+      "collected": "Encaissée"
+    },
+    "reason": {
+      "ABSENT": "Client absent",
+      "ADDRESS_NOT_FOUND": "Adresse introuvable",
+      "REFUSED": "Colis refusé",
+      "OTHER": "Autre motif"
+    },
+    "event": {
+      "CREATED": "Commande créée",
+      "PREPARED": "Colis préparé",
+      "ON_ROUND": "Parti en tournée",
+      "ARRIVED": "Arrivé chez le client",
+      "DELIVERED": "Livrée et encaissée",
+      "FAILED": "Échec"
+    },
+    "detail": {
+      "articles": "{{count}} article(s)",
+      "prepaid": "déjà payés",
+      "toCollect": "à encaisser",
+      "history": "Historique de statut",
+      "reschedule": "Reprogrammer demain",
+      "restock": "Retour en stock",
+      "markPrepared": "Marquer préparée",
+      "assign": "Affecter à une tournée",
+      "callCustomer": "Appeler le client",
+      "seeSales": "Voir dans les ventes",
+      "label": "Détail de la livraison {{number}}"
+    },
+    "driver": {
+      "title": "Ma tournée",
+      "tabs": "Navigation livreur",
+      "tab": {
+        "round": "Tournée",
+        "history": "Historique",
+        "profile": "Profil"
+      },
+      "roundName": "Tournée {{name}}",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "hello": "Bonjour {{name}}",
+      "stops": "Arrêts",
+      "collected": "Encaissé",
+      "remaining": "Reste",
+      "progress": "Avancement de la tournée",
+      "offlineNote": "Hors ligne : vos saisies ({{count}}) sont gardées et partiront dès le retour du réseau.",
+      "nextStop": "Prochain arrêt · {{stop}}/{{count}}",
+      "call": "Appeler",
+      "directions": "Itinéraire",
+      "prepaid": "Déjà payée (MVola)",
+      "toCollect": "À encaisser",
+      "failure": "Échec",
+      "delivered": "Livrée",
+      "deliveredPaid": "Livré et encaissé",
+      "finished": "Tournée terminée",
+      "finishedHint": "Bravo ! {{amount}} encaissés. Rapportez la caisse à la boutique.",
+      "later": "Ensuite",
+      "paid": "Payée",
+      "doneToast": "{{name}} : livrée",
+      "failedToast": "{{name}} : échec enregistré",
+      "undo": "Annuler",
+      "failureTitle": "Échec de livraison · {{name}}",
+      "reason": "Que s'est-il passé ?",
+      "note": "Note pour la boutique",
+      "confirmFailure": "Enregistrer l'échec",
+      "historyTitle": "Historique du jour",
+      "historyHint": "Arrêts terminés, du plus récent au plus ancien.",
+      "historyEmpty": "Aucun arrêt terminé pour l'instant",
+      "settings": "Réglages"
+    }
+  },
+  "day": {
+    "destination": {
+      "SHOP": "Boutique",
+      "DELIVERY": "Livraison",
+      "SALON": "Salon"
+    },
+    "col": {
+      "article": "Article",
+      "warehouse": "Entrepôt",
+      "dispatch": "Sortie du jour",
+      "remaining": "Reste entrepôt",
+      "transferred": "Transféré",
+      "returned": "Retour",
+      "sold": "Vendu",
+      "otherOut": "Autres sorties",
+      "theoretical": "Théorique",
+      "counted": "Compté",
+      "gap": "Écart",
+      "reason": "Motif",
+      "delivered": "Livré",
+      "salon": "Salon",
+      "shooting": "Shooting"
+    },
+    "reason": {
+      "BREAKAGE": "Casse",
+      "LOSS": "Perte ou vol",
+      "ENTRY_ERROR": "Erreur de saisie",
+      "SAMPLE": "Échantillon offert",
+      "OTHER": "Autre motif"
+    },
+    "open": {
+      "title": "Répartition du matin",
+      "subtitle": "{{date}} · sortez le stock de l'entrepôt vers chaque point de vente, en un seul écran.",
+      "stepsLabel": "Étapes de l'ouverture",
+      "step": {
+        "carryOver": "Reprise de la veille",
+        "carryOverHint": "Restes de {{day}} intégrés",
+        "dispatch": "Répartir",
+        "dispatchHint": "Quantités proposées, modifiables",
+        "validate": "Valider",
+        "validateHint": "Génère un bon par destination"
+      },
+      "gridLabel": "Quantités à sortir par article et par destination",
+      "articles": "{{count}} articles",
+      "basis": "proposition basée sur les ventes moyennes du {{day}}",
+      "useYesterday": "Reprendre les quantités d'hier",
+      "reset": "Tout remettre à zéro",
+      "keyboardHelp": "Saisissez les quantités ; Entrée passe à la ligne suivante dans la même colonne.",
+      "carryOver": "veille : +{{quantity}} {{destination}}",
+      "summary": "Récapitulatif",
+      "lines": "{{count}} lignes",
+      "rounds": "{{count}} tournées",
+      "units": "{{count}} u.",
+      "conflict": "{{name}} : {{asked}} demandés pour {{available}} en entrepôt. Corrigez la ligne pour valider.",
+      "validate": "Valider et générer {{count}} bons",
+      "validateHint": "Les stocks de destination sont mis à jour immédiatement.",
+      "after": "Après validation",
+      "afterText": "Le suivi en temps réel de la journée (ventes, livraisons, prestations par emplacement) s'affiche sur le",
+      "cockpit": "cockpit",
+      "validated": "{{count}} bons de transfert générés (démonstration)",
+      "doneTitle": "Journée ouverte · {{count}} bons générés",
+      "doneHint": "Le stock est sorti de l'entrepôt. Bonne journée de vente !",
+      "voucherLines": "{{lines}} lignes · {{units}} u.",
+      "goPos": "Ouvrir la caisse",
+      "goDashboard": "Voir le cockpit"
+    },
+    "close": {
+      "title": "Clôture du {{date}}",
+      "subtitle": "Le système rapproche ce qui est sorti le matin de ce qui a été vendu, livré, consommé ou rendu.",
+      "locationFilter": "Emplacement à réconcilier",
+      "reconciliation": "Réconciliation · {{location}}",
+      "formula": "Théorique = Transféré + Retour − Vendu − Livré − Salon − Shooting",
+      "chooseReason": "Choisir un motif…",
+      "ok": "OK",
+      "noGap": "Aucun écart dans cet emplacement.",
+      "footer": "{{count}} articles · {{clean}} sans écart",
+      "onlyGaps": "Afficher uniquement les écarts",
+      "showAll": "Afficher tous les articles",
+      "cash": {
+        "title": "Caisse {{location}}",
+        "expected": "Espèces attendues",
+        "counted": "Espèces comptées",
+        "gap": "Écart de caisse",
+        "other": "MVola / Orange / Carte",
+        "reconciled": "{{amount}} rapprochés"
+      },
+      "lockWarning": "Après verrouillage, aucune opération ne peut plus être saisie sur le {{date}}. Les corrections passeront par une contre-opération datée du lendemain.",
+      "lock": "Verrouiller la journée",
+      "lockHint": "Disponible quand les 4 points sont verts.",
+      "lockReady": "Tout est vert : vous pouvez verrouiller.",
+      "confirmTitle": "Verrouiller la journée ?",
+      "lockedBanner": "Journée verrouillée à {{time}} · consultation seule.",
+      "lockedToast": "Journée verrouillée à {{time}} (démonstration)",
+      "reintegrated": "Shooting réintégré au stock (démonstration)",
+      "check": {
+        "title": "Avant de verrouiller",
+        "deliveries": "Livraisons soldées",
+        "tickets": "Tickets en attente traités",
+        "shootings": "Shootings réintégrés",
+        "reasons": "Motifs d'écart saisis",
+        "deliveriesValue": "{{done}} / {{total}}",
+        "ticketsValue": "{{count}} restant",
+        "shootingsLate": "{{count}} en retard · réintégrer",
+        "reasonsMissing": "{{count}} manquant · voir",
+        "allDone": "Fait",
+        "okSr": "validé",
+        "todoSr": "à faire"
+      }
+    }
+  },
+  "suppliers": {
+    "title": "Fournisseurs",
+    "subtitle": "{{count}} fournisseurs · délai moyen de réapprovisionnement {{days}} jours.",
+    "new": "Nouveau fournisseur",
+    "listLabel": "Liste des fournisseurs",
+    "search": "Rechercher un fournisseur",
+    "searchPlaceholder": "Nom, ville, NIF…",
+    "typeFilter": "Filtrer par type",
+    "type": {
+      "ALL": "Tous",
+      "RAW_MATERIAL": "Matières premières",
+      "PACKAGING": "Emballages",
+      "FINISHED": "Produits finis",
+      "IMPORT": "Import"
+    },
+    "empty": "Aucun fournisseur trouvé",
+    "emptyHint": "Essayez un autre nom, une autre ville ou retirez le filtre.",
+    "col": {
+      "supplier": "Fournisseur",
+      "type": "Type",
+      "city": "Ville",
+      "lead": "Délai réappro.",
+      "lastReception": "Dernière réception"
+    },
+    "daysShort": "{{count}} j",
+    "leadLong": "long",
+    "leadImport": "import",
+    "detailLabel": "Fiche fournisseur {{name}}",
+    "edit": "Modifier {{name}}",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "tab": {
+      "label": "Sections de la fiche fournisseur",
+      "info": "Informations",
+      "articles": "Articles",
+      "receptions": "Réceptions"
+    },
+    "contact": "Contact",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "taxId": "NIF",
+    "city": "Ville",
+    "address": "Adresse",
+    "leadTitle": "Délai de réapprovisionnement",
+    "days": "jours",
+    "transport": {
+      "ROAD": "transport par route",
+      "SEA": "fret maritime",
+      "LOCAL": "livraison locale"
+    },
+    "leadHint": "Utilisé pour proposer la date de commande dans les bons de réapprovisionnement.",
+    "lastReceptions": "Dernières réceptions",
+    "articlesHint": "Dernier coût unitaire payé, hors frais d'approche."
+  },
+  "production": {
+    "title": "Production",
+    "subtitle": "Transformer des matières premières en produits finis, avec coût de revient.",
+    "kpi": {
+      "lots": "Lots ce mois",
+      "lotsNote": "dont {{count}} en cours de cure",
+      "units": "Unités produites",
+      "unitsNote": "+{{percent}} % vs mois dernier",
+      "cost": "Coût de revient moyen",
+      "costNote": "par unité, toutes gammes",
+      "rebuy": "Matières à racheter",
+      "rebuyNote": "bloquent les prochains lots"
+    },
+    "newLot": "Nouveau lot",
+    "product": "Produit obtenu",
+    "chooseProduct": "Choisir un produit…",
+    "quantity": "Quantité produite",
+    "operator": "Responsable",
+    "chooseOperator": "Choisir un responsable…",
+    "materials": "Matières consommées",
+    "addMaterial": "Ajouter une matière",
+    "noMaterials": "Choisissez un produit : les matières de sa recette s'affichent ici.",
+    "removeMaterial": "Retirer {{name}}",
+    "col": {
+      "material": "Matière",
+      "quantity": "Quantité",
+      "available": "Disponible",
+      "cost": "Coût",
+      "remove": "Retirer"
+    },
+    "shortage": "Stock insuffisant :",
+    "shortageText": "{{name}} ({{asked}} demandés, {{available}} en entrepôt). Réduisez la quantité ou réceptionnez la commande en attente.",
+    "reduceTo": "Passer à {{count}} unités",
+    "cost": {
+      "materials": "Coût matières",
+      "perUnit": "Coût de revient / u.",
+      "price": "Prix de vente",
+      "margin": "Marge estimée"
+    },
+    "saveDraft": "Enregistrer en brouillon",
+    "validate": "Valider le lot",
+    "recent": "Lots récents",
+    "all": "Tous →",
+    "status": {
+      "DRAFT": "Brouillon",
+      "CURING": "En cure",
+      "VALIDATED": "Validé"
+    },
+    "draftToast": "Lot {{number}} enregistré en brouillon (démonstration)",
+    "validatedToast": "Lot {{number}} validé : stock mis à jour (démonstration)"
+  },
+  "transfers": {
+    "title": "Transferts de stock",
+    "subtitle": "Mouvements entre entrepôt, boutique, livraison et salon.",
+    "stockReturn": "Retour de stock",
+    "new": "Nouveau transfert",
+    "listLabel": "Liste des transferts",
+    "originFilter": "Filtrer par origine",
+    "origin": {
+      "ALL": "Tous",
+      "MORNING": "Répartition matinale",
+      "MANUAL": "Manuel",
+      "RETURN": "Retour"
+    },
+    "filter": {
+      "MORNING": "Répartition matinale",
+      "MANUAL": "Manuels",
+      "RETURN": "Retours"
+    },
+    "week": "Cette semaine · {{count}} transferts",
+    "empty": "Aucun transfert",
+    "col": {
+      "number": "N°",
+      "route": "Trajet",
+      "origin": "Origine",
+      "lines": "Lignes",
+      "date": "Date",
+      "status": "Statut"
+    },
+    "status": {
+      "IN_TRANSIT": "En transit",
+      "RECEIVED": "Reçu",
+      "DISCREPANCY": "Écart",
+      "RETURN": "Retour"
+    },
+    "detailLabel": "Bon de transfert {{number}}",
+    "from": "De",
+    "to": "Vers",
+    "pending": "en transit",
+    "receivedLine": "reçu",
+    "gapLine": "reçu {{received}} sur {{sent}}",
+    "moreLines": "+ {{count}} autres lignes",
+    "print": "Imprimer le bon",
+    "createReturn": "Créer un retour"
+  },
+  "inventory": {
+    "pageTitle": "Inventaire",
+    "title": "Inventaire · {{location}}",
+    "status": {
+      "IN_PROGRESS": "En cours",
+      "CLOSED": "Clôturée"
+    },
+    "openedBy": "Session {{number}} ouverte le {{date}} à {{time}} par {{who}}",
+    "salesBlocked": "Ventes bloquées sur cet emplacement pendant le comptage.",
+    "progress": "Progression",
+    "counted": "{{done}} / {{total}} articles comptés",
+    "close": "Clôturer la session",
+    "closeHint": "Disponible quand tout est compté et chaque écart expliqué.",
+    "closeReady": "Tout est compté : vous pouvez clôturer.",
+    "closedAt": "Session clôturée à {{time}}.",
+    "closedToast": "Session {{number}} clôturée : stock ajusté (démonstration)",
+    "listLabel": "Articles à compter",
+    "filterLabel": "Filtrer les articles",
+    "filter": {
+      "ALL": "Tous",
+      "TO_COUNT": "À compter",
+      "GAP": "Avec écart",
+      "NO_REASON": "Sans motif"
+    },
+    "scan": "Scanner un code-barres pour aller à la ligne",
+    "scanUnknown": "Code-barres {{code}} inconnu dans cette session",
+    "col": {
+      "article": "Article",
+      "theoretical": "Théorique",
+      "counted": "Compté",
+      "gap": "Écart",
+      "reason": "Motif de l'écart"
+    },
+    "chooseReason": "Choisir un motif…",
+    "reason": {
+      "BREAKAGE": "Casse",
+      "LOSS": "Perte ou vol",
+      "ENTRY_ERROR": "Erreur de saisie",
+      "UNDECLARED_SHOOTING": "Shooting non déclaré",
+      "OTHER": "Autre motif"
+    },
+    "empty": "Aucun article dans ce filtre.",
+    "balance": "Bilan provisoire",
+    "gapUnits": "Écart en unités",
+    "gapValue": "Écart en valeur",
+    "gapArticles": "Articles avec écart",
+    "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
+    "previous": "Sessions précédentes",
+    "confirmTitle": "Clôturer la session ?",
+    "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée."
+  },
+  "promotions": {
+    "title": "Promotions",
+    "subtitle": "Appliquées automatiquement en caisse quand les conditions sont réunies.",
+    "statusFilter": "Filtrer par statut",
+    "filter": {
+      "ALL": "Toutes",
+      "ACTIVE": "Actives",
+      "SCHEDULED": "Programmées",
+      "ENDED": "Terminées"
+    },
+    "status": {
+      "ACTIVE": "Active",
+      "SCHEDULED": "Programmée",
+      "ENDED": "Terminée"
+    },
+    "code": "Code",
+    "uses": "Utilisations",
+    "unlimited": "illimité",
+    "granted": "Remise accordée",
+    "empty": "Aucune promotion dans ce filtre",
+    "new": "Nouvelle promotion",
+    "name": "Nom",
+    "nameRequired": "Donnez un nom à la promotion.",
+    "kindLabel": "Type de remise",
+    "kind": {
+      "PERCENT": "Pourcentage",
+      "AMOUNT": "Montant",
+      "BUY_X": "X achetés"
+    },
+    "valueLabel": "Valeur",
+    "valueUnit": {
+      "PERCENT": "%",
+      "AMOUNT": "Ar",
+      "BUY_X": "achetés"
+    },
+    "codeLabel": "Code",
+    "codeInvalid": "3 à 12 lettres ou chiffres, sans espace.",
+    "scopeLabel": "S'applique à",
+    "scope": {
+      "ALL": "Tout le catalogue ({{count}} articles)",
+      "BOTANIKA": "Gamme Botanika ({{count}} articles)",
+      "ZEZIKA": "Gamme Zezika ({{count}} articles)",
+      "SOLIKA": "Gamme Solika ({{count}} articles)"
+    },
+    "from": "Du",
+    "to": "Au",
+    "periodInvalid": "La date de fin doit suivre la date de début.",
+    "channels": "Canaux",
+    "channelRequired": "Choisissez au moins un canal.",
+    "limit": "Limite d'utilisation",
+    "schedule": "Programmer",
+    "scheduledToast": "Promotion « {{name}} » enregistrée (démonstration)"
+  },
+  "commissions": {
+    "title": "Mes commissions",
+    "month": "Mois",
+    "ringLabel": "{{percent}} % de l'objectif mensuel atteint",
+    "ofGoal": "de l'objectif",
+    "estimated": "Commission estimée",
+    "salesGoal": "sur {{sales}} Ar de ventes · objectif {{goal}} Ar",
+    "remaining": "Encore {{left}} Ar en {{days}} jours ouvrés, soit ≈ {{perDay}} / jour.",
+    "validated": "Validée",
+    "toValidate": "À valider",
+    "salesCount": "Ventes",
+    "thisMonth": "ce mois",
+    "byChannel": "Commissions par canal",
+    "salon": "Prestations salon",
+    "fixed": "forfait",
+    "services": "{{count}} prestations",
+    "ofSales": "sur {{amount}} Ar de ventes",
+    "detail": "Détail par vente",
+    "export": "Exporter mon relevé",
+    "col": {
+      "sale": "Vente",
+      "date": "Date",
+      "channel": "Canal",
+      "base": "Base",
+      "rate": "Taux",
+      "commission": "Commission",
+      "status": "Statut"
+    },
+    "status": {
+      "CALCULATED": "Calculée",
+      "VALIDATED": "Validée",
+      "PAID": "Payée"
+    }
+  },
+  "services": {
+    "title": "Salon & shooting",
+    "tab": {
+      "label": "Salon et shooting",
+      "salon": "Prestations salon",
+      "shooting": "Shooting"
+    },
+    "register": "Enregistrer une prestation",
+    "registerHint": "Les produits consommés sont déduits du stock salon.",
+    "chooseTreatment": "Choisissez le soin",
+    "minutes": "{{count}} min",
+    "customer": "Cliente",
+    "doneBy": "Réalisée par",
+    "chooseStaff": "Choisir…",
+    "staffRequired": "Indiquez qui a réalisé la prestation.",
+    "consumed": "Produits consommés",
+    "prefilled": "pré-remplis selon le soin",
+    "stock": "stock {{count}}",
+    "quantityOf": "Quantité de",
+    "addProduct": "Ajouter un produit",
+    "noProducts": "Aucun produit consommé pour ce soin.",
+    "shortage": "Stock salon insuffisant pour un des produits : ajustez la quantité.",
+    "total": "Total",
+    "save": "Enregistrer la prestation",
+    "registeredToast": "Prestation « {{name}} » enregistrée (démonstration)",
+    "today": "Aujourd'hui",
+    "todaySummary": "{{count}} · {{total}}",
+    "shooting": {
+      "title": "Sorties shooting",
+      "hint": "Produits sortis du stock pour une séance photo, à réintégrer au retour.",
+      "out": "Sorties en cours",
+      "expected": "{{who}} · retour prévu {{when}}",
+      "return": "Réintégrer",
+      "none": "Aucune sortie en cours.",
+      "returnedToast": "Sortie {{number}} réintégrée au stock (démonstration)",
+      "status": {
+        "OUT": "Sorti",
+        "LATE": "En retard",
+        "RETURNED": "Réintégré"
+      }
+    }
+  },
+  "reports": {
+    "title": "Rapports",
+    "subtitle": "Chiffre d'affaires, ventes et livraisons comparés à la période précédente.",
+    "exportXlsx": "Exporter XLSX",
+    "exported": "Export {{format}} préparé (démonstration)",
+    "filters": "Filtres du rapport",
+    "periodLabel": "Période",
+    "period": {
+      "DAY": "Jour",
+      "MONTH": "Mois",
+      "YEAR": "Année"
+    },
+    "channel": "Canal",
+    "allChannels": "Tous les canaux",
+    "range": "Gamme",
+    "allRanges": "Toutes les gammes",
+    "seller": "Vendeuse",
+    "allSellers": "Toutes les vendeuses",
+    "reset": "Réinitialiser",
+    "kpis": "Indicateurs",
+    "kpi": {
+      "revenue": "Chiffre d'affaires",
+      "sales": "Ventes",
+      "basket": "Panier moyen",
+      "delivery": "Livraisons réussies"
+    },
+    "vs": "vs {{value}} période précédente",
+    "revenueTitle": "Évolution du chiffre d'affaires",
+    "current": "Période en cours",
+    "previous": "Période précédente",
+    "chart": {
+      "day": "Jour"
+    },
+    "ranges": {
+      "title": "CA par gamme",
+      "total": "total"
+    },
+    "top": {
+      "title": "Produits les plus vendus",
+      "units": "{{count}} unités",
+      "all": "Top 20 →"
     }
   }
 }

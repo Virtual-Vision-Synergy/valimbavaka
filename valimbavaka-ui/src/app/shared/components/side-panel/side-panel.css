@@ -1,0 +1,51 @@
+:host {
+  position: fixed;
+  top: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 40;
+  width: min(420px, 100% - 2 * var(--space-6));
+}
+.panel {
+  position: relative;
+  max-height: 100%;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  animation: slide-in 220ms ease-out;
+}
+.panel:focus {
+  outline: none;
+}
+.close {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1;
+  background: var(--blanc);
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+@media (min-width: 1600px) {
+  :host {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-4));
+    right: auto;
+    bottom: auto;
+    width: auto;
+  }
+  .panel {
+    max-height: calc(100dvh - var(--header-height) - var(--space-8, 32px));
+    box-shadow: none;
+    animation: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+}

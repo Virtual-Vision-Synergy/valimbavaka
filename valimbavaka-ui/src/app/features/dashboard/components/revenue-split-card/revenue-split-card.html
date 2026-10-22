@@ -1,0 +1,40 @@
+<section class="card" aria-labelledby="split-title">
+  <header class="card-header">
+    <div>
+      <h2 id="split-title">
+        {{ 'dashboard.split.title' | translate }}
+        <span class="code-chip" aria-hidden="true">DSH-04</span>
+      </h2>
+      <p class="card-subtitle">{{ 'dashboard.split.subtitle' | translate }}</p>
+    </div>
+  </header>
+
+  <ul class="ranges">
+    @for (item of ranges(); track item.range) {
+      <li class="range">
+        <div class="range-head">
+          <vvs-range-tag [range]="item.range" />
+          <span class="amount num">{{ item.amount | ariary }} · {{ item.share }} %</span>
+        </div>
+        <div class="bar" aria-hidden="true">
+          <span [attr.data-range]="item.range" [style.width.%]="item.share"></span>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <h3 class="channels-title">{{ 'dashboard.split.byChannel' | translate }}</h3>
+  <div class="stack" aria-hidden="true">
+    @for (item of channels(); track item.channel) {
+      <span [attr.data-channel]="item.channel" [style.width.%]="item.share"></span>
+    }
+  </div>
+  <dl class="channels">
+    @for (item of channels(); track item.channel) {
+      <div [attr.data-channel]="item.channel">
+        <dt>{{ 'dashboard.channel.' + item.channel | translate }}</dt>
+        <dd class="num">{{ item.amount | ariary: 'kilo' }}</dd>
+      </div>
+    }
+  </dl>
+</section>

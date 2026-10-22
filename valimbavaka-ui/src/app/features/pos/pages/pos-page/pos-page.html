@@ -1,0 +1,56 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'pos.title' | translate"
+    [subtitle]="
+      context.value()
+        ? ('pos.subtitle'
+          | translate: { place: context.value()?.location, cashier: context.value()?.cashierName })
+        : ''
+    "
+    [codes]="['VTE-02', 'VTE-06']"
+  >
+    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+      {{ 'pos.held' | translate }}
+      <span class="held num">{{ heldCount() }}</span>
+    </button>
+  </vvs-page-header>
+
+  @if (context.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="context.reload()" /></div>
+  } @else if (context.value(); as ctx) {
+    <div class="pos">
+      <div class="main">
+        <vvs-pos-catalog
+          [articles]="ctx.articles"
+          [quantities]="cart.quantities()"
+          (picked)="pick($event)"
+        />
+        <ul class="shortcuts" [attr.aria-label]="'pos.shortcuts.label' | translate">
+          <li><kbd>F2</kbd> {{ 'pos.shortcuts.search' | translate }}</li>
+          <li><kbd>+</kbd> / <kbd>−</kbd> {{ 'pos.shortcuts.quantity' | translate }}</li>
+          <li><kbd>F6</kbd> {{ 'pos.shortcuts.promo' | translate }}</li>
+          <li><kbd>F8</kbd> {{ 'pos.shortcuts.hold' | translate }}</li>
+          <li><kbd>F12</kbd> {{ 'pos.shortcuts.checkout' | translate }}</li>
+        </ul>
+      </div>
+      <vvs-pos-ticket
+        class="aside"
+        [ticketNumber]="ticketNumber()"
+        [cashierName]="ctx.cashierName"
+        [openedAt]="ctx.openedAt"
+        (checkout)="checkout()"
+        (hold)="hold()"
+        (promoCode)="demoAction()"
+        (customer)="demoAction()"
+      />
+    </div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+
+  <p class="sr-only" aria-live="polite">
+    @if (cart.announcement(); as message) {
+      {{ message.key | translate: message.params }}
+    }
+  </p>
+</div>

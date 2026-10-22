@@ -1,0 +1,13 @@
+<aside #panel class="panel" tabindex="-1" [attr.aria-label]="label()">
+  @if (!docked) {
+    <button
+      class="btn btn-icon close"
+      type="button"
+      [attr.aria-label]="'common.close' | translate"
+      (click)="closed.emit()"
+    >
+      <svg [vvsIcon]="icons.X" [size]="20"></svg>
+    </button>
+  }
+  <ng-content />
+</aside>

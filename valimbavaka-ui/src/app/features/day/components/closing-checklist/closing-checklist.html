@@ -1,0 +1,28 @@
+<h2 class="caption" id="checklist-title">{{ 'day.close.check.title' | translate }}</h2>
+<ul class="checks" aria-labelledby="checklist-title">
+  @for (item of items(); track item.id) {
+    <li
+      [class.ok]="item.ok"
+      [attr.data-state]="item.ok ? 'ok' : item.id === 'reasons' ? 'blocking' : 'pending'"
+    >
+      <span class="mark" aria-hidden="true">
+        @if (item.ok) {
+          <svg [vvsIcon]="icons.Check" [size]="14" [strokeWidth]="3"></svg>
+        }
+      </span>
+      <span class="label">
+        {{ 'day.close.check.' + item.id | translate }}
+        <span class="sr-only">
+          · {{ (item.ok ? 'day.close.check.okSr' : 'day.close.check.todoSr') | translate }}
+        </span>
+      </span>
+      @if (item.action && !locked()) {
+        <button class="value action" type="button" (click)="action.emit(item.action)">
+          {{ item.valueKey | translate: item.params }}
+        </button>
+      } @else {
+        <span class="value">{{ item.valueKey | translate: item.params }}</span>
+      }
+    </li>
+  }
+</ul>

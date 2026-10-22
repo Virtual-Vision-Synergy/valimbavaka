@@ -1,0 +1,17 @@
+<article class="kpi card">
+  <header class="top">
+    <h3 class="label">{{ label() }}</h3>
+    @if (trend(); as badge) {
+      <vvs-status-badge [tone]="badge.tone" [label]="badge.label" />
+    }
+  </header>
+  <p class="value">
+    <span class="num">{{ value() }}</span>
+    @if (unit(); as suffix) {
+      <span class="unit">{{ suffix }}</span>
+    }
+  </p>
+  <div class="body">
+    <ng-content />
+  </div>
+</article>

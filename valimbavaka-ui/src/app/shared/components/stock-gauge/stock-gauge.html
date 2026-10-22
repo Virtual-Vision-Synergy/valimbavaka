@@ -1,0 +1,6 @@
+<span class="track">
+  <span class="fill" [attr.data-level]="level()" [style.width.%]="fill()"></span>
+  @if (showThreshold()) {
+    <span class="marker" [style.left.%]="marker()"></span>
+  }
+</span>

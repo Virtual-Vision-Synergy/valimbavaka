@@ -1,0 +1,17 @@
+<label class="search">
+  <span class="sr-only">{{ label() }}</span>
+  <svg class="lead" [vvsIcon]="icon()" [size]="20"></svg>
+  <input
+    #field
+    type="search"
+    autocomplete="off"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    [attr.aria-keyshortcuts]="shortcut()"
+    (input)="value.set(field.value)"
+    (keydown.enter)="submitted.emit(field.value)"
+  />
+  @if (shortcut()) {
+    <kbd aria-hidden="true">{{ shortcut() }}</kbd>
+  }
+</label>

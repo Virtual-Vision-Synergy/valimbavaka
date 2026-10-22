@@ -1,0 +1,36 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'promotions.title' | translate"
+    [subtitle]="'promotions.subtitle' | translate"
+    [codes]="['PRO-01', 'PRO-04']"
+  >
+    <vvs-filter-chips
+      [label]="'promotions.statusFilter' | translate"
+      [options]="options()"
+      [(value)]="status"
+    />
+  </vvs-page-header>
+
+  @if (context.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="context.reload()" /></div>
+  } @else if (context.value(); as data) {
+    <div class="layout">
+      @if (visible().length) {
+        <ul class="grid-cards">
+          @for (item of visible(); track item.promotion.id) {
+            <li><vvs-promotion-card [promotion]="item.promotion" [status]="item.status" /></li>
+          }
+        </ul>
+      } @else {
+        <div class="card"><vvs-list-state kind="empty" titleKey="promotions.empty" /></div>
+      }
+      <aside class="aside">
+        @for (key of [formKey()]; track key) {
+          <vvs-promotion-form [scopes]="data.scopes" (submitted)="create($event)" />
+        }
+      </aside>
+    </div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</div>

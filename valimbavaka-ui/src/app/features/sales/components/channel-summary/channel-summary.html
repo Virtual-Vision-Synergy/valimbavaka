@@ -1,0 +1,19 @@
+<div class="cards" role="group" [attr.aria-label]="'sales.channel.filterLabel' | translate">
+  @for (card of cards(); track card.value) {
+    <button
+      class="channel"
+      type="button"
+      [attr.aria-pressed]="card.value === selected()"
+      (click)="selected.set(card.value)"
+    >
+      <span class="label">{{ 'sales.channel.' + card.value | translate }}</span>
+      <span class="amount num">{{ card.amount | ariary }}</span>
+      <span class="meta num">
+        {{ 'sales.channel.count' | translate: { count: card.count } }}
+        @if (card.share !== null) {
+          · {{ card.share }} %
+        }
+      </span>
+    </button>
+  }
+</div>

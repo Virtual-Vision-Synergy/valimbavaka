@@ -1,0 +1,68 @@
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-6);
+}
+.donut {
+  position: relative;
+  width: 168px;
+  height: 168px;
+  flex: none;
+}
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+circle {
+  fill: none;
+  stroke-width: 16;
+}
+.track {
+  stroke: var(--gris-fond);
+}
+.slice[data-range='BOTANIKA'] {
+  stroke: var(--range-botanika);
+}
+.slice[data-range='ZEZIKA'] {
+  stroke: var(--range-zezika);
+}
+.slice[data-range='SOLIKA'] {
+  stroke: var(--range-solika);
+}
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.center strong {
+  font-size: var(--text-xl);
+}
+.center span {
+  color: var(--gris-moyen);
+  font-size: var(--text-xs);
+}
+.legend {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.legend li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+.amount {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}

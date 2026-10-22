@@ -3,9 +3,17 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthStore } from '../auth/auth-store';
 import { visibleSections } from './menu';
 
-/** Accueil : ouvre le premier module autorisé du rôle (le tableau de bord pour tous les rôles actuels). */
+/**
+ * Accueil : un profil terrain (livraisons sans vente) ouvre sa tournée mobile ; les autres, le
+ * premier module autorisé du menu (le tableau de bord pour les rôles actuels).
+ */
 export const homeGuard: CanActivateFn = () => {
-  const firstItem = visibleSections((permission) => inject(AuthStore).hasPermission(permission))[0]
+  const authStore = inject(AuthStore);
+  const router = inject(Router);
+  if (authStore.hasPermission('deliveries.read') && !authStore.hasPermission('sales.read')) {
+    return router.createUrlTree(['/round']);
+  }
+  const firstItem = visibleSections((permission) => authStore.hasPermission(permission))[0]
     ?.items[0];
-  return inject(Router).createUrlTree([firstItem?.route ?? '/no-access']);
+  return router.createUrlTree([firstItem?.route ?? '/no-access']);
 };

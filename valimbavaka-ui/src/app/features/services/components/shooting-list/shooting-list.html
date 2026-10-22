@@ -1,0 +1,41 @@
+<ul class="list">
+  @for (shooting of shootings(); track shooting.number) {
+    <li>
+      <div class="row">
+        <span class="mono">{{ shooting.number }}</span>
+        <vvs-status-badge
+          [tone]="tones[shooting.status]"
+          [label]="'services.shooting.status.' + shooting.status | translate"
+        />
+      </div>
+      <p class="items">
+        @for (item of shooting.items; track item.name; let last = $last) {
+          {{ item.name }} × {{ item.quantity }}
+          @if (!last) {
+            ·
+          }
+        }
+      </p>
+      <div class="row foot">
+        <span class="muted">
+          {{
+            'services.shooting.expected'
+              | translate: { who: shooting.takenBy, when: (shooting.expectedReturn | when) }
+          }}
+        </span>
+        @if (shooting.status !== 'RETURNED') {
+          <button
+            class="btn btn-secondary btn-sm"
+            type="button"
+            [attr.aria-label]="('services.shooting.return' | translate) + ' ' + shooting.number"
+            (click)="returned.emit(shooting.number)"
+          >
+            {{ 'services.shooting.return' | translate }}
+          </button>
+        }
+      </div>
+    </li>
+  } @empty {
+    <li class="empty muted">{{ 'services.shooting.none' | translate }}</li>
+  }
+</ul>

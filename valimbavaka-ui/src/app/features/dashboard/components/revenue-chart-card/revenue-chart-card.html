@@ -1,0 +1,37 @@
+<section class="card" aria-labelledby="revenue-chart-title">
+  <header class="card-header">
+    <div>
+      <h2 id="revenue-chart-title">
+        {{
+          (window() === 'WEEK' ? 'dashboard.chart.titleWeek' : 'dashboard.chart.titleMonth')
+            | translate
+        }}
+        <span class="code-chip" aria-hidden="true">DSH-02</span>
+      </h2>
+      <p class="card-subtitle num">
+        {{
+          'dashboard.chart.summary'
+            | translate: { total: (total() | ariary), average: (average() | ariary) }
+        }}
+      </p>
+    </div>
+    <vvs-segmented-control
+      [label]="'dashboard.chart.window' | translate"
+      [options]="windowOptions"
+      [(value)]="window"
+    />
+  </header>
+  <vvs-bar-chart
+    [caption]="
+      (window() === 'WEEK' ? 'dashboard.chart.titleWeek' : 'dashboard.chart.titleMonth') | translate
+    "
+    [bars]="bars()"
+    [ticks]="ticks()"
+  />
+  <ul class="legend" aria-hidden="true">
+    <li class="previous">{{ 'dashboard.chart.previous' | translate }}</li>
+    <li class="current">
+      {{ (window() === 'WEEK' ? 'dashboard.chart.today' : 'dashboard.chart.thisWeek') | translate }}
+    </li>
+  </ul>
+</section>

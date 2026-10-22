@@ -1,0 +1,20 @@
+<header class="header">
+  <div class="heading">
+    <div class="title-row">
+      <h1>{{ heading() }}</h1>
+      @if (codes().length > 0) {
+        <span class="code-chip" aria-hidden="true">{{ codes().join(' · ') }}</span>
+      }
+      @if (underConstruction) {
+        <vvs-under-construction />
+      }
+    </div>
+    @if (subtitle(); as text) {
+      <p class="subtitle">{{ text }}</p>
+    }
+    <ng-content select="[headerMeta]" />
+  </div>
+  <div class="actions">
+    <ng-content />
+  </div>
+</header>

@@ -1,0 +1,64 @@
+<section class="card" aria-labelledby="top-title">
+  <header class="card-header">
+    <div>
+      <h2 id="top-title">{{ 'dashboard.top.title' | translate }}</h2>
+      <p class="card-subtitle">{{ 'dashboard.top.subtitle' | translate }}</p>
+    </div>
+  </header>
+  <ol class="ranking">
+    @for (article of ranked(); track article.reference; let rank = $index) {
+      <li class="article">
+        <span class="rank num" aria-hidden="true">{{ rank + 1 }}</span>
+        <div class="info">
+          <div class="line">
+            <span class="cell-title">{{ article.name }}</span>
+            <span class="num amount">{{ article.amount | ariary }}</span>
+          </div>
+          <div class="line meta">
+            <vvs-range-tag [range]="article.range" />
+            <span>{{ 'dashboard.top.units' | translate: { count: article.quantity } }}</span>
+          </div>
+          <div class="meter" aria-hidden="true"><span [style.width.%]="article.share"></span></div>
+        </div>
+      </li>
+    }
+  </ol>
+</section>
+
+@if (sellerRows().length > 0) {
+  <section class="card" aria-labelledby="sellers-title">
+    <header class="card-header">
+      <div>
+        <h2 id="sellers-title">{{ 'dashboard.sellers.title' | translate }}</h2>
+        <p class="card-subtitle">{{ 'dashboard.sellers.subtitle' | translate }}</p>
+      </div>
+    </header>
+    <ul class="sellers">
+      @for (seller of sellerRows(); track seller.name) {
+        <li class="seller">
+          <vvs-avatar-initials [name]="seller.name" [size]="40" tone="secondary" />
+          <div class="info">
+            <div class="line">
+              <span class="cell-title">{{ seller.name }}</span>
+              <span class="num amount">{{ seller.progress }} %</span>
+            </div>
+            <div
+              class="meter"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-valuenow]="seller.progress"
+              [attr.aria-label]="'dashboard.sellers.progress' | translate: { name: seller.name }"
+            >
+              <span [style.width.%]="seller.progress"></span>
+            </div>
+            <p class="line meta">
+              <span>{{ 'dashboard.sellers.tickets' | translate: { count: seller.tickets } }}</span>
+              <span class="num">{{ seller.amount | ariary }} / {{ seller.target | ariary }}</span>
+            </p>
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+}

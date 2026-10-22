@@ -1,0 +1,37 @@
+<section class="card" aria-labelledby="activity-title">
+  <header class="card-header">
+    <h2 id="activity-title">
+      {{ 'dashboard.activity.title' | translate }}
+      <span class="code-chip" aria-hidden="true">JR-03</span>
+    </h2>
+    <span class="live">
+      <span class="pulse" aria-hidden="true"></span>
+      {{ 'dashboard.activity.live' | translate }}
+    </span>
+  </header>
+  <ol class="feed">
+    @for (item of items(); track item.id) {
+      <li class="event">
+        <span class="icon" [attr.data-kind]="item.kind">
+          <svg [vvsIcon]="item.icon" [size]="18"></svg>
+        </span>
+        <div class="text">
+          <p class="what">
+            <strong>{{ item.actor }}</strong>
+            {{ 'dashboard.activity.kind.' + item.kind | translate: item.params }}
+          </p>
+          <p class="when">
+            {{ item.minutesAgo | relativeTime }}
+            @if (item.params['place']) {
+              · {{ item.params['place'] }}
+            }
+          </p>
+        </div>
+      </li>
+    }
+  </ol>
+  <a *vvsHasPermission="'journal.read'" class="link-arrow" routerLink="/journal">
+    {{ 'dashboard.activity.openJournal' | translate }}
+    <svg [vvsIcon]="icons.ArrowRight" [size]="16"></svg>
+  </a>
+</section>

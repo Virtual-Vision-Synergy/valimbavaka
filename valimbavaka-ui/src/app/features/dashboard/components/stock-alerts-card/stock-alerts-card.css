@@ -1,0 +1,70 @@
+:host {
+  display: block;
+}
+.flush {
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+}
+.card-header {
+  margin: 0;
+  padding: var(--space-6) var(--space-6) var(--space-4);
+}
+h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+/* Pas de display:flex sur <td> : certains lecteurs d'écran perdraient la sémantique du tableau. */
+td:first-child {
+  min-width: 200px;
+}
+.cell-title,
+.cell-sub {
+  display: block;
+}
+.level {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  white-space: nowrap;
+}
+.gauge {
+  width: 96px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--fond-dark);
+}
+.gauge span {
+  display: block;
+  min-width: 4px;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--warning-dark);
+}
+.gauge .out {
+  background: var(--danger);
+}
+/* Mobile : gamme et emplacement masqués, le tableau tient sans défilement horizontal. */
+@media (max-width: 640px) {
+  .secondary {
+    display: none;
+  }
+  .gauge {
+    display: none;
+  }
+  td:first-child {
+    min-width: 0;
+  }
+  th,
+  td {
+    padding-inline: var(--space-3);
+  }
+}

@@ -1,0 +1,150 @@
+<main class="page" id="main-content">
+  <vvs-page-header
+    heading="Guide de style"
+    subtitle="Référence visuelle (développement uniquement)"
+    [codes]="['UI-KIT']"
+  >
+    <button
+      class="btn btn-secondary"
+      type="button"
+      [attr.aria-pressed]="theme() === 'dark'"
+      (click)="toggleTheme()"
+    >
+      Thème {{ theme() === 'dark' ? 'clair' : 'sombre' }}
+    </button>
+  </vvs-page-header>
+
+  <section class="card" aria-labelledby="sg-colors">
+    <h2 id="sg-colors">Couleurs (contraste AA vérifié)</h2>
+    <ul class="swatches">
+      @for (swatch of swatches; track swatch.token) {
+        <li class="swatch">
+          <span class="chip" [style.background]="'var(' + swatch.token + ')'"></span>
+          <code>{{ swatch.token }}</code>
+          <span class="usage">{{ swatch.usage }}</span>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="sg-type">
+    <h2 id="sg-type">Typographie</h2>
+    <div class="type">
+      <p class="t-h1">Titre de page · 30 / 700</p>
+      <p class="t-h2">Titre de carte · 19 / 600</p>
+      <p class="t-body">
+        Texte courant · 14 / 400 — chiffres tabulaires : <span class="num">1 284 000 Ar</span>
+      </p>
+      <p class="t-caption">Légende · 13 · texte secondaire</p>
+      <p><span class="code-chip">DSH-01 · DSH-04</span> <span class="mono">ART-0112</span></p>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="sg-elevation">
+    <h2 id="sg-elevation">Élévation & verre</h2>
+    <div class="elevations">
+      <div class="level l1">Niveau 1 · carte</div>
+      <div class="level l2">Niveau 2 · survol</div>
+      <div class="level l3">Niveau 3 · flottant</div>
+      <div class="glass-demo"><div class="glass level">Verre · couches flottantes</div></div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="sg-actions">
+    <h2 id="sg-actions">Actions</h2>
+    <div class="row">
+      <button class="btn btn-primary" type="button">
+        <svg [vvsIcon]="icons.Plus" [size]="18"></svg> Nouvel article
+      </button>
+      <button class="btn btn-secondary" type="button">
+        <svg [vvsIcon]="icons.Download" [size]="18"></svg> Exporter
+      </button>
+      <button class="btn btn-outline" type="button">Générer le bon</button>
+      <button class="btn btn-ghost" type="button">Annuler</button>
+      <button class="btn btn-danger" type="button">
+        <svg [vvsIcon]="icons.Trash2" [size]="18"></svg> Supprimer
+      </button>
+      <button class="btn btn-primary" type="button" disabled>Désactivé</button>
+      <button class="btn btn-primary btn-sm" type="button">Petit</button>
+      <button class="btn btn-primary btn-lg" type="button">Grand (caisse)</button>
+    </div>
+    <div class="row">
+      <vvs-segmented-control label="Période" [options]="periods" [(value)]="period" />
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="sg-status">
+    <h2 id="sg-status">États & étiquettes</h2>
+    <div class="row">
+      <vvs-under-construction />
+      <vvs-status-badge tone="success" label="Disponible" />
+      <vvs-status-badge tone="warning" label="Stock faible" />
+      <vvs-status-badge tone="danger" label="Rupture" />
+      <vvs-status-badge tone="info" label="En cours" />
+      <vvs-status-badge tone="muted" label="Archivé" />
+      <vvs-range-tag range="BOTANIKA" />
+      <vvs-range-tag range="ZEZIKA" />
+      <vvs-range-tag range="SOLIKA" />
+      <vvs-avatar-initials name="Hanta Rasolofoson" />
+      <vvs-avatar-initials name="Miora Andrianina" tone="secondary" />
+    </div>
+    <div class="form">
+      <div class="field">
+        <label for="sg-input">Désignation</label>
+        <input
+          id="sg-input"
+          class="input"
+          placeholder="Ex. Huile de coco vierge 250 ml"
+          aria-describedby="sg-hint"
+        />
+        <span id="sg-hint" class="field-hint">Visible sur le ticket de caisse.</span>
+      </div>
+      <div class="alert alert-warning" role="note">
+        Les données affichées sont des données de démonstration.
+      </div>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="sg-nav">
+    <h2 id="sg-nav">Navigation & progression</h2>
+    <vvs-tabs label="Démo onglets" prefix="sg" [tabs]="tabs" [(selected)]="tab" />
+    <div
+      class="tab-panel"
+      role="tabpanel"
+      tabindex="0"
+      [id]="'sg-panel-' + tab()"
+      [attr.aria-labelledby]="'sg-tab-' + tab()"
+    >
+      Panneau « {{ tab() }} »
+    </div>
+    <vvs-stepper label="Démo étapes" [steps]="steps" />
+  </section>
+
+  <section class="grid grid-4" aria-label="Indicateurs">
+    <vvs-kpi-card
+      label="Chiffre d'affaires"
+      value="1 284 000"
+      unit="Ar"
+      [trend]="{ tone: 'success', label: '+12,4 %' }"
+    >
+      <div class="meter"><span style="width: 78%"></span></div>
+      <p>78 % de l'objectif</p>
+    </vvs-kpi-card>
+    <vvs-kpi-card label="Livraisons" value="9 / 14" [trend]="{ tone: 'danger', label: '2 échecs' }">
+      <p>3 en cours</p>
+    </vvs-kpi-card>
+  </section>
+
+  <section class="card" aria-labelledby="sg-chart">
+    <h2 id="sg-chart">Graphique</h2>
+    <vvs-bar-chart caption="Démo histogramme" [bars]="bars" [ticks]="ticks" />
+  </section>
+
+  <section class="states" aria-label="États de liste">
+    <div class="card"><vvs-list-state kind="empty" /></div>
+    <div class="card"><vvs-list-state kind="loading" [rows]="3" /></div>
+    <div class="card"><vvs-list-state kind="error" /></div>
+  </section>
+
+  <p class="t-caption">{{ 'common.underConstructionHint' | translate }}</p>
+</main>

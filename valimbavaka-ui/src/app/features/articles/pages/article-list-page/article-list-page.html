@@ -1,0 +1,174 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'articles.title' | translate"
+    [subtitle]="
+      'articles.subtitle'
+        | translate
+          : {
+              total: counts().total,
+              finished: counts().finished,
+              raw: counts().raw,
+              packaging: counts().packaging,
+            }
+    "
+    [codes]="['ART-03', 'ART-05', 'ART-07', 'ART-08']"
+  >
+    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Upload" [size]="18"></svg>
+      {{ 'articles.import' | translate }}
+    </button>
+    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+      {{ 'articles.export' | translate }}
+    </button>
+    <a class="btn btn-primary" routerLink="new">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'articles.new' | translate }}
+    </a>
+  </vvs-page-header>
+
+  <section class="card flush" [attr.aria-label]="'articles.listLabel' | translate">
+    <div class="filters">
+      <vvs-search-field
+        class="search"
+        [label]="'articles.filter.searchLabel' | translate"
+        [placeholder]="'articles.filter.searchPlaceholder' | translate"
+        [(value)]="query"
+      />
+      <vvs-filter-chips
+        [label]="'articles.filter.rangeLabel' | translate"
+        [options]="ranges"
+        [(value)]="range"
+      />
+      <label class="type">
+        <span class="sr-only">{{ 'articles.filter.typeLabel' | translate }}</span>
+        <select #typeSelect class="input" (change)="selectType(typeSelect.value)">
+          @for (option of types; track option) {
+            <option [value]="option" [selected]="option === type()">
+              {{ 'articles.type.' + option | translate }}
+            </option>
+          }
+        </select>
+      </label>
+      <button
+        class="toggle"
+        type="button"
+        [attr.aria-pressed]="lowOnly()"
+        (click)="lowOnly.set(!lowOnly())"
+      >
+        {{ 'articles.filter.lowOnly' | translate }}
+      </button>
+    </div>
+
+    @if (selection().size) {
+      <div
+        class="selection-bar"
+        role="region"
+        [attr.aria-label]="'articles.selection.label' | translate"
+      >
+        <strong>{{ 'articles.selection.count' | translate: { count: selection().size } }}</strong>
+        <button class="btn btn-secondary btn-sm" type="button" (click)="demoAction()">
+          {{ 'articles.selection.export' | translate }}
+        </button>
+        <button class="btn btn-secondary btn-sm" type="button" (click)="demoAction()">
+          {{ 'articles.selection.changeRange' | translate }}
+        </button>
+        <button class="btn btn-ghost btn-sm clear" type="button" (click)="clearSelection()">
+          {{ 'articles.selection.clear' | translate }}
+        </button>
+      </div>
+    }
+
+    @if (articles.error()) {
+      <vvs-list-state kind="error" (retry)="articles.reload()" />
+    } @else if (articles.isLoading()) {
+      <vvs-list-state kind="loading" [rows]="8" />
+    } @else if (!filtered().length) {
+      <vvs-list-state kind="empty" />
+    } @else {
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">
+            {{
+              'articles.listLabel' | translate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" class="check">
+                <input
+                  type="checkbox"
+                  [checked]="allRowsSelected()"
+                  [indeterminate]="someRowsSelected()"
+                  [attr.aria-label]="'articles.selection.all' | translate"
+                  (change)="toggleAll()"
+                />
+              </th>
+              <th scope="col">{{ 'articles.col.article' | translate }}</th>
+              <th scope="col" class="c-range">{{ 'articles.col.range' | translate }}</th>
+              <th scope="col" class="c-type">{{ 'articles.col.type' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'articles.col.price' | translate }}</th>
+              <th scope="col" class="c-stock">{{ 'articles.col.stock' | translate }}</th>
+              <th scope="col">{{ 'articles.col.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (article of rows(); track article.id) {
+              <tr [class.selected]="selection().has(article.id)">
+                <td class="check">
+                  <input
+                    type="checkbox"
+                    [checked]="selection().has(article.id)"
+                    [attr.aria-label]="'articles.selection.one' | translate: { name: article.name }"
+                    (change)="toggle(article.id)"
+                  />
+                </td>
+                <td>
+                  <span class="article">
+                    <vvs-article-thumb [name]="article.name" [range]="article.range" />
+                    <span>
+                      <a class="cell-title name" [routerLink]="article.id">{{ article.name }}</a>
+                      <span class="cell-sub mono">{{ article.reference }}</span>
+                    </span>
+                  </span>
+                </td>
+                <td class="c-range">
+                  @if (article.range) {
+                    <vvs-range-tag [range]="article.range" />
+                  } @else {
+                    <span class="none" [attr.aria-label]="'articles.noRange' | translate">—</span>
+                  }
+                </td>
+                <td class="c-type">{{ 'articles.type.' + article.type | translate }}</td>
+                <td class="cell-num price">
+                  @if (article.price) {
+                    {{ article.price | ariary }}
+                  } @else {
+                    <span [attr.aria-label]="'articles.notForSale' | translate">—</span>
+                  }
+                </td>
+                <td class="c-stock">
+                  <span class="stock">
+                    <vvs-stock-gauge
+                      [value]="article.totalStock"
+                      [threshold]="article.threshold"
+                      [max]="article.threshold * 4"
+                    />
+                    <span class="num">{{ article.totalStock }}</span>
+                  </span>
+                </td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="tones[article.status]"
+                    [label]="'articles.status.' + article.status | translate"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+    }
+  </section>
+</div>

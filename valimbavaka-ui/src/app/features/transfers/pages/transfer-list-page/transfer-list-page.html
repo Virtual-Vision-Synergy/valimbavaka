@@ -1,0 +1,106 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'transfers.title' | translate"
+    [subtitle]="'transfers.subtitle' | translate"
+    [codes]="['TRF-01', 'TRF-04']"
+  >
+    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Undo2" [size]="18"></svg>
+      {{ 'transfers.stockReturn' | translate }}
+    </button>
+    <button class="btn btn-primary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'transfers.new' | translate }}
+    </button>
+  </vvs-page-header>
+
+  <div class="layout">
+    <section class="card list" [attr.aria-label]="'transfers.listLabel' | translate">
+      <div class="filters">
+        <vvs-filter-chips
+          [label]="'transfers.originFilter' | translate"
+          [options]="originOptions()"
+          [(value)]="origin"
+        />
+        @if (transfers.value()) {
+          <span class="week">{{ 'transfers.week' | translate: { count: filtered().length } }}</span>
+        }
+      </div>
+
+      @if (transfers.error()) {
+        <vvs-list-state kind="error" (retry)="transfers.reload()" />
+      } @else if (!transfers.value()) {
+        <vvs-list-state kind="loading" [rows]="8" />
+      } @else if (!filtered().length) {
+        <vvs-list-state kind="empty" titleKey="transfers.empty" />
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'transfers.col.number' | translate }}</th>
+                <th scope="col">{{ 'transfers.col.route' | translate }}</th>
+                <th scope="col" class="c-origin">{{ 'transfers.col.origin' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'transfers.col.lines' | translate }}</th>
+                <th scope="col" class="c-date">{{ 'transfers.col.date' | translate }}</th>
+                <th scope="col">{{ 'transfers.col.status' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (transfer of pageRows(); track transfer.id) {
+                <tr class="row" [class.selected]="transfer.id === selectedId()">
+                  <th scope="row">
+                    <button
+                      class="row-link mono"
+                      type="button"
+                      [attr.aria-pressed]="transfer.id === selectedId()"
+                      (click)="selectedId.set(transfer.id)"
+                    >
+                      {{ transfer.number }}
+                    </button>
+                  </th>
+                  <td>
+                    <span class="route">
+                      <span class="place">{{
+                        'stocks.location.' + transfer.from | translate
+                      }}</span>
+                      <svg [vvsIcon]="icons.MoveRight" [size]="16" aria-hidden="true"></svg>
+                      <span class="place">{{ 'stocks.location.' + transfer.to | translate }}</span>
+                    </span>
+                  </td>
+                  <td class="c-origin">{{ 'transfers.origin.' + transfer.origin | translate }}</td>
+                  <td class="cell-num">
+                    <strong class="num">{{ transfer.lineCount }}</strong>
+                    <span class="units num">· {{ transfer.unitCount }} u.</span>
+                  </td>
+                  <td class="c-date num">{{ transfer.when | when }}</td>
+                  <td>
+                    <vvs-status-badge
+                      [tone]="tones[transfer.status]"
+                      [label]="'transfers.status.' + transfer.status | translate"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+      }
+    </section>
+
+    @if (selectedId(); as id) {
+      <vvs-side-panel
+        [label]="'transfers.detailLabel' | translate: { number: selectedNumber() }"
+        [focusKey]="id"
+        (closed)="selectedId.set(null)"
+      >
+        <vvs-transfer-detail
+          [transferId]="id"
+          (print)="demoAction()"
+          (createReturn)="demoAction()"
+        />
+      </vvs-side-panel>
+    }
+  </div>
+</div>

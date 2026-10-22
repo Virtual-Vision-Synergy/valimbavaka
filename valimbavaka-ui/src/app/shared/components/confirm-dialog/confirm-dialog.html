@@ -1,0 +1,24 @@
+<dialog
+  #dialog
+  class="dialog"
+  aria-labelledby="confirm-title"
+  aria-describedby="confirm-message"
+  (cancel)="$event.preventDefault(); cancel()"
+>
+  <h2 id="confirm-title">{{ heading() }}</h2>
+  <p id="confirm-message">{{ message() }}</p>
+  <div class="actions">
+    <button class="btn btn-secondary" type="button" (click)="cancel()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button
+      class="btn"
+      type="button"
+      [class.btn-danger]="danger()"
+      [class.btn-primary]="!danger()"
+      (click)="confirmed.emit()"
+    >
+      {{ confirmLabel() }}
+    </button>
+  </div>
+</dialog>

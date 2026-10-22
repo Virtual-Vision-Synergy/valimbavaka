@@ -1,0 +1,41 @@
+<figure class="chart">
+  <div class="plot" aria-hidden="true">
+    <div class="axis">
+      @for (tick of ticks(); track tick.value) {
+        <span class="tick" [style.bottom.%]="percent(tick.value)">{{ tick.label }}</span>
+      }
+    </div>
+    <div class="area">
+      <div class="grid">
+        @for (tick of ticks(); track tick.value) {
+          <span class="gridline" [style.bottom.%]="percent(tick.value)"></span>
+        }
+      </div>
+      @for (bar of bars(); track bar.label) {
+        <div class="column" [class.highlight]="bar.highlight">
+          <div class="bar-slot">
+            <span class="bar" [style.height.%]="percent(bar.value)">
+              <span class="value">{{ bar.display }}</span>
+            </span>
+          </div>
+          <span class="label">{{ bar.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+  <table class="sr-only">
+    <caption>
+      {{
+        caption()
+      }}
+    </caption>
+    <tbody>
+      @for (bar of bars(); track bar.label) {
+        <tr>
+          <th scope="row">{{ bar.label }}</th>
+          <td>{{ bar.display }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</figure>

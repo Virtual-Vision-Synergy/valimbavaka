@@ -1,0 +1,35 @@
+@if (preview(); as url) {
+  <div class="preview">
+    <img [src]="url" [alt]="'articles.photo.previewAlt' | translate" />
+    <button class="btn btn-secondary btn-sm" type="button" (click)="remove()">
+      <svg [vvsIcon]="icons.X" [size]="16"></svg>
+      {{ 'articles.photo.remove' | translate }}
+    </button>
+  </div>
+} @else {
+  <label
+    class="zone"
+    [class.dragging]="dragging()"
+    (dragover)="dragOver($event)"
+    (dragleave)="dragging.set(false)"
+    (drop)="drop($event)"
+  >
+    <input
+      #file
+      class="sr-only"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      aria-describedby="photo-hint"
+      (change)="pick(file.files)"
+    />
+    <svg class="icon" [vvsIcon]="icons.Upload" [size]="28"></svg>
+    <span class="lead">
+      {{ 'articles.photo.drop' | translate }}
+      <span class="browse">{{ 'articles.photo.browse' | translate }}</span>
+    </span>
+    <span id="photo-hint" class="hint">{{ 'articles.photo.hint' | translate }}</span>
+  </label>
+}
+@if (errorKey(); as key) {
+  <p class="field-error" role="alert">{{ key | translate }}</p>
+}

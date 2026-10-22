@@ -1,15 +1,27 @@
 .page {
-  max-width: 1100px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: var(--space-8) var(--space-4);
 }
 
-.page-header {
+.append-only {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--info-light, #e8f1fb);
+  color: var(--info-dark, #1d4f91);
+}
+.count {
+  margin-left: auto;
+  align-self: center;
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+.time {
+  font: 13px var(--font-mono);
 }
 
 .card {

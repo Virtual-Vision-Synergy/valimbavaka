@@ -1,0 +1,117 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'stocks.title' | translate"
+    [subtitle]="'stocks.subtitle' | translate"
+    [codes]="['STK-01 → STK-06']"
+  >
+    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Truck" [size]="18"></svg>
+      {{ 'stocks.reception' | translate }}
+    </button>
+    <button class="btn btn-primary" type="button" (click)="startRestock()">
+      <svg [vvsIcon]="icons.FilePlus" [size]="18"></svg>
+      {{ 'stocks.restock.start' | translate }}
+    </button>
+  </vvs-page-header>
+
+  @if (stock.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="stock.reload()" /></div>
+  } @else if (stock.value(); as all) {
+    <vvs-location-cards [rows]="all" [(selected)]="location" />
+
+    <section class="card flush" [attr.aria-label]="'stocks.listLabel' | translate">
+      <div class="toolbar">
+        <vvs-filter-chips
+          [label]="'stocks.levelFilter' | translate"
+          [options]="levelOptions()"
+          [(value)]="level"
+        />
+        <span class="legend" aria-hidden="true"
+          ><span class="tick"></span>{{ 'stocks.thresholdLegend' | translate }}</span
+        >
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">
+            {{
+              'stocks.listLabel' | translate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" class="check">
+                <span class="sr-only">{{ 'stocks.select' | translate }}</span>
+              </th>
+              <th scope="col">{{ 'stocks.col.article' | translate }}</th>
+              @for (item of locations; track item) {
+                <th scope="col" class="cell-num c-location" [class.focus]="location() === item">
+                  {{ 'stocks.location.' + item | translate }}
+                </th>
+              }
+              <th scope="col">{{ 'stocks.col.totalThreshold' | translate }}</th>
+              <th scope="col" class="cell-num c-value">{{ 'stocks.col.value' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of visibleRows(); track row.articleId) {
+              <tr [class.selected]="selection().has(row.articleId)">
+                <td class="check">
+                  <input
+                    type="checkbox"
+                    [checked]="selection().has(row.articleId)"
+                    [attr.aria-label]="'stocks.selectOne' | translate: { name: row.name }"
+                    (change)="toggle(row.articleId)"
+                  />
+                </td>
+                <td>
+                  <span class="cell-title">{{ row.name }}</span>
+                  <span class="cell-sub">
+                    <span class="mono">{{ row.reference }}</span>
+                    @if (row.range) {
+                      <vvs-range-tag [range]="row.range" />
+                    }
+                  </span>
+                </td>
+                @for (item of locations; track item) {
+                  <td
+                    class="cell-num c-location"
+                    [class.focus]="location() === item"
+                    [class.zero]="row.quantities[item] === 0 && row.range"
+                  >
+                    {{ row.quantities[item] }}
+                  </td>
+                }
+                <td>
+                  <span class="level">
+                    <vvs-stock-gauge
+                      [value]="row.quantity"
+                      [threshold]="row.threshold"
+                      [max]="row.threshold * 2.5"
+                      [showThreshold]="true"
+                    />
+                    <span class="num ratio">{{ row.quantity }} / {{ row.threshold }}</span>
+                  </span>
+                </td>
+                <td class="cell-num c-value muted">{{ row.value | ariary }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8"><vvs-list-state kind="empty" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    @if (selectedRows().length) {
+      <vvs-restock-draft
+        [rows]="selectedRows()"
+        (exported)="demoAction()"
+        (validated)="validateRestock()"
+      />
+    }
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="8" /></div>
+  }
+</div>

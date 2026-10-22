@@ -1,0 +1,61 @@
+<section class="catalog" [attr.aria-label]="'pos.catalog.label' | translate">
+  <vvs-search-field
+    class="scan"
+    [label]="'pos.catalog.searchLabel' | translate"
+    [placeholder]="'pos.catalog.searchPlaceholder' | translate"
+    [icon]="icons.ScanBarcode"
+    shortcut="F2"
+    [(value)]="query"
+    (submitted)="submit($event)"
+  />
+  <vvs-filter-chips
+    [label]="'pos.catalog.filterLabel' | translate"
+    [options]="categories"
+    [(value)]="category"
+  />
+
+  @if (cards().length) {
+    <ul class="grid-cards">
+      @for (card of cards(); track card.article.id) {
+        @let article = card.article;
+        @let inCart = quantities().get(article.id) ?? 0;
+        <li>
+          <button
+            class="article"
+            type="button"
+            [attr.data-range]="article.range"
+            [disabled]="article.stock === 0"
+            (click)="picked.emit(article)"
+          >
+            <span class="visual" aria-hidden="true">{{ card.initials }}</span>
+            @if (article.stock === 0) {
+              <span class="stock out">{{ 'pos.catalog.out' | translate }}</span>
+            } @else if (article.stock <= lowStock) {
+              <span class="stock low">
+                {{ 'pos.catalog.remaining' | translate: { count: article.stock } }}
+              </span>
+            }
+            @if (inCart) {
+              <span class="in-cart num">
+                {{ inCart }}<span class="sr-only"> {{ 'pos.catalog.inCart' | translate }}</span>
+              </span>
+            }
+            <span class="name">{{ article.name }}</span>
+            <span class="foot">
+              <span class="price num">{{ article.price | ariary }}</span>
+              <vvs-range-tag [range]="article.range" />
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="card">
+      <vvs-list-state
+        kind="empty"
+        titleKey="pos.catalog.emptyTitle"
+        messageKey="pos.catalog.emptyMessage"
+      />
+    </div>
+  }
+</section>

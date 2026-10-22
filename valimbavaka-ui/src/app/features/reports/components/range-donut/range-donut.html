@@ -1,0 +1,30 @@
+<div class="donut">
+  <svg viewBox="0 0 120 120" aria-hidden="true">
+    <circle class="track" cx="60" cy="60" r="52" />
+    @for (arc of arcs(); track arc.item.range) {
+      <circle
+        class="slice"
+        [attr.data-range]="arc.item.range"
+        cx="60"
+        cy="60"
+        r="52"
+        [attr.stroke-dasharray]="arc.dash"
+        [attr.stroke-dashoffset]="arc.offset"
+        transform="rotate(-90 60 60)"
+      />
+    }
+  </svg>
+  <p class="center">
+    <strong class="num">{{ total() | ariary: 'compact' }}</strong>
+    <span>{{ 'reports.ranges.total' | translate }}</span>
+  </p>
+</div>
+<ul class="legend">
+  @for (arc of arcs(); track arc.item.range) {
+    <li>
+      <vvs-range-tag [range]="arc.item.range" />
+      <span class="amount num">{{ arc.item.amount | ariary: 'compact' }} Ar</span>
+      <strong class="num">{{ arc.percent }} %</strong>
+    </li>
+  }
+</ul>

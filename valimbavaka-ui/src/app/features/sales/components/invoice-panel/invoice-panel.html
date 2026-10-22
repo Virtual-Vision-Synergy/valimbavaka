@@ -1,0 +1,51 @@
+<section class="panel" aria-labelledby="invoice-title" [attr.aria-busy]="invoice.isLoading()">
+  <header class="head">
+    <h2 id="invoice-title">
+      {{ 'sales.invoice.title' | translate }}
+      @if (invoice.value(); as doc) {
+        <span class="mono">{{ doc.number }}</span>
+      }
+    </h2>
+    @if (invoice.value(); as doc) {
+      <vvs-status-badge
+        [tone]="tones[doc.status]"
+        [label]="'sales.status.' + doc.status | translate"
+      />
+    }
+    <span class="code-chip" aria-hidden="true">FAC-01 → FAC-05</span>
+  </header>
+
+  @if (invoice.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="invoice.reload()" /></div>
+  } @else if (invoice.value(); as doc) {
+    <vvs-invoice-document [invoice]="doc" />
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="print()">
+        <svg [vvsIcon]="icons.Printer" [size]="18"></svg>
+        {{ 'sales.invoice.print' | translate }}
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="demoAction()">
+        {{ 'sales.invoice.pdf' | translate }}
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="demoAction()">
+        {{ 'sales.invoice.send' | translate }}
+      </button>
+    </div>
+    <div class="actions two">
+      <button class="btn btn-secondary" type="button" (click)="demoAction()">
+        {{ 'sales.invoice.regenerate' | translate }}
+      </button>
+      <button
+        class="btn btn-danger"
+        type="button"
+        [disabled]="doc.status === 'CREDITED'"
+        (click)="demoAction()"
+      >
+        {{ 'sales.invoice.credit' | translate }}
+      </button>
+    </div>
+    <p class="note">{{ 'sales.invoice.creditNote' | translate }}</p>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</section>

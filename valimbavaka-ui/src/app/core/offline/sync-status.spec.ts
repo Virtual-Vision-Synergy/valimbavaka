@@ -39,11 +39,11 @@ describe('SyncStatus', () => {
     failed.set(0);
   });
 
-  it('should stay empty when online with nothing to synchronise', async () => {
+  it('should confirm that everything is synchronised when online with nothing pending', async () => {
     const element = await render();
 
-    expect(element.querySelector('.badge')).toBeNull();
-    expect(element.querySelector('[role="status"]')).not.toBeNull();
+    expect(element.querySelector('[role="status"]')?.textContent).toContain('Synchronisé');
+    expect(element.querySelector('a')).toBeNull();
   });
 
   it('should warn that the user is offline', async () => {

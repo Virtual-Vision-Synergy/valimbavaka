@@ -1,0 +1,83 @@
+<div class="page">
+  <header class="top">
+    <vvs-tabs
+      [label]="'services.tab.label' | translate"
+      prefix="services"
+      [tabs]="tabs()"
+      [(selected)]="tab"
+    />
+    <span class="code-chip" aria-hidden="true">SRV-01 → SRV-04 · SHO-01 → SHO-03</span>
+  </header>
+
+  @if (context.value(); as data) {
+    @switch (tab()) {
+      @case ('salon') {
+        <div
+          class="layout"
+          role="tabpanel"
+          id="services-panel-salon"
+          aria-labelledby="services-tab-salon"
+        >
+          <vvs-salon-form
+            [treatments]="data.treatments"
+            [products]="data.products"
+            [staff]="data.staff"
+            (registered)="register($event)"
+          />
+          <aside class="aside">
+            <section class="card" aria-labelledby="today-title">
+              <header class="aside-head">
+                <h2 id="today-title">
+                  {{ 'services.today' | translate }}
+                  <span class="code-chip" aria-hidden="true">SRV-03</span>
+                </h2>
+                <strong class="num">{{
+                  'services.todaySummary'
+                    | translate: { count: today().length, total: (todayTotal() | ariary) }
+                }}</strong>
+              </header>
+              <ul class="today">
+                @for (service of today(); track service.id) {
+                  <li>
+                    <span>
+                      <strong>{{ service.treatmentName }}</strong>
+                      <span class="muted block num">{{ service.time }} · {{ service.staff }}</span>
+                    </span>
+                    <strong class="num">{{ service.price | ariary }}</strong>
+                  </li>
+                }
+              </ul>
+            </section>
+            <section class="card" aria-labelledby="out-title">
+              <header class="aside-head">
+                <h2 id="out-title">
+                  {{ 'services.shooting.out' | translate }}
+                  <span class="code-chip" aria-hidden="true">SHO-03</span>
+                </h2>
+              </header>
+              <vvs-shooting-list [shootings]="active()" (returned)="returnShooting($event)" />
+            </section>
+          </aside>
+        </div>
+      }
+      @case ('shooting') {
+        <section
+          class="card wide"
+          role="tabpanel"
+          id="services-panel-shooting"
+          aria-labelledby="services-tab-shooting"
+        >
+          <header class="aside-head">
+            <h2>{{ 'services.shooting.title' | translate }}</h2>
+            <p class="muted">{{ 'services.shooting.hint' | translate }}</p>
+          </header>
+          <vvs-shooting-list [shootings]="shootings()" (returned)="returnShooting($event)" />
+        </section>
+      }
+    }
+  } @else if (context.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="context.reload()" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</div>

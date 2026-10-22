@@ -1,0 +1,60 @@
+.sales-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(360px, 1fr);
+  align-items: start;
+}
+.flush {
+  padding: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+.table td {
+  white-space: nowrap;
+}
+.amount {
+  font-weight: 700;
+}
+tr {
+  position: relative;
+}
+tr.selected {
+  background: var(--secondary-xlight);
+}
+.row-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gris-anthracite);
+  font-size: var(--text-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+/* Toute la ligne est cliquable (souris), le bouton reste la cible clavier unique. */
+.row-link::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+.row-link:focus-visible {
+  outline: none;
+}
+tr:has(.row-link:focus-visible) {
+  outline: 2px solid var(--secondary-strong);
+  outline-offset: -2px;
+}
+@media (max-width: 1280px) {
+  .sales-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+/* Colonnes secondaires masquées selon la largeur réelle de la carte (facture ouverte à côté). */
+@container (max-width: 800px) {
+  .c-seller {
+    display: none;
+  }
+}
+@container (max-width: 640px) {
+  .c-time,
+  .c-payment {
+    display: none;
+  }
+}

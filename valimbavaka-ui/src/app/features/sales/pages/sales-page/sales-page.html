@@ -1,0 +1,91 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'sales.title' | translate"
+    [subtitle]="
+      day.value()
+        ? ('sales.subtitle'
+          | translate: { count: day.value()?.count, amount: (day.value()?.total ?? 0 | ariary) })
+        : ''
+    "
+    [codes]="['VTE-07', 'VTE-08', 'VTE-09']"
+  >
+    <button class="btn btn-secondary" type="button" (click)="exportBook()">
+      <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+      {{ 'sales.book' | translate }}
+    </button>
+    <a class="btn btn-primary" routerLink="/pos">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'sales.newSale' | translate }}
+    </a>
+  </vvs-page-header>
+
+  @if (day.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="day.reload()" /></div>
+  } @else if (day.value(); as data) {
+    <vvs-channel-summary [day]="data" [(selected)]="channel" />
+
+    <div class="grid sales-grid">
+      <section class="card flush" [attr.aria-label]="'sales.listLabel' | translate">
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">
+              {{
+                'sales.listLabel' | translate
+              }}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{{ 'sales.col.sale' | translate }}</th>
+                <th scope="col" class="c-time">{{ 'sales.col.time' | translate }}</th>
+                <th scope="col">{{ 'sales.col.channel' | translate }}</th>
+                <th scope="col" class="c-seller">{{ 'sales.col.seller' | translate }}</th>
+                <th scope="col" class="c-payment">{{ 'sales.col.payment' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'sales.col.amount' | translate }}</th>
+                <th scope="col">{{ 'sales.col.invoice' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (sale of rows(); track sale.id) {
+                <tr [class.selected]="sale.number === selected()">
+                  <td>
+                    <button
+                      class="row-link mono"
+                      type="button"
+                      [attr.aria-pressed]="sale.number === selected()"
+                      [attr.aria-label]="'sales.showInvoice' | translate: { number: sale.number }"
+                      (click)="select(sale.number)"
+                    >
+                      {{ sale.number }}
+                    </button>
+                  </td>
+                  <td class="c-time num">{{ sale.time }}</td>
+                  <td>{{ 'sales.channel.' + sale.channel | translate }}</td>
+                  <td class="c-seller">{{ sale.sellerName }}</td>
+                  <td class="c-payment">{{ 'sales.payment.' + sale.payment | translate }}</td>
+                  <td class="cell-num amount">{{ sale.amount | ariary }}</td>
+                  <td>
+                    <vvs-status-badge
+                      [tone]="tones[sale.status]"
+                      [label]="'sales.status.' + sale.status | translate"
+                    />
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7"><vvs-list-state kind="empty" /></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+      </section>
+
+      @if (selected(); as number) {
+        <vvs-invoice-panel [saleNumber]="number" />
+      }
+    </div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="8" /></div>
+  }
+</div>

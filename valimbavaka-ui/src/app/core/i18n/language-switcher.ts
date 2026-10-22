@@ -19,19 +19,7 @@ import { AppLanguage, LanguageService, SUPPORTED_LANGUAGES } from './language-se
       </select>
     </label>
   `,
-  styles: `
-    .lang {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-    }
-    select {
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid currentColor;
-    }
-  `,
+  styleUrl: './language-switcher.css',
 })
 export class LanguageSwitcher {
   private readonly languageService = inject(LanguageService);

@@ -1,0 +1,33 @@
+:host {
+  display: inline-flex;
+  flex: none;
+}
+.thumb {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--gris-fond);
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+.thumb[data-size='lg'] {
+  width: 112px;
+  height: 112px;
+  border-radius: var(--radius-xl);
+  font-size: 34px;
+}
+.thumb[data-range='BOTANIKA'] {
+  background: var(--range-botanika-bg);
+  color: var(--range-botanika-fg);
+}
+.thumb[data-range='ZEZIKA'] {
+  background: var(--range-zezika-bg);
+  color: var(--range-zezika-fg);
+}
+.thumb[data-range='SOLIKA'] {
+  background: var(--range-solika-bg);
+  color: var(--range-solika-fg);
+}

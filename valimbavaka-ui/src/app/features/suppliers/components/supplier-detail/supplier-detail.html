@@ -1,0 +1,134 @@
+<section class="detail">
+  @if (supplier.value(); as s) {
+    <header class="head">
+      <vvs-avatar-initials [name]="s.name" [size]="56" tone="secondary" />
+      <div class="identity">
+        <h2>{{ s.name }}</h2>
+        <p class="badges">
+          <span class="mono code">{{ s.code }}</span>
+          <vvs-status-badge
+            [tone]="typeTones[s.type]"
+            [label]="'suppliers.type.' + s.type | translate"
+          />
+          <vvs-status-badge
+            [tone]="s.active ? 'success' : 'muted'"
+            [label]="(s.active ? 'suppliers.active' : 'suppliers.inactive') | translate"
+          />
+        </p>
+      </div>
+      <button
+        class="btn btn-icon btn-ghost edit"
+        type="button"
+        [attr.aria-label]="'suppliers.edit' | translate: { name: s.name }"
+        (click)="edit.emit()"
+      >
+        <svg [vvsIcon]="icons.Pencil" [size]="18"></svg>
+      </button>
+    </header>
+
+    <vvs-tabs
+      [label]="'suppliers.tab.label' | translate"
+      prefix="supplier"
+      [tabs]="tabs"
+      [(selected)]="tab"
+    />
+
+    <div
+      class="body"
+      role="tabpanel"
+      [id]="'supplier-panel-' + tab()"
+      [attr.aria-labelledby]="'supplier-tab-' + tab()"
+    >
+      @switch (tab()) {
+        @case ('info') {
+          <dl class="facts">
+            <div>
+              <dt>{{ 'suppliers.contact' | translate }}</dt>
+              <dd>{{ s.contactName }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'suppliers.phone' | translate }}</dt>
+              <dd>
+                <a class="num" [href]="'tel:' + s.phone.replaceAll(' ', '')">{{ s.phone }}</a>
+              </dd>
+            </div>
+            <div class="wide">
+              <dt>{{ 'suppliers.email' | translate }}</dt>
+              <dd>
+                <a [href]="'mailto:' + s.email">{{ s.email }}</a>
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'suppliers.taxId' | translate }}</dt>
+              <dd class="mono">{{ s.taxId }}</dd>
+            </div>
+            <div>
+              <dt>{{ 'suppliers.city' | translate }}</dt>
+              <dd>{{ s.city }}</dd>
+            </div>
+            <div class="wide">
+              <dt>{{ 'suppliers.address' | translate }}</dt>
+              <dd>{{ s.address }}</dd>
+            </div>
+          </dl>
+          <section class="lead" aria-labelledby="lead-title">
+            <h3 id="lead-title" class="caption">
+              {{ 'suppliers.leadTitle' | translate }}
+              <span class="code-chip" aria-hidden="true">FRS-04</span>
+            </h3>
+            <p class="lead-value">
+              <strong class="num">{{ s.leadTimeDays }}</strong>
+              <span>{{ 'suppliers.days' | translate }}</span>
+              <span class="lead-why">
+                {{ 'suppliers.type.' + s.type | translate }} ·
+                {{ 'suppliers.transport.' + s.transport | translate }}
+              </span>
+            </p>
+            <p class="muted">{{ 'suppliers.leadHint' | translate }}</p>
+          </section>
+          <h3 class="caption">{{ 'suppliers.lastReceptions' | translate }}</h3>
+          <ul class="receptions">
+            @for (reception of s.receptions; track reception.number) {
+              <li>
+                <span
+                  ><span class="mono">{{ reception.number }}</span> · {{ reception.label }}</span
+                >
+                <span class="muted num">{{ reception.receivedOn | shortDate }}</span>
+              </li>
+            }
+          </ul>
+        }
+        @case ('articles') {
+          <ul class="receptions">
+            @for (article of s.articles; track article.reference) {
+              <li>
+                <span>
+                  <strong>{{ article.name }}</strong>
+                  <span class="mono muted block">{{ article.reference }}</span>
+                </span>
+                <span class="num">{{ article.lastUnitCost | ariary }}</span>
+              </li>
+            }
+          </ul>
+          <p class="muted">{{ 'suppliers.articlesHint' | translate }}</p>
+        }
+        @case ('receptions') {
+          <ul class="receptions">
+            @for (reception of s.receptions; track reception.number) {
+              <li>
+                <span
+                  ><span class="mono">{{ reception.number }}</span> · {{ reception.label }}</span
+                >
+                <span class="muted num">{{ reception.receivedOn | shortDate }}</span>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </div>
+  } @else if (supplier.error()) {
+    <vvs-list-state kind="error" (retry)="supplier.reload()" />
+  } @else {
+    <vvs-list-state kind="loading" [rows]="5" />
+  }
+</section>

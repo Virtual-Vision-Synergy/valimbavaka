@@ -1,0 +1,42 @@
+@let p = promotion();
+<article class="promo" [attr.data-status]="status()">
+  <header class="head">
+    <span class="discount" [attr.data-status]="status()">{{ badge() }}</span>
+    <div class="title">
+      <h3>{{ p.name }}</h3>
+      @if (p.description) {
+        <p class="muted">{{ p.description }}</p>
+      }
+    </div>
+    <vvs-status-badge [tone]="tone()" [label]="'promotions.status.' + status() | translate" />
+  </header>
+  <p class="period muted">
+    <span class="num">{{ p.startsOn | shortDate }} → {{ p.endsOn | shortDate }}</span>
+    <span>
+      {{ 'promotions.code' | translate }}
+      <span class="mono code">{{ p.code ?? '—' }}</span>
+    </span>
+  </p>
+  <div class="usage">
+    <p>
+      <span class="muted">{{ 'promotions.uses' | translate }}</span>
+      <strong class="num">
+        {{ p.uses }} / {{ p.limit ?? ('promotions.unlimited' | translate) }}
+      </strong>
+    </p>
+    <div
+      class="bar"
+      role="progressbar"
+      [attr.aria-label]="'promotions.uses' | translate"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="p.limit ?? p.uses"
+      [attr.aria-valuenow]="p.uses"
+    >
+      <span [style.width.%]="usage()"></span>
+    </div>
+  </div>
+  <p class="granted">
+    <span class="muted">{{ 'promotions.granted' | translate }}</span>
+    <strong class="num">{{ p.discountGranted ? (p.discountGranted | ariary) : '—' }}</strong>
+  </p>
+</article>
