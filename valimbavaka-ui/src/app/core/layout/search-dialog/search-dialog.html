@@ -1,0 +1,114 @@
+<dialog #dialog class="dialog" aria-labelledby="search-title" (close)="closed.emit()">
+  <div class="box glass">
+    <div class="head">
+      <h2 id="search-title" class="sr-only">{{ 'search.title' | translate }}</h2>
+      <svg class="lens" [vvsIcon]="icons.Search" [size]="22"></svg>
+      <label class="sr-only" for="global-search">{{ 'search.title' | translate }}</label>
+      <input
+        #field
+        id="global-search"
+        class="field"
+        type="text"
+        role="combobox"
+        autocomplete="off"
+        spellcheck="false"
+        aria-autocomplete="list"
+        aria-controls="search-list"
+        aria-describedby="search-status"
+        [attr.aria-expanded]="flat().length > 0"
+        [attr.aria-activedescendant]="flat().length ? 'search-opt-' + active() : null"
+        [placeholder]="'search.placeholder' | translate"
+        [value]="query()"
+        (input)="query.set(field.value)"
+        (keydown)="onKeydown($event)"
+        autofocus
+      />
+      <span class="code" aria-hidden="true">SYS-03</span>
+      <button
+        class="close"
+        type="button"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="close()"
+      >
+        <kbd>{{ 'common.escKey' | translate }}</kbd>
+      </button>
+    </div>
+
+    <div class="body">
+      <p id="search-status" class="status" role="status">
+        @if (term().length < 2) {
+          {{ 'search.hint' | translate }}
+        } @else if (flat().length === 0) {
+          {{ 'search.none' | translate: { query: term() } }}
+        } @else {
+          {{ 'search.results' | translate: { count: flat().length } }}
+        }
+      </p>
+      <div id="search-list" role="listbox" [attr.aria-label]="'search.title' | translate">
+        @for (group of groups(); track group.key) {
+          <section class="group" role="presentation">
+            <h3 class="group-title" role="presentation">
+              {{ 'search.group.' + group.key | translate }}
+              @if (group.key === 'articles') {
+                · {{ group.items.length }}
+              }
+            </h3>
+            @for (item of group.items; track item.id) {
+              <div
+                class="hit"
+                role="option"
+                [id]="'search-opt-' + indexOf(item)"
+                [class.active]="indexOf(item) === active()"
+                [attr.aria-selected]="indexOf(item) === active()"
+                (mousemove)="active.set(indexOf(item))"
+                tabindex="-1"
+                (click)="open(item)"
+                (keydown.enter)="open(item)"
+              >
+                <span class="icon" [class.plus]="group.key === 'actions'" aria-hidden="true">
+                  <svg [vvsIcon]="item.icon" [size]="20"></svg>
+                </span>
+                <span class="text">
+                  <span class="title">
+                    @if (item.highlight) {
+                      @for (part of parts(item.title); track $index) {
+                        @if (part.match) {
+                          <mark>{{ part.text }}</mark>
+                        } @else {
+                          {{ part.text }}
+                        }
+                      }
+                    } @else {
+                      {{ item.title }}
+                    }
+                  </span>
+                  @if (item.meta) {
+                    <span class="meta">{{ item.meta }}</span>
+                  }
+                </span>
+                @if (item.range) {
+                  <vvs-range-tag [range]="item.range" />
+                } @else if (item.aside) {
+                  <span class="aside">{{ item.aside }}</span>
+                }
+                @if (indexOf(item) === active()) {
+                  <kbd class="enter" aria-hidden="true">
+                    <svg [vvsIcon]="icons.CornerDownLeft" [size]="14"></svg>
+                  </kbd>
+                }
+              </div>
+            }
+          </section>
+        }
+      </div>
+    </div>
+
+    <footer class="foot">
+      <span class="keys" aria-hidden="true">
+        <kbd>↑</kbd><kbd>↓</kbd> {{ 'search.navigate' | translate }} <kbd>↵</kbd>
+        {{ 'search.openKey' | translate }}
+      </span>
+      <vvs-under-construction />
+    </footer>
+  </div>
+</dialog>

@@ -1,0 +1,102 @@
+:host {
+  display: block;
+}
+.card {
+  height: 100%;
+}
+h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ranges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  list-style: none;
+}
+.range-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.amount {
+  color: var(--gris-anthracite);
+  font-weight: 600;
+}
+.bar,
+.stack {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--fond-dark);
+}
+.bar span,
+.stack span {
+  height: 100%;
+  border-radius: inherit;
+}
+[data-range='BOTANIKA'] {
+  background: var(--range-botanika);
+}
+[data-range='ZEZIKA'] {
+  background: var(--range-zezika);
+}
+[data-range='SOLIKA'] {
+  background: var(--range-solika);
+}
+.channels-title {
+  margin: var(--space-6) 0 var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+  color: var(--gris-moyen);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stack span[data-channel='SHOP'],
+.channels [data-channel='SHOP'] {
+  --dot: var(--channel-shop);
+}
+.stack span[data-channel='FACEBOOK'],
+.channels [data-channel='FACEBOOK'] {
+  --dot: var(--channel-facebook);
+}
+.stack span[data-channel='PHONE'],
+.channels [data-channel='PHONE'] {
+  --dot: var(--channel-phone);
+}
+.stack span {
+  background: var(--dot);
+}
+.channels {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+dt::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--dot);
+}
+dd {
+  color: var(--gris-anthracite);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}

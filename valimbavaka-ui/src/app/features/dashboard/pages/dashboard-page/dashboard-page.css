@@ -1,0 +1,28 @@
+.page {
+  gap: var(--space-5);
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  border-radius: var(--radius-xl);
+  outline-offset: 4px;
+  animation: fade-in 220ms var(--ease-standard);
+}
+.steps-card {
+  padding: var(--space-5) var(--space-6);
+}
+.hero-skeleton {
+  height: 220px;
+  border-radius: var(--radius-2xl);
+}
+.kpi-skeleton {
+  height: 168px;
+  border-radius: var(--radius-xl);
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}

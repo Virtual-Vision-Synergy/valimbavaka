@@ -1,0 +1,151 @@
+<form class="card form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <header class="head">
+    <h2>{{ 'promotions.new' | translate }}</h2>
+    <span class="code-chip" aria-hidden="true">PRO-01</span>
+  </header>
+
+  <div class="body">
+    <div class="field">
+      <label for="promo-name"
+        >{{ 'promotions.name' | translate }} <span aria-hidden="true">*</span></label
+      >
+      <input
+        id="promo-name"
+        class="input"
+        formControlName="name"
+        required
+        [attr.aria-invalid]="
+          form.controls.name.invalid && (form.controls.name.touched || attempted())
+        "
+        aria-describedby="promo-name-error"
+      />
+      @if (form.controls.name.invalid && (form.controls.name.touched || attempted())) {
+        <p id="promo-name-error" class="field-error">{{ 'promotions.nameRequired' | translate }}</p>
+      }
+    </div>
+
+    <div class="field">
+      <span class="label" id="kind-label"
+        >{{ 'promotions.kindLabel' | translate }} <span aria-hidden="true">*</span></span
+      >
+      <vvs-segmented-control
+        [label]="'promotions.kindLabel' | translate"
+        [options]="kindOptions"
+        [(value)]="kind"
+      />
+    </div>
+
+    <div class="pair">
+      <div class="field">
+        <label for="promo-value">{{ 'promotions.valueLabel' | translate }}</label>
+        <div class="with-unit">
+          <input
+            id="promo-value"
+            class="input num"
+            type="number"
+            min="0"
+            [attr.max]="valueMax()"
+            inputmode="decimal"
+            formControlName="value"
+          />
+          <span class="unit">{{ valueUnit() | translate }}</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="promo-code"
+          >{{ 'promotions.codeLabel' | translate }}
+          <span class="optional">{{ 'common.optional' | translate }}</span></label
+        >
+        <input
+          id="promo-code"
+          class="input mono"
+          formControlName="code"
+          autocapitalize="characters"
+          aria-describedby="promo-code-error"
+          [attr.aria-invalid]="form.controls.code.invalid"
+          (input)="
+            form.controls.code.setValue(form.controls.code.value.toUpperCase(), {
+              emitEvent: false,
+            })
+          "
+        />
+        @if (form.controls.code.invalid) {
+          <p id="promo-code-error" class="field-error">
+            {{ 'promotions.codeInvalid' | translate }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="promo-scope">{{ 'promotions.scopeLabel' | translate }}</label>
+      <select id="promo-scope" class="input" formControlName="scope">
+        @for (scope of scopes(); track scope.value) {
+          <option [value]="scope.value">
+            {{ 'promotions.scope.' + scope.value | translate: { count: scope.articleCount } }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="pair">
+      <div class="field">
+        <label for="promo-start">{{ 'promotions.from' | translate }}</label>
+        <input id="promo-start" class="input" type="date" formControlName="startsOn" />
+      </div>
+      <div class="field">
+        <label for="promo-end">{{ 'promotions.to' | translate }}</label>
+        <input
+          id="promo-end"
+          class="input"
+          type="date"
+          formControlName="endsOn"
+          aria-describedby="promo-period-error"
+          [attr.aria-invalid]="invalidPeriod()"
+        />
+      </div>
+    </div>
+    @if (invalidPeriod()) {
+      <p id="promo-period-error" class="field-error">
+        {{ 'promotions.periodInvalid' | translate }}
+      </p>
+    }
+
+    <fieldset class="field channels" formGroupName="channels">
+      <legend>{{ 'promotions.channels' | translate }}</legend>
+      <div class="checks">
+        @for (channel of channels; track channel) {
+          <label class="check">
+            <input type="checkbox" [formControlName]="channel" />
+            {{ 'sales.channel.' + channel | translate }}
+          </label>
+        }
+      </div>
+      @if (form.controls.channels.invalid && attempted()) {
+        <p class="field-error">{{ 'promotions.channelRequired' | translate }}</p>
+      }
+    </fieldset>
+
+    <div class="field">
+      <label for="promo-limit"
+        >{{ 'promotions.limit' | translate }}
+        <span class="optional">{{ 'common.optional' | translate }}</span></label
+      >
+      <input
+        id="promo-limit"
+        class="input num"
+        type="number"
+        min="1"
+        inputmode="numeric"
+        formControlName="limit"
+      />
+    </div>
+  </div>
+
+  <footer class="foot">
+    <button class="btn btn-secondary" type="button" (click)="reset()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button class="btn btn-primary" type="submit">{{ 'promotions.schedule' | translate }}</button>
+  </footer>
+</form>

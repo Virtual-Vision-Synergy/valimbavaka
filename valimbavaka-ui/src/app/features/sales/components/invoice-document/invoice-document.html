@@ -1,0 +1,65 @@
+@let doc = invoice();
+<article class="paper print-area" [attr.aria-label]="'sales.invoice.title' | translate">
+  <header class="head">
+    <img ngSrc="logo/logo-320.webp" width="160" height="61" alt="Valimbavaka" priority />
+    <div class="ident">
+      <p class="kind">{{ 'sales.invoice.kind' | translate }}</p>
+      <p class="mono">{{ doc.number }}</p>
+      <p>{{ doc.issuedAt }}</p>
+    </div>
+  </header>
+
+  <div class="parties">
+    <div>
+      <p class="caption">{{ 'sales.invoice.issuer' | translate }}</p>
+      <p>{{ doc.issuerName }}</p>
+      <p class="muted">NIF {{ doc.issuerNif ?? ('sales.invoice.nifMissing' | translate) }}</p>
+    </div>
+    <div>
+      <p class="caption">{{ 'sales.invoice.sale' | translate }}</p>
+      <p>{{ doc.saleNumber }} · {{ 'sales.channel.' + doc.channel | translate }}</p>
+      <p class="muted">{{ doc.sellerName }} · {{ 'sales.payment.' + doc.payment | translate }}</p>
+    </div>
+  </div>
+
+  <table class="lines">
+    <caption class="sr-only">
+      {{
+        'sales.invoice.linesCaption' | translate
+      }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">{{ 'sales.invoice.article' | translate }}</th>
+        <th scope="col" class="right">{{ 'sales.invoice.quantity' | translate }}</th>
+        <th scope="col" class="right">{{ 'sales.invoice.total' | translate }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (line of doc.lines; track line.label) {
+        <tr>
+          <td>{{ line.label }}</td>
+          <td class="right num">{{ line.quantity }}</td>
+          <td class="right num">{{ line.total | ariary: 'plain' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <dl class="sums">
+    <div>
+      <dt>{{ 'sales.invoice.subtotal' | translate }}</dt>
+      <dd class="num">{{ doc.subtotal | ariary }}</dd>
+    </div>
+    @if (doc.discount) {
+      <div>
+        <dt>{{ 'sales.invoice.discount' | translate: { label: doc.discountLabel } }}</dt>
+        <dd class="num">−{{ doc.discount | ariary }}</dd>
+      </div>
+    }
+    <div class="grand">
+      <dt>{{ 'sales.invoice.grandTotal' | translate }}</dt>
+      <dd class="num">{{ doc.total | ariary }}</dd>
+    </div>
+  </dl>
+</article>

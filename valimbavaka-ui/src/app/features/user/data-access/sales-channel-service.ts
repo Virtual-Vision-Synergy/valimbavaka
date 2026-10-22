@@ -16,7 +16,9 @@ export class SalesChannelService {
 
   listAll(): Observable<SalesChannelRDto[]> {
     return this.http
-      .get<PageResponse<SalesChannelRDto>>(this.baseUrl, { params: toHttpParams(SALES_CHANNELS_PAGE) })
+      .get<PageResponse<SalesChannelRDto>>(this.baseUrl, {
+        params: toHttpParams(SALES_CHANNELS_PAGE),
+      })
       .pipe(map((page) => page.items));
   }
 }

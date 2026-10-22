@@ -1,0 +1,22 @@
+.tag {
+  display: inline-flex;
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+}
+[data-range='BOTANIKA'] {
+  background: var(--range-botanika-bg);
+  color: var(--range-botanika-fg);
+}
+[data-range='ZEZIKA'] {
+  background: var(--range-zezika-bg);
+  color: var(--range-zezika-fg);
+}
+[data-range='SOLIKA'] {
+  background: var(--range-solika-bg);
+  color: var(--range-solika-fg);
+}

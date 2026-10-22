@@ -1,0 +1,77 @@
+@let d = delivery();
+<section class="detail" aria-labelledby="delivery-title">
+  <header class="head">
+    <div class="title-row">
+      <h2 id="delivery-title" class="mono">{{ d.number }}</h2>
+      <vvs-status-badge
+        [tone]="statusTones[d.status]"
+        [label]="'deliveries.status.' + d.status | translate"
+      />
+    </div>
+    <p class="muted">
+      {{ d.customerName }} · {{ d.address }} · <span class="num">{{ d.phone }}</span>
+    </p>
+    <p>
+      {{ 'deliveries.detail.articles' | translate: { count: d.articleCount } }} ·
+      <strong class="num">{{ d.amount | ariary }}</strong>
+      {{ (d.prepaid ? 'deliveries.detail.prepaid' : 'deliveries.detail.toCollect') | translate }}
+    </p>
+  </header>
+
+  <div class="history">
+    <h3 class="caption">
+      {{ 'deliveries.detail.history' | translate }}
+      <span class="code-chip" aria-hidden="true">LIV-07</span>
+    </h3>
+    <ol class="timeline">
+      @for (event of d.history; track $index) {
+        <li [attr.data-tone]="eventTones[event.kind]">
+          <span class="dot" aria-hidden="true"></span>
+          <span class="event">
+            <strong>
+              {{ 'deliveries.event.' + event.kind | translate }}
+              @if (event.kind === 'FAILED' && d.failureReason) {
+                : {{ 'deliveries.reason.' + d.failureReason | translate | lowercase }}
+              }
+            </strong>
+            <span class="muted num">{{ event.when }} · {{ event.actor }}</span>
+            @if (event.note) {
+              <q class="note">{{ event.note }}</q>
+            }
+          </span>
+        </li>
+      }
+    </ol>
+  </div>
+
+  <footer class="actions">
+    @switch (d.status) {
+      @case ('FAILED') {
+        <button class="btn btn-secondary" type="button" (click)="action.emit('reschedule')">
+          {{ 'deliveries.detail.reschedule' | translate }}
+        </button>
+        <button class="btn btn-secondary" type="button" (click)="action.emit('restock')">
+          {{ 'deliveries.detail.restock' | translate }}
+        </button>
+      }
+      @case ('TO_PREPARE') {
+        <button class="btn btn-primary" type="button" (click)="action.emit('prepare')">
+          {{ 'deliveries.detail.markPrepared' | translate }}
+        </button>
+        <button class="btn btn-secondary" type="button" (click)="action.emit('assign')">
+          {{ 'deliveries.detail.assign' | translate }}
+        </button>
+      }
+      @case ('ON_ROUND') {
+        <a class="btn btn-secondary" [href]="'tel:' + d.phone.replaceAll(' ', '')">
+          {{ 'deliveries.detail.callCustomer' | translate }}
+        </a>
+      }
+      @case ('DELIVERED') {
+        <a class="btn btn-secondary" routerLink="/sales">
+          {{ 'deliveries.detail.seeSales' | translate }}
+        </a>
+      }
+    }
+  </footer>
+</section>

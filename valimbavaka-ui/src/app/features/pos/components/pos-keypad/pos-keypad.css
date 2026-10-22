@@ -1,0 +1,24 @@
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+.key {
+  display: grid;
+  place-items: center;
+  min-height: 56px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--blanc);
+  box-shadow: var(--shadow-sm);
+  color: var(--gris-anthracite);
+  font: inherit;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform var(--transition-fast);
+}
+.key:active {
+  background: var(--secondary-xlight);
+  transform: scale(0.96);
+}

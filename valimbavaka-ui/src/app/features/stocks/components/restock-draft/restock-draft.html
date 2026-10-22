@@ -1,0 +1,48 @@
+<section class="draft" aria-labelledby="restock-title">
+  <header class="head">
+    <div>
+      <h2 id="restock-title">
+        {{ 'stocks.restock.title' | translate }}
+        <span class="code-chip" aria-hidden="true">STK-05</span>
+      </h2>
+      <p class="subtitle">
+        {{ 'stocks.restock.subtitle' | translate: { count: rows().length, days: coverageDays } }}
+      </p>
+    </div>
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="exported.emit()">
+        {{ 'stocks.restock.exportPdf' | translate }}
+      </button>
+      <button class="btn btn-primary" type="button" (click)="validated.emit()">
+        {{ 'stocks.restock.validate' | translate }}
+      </button>
+    </div>
+  </header>
+  <div class="groups">
+    @for (group of groups(); track group.supplier) {
+      <section class="group">
+        <h3 class="group-title">
+          @if (group.supplier) {
+            {{ group.supplier }} ·
+            {{ 'stocks.restock.leadTime' | translate: { days: group.leadTimeDays } }}
+          } @else {
+            {{ 'stocks.restock.inHouse' | translate }}
+          }
+        </h3>
+        <ul class="lines">
+          @for (line of group.lines; track line.id) {
+            <li>
+              <span>{{ line.name }}</span>
+              <strong class="num">{{ line.quantity }} u.</strong>
+            </li>
+          }
+        </ul>
+        @if (group.orderBefore) {
+          <p class="hint">
+            {{ 'stocks.restock.orderBefore' | translate: { date: group.orderBefore } }}
+          </p>
+        }
+      </section>
+    }
+  </div>
+</section>

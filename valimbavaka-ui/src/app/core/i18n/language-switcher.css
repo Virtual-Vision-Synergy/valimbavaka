@@ -1,0 +1,19 @@
+.lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+select {
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+option {
+  background: var(--blanc);
+  color: var(--gris-anthracite);
+}

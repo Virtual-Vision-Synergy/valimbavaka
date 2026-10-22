@@ -1,0 +1,125 @@
+<form class="card form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <header class="head">
+    <h2>{{ 'services.register' | translate }}</h2>
+    <p class="muted">{{ 'services.registerHint' | translate }}</p>
+  </header>
+
+  <div class="body">
+    <fieldset class="step">
+      <legend>1. {{ 'services.chooseTreatment' | translate }}</legend>
+      <div class="treatments">
+        @for (item of treatments(); track item.id) {
+          <label class="treatment" [class.selected]="item.id === treatmentId()">
+            <input
+              class="sr-only"
+              type="radio"
+              name="treatment"
+              [value]="item.id"
+              [checked]="item.id === treatmentId()"
+              (change)="treatmentId.set(item.id)"
+            />
+            <span class="t-name">{{ item.name }}</span>
+            <span class="t-min muted">{{
+              'services.minutes' | translate: { count: item.minutes }
+            }}</span>
+            <strong class="t-price num">{{ item.price | ariary }}</strong>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <div class="step pair">
+      <div class="field">
+        <label for="svc-customer"
+          >2. {{ 'services.customer' | translate }}
+          <span class="muted">{{ 'common.optional' | translate }}</span></label
+        >
+        <input id="svc-customer" class="input" formControlName="customer" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="svc-staff">{{ 'services.doneBy' | translate }}</label>
+        <select
+          id="svc-staff"
+          class="input"
+          formControlName="staff"
+          required
+          [attr.aria-invalid]="form.controls.staff.invalid && attempted()"
+          aria-describedby="svc-staff-error"
+        >
+          <option value="" disabled>{{ 'services.chooseStaff' | translate }}</option>
+          @for (name of staff(); track name) {
+            <option [value]="name">{{ name }}</option>
+          }
+        </select>
+        @if (form.controls.staff.invalid && attempted()) {
+          <p id="svc-staff-error" class="field-error">{{ 'services.staffRequired' | translate }}</p>
+        }
+      </div>
+    </div>
+
+    <section class="step" aria-labelledby="consumed-title">
+      <h3 id="consumed-title" class="step-title">
+        3. {{ 'services.consumed' | translate }}
+        <span class="muted">({{ 'services.prefilled' | translate }})</span>
+      </h3>
+      <ul class="consumed">
+        @for (row of rows(); track row.product.id) {
+          <li [class.short]="row.short">
+            <span class="c-name">{{ row.product.name }}</span>
+            <span class="muted">{{
+              'services.stock' | translate: { count: row.product.stock }
+            }}</span>
+            <span class="qty-wrap">
+              <input
+                #qty
+                class="qty num"
+                inputmode="decimal"
+                [value]="row.line.quantity"
+                [attr.aria-label]="('services.quantityOf' | translate) + ' ' + row.product.name"
+                [attr.aria-invalid]="row.short"
+                (focus)="qty.select()"
+                (change)="setQuantity(row.product.id, qty.value)"
+              />
+              <span class="unit">{{ row.product.unit }}</span>
+            </span>
+          </li>
+        } @empty {
+          <li class="none muted">{{ 'services.noProducts' | translate }}</li>
+        }
+        @if (addable().length) {
+          <li class="add-row">
+            <label class="add">
+              <svg [vvsIcon]="icons.Plus" [size]="16"></svg>
+              <select
+                #adder
+                [attr.aria-label]="'services.addProduct' | translate"
+                (change)="addProduct(adder.value); adder.value = ''"
+              >
+                <option value="">{{ 'services.addProduct' | translate }}</option>
+                @for (product of addable(); track product.id) {
+                  <option [value]="product.id">{{ product.name }}</option>
+                }
+              </select>
+            </label>
+          </li>
+        }
+      </ul>
+      @if (hasShortage()) {
+        <p class="alert alert-danger" role="alert">{{ 'services.shortage' | translate }}</p>
+      }
+    </section>
+  </div>
+
+  <footer class="foot">
+    <p class="total">
+      {{ 'services.total' | translate }}
+      <strong class="num">{{ treatment() ? (treatment()!.price | ariary) : '—' }}</strong>
+    </p>
+    <button class="btn btn-secondary" type="button" (click)="cancel()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button class="btn btn-primary" type="submit" [disabled]="hasShortage()">
+      {{ 'services.save' | translate }}
+    </button>
+  </footer>
+</form>

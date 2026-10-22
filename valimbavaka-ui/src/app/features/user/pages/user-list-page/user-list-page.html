@@ -1,107 +1,118 @@
-<section class="page">
-  <header class="page-header">
-    <div>
-      <h1>Utilisateurs</h1>
-      <p>{{ totalCount() }} utilisateur(s)</p>
-    </div>
-    <a class="btn btn-primary" routerLink="new">+ Nouvel utilisateur</a>
-  </header>
+<div class="page">
+  <vvs-page-header
+    [heading]="'user.title' | translate"
+    [subtitle]="'user.subtitle' | translate"
+    [codes]="['AUTH-03', 'AUTH-04', 'SYS-05']"
+  >
+    <a class="btn btn-primary" routerLink="new">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'user.new' | translate }}
+    </a>
+  </vvs-page-header>
 
-  <div class="card">
-    <form class="toolbar" (submit)="$event.preventDefault(); onSearch(searchInput.value)">
-      <label class="visually-hidden" for="user-search">Rechercher</label>
-      <input
-        #searchInput
-        id="user-search"
-        class="input"
-        type="search"
-        placeholder="Rechercher par email, prénom ou nom"
+  <section class="card list" [attr.aria-label]="'user.title' | translate">
+    <div class="toolbar">
+      <vvs-search-field
+        class="search"
+        [label]="'user.search' | translate"
+        [placeholder]="'user.searchPlaceholder' | translate"
         [value]="search()"
+        (submitted)="onSearch($event)"
       />
-      <button class="btn btn-ghost" type="submit">Rechercher</button>
-    </form>
+      <p class="count" role="status">{{ 'user.count' | translate: { count: totalCount() } }}</p>
+    </div>
 
     @if (errorMessage(); as message) {
       <div class="alert alert-danger" role="alert">{{ message }}</div>
     }
 
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Nom</th>
-            <th scope="col">Email</th>
-            <th scope="col">Rôle</th>
-            <th scope="col">Statut</th>
-            <th scope="col" class="actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (user of users(); track user.id) {
+    @if (users().length > 0) {
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
             <tr>
-              <td class="name">{{ user.lastName }} {{ user.firstName }}</td>
-              <td>{{ user.email }}</td>
-              <td>
-                <span class="badge badge-secondary">{{ roleLabel(user.role) }}</span>
-              </td>
-              <td>
-                @if (user.active) {
-                  <span class="badge badge-success">{{ 'user.status.active' | translate }}</span>
-                } @else {
-                  <span class="badge badge-muted">{{ 'user.status.inactive' | translate }}</span>
-                }
-                @if (user.passwordChangeRequired) {
-                  <span class="badge badge-warning">Mot de passe à changer</span>
-                }
-              </td>
-              <td class="actions">
-                <a class="btn btn-ghost btn-sm" [routerLink]="[user.id, 'edit']">Modifier</a>
-                <button
-                  *vvsHasPermission="'users.update'"
-                  class="btn btn-ghost btn-sm"
-                  type="button"
-                  (click)="toggleActive(user)"
-                >
-                  {{
-                    (user.active ? 'user.status.deactivate' : 'user.status.activate') | translate
-                  }}
-                </button>
-                <button class="btn btn-danger btn-sm" type="button" (click)="deleteUser(user)">
-                  Supprimer
-                </button>
-              </td>
+              <th scope="col">{{ 'user.col.user' | translate }}</th>
+              <th scope="col">{{ 'user.col.role' | translate }}</th>
+              <th scope="col">{{ 'user.col.status' | translate }}</th>
+              <th scope="col" class="actions">{{ 'user.col.actions' | translate }}</th>
             </tr>
-          } @empty {
-            <tr>
-              <td class="empty" colspan="5">
-                {{ isLoading() ? 'Chargement…' : 'Aucun utilisateur trouvé.' }}
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    @if (totalPages() > 1) {
-      <nav class="pagination" aria-label="Pagination">
-        <button
-          class="btn btn-ghost btn-sm"
-          type="button"
-          [disabled]="page() === 1 || isLoading()"
-          (click)="goToPage(page() - 1)"
-        >
-          Précédent
-        </button>
-        <span>Page {{ page() }} / {{ totalPages() }}</span>
-        <button
-          class="btn btn-ghost btn-sm"
-          type="button"
-          [disabled]="page() >= totalPages() || isLoading()"
-          (click)="goToPage(page() + 1)"
-        >
-          Suivant
-        </button>
-      </nav>
+          </thead>
+          <tbody>
+            @for (user of users(); track user.id) {
+              <tr [class.inactive]="!user.active">
+                <td>
+                  <span class="identity">
+                    <vvs-avatar-initials [name]="fullName(user)" [size]="40" />
+                    <span class="who">
+                      <strong>{{ user.lastName }} {{ user.firstName }}</strong>
+                      <span class="email">{{ user.email }}</span>
+                    </span>
+                  </span>
+                </td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="roleTones[user.role.name]"
+                    [label]="roleLabel(user.role)"
+                  />
+                </td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="user.active ? 'success' : 'muted'"
+                    [label]="
+                      (user.active ? 'user.status.active' : 'user.status.inactive') | translate
+                    "
+                  />
+                  @if (user.passwordChangeRequired) {
+                    <span class="badge badge-warning">{{ 'user.passwordChange' | translate }}</span>
+                  }
+                </td>
+                <td class="actions">
+                  <a class="btn btn-ghost btn-sm" [routerLink]="[user.id, 'edit']">
+                    {{ 'user.actions.edit' | translate }}
+                  </a>
+                  <button
+                    *vvsHasPermission="'users.update'"
+                    class="btn btn-ghost btn-sm"
+                    type="button"
+                    (click)="ask('toggle', user)"
+                  >
+                    {{
+                      (user.active ? 'user.status.deactivate' : 'user.status.activate') | translate
+                    }}
+                  </button>
+                  <button class="btn btn-danger btn-sm" type="button" (click)="ask('delete', user)">
+                    {{ 'user.actions.delete' | translate }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <vvs-pagination
+        [page]="page()"
+        [size]="pageSize"
+        [total]="totalCount()"
+        (pageChange)="goToPage($event)"
+      />
+    } @else if (isLoading()) {
+      <vvs-list-state kind="loading" [rows]="6" />
+    } @else if (errorMessage()) {
+      <vvs-list-state kind="error" (retry)="loadUsers()" />
+    } @else {
+      <vvs-list-state kind="empty" titleKey="user.empty.title" messageKey="user.empty.message" />
     }
-  </div>
-</section>
+  </section>
+</div>
+
+@if (pending(); as action) {
+  @let texts = dialogTexts(action);
+  <vvs-confirm-dialog
+    [heading]="texts.heading"
+    [message]="texts.message"
+    [confirmLabel]="texts.confirm"
+    [danger]="action.kind === 'delete' || action.user.active"
+    (confirmed)="confirm()"
+    (cancelled)="dismiss()"
+  />
+}

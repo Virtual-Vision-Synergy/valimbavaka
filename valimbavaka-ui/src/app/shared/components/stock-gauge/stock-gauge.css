@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  min-width: 64px;
+}
+.track {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--gris-fond);
+}
+.fill {
+  display: block;
+  min-width: 4px;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--secondary);
+}
+.fill[data-level='low'] {
+  background: var(--warning-dark);
+}
+.fill[data-level='out'] {
+  background: var(--danger);
+}
+.marker {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 14px;
+  border-radius: 1px;
+  background: var(--gris-anthracite);
+  transform: translateX(-1px);
+}

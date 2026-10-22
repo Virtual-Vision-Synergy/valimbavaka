@@ -1,0 +1,188 @@
+<section class="ticket" aria-labelledby="ticket-title">
+  <header class="head">
+    <div>
+      <h2 id="ticket-title">
+        {{ 'pos.ticket.title' | translate }}
+        <span class="number mono">VTE-{{ ticketNumber() }}</span>
+      </h2>
+      <p class="meta">{{ cashierName() }} · {{ openedAt() }}</p>
+    </div>
+  </header>
+
+  <div class="block">
+    <vvs-segmented-control
+      class="channels"
+      [label]="'pos.ticket.channelLabel' | translate"
+      [options]="channels"
+      [(value)]="channel"
+    />
+    <button class="customer" type="button" (click)="customer.emit()">
+      <svg [vvsIcon]="icons.UserRound" [size]="18"></svg>
+      {{ 'pos.ticket.customer' | translate }}
+    </button>
+  </div>
+
+  @if (cart.isEmpty()) {
+    <div class="empty">
+      <p class="empty-title">{{ 'pos.ticket.emptyTitle' | translate }}</p>
+      <p>{{ 'pos.ticket.emptyMessage' | translate }}</p>
+    </div>
+  } @else {
+    <ul class="lines" [attr.aria-label]="'pos.ticket.linesLabel' | translate">
+      @for (line of cart.priced(); track line.article.id) {
+        <li class="line">
+          <div class="line-head">
+            <span class="line-name">{{ line.article.name }}</span>
+            <span class="line-total num">{{ line.gross | ariary }}</span>
+          </div>
+          <div class="line-foot">
+            <div class="stepper" role="group" [attr.aria-label]="line.article.name">
+              <button
+                class="step"
+                type="button"
+                [attr.aria-label]="
+                  (line.quantity === 1 ? 'pos.ticket.remove' : 'pos.ticket.decrease')
+                    | translate: { name: line.article.name }
+                "
+                (click)="cart.decrement(line.article.id)"
+              >
+                <svg [vvsIcon]="line.quantity === 1 ? icons.Trash2 : icons.Minus" [size]="16"></svg>
+              </button>
+              <span class="qty num" [attr.aria-label]="'pos.ticket.quantity' | translate">
+                {{ line.quantity }}
+              </span>
+              <button
+                class="step"
+                type="button"
+                [disabled]="line.quantity >= line.article.stock"
+                [attr.aria-label]="'pos.ticket.increase' | translate: { name: line.article.name }"
+                (click)="cart.add(line.article)"
+              >
+                <svg [vvsIcon]="icons.Plus" [size]="16"></svg>
+              </button>
+              <span class="unit num">× {{ line.article.price | ariary: 'plain' }}</span>
+            </div>
+            @if (line.discount) {
+              <span class="line-discount num">
+                {{
+                  'pos.ticket.lineDiscount'
+                    | translate: { rate: line.rate, amount: (line.discount | ariary: 'plain') }
+                }}
+              </span>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (cart.appliedPromotion(); as promotion) {
+    <p class="promo">
+      <svg [vvsIcon]="icons.Tag" [size]="18"></svg>
+      <span>{{ 'pos.ticket.promoApplied' | translate: { name: promotion.name } }}</span>
+      <span class="code-chip">{{ promotion.code }}</span>
+    </p>
+  }
+
+  <dl class="totals">
+    <div>
+      <dt>{{ 'pos.ticket.subtotal' | translate }}</dt>
+      <dd class="num">{{ cart.subtotal() | ariary }}</dd>
+    </div>
+    <div>
+      <dt>{{ 'pos.ticket.discount' | translate }}</dt>
+      <dd class="num discount">−{{ cart.discount() | ariary }}</dd>
+    </div>
+    <div>
+      <dt>{{ 'pos.ticket.promoCode' | translate }}</dt>
+      <dd>
+        <button
+          class="btn btn-ghost btn-sm add-promo"
+          type="button"
+          aria-keyshortcuts="F6"
+          (click)="promoCode.emit()"
+        >
+          + {{ 'pos.ticket.addPromo' | translate }} <kbd aria-hidden="true">F6</kbd>
+        </button>
+      </dd>
+    </div>
+  </dl>
+
+  <div class="net">
+    <span>{{ 'pos.ticket.total' | translate }}</span>
+    <strong class="num">{{ cart.total() | ariary }}</strong>
+  </div>
+
+  <fieldset class="payments">
+    <legend class="sr-only">{{ 'pos.ticket.paymentLabel' | translate }}</legend>
+    @for (method of payments; track method.value) {
+      <label class="payment" [class.selected]="cart.payment() === method.value">
+        <input
+          class="sr-only"
+          type="radio"
+          name="pos-payment"
+          [value]="method.value"
+          [checked]="cart.payment() === method.value"
+          (change)="selectPayment(method.value)"
+        />
+        <svg [vvsIcon]="method.icon" [size]="20"></svg>
+        {{ 'pos.ticket.payment.' + method.value | translate }}
+      </label>
+    }
+  </fieldset>
+
+  @if (cart.payment() === 'CASH') {
+    <div class="cash">
+      <div class="field">
+        <label for="pos-received">{{ 'pos.ticket.received' | translate }}</label>
+        <input
+          #receivedField
+          id="pos-received"
+          class="input num amount"
+          inputmode="numeric"
+          autocomplete="off"
+          [value]="cart.received() | ariary: 'plain'"
+          (input)="typeReceived(receivedField.value)"
+        />
+      </div>
+      <div class="field">
+        <span id="pos-change-label" class="label">{{ 'pos.ticket.change' | translate }}</span>
+        <output
+          class="change num"
+          aria-labelledby="pos-change-label"
+          [class.missing]="cart.change() < 0"
+        >
+          @if (cart.change() < 0) {
+            {{ 'pos.ticket.missing' | translate: { amount: (-cart.change() | ariary) } }}
+          } @else {
+            {{ cart.change() | ariary }}
+          }
+        </output>
+      </div>
+      <vvs-pos-keypad class="keypad" (pressed)="pressKey($event)" />
+    </div>
+  }
+
+  <div class="actions">
+    <button
+      class="btn btn-secondary btn-lg"
+      type="button"
+      aria-keyshortcuts="F8"
+      [disabled]="cart.isEmpty()"
+      (click)="hold.emit()"
+    >
+      {{ 'pos.ticket.hold' | translate }} <kbd aria-hidden="true">F8</kbd>
+    </button>
+    <button
+      class="btn btn-primary btn-lg pay"
+      type="button"
+      aria-keyshortcuts="F12"
+      [disabled]="!cart.canCheckout()"
+      (click)="checkout.emit()"
+    >
+      {{ 'pos.ticket.checkout' | translate: { amount: (cart.total() | ariary) } }}
+      <kbd aria-hidden="true">F12</kbd>
+    </button>
+  </div>
+  <p class="note">{{ 'pos.ticket.invoiceNote' | translate }}</p>
+</section>

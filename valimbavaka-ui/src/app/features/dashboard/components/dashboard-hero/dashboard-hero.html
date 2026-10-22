@@ -1,0 +1,65 @@
+<section class="hero" aria-labelledby="hero-greeting">
+  <div class="intro">
+    <p class="date">{{ longDate() }}</p>
+    <h2 id="hero-greeting" class="greeting">
+      {{ greetingKey() | translate: { name: firstName() } }}
+    </h2>
+    <p class="lead">
+      {{ 'dashboard.hero.lead' | translate: { time: data().openedAt, name: data().openedBy } }}
+    </p>
+
+    <div class="goal">
+      <div class="goal-head">
+        <span id="goal-label">{{ 'dashboard.hero.monthlyGoal' | translate }}</span>
+        <span class="goal-value num">{{ progress() }} %</span>
+      </div>
+      <div
+        class="goal-track"
+        role="progressbar"
+        aria-labelledby="goal-label"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="progress()"
+        [attr.aria-valuetext]="
+          'dashboard.hero.goalText'
+            | translate
+              : { done: (data().monthlyRevenue | ariary), target: (data().monthlyTarget | ariary) }
+        "
+      >
+        <span class="goal-fill" [style.width.%]="progress()"></span>
+      </div>
+      <p class="goal-caption num">
+        {{
+          'dashboard.hero.goalText'
+            | translate
+              : {
+                  done: (data().monthlyRevenue | ariary: 'compact') + ' Ar',
+                  target: (data().monthlyTarget | ariary: 'compact') + ' Ar',
+                }
+        }}
+      </p>
+    </div>
+  </div>
+
+  <nav class="quick" [attr.aria-label]="'dashboard.hero.quickActions' | translate">
+    <a *vvsHasPermission="'sales.read'" class="quick-link" routerLink="/pos">
+      <svg [vvsIcon]="icons.Store" [size]="20"></svg>
+      {{ 'dashboard.hero.openPos' | translate }}
+    </a>
+    <a *vvsHasPermission="'articles.read'" class="quick-link" routerLink="/articles">
+      <svg [vvsIcon]="icons.PackagePlus" [size]="20"></svg>
+      {{ 'dashboard.hero.newArticle' | translate }}
+    </a>
+    <a *vvsHasPermission="'sales.read'" class="quick-link" routerLink="/day/close">
+      <svg [vvsIcon]="icons.Lock" [size]="20"></svg>
+      {{ 'dashboard.hero.prepareClosing' | translate }}
+    </a>
+  </nav>
+
+  <p class="updated">{{ 'dashboard.hero.updatedAt' | translate: { time: data().updatedAt } }}</p>
+  <svg class="leaves" viewBox="0 0 220 160" aria-hidden="true" focusable="false">
+    <path d="M150 10c40 10 62 48 52 92-30-6-62-30-66-70-1-8 4-18 14-22Z" />
+    <path d="M70 60c30-8 64 8 74 40-26 14-62 10-80-14-4-6-2-22 6-26Z" />
+    <path d="M196 112c14 6 22 22 18 40-14-4-26-14-28-30 0-4 4-10 10-10Z" />
+  </svg>
+</section>

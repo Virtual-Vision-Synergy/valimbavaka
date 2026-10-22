@@ -1,0 +1,21 @@
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--primary-strong);
+  color: var(--on-primary-strong);
+  font-size: calc(var(--size) * 0.38);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+[data-tone='secondary'] {
+  background: var(--secondary-xlight);
+  color: var(--secondary-strong);
+}
+[data-tone='muted'] {
+  background: var(--fond-dark);
+  color: var(--gris-anthracite);
+}

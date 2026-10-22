@@ -74,11 +74,11 @@ describe('UserListPage', () => {
   });
 
   it('should deactivate an active user after confirmation and reload the list', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     httpMock.expectOne(isListRequest).flush(pageOf([user()]));
     await fixture.whenStable();
 
     toggleButton().click();
+    await confirmDialog();
 
     const patch = httpMock.expectOne('/api/v1/users/0195f0a0-0000-7000-8000-0000000000a1/status');
     expect(patch.request.method).toBe('PATCH');
@@ -91,21 +91,23 @@ describe('UserListPage', () => {
   });
 
   it('should not call the API when the confirmation is declined', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
     httpMock.expectOne(isListRequest).flush(pageOf([user()]));
     await fixture.whenStable();
 
     toggleButton().click();
+    await fixture.whenStable();
+    dialogButton(/Annuler/).click();
+    await fixture.whenStable();
 
     httpMock.expectNone('/api/v1/users/0195f0a0-0000-7000-8000-0000000000a1/status');
   });
 
   it('should show the server error when the status change is refused', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
     httpMock.expectOne(isListRequest).flush(pageOf([user()]));
     await fixture.whenStable();
 
     toggleButton().click();
+    await confirmDialog();
     httpMock.expectOne('/api/v1/users/0195f0a0-0000-7000-8000-0000000000a1/status').flush(
       {
         status: 422,
@@ -118,6 +120,22 @@ describe('UserListPage', () => {
 
     expect(element.querySelector('[role="alert"]')?.textContent).toContain('propre compte');
   });
+
+  function dialogButton(label: RegExp): HTMLButtonElement {
+    const button = Array.from(element.querySelectorAll<HTMLButtonElement>('dialog button')).find(
+      (candidate) => label.test(candidate.textContent ?? ''),
+    );
+    if (!button) {
+      throw new Error('dialog button not found');
+    }
+    return button;
+  }
+
+  /** Ouvre le dialogue de confirmation puis clique sur son bouton de validation. */
+  async function confirmDialog(): Promise<void> {
+    await fixture.whenStable();
+    dialogButton(/Désactiver|Activer/).click();
+  }
 
   function toggleButton(): HTMLButtonElement {
     const button = Array.from(element.querySelectorAll<HTMLButtonElement>('tbody button')).find(

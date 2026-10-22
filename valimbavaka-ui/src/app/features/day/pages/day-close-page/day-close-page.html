@@ -1,0 +1,255 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="
+      title()
+        ? ('day.close.title' | translate: { date: title() })
+        : ('menu.item.dayClose' | translate)
+    "
+    [subtitle]="'day.close.subtitle' | translate"
+    [codes]="['JR-04', 'JR-05', 'JR-06']"
+  >
+    <vvs-filter-chips
+      [label]="'day.close.locationFilter' | translate"
+      [options]="locationOptions()"
+      [(value)]="location"
+    />
+  </vvs-page-header>
+
+  @if (closing.value(); as data) {
+    @if (lockedAt(); as time) {
+      <p class="locked-banner" role="status">
+        <svg [vvsIcon]="icons.LockKeyhole" [size]="20"></svg>
+        {{ 'day.close.lockedBanner' | translate: { time } }}
+      </p>
+    }
+    <div class="layout">
+      <section class="card table-card" aria-labelledby="reco-title">
+        <header class="table-head">
+          <h2 id="reco-title">
+            {{
+              'day.close.reconciliation'
+                | translate: { location: ('day.destination.' + location() | translate) }
+            }}
+          </h2>
+          <p class="formula">{{ 'day.close.formula' | translate }}</p>
+        </header>
+        <div class="scroller">
+          <table class="reco">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'day.col.article' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.transferred' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.returned' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.sold' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.otherOut' | translate }}</th>
+                <th scope="col" class="cell-num accent">{{ 'day.col.theoretical' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.counted' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.gap' | translate }}</th>
+                <th scope="col">{{ 'day.col.reason' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of visibleRows(); track row.key) {
+                @let l = row.line;
+                <tr [attr.data-gap]="row.gap !== 0 ? (row.reason ? 'explained' : 'missing') : null">
+                  <th scope="row">
+                    <span class="name">{{ l.name }}</span>
+                    <span class="mono ref">{{ l.reference }}</span>
+                  </th>
+                  <td class="cell-num">{{ l.transferred }}</td>
+                  <td class="cell-num" [class.zero]="!l.returned">{{ l.returned }}</td>
+                  <td class="cell-num" [class.zero]="!l.sold">{{ l.sold }}</td>
+                  <td class="cell-num">
+                    <span [class.zero]="!(l.delivered + l.salon + l.shooting)">{{
+                      l.delivered + l.salon + l.shooting
+                    }}</span>
+                    @if (l.delivered + l.salon + l.shooting) {
+                      <span class="breakdown">
+                        @if (l.delivered) {
+                          {{ 'day.col.delivered' | translate }} {{ l.delivered }}
+                        }
+                        @if (l.salon) {
+                          {{ 'day.col.salon' | translate }} {{ l.salon }}
+                        }
+                        @if (l.shooting) {
+                          {{ 'day.col.shooting' | translate }} {{ l.shooting }}
+                        }
+                      </span>
+                    }
+                  </td>
+                  <td class="cell-num accent strong">{{ row.theoretical }}</td>
+                  <td class="cell-num">
+                    <input
+                      #count
+                      class="qty num"
+                      type="number"
+                      inputmode="numeric"
+                      min="0"
+                      [value]="row.counted"
+                      [disabled]="!!lockedAt()"
+                      [attr.aria-label]="('day.col.counted' | translate) + ' — ' + l.name"
+                      (focus)="count.select()"
+                      (input)="state.setCount(row.key, count.value)"
+                    />
+                  </td>
+                  <td
+                    class="cell-num gap num"
+                    [attr.data-sign]="row.gap === 0 ? 'zero' : row.gap > 0 ? 'plus' : 'minus'"
+                  >
+                    {{ row.gap > 0 ? '+' : row.gap < 0 ? '−' : ''
+                    }}{{ row.gap < 0 ? -row.gap : row.gap }}
+                  </td>
+                  <td class="cell-reason">
+                    @if (row.gap !== 0) {
+                      <select
+                        #reason
+                        class="reason"
+                        [id]="'reason-' + row.key"
+                        [disabled]="!!lockedAt()"
+                        [attr.aria-label]="('day.col.reason' | translate) + ' — ' + l.name"
+                        [attr.aria-invalid]="!row.reason"
+                        (change)="state.setReason(row.key, reason.value)"
+                      >
+                        <option value="" [selected]="!row.reason">
+                          {{ 'day.close.chooseReason' | translate }}
+                        </option>
+                        @for (option of reasons; track option) {
+                          <option [value]="option" [selected]="option === row.reason">
+                            {{ 'day.reason.' + option | translate }}
+                          </option>
+                        }
+                      </select>
+                    } @else {
+                      <span class="ok">{{ 'day.close.ok' | translate }}</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="9" class="empty">{{ 'day.close.noGap' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <footer class="table-foot">
+          <span class="muted">
+            {{
+              'day.close.footer' | translate: { count: locationRows().length, clean: cleanCount() }
+            }}
+          </span>
+          <button
+            class="btn btn-ghost btn-sm"
+            type="button"
+            [attr.aria-pressed]="onlyGaps()"
+            (click)="onlyGaps.set(!onlyGaps())"
+          >
+            {{ (onlyGaps() ? 'day.close.showAll' : 'day.close.onlyGaps') | translate }}
+          </button>
+        </footer>
+      </section>
+
+      <aside class="aside">
+        <section class="card pad">
+          <vvs-closing-checklist
+            [checklist]="data.checklist"
+            [lateShootings]="state.lateShootings()"
+            [missingReasons]="state.missingReasons()"
+            [locked]="!!lockedAt()"
+            (action)="onChecklist($event)"
+          />
+        </section>
+
+        @if (cash(); as c) {
+          <section class="card pad cash" aria-labelledby="cash-title">
+            <h2 id="cash-title" class="caption">
+              {{
+                'day.close.cash.title'
+                  | translate: { location: ('day.destination.' + location() | translate) }
+              }}
+            </h2>
+            <dl>
+              <div class="cash-row">
+                <dt>{{ 'day.close.cash.expected' | translate }}</dt>
+                <dd class="num strong">{{ c.expected | ariary }}</dd>
+              </div>
+              <div class="cash-row">
+                <dt>
+                  <label for="cash-counted">{{ 'day.close.cash.counted' | translate }}</label>
+                </dt>
+                <dd>
+                  <input
+                    #cashInput
+                    id="cash-counted"
+                    class="input num cash-input"
+                    inputmode="numeric"
+                    [value]="c.counted"
+                    [disabled]="!!lockedAt()"
+                    (input)="state.setCash(location(), cashInput.value)"
+                  />
+                </dd>
+              </div>
+              <div class="cash-row total">
+                <dt>{{ 'day.close.cash.gap' | translate }}</dt>
+                <dd
+                  class="num strong"
+                  [attr.data-sign]="c.gap === 0 ? 'zero' : c.gap > 0 ? 'plus' : 'minus'"
+                >
+                  {{ c.gap > 0 ? '+' : c.gap < 0 ? '−' : ''
+                  }}{{ (c.gap < 0 ? -c.gap : c.gap) | ariary }}
+                </dd>
+              </div>
+              <div class="cash-row other">
+                <dt>{{ 'day.close.cash.other' | translate }}</dt>
+                <dd>
+                  {{
+                    'day.close.cash.reconciled' | translate: { amount: (c.otherMethods | ariary) }
+                  }}
+                </dd>
+              </div>
+            </dl>
+          </section>
+        }
+
+        <section class="card pad lock" [class.done]="!!lockedAt()" aria-labelledby="lock-title">
+          <p id="lock-title" class="lock-text">
+            <svg [vvsIcon]="icons.Lock" [size]="20"></svg>
+            {{ 'day.close.lockWarning' | translate: { date: title() } }}
+          </p>
+          @if (!lockedAt()) {
+            <button
+              class="btn btn-primary btn-lg btn-block"
+              type="button"
+              [disabled]="!canLock()"
+              aria-describedby="lock-hint"
+              (click)="openLock()"
+            >
+              {{ 'day.close.lock' | translate }}
+            </button>
+            <p id="lock-hint" class="hint">
+              {{ (canLock() ? 'day.close.lockReady' : 'day.close.lockHint') | translate }}
+            </p>
+          }
+        </section>
+      </aside>
+    </div>
+  } @else if (closing.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="closing.reload()" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="8" /></div>
+  }
+</div>
+
+<dialog #lockDialog class="confirm" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+  <h2 id="confirm-title">{{ 'day.close.confirmTitle' | translate }}</h2>
+  <p id="confirm-text">{{ 'day.close.lockWarning' | translate: { date: title() } }}</p>
+  <div class="confirm-actions">
+    <button class="btn btn-secondary" type="button" (click)="closeLock()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button class="btn btn-primary" type="button" [disabled]="locking()" (click)="confirmLock()">
+      <svg [vvsIcon]="icons.LockKeyhole" [size]="18"></svg>
+      {{ 'day.close.lock' | translate }}
+    </button>
+  </div>
+</dialog>

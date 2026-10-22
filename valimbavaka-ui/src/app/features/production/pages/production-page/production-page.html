@@ -1,0 +1,267 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'production.title' | translate"
+    [subtitle]="'production.subtitle' | translate"
+    [codes]="['PRD-01', 'PRD-05']"
+  />
+
+  @if (context.value(); as data) {
+    <div class="kpis">
+      <vvs-kpi-card
+        [label]="'production.kpi.lots' | translate"
+        [value]="'' + data.kpis.lotsThisMonth"
+      >
+        <p class="note">{{ 'production.kpi.lotsNote' | translate: { count: data.kpis.curing } }}</p>
+      </vvs-kpi-card>
+      <vvs-kpi-card
+        [label]="'production.kpi.units' | translate"
+        [value]="'' + data.kpis.unitsProduced"
+      >
+        <p class="note up">
+          {{ 'production.kpi.unitsNote' | translate: { percent: data.kpis.unitsTrendPercent } }}
+        </p>
+      </vvs-kpi-card>
+      <vvs-kpi-card
+        [label]="'production.kpi.cost' | translate"
+        [value]="data.kpis.averageCost | ariary: 'plain'"
+        unit="Ar"
+      >
+        <p class="note">{{ 'production.kpi.costNote' | translate }}</p>
+      </vvs-kpi-card>
+      <vvs-kpi-card
+        [label]="'production.kpi.rebuy' | translate"
+        [value]="'' + data.kpis.materialsToRebuy"
+      >
+        <p class="note warn">{{ 'production.kpi.rebuyNote' | translate }}</p>
+      </vvs-kpi-card>
+    </div>
+
+    <div class="layout">
+      <form class="card lot" [formGroup]="form" (ngSubmit)="save(true)" novalidate>
+        <header class="lot-head">
+          <h2>
+            {{ 'production.newLot' | translate }}
+            <span class="code-chip" aria-hidden="true">PRD-01 · PRD-02</span>
+          </h2>
+          <span class="mono muted">{{ data.nextNumber }}</span>
+        </header>
+
+        <div class="fields">
+          <div class="field product">
+            <label for="lot-product"
+              >{{ 'production.product' | translate }} <span aria-hidden="true">*</span></label
+            >
+            <select id="lot-product" class="input" formControlName="articleId" required>
+              <option value="" disabled>{{ 'production.chooseProduct' | translate }}</option>
+              @for (item of data.products; track item.articleId) {
+                <option [value]="item.articleId">{{ item.name }} · {{ item.reference }}</option>
+              }
+            </select>
+          </div>
+          <div class="field quantity">
+            <label for="lot-quantity"
+              >{{ 'production.quantity' | translate }} <span aria-hidden="true">*</span></label
+            >
+            <input
+              id="lot-quantity"
+              class="input num"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              formControlName="quantity"
+              required
+            />
+          </div>
+          <div class="field operator">
+            <label for="lot-operator"
+              >{{ 'production.operator' | translate }} <span aria-hidden="true">*</span></label
+            >
+            <select id="lot-operator" class="input" formControlName="operator" required>
+              <option value="" disabled>{{ 'production.chooseOperator' | translate }}</option>
+              @for (name of data.operators; track name) {
+                <option [value]="name">{{ name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <section class="materials" aria-labelledby="materials-title">
+          <div class="materials-head">
+            <h3 id="materials-title" class="caption">{{ 'production.materials' | translate }}</h3>
+            @if (addable().length) {
+              <label class="add">
+                <svg [vvsIcon]="icons.Plus" [size]="16"></svg>
+                <span class="sr-only">{{ 'production.addMaterial' | translate }}</span>
+                <select
+                  #adder
+                  [attr.aria-label]="'production.addMaterial' | translate"
+                  (change)="addLine(adder.value); adder.value = ''"
+                >
+                  <option value="">{{ 'production.addMaterial' | translate }}</option>
+                  @for (material of addable(); track material.id) {
+                    <option [value]="material.id">{{ material.name }}</option>
+                  }
+                </select>
+              </label>
+            }
+          </div>
+
+          @if (rows().length) {
+            <div class="table-wrap">
+              <table class="table mats">
+                <thead>
+                  <tr>
+                    <th scope="col">{{ 'production.col.material' | translate }}</th>
+                    <th scope="col" class="cell-num">
+                      {{ 'production.col.quantity' | translate }}
+                    </th>
+                    <th scope="col" class="cell-num">
+                      {{ 'production.col.available' | translate }}
+                    </th>
+                    <th scope="col" class="cell-num">{{ 'production.col.cost' | translate }}</th>
+                    <th scope="col">
+                      <span class="sr-only">{{ 'production.col.remove' | translate }}</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of rows(); track row.material.id) {
+                    <tr [class.short]="row.short">
+                      <th scope="row">
+                        <span class="cell-title">{{ row.material.name }}</span>
+                        <span class="cell-sub mono">{{ row.material.reference }}</span>
+                      </th>
+                      <td class="cell-num">
+                        <span class="qty-wrap">
+                          <input
+                            #qty
+                            class="qty num"
+                            inputmode="decimal"
+                            [value]="numberFormat().format(row.line.quantity)"
+                            [attr.aria-label]="
+                              ('production.col.quantity' | translate) + ' — ' + row.material.name
+                            "
+                            [attr.aria-invalid]="row.short"
+                            (focus)="qty.select()"
+                            (change)="setQuantity(row.material.id, qty.value)"
+                          />
+                          <span class="unit">{{ row.material.unit }}</span>
+                        </span>
+                      </td>
+                      <td class="cell-num num" [class.bad]="row.short">
+                        {{ numberFormat().format(row.material.available) }} {{ row.material.unit }}
+                      </td>
+                      <td class="cell-num num">{{ row.cost | ariary }}</td>
+                      <td class="cell-remove">
+                        <button
+                          class="btn btn-icon btn-ghost"
+                          type="button"
+                          [attr.aria-label]="
+                            'production.removeMaterial' | translate: { name: row.material.name }
+                          "
+                          (click)="removeLine(row.material.id)"
+                        >
+                          <svg [vvsIcon]="icons.X" [size]="16"></svg>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="empty">{{ 'production.noMaterials' | translate }}</p>
+          }
+        </section>
+
+        @for (row of shortRows(); track row.material.id) {
+          <p class="alert alert-danger shortage" role="alert">
+            <svg [vvsIcon]="icons.TriangleAlert" [size]="18"></svg>
+            <span>
+              <strong>{{ 'production.shortage' | translate }}</strong>
+              {{
+                'production.shortageText'
+                  | translate
+                    : {
+                        name: row.material.name.toLowerCase(),
+                        asked: numberFormat().format(row.line.quantity) + ' ' + row.material.unit,
+                        available:
+                          numberFormat().format(row.material.available) + ' ' + row.material.unit,
+                      }
+              }}
+              @if (maxQuantity() !== null && $first) {
+                <button class="fix" type="button" (click)="applyMaximum()">
+                  {{ 'production.reduceTo' | translate: { count: maxQuantity() } }}
+                </button>
+              }
+            </span>
+          </p>
+        }
+
+        <dl class="costs">
+          <div>
+            <dt>{{ 'production.cost.materials' | translate }}</dt>
+            <dd class="num">{{ costs().materials | ariary }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'production.cost.perUnit' | translate }}</dt>
+            <dd class="num">{{ costs().perUnit | ariary }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'production.cost.price' | translate }}</dt>
+            <dd class="num">{{ product() ? (product()!.price | ariary) : '—' }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'production.cost.margin' | translate }}</dt>
+            <dd class="num margin">{{ costs().margin === null ? '—' : costs().margin + ' %' }}</dd>
+          </div>
+        </dl>
+
+        <footer class="lot-foot">
+          <button
+            class="btn btn-secondary"
+            type="button"
+            [disabled]="submitting() || form.invalid"
+            (click)="save(false)"
+          >
+            {{ 'production.saveDraft' | translate }}
+          </button>
+          <button class="btn btn-primary" type="submit" [disabled]="!canValidate()">
+            {{ 'production.validate' | translate }}
+          </button>
+        </footer>
+      </form>
+
+      <aside class="card recent" aria-labelledby="recent-title">
+        <header class="recent-head">
+          <h2 id="recent-title">
+            {{ 'production.recent' | translate }}
+            <span class="code-chip" aria-hidden="true">PRD-03</span>
+          </h2>
+          <a class="link-arrow" routerLink="/production">{{ 'production.all' | translate }}</a>
+        </header>
+        <ul class="lots">
+          @for (lot of recentLots(); track lot.number) {
+            <li>
+              <span class="date num" aria-hidden="true">{{ lot.date | shortDate }}</span>
+              <span class="lot-info">
+                <strong>{{ lot.articleName }}</strong>
+                <span class="mono muted"
+                  >{{ lot.number }} · {{ lot.quantity }} u. · {{ lot.operator }}</span
+                >
+              </span>
+              <vvs-status-badge
+                [tone]="lotTones[lot.status]"
+                [label]="'production.status.' + lot.status | translate"
+              />
+            </li>
+          }
+        </ul>
+      </aside>
+    </div>
+  } @else if (context.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="context.reload()" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="8" /></div>
+  }
+</div>

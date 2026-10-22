@@ -1,10 +1,17 @@
 <section class="page">
-  <header class="page-header">
-    <div>
-      <h1>{{ 'journal.title' | translate }}</h1>
-      <p>{{ 'journal.count' | translate: { count: totalCount() } }}</p>
-    </div>
-  </header>
+  <vvs-page-header
+    [heading]="'journal.title' | translate"
+    [subtitle]="'journal.subtitle' | translate"
+    [codes]="['JNL-01', 'JNL-02', 'JNL-03']"
+  />
+
+  <p class="append-only" role="note">
+    <svg [vvsIcon]="icons.Lock" [size]="20"></svg>
+    <span>
+      <strong>{{ 'journal.appendOnly.title' | translate }}</strong>
+      {{ 'journal.appendOnly.text' | translate }}
+    </span>
+  </p>
 
   <div class="card">
     <form class="toolbar" (submit)="$event.preventDefault(); onSearch(searchInput.value)">
@@ -20,6 +27,7 @@
         [value]="search()"
       />
       <button class="btn btn-ghost" type="submit">{{ 'journal.search.submit' | translate }}</button>
+      <p class="count" role="status">{{ 'journal.count' | translate: { count: totalCount() } }}</p>
     </form>
 
     @if (errorMessage(); as message) {
@@ -27,7 +35,7 @@
     }
 
     <div class="table-wrapper">
-      <table>
+      <table class="table">
         <thead>
           <tr>
             <th scope="col">{{ 'journal.column.date' | translate }}</th>
@@ -41,15 +49,16 @@
           @for (entry of entries(); track entry.id) {
             <tr>
               <td>
-                <time [attr.datetime]="entry.occurredAt">{{
+                <time class="time" [attr.datetime]="entry.occurredAt">{{
                   entry.occurredAt | date: 'dd/MM/yyyy HH:mm:ss'
                 }}</time>
               </td>
               <td class="name">{{ entry.actorName }}</td>
               <td>
-                <span class="badge" [class]="'badge-action-' + entry.action.toLowerCase()">{{
-                  'journal.action.' + entry.action | translate
-                }}</span>
+                <vvs-status-badge
+                  [tone]="tones[entry.action]"
+                  [label]="'journal.action.' + entry.action | translate"
+                />
               </td>
               <td>{{ entry.resourceType }}</td>
               <td class="description">{{ entry.description }}</td>

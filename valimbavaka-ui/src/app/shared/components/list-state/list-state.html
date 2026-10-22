@@ -1,0 +1,32 @@
+@switch (kind()) {
+  @case ('loading') {
+    <div class="loading" role="status" [attr.aria-label]="'listState.loading' | translate">
+      @for (row of skeletonRows(); track row) {
+        <div class="skeleton-row" aria-hidden="true">
+          <span class="skeleton avatar"></span>
+          <span class="skeleton line"></span>
+          <span class="skeleton line short"></span>
+        </div>
+      }
+    </div>
+  }
+  @case ('empty') {
+    <div class="state" role="status">
+      <span class="icon"><svg [vvsIcon]="icons.Inbox" [size]="24"></svg></span>
+      <p class="title">{{ titleKey() ?? 'listState.empty.title' | translate }}</p>
+      <p class="message">{{ messageKey() ?? 'listState.empty.message' | translate }}</p>
+      <ng-content select="[emptyAction]" />
+    </div>
+  }
+  @case ('error') {
+    <div class="state" role="alert">
+      <span class="icon danger"><svg [vvsIcon]="icons.CircleAlert" [size]="24"></svg></span>
+      <p class="title">{{ titleKey() ?? 'listState.error.title' | translate }}</p>
+      <p class="message">{{ messageKey() ?? 'listState.error.message' | translate }}</p>
+      <button class="btn btn-secondary btn-sm" type="button" (click)="retry.emit()">
+        <svg [vvsIcon]="icons.RefreshCw"></svg>
+        {{ 'listState.error.retry' | translate }}
+      </button>
+    </div>
+  }
+}

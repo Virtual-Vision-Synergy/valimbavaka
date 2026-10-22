@@ -1,0 +1,165 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'reports.title' | translate"
+    [subtitle]="'reports.subtitle' | translate"
+    [codes]="['RPT-01', 'RPT-06']"
+  >
+    <button class="btn btn-secondary" type="button" (click)="exportAs('PDF')">
+      <svg [vvsIcon]="icons.FileText" [size]="18"></svg>
+      PDF
+    </button>
+    <button class="btn btn-secondary" type="button" (click)="exportAs('XLSX')">
+      <svg [vvsIcon]="icons.FileSpreadsheet" [size]="18"></svg>
+      {{ 'reports.exportXlsx' | translate }}
+    </button>
+  </vvs-page-header>
+
+  <form
+    class="card filters"
+    (submit)="$event.preventDefault()"
+    [attr.aria-label]="'reports.filters' | translate"
+  >
+    <vvs-segmented-control
+      [label]="'reports.periodLabel' | translate"
+      [options]="periods"
+      [value]="period()"
+      (valueChange)="setPeriod($event)"
+    />
+    <label class="field">
+      <span>{{ 'reports.channel' | translate }}</span>
+      <select #channel class="input" (change)="setFilter('channel', channel.value)">
+        <option value="ALL" [selected]="filter().channel === 'ALL'">
+          {{ 'reports.allChannels' | translate }}
+        </option>
+        @for (item of channels; track item) {
+          <option [value]="item" [selected]="filter().channel === item">
+            {{ 'sales.channel.' + item | translate }}
+          </option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span>{{ 'reports.range' | translate }}</span>
+      <select #range class="input" (change)="setFilter('range', range.value)">
+        <option value="ALL" [selected]="filter().range === 'ALL'">
+          {{ 'reports.allRanges' | translate }}
+        </option>
+        @for (item of ranges; track item) {
+          <option [value]="item" [selected]="filter().range === item">{{ item }}</option>
+        }
+      </select>
+    </label>
+    <label class="field">
+      <span>{{ 'reports.seller' | translate }}</span>
+      <select #seller class="input" (change)="setFilter('seller', seller.value)">
+        <option value="ALL" [selected]="filter().seller === 'ALL'">
+          {{ 'reports.allSellers' | translate }}
+        </option>
+        @for (item of sellers; track item) {
+          <option [value]="item" [selected]="filter().seller === item">{{ item }}</option>
+        }
+      </select>
+    </label>
+    <button class="btn btn-ghost" type="button" [disabled]="!dirty()" (click)="reset()">
+      {{ 'reports.reset' | translate }}
+    </button>
+  </form>
+
+  <div aria-live="polite">
+    @if (report.value(); as data) {
+      <ul class="kpis" [attr.aria-label]="'reports.kpis' | translate">
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.revenue' | translate"
+            [value]="compact(data.kpis.revenue.value)"
+            unit="Ar"
+            [trend]="trend(data.kpis.revenue, 'percent')"
+          />
+          <p class="vs">
+            {{ 'reports.vs' | translate: { value: compact(data.kpis.revenue.previous) + ' Ar' } }}
+          </p>
+        </li>
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.sales' | translate"
+            [value]="data.kpis.sales.value.toString()"
+            [trend]="trend(data.kpis.sales, 'percent')"
+          />
+          <p class="vs">{{ 'reports.vs' | translate: { value: data.kpis.sales.previous } }}</p>
+        </li>
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.basket' | translate"
+            [value]="data.kpis.basket.value | ariary: 'plain'"
+            unit="Ar"
+            [trend]="trend(data.kpis.basket, 'percent')"
+          />
+          <p class="vs">
+            {{ 'reports.vs' | translate: { value: (data.kpis.basket.previous | ariary) } }}
+          </p>
+        </li>
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.delivery' | translate"
+            [value]="data.kpis.delivery.value + ' %'"
+            [trend]="trend(data.kpis.delivery, 'points')"
+          />
+          <p class="vs">
+            {{ 'reports.vs' | translate: { value: data.kpis.delivery.previous + ' %' } }}
+          </p>
+        </li>
+      </ul>
+
+      <div class="grid">
+        <section class="card wide" aria-labelledby="rev-title">
+          <h2 id="rev-title">
+            {{ 'reports.revenueTitle' | translate }}
+            <span class="code-chip" aria-hidden="true">RPT-03</span>
+          </h2>
+          <vvs-revenue-compare-chart
+            [caption]="'reports.revenueTitle' | translate"
+            [points]="data.points"
+            [currentLabel]="'reports.current' | translate"
+            [previousLabel]="'reports.previous' | translate"
+          />
+        </section>
+
+        <section class="card" aria-labelledby="range-title">
+          <h2 id="range-title">
+            {{ 'reports.ranges.title' | translate }}
+            <span class="code-chip" aria-hidden="true">RPT-04</span>
+          </h2>
+          <vvs-range-donut [ranges]="data.ranges" />
+        </section>
+
+        <section class="card" aria-labelledby="top-title">
+          <h2 id="top-title">
+            {{ 'reports.top.title' | translate }}
+            <span class="code-chip" aria-hidden="true">RPT-05</span>
+          </h2>
+          <ol class="top">
+            @for (item of data.top; track item.name; let rank = $index) {
+              <li>
+                <span class="rank num" aria-hidden="true">{{ rank + 1 }}</span>
+                <span class="name">
+                  <strong>{{ item.name }}</strong>
+                  <span class="muted num">{{
+                    'reports.top.units' | translate: { count: item.units }
+                  }}</span>
+                </span>
+                <strong class="num">{{ compact(item.revenue) }} Ar</strong>
+              </li>
+            }
+          </ol>
+          <button class="link" type="button" (click)="exportAs('Top 20')">
+            {{ 'reports.top.all' | translate }}
+          </button>
+        </section>
+      </div>
+    } @else if (report.error()) {
+      <div class="card"><vvs-list-state kind="error" (retry)="report.reload()" /></div>
+    } @else {
+      <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+    }
+  </div>
+</div>

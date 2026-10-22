@@ -1,0 +1,79 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+.list {
+  padding: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.search {
+  flex: 1 1 260px;
+  max-width: 380px;
+}
+.row {
+  position: relative;
+}
+.row:hover {
+  background: var(--gris-fond);
+}
+.row.selected {
+  background: var(--secondary-xlight);
+  box-shadow: inset 3px 0 0 var(--secondary-strong);
+}
+.row.inactive .cell-title {
+  color: var(--gris-moyen);
+}
+tbody th {
+  font-weight: 400;
+}
+.row-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+/* Toute la ligne est cliquable ; le bouton reste la seule cible au clavier. */
+.row-link::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+.row-link:focus-visible {
+  outline: none;
+}
+.row:has(.row-link:focus-visible) {
+  outline: 2px solid var(--secondary-strong);
+  outline-offset: -2px;
+}
+.cell-sub {
+  display: block;
+}
+.lead-note {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+@container (max-width: 640px) {
+  .c-city,
+  .c-last {
+    display: none;
+  }
+}
+@media (min-width: 1600px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 420px;
+  }
+}

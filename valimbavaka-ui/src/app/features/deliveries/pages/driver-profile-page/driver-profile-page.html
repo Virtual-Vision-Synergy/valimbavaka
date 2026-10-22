@@ -1,0 +1,24 @@
+@if (user(); as me) {
+  <header class="card identity">
+    <vvs-avatar-initials [name]="me.firstName + ' ' + me.lastName" [size]="56" />
+    <div>
+      <h1>{{ me.firstName }} {{ me.lastName }}</h1>
+      <p>{{ me.roleLabel }} · {{ me.email }}</p>
+    </div>
+  </header>
+}
+<section class="card settings" [attr.aria-label]="'deliveries.driver.settings' | translate">
+  <div class="row">
+    <vvs-language-switcher />
+  </div>
+  <div class="row">
+    <button class="btn btn-ghost btn-block" type="button" (click)="preferences.toggleTheme()">
+      <svg [vvsIcon]="preferences.theme() === 'dark' ? icons.Sun : icons.Moon" [size]="18"></svg>
+      {{ (preferences.theme() === 'dark' ? 'layout.lightTheme' : 'layout.darkTheme') | translate }}
+    </button>
+  </div>
+</section>
+<button class="btn btn-danger btn-block logout" type="button" (click)="logout()">
+  <svg [vvsIcon]="icons.LogOut" [size]="18"></svg>
+  {{ 'layout.logout' | translate }}
+</button>

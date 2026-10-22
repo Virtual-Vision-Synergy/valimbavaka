@@ -1,0 +1,39 @@
+<section class="panel glass" [attr.aria-labelledby]="'notif-title'">
+  <header class="head">
+    <h2 id="notif-title" tabindex="-1">{{ 'notifications.title' | translate }}</h2>
+    <vvs-under-construction />
+  </header>
+  <ul class="list">
+    @for (item of notifications(); track item.id) {
+      <li>
+        <a
+          class="item"
+          [class.unread]="!item.read"
+          [routerLink]="item.route"
+          (click)="closed.emit()"
+        >
+          <span class="icon" [attr.data-kind]="item.kind">
+            <svg [vvsIcon]="icons[item.kind]" [size]="18"></svg>
+          </span>
+          <span class="text">
+            <span class="message">{{ item.messageKey | translate: item.params }}</span>
+            <span class="when">{{ item.minutesAgo | relativeTime }}</span>
+          </span>
+          @if (!item.read) {
+            <span class="sr-only">{{ 'notifications.unread' | translate }}</span>
+          }
+        </a>
+      </li>
+    }
+  </ul>
+  <footer class="foot">
+    <button
+      class="btn btn-ghost btn-sm"
+      type="button"
+      [disabled]="unreadCount() === 0"
+      (click)="markAllAsRead()"
+    >
+      {{ 'notifications.markAllRead' | translate }}
+    </button>
+  </footer>
+</section>

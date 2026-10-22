@@ -1,0 +1,19 @@
+<div class="tile" [attr.data-range]="range()">
+  <span class="visual" aria-hidden="true">{{ initials() }}</span>
+  <span class="name">{{ name() || ('articles.form.previewName' | translate) }}</span>
+  <span class="foot">
+    <span class="price num">
+      @if (price()) {
+        {{ price() ?? 0 | ariary }}
+      } @else {
+        — Ar
+      }
+    </span>
+    @if (range(); as range) {
+      <vvs-range-tag [range]="range" />
+    }
+  </span>
+</div>
+@if (!range()) {
+  <p class="note">{{ 'articles.form.previewNotSold' | translate }}</p>
+}

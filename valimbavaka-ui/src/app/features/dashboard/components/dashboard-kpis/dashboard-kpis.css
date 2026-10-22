@@ -1,0 +1,52 @@
+.stack {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--fond-dark);
+}
+.stack span {
+  height: 100%;
+}
+[data-channel='SHOP'],
+.done {
+  --dot: var(--channel-shop);
+  background: var(--channel-shop);
+}
+[data-channel='FACEBOOK'] {
+  --dot: var(--channel-facebook);
+  background: var(--channel-facebook);
+}
+[data-channel='PHONE'] {
+  --dot: var(--channel-phone);
+  background: var(--channel-phone);
+}
+.progress {
+  background: var(--secondary-light);
+}
+.failed {
+  background: var(--danger);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  list-style: none;
+}
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+}
+.legend li::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--dot);
+}
+.link-arrow {
+  margin-top: auto;
+}

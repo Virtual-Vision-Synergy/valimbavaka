@@ -1,0 +1,278 @@
+<div class="page">
+  @if (inventory.value(); as data) {
+    @let session = data.session;
+    <header class="card top">
+      <div class="top-main">
+        <h1>
+          {{
+            'inventory.title'
+              | translate: { location: ('stocks.location.' + session.location | translate) }
+          }}
+          <vvs-status-badge
+            [tone]="closedAt() ? 'success' : 'info'"
+            [label]="
+              (closedAt() ? 'inventory.status.CLOSED' : 'inventory.status.IN_PROGRESS') | translate
+            "
+          />
+          <span class="code-chip" aria-hidden="true">INV-01 · INV-04</span>
+        </h1>
+        @if (opened(); as when) {
+          <p class="muted">
+            {{
+              'inventory.openedBy'
+                | translate
+                  : {
+                      number: session.number,
+                      date: (when.date | shortDate),
+                      time: when.time,
+                      who: session.openedBy,
+                    }
+            }}
+          </p>
+        }
+        <p class="muted">{{ 'inventory.salesBlocked' | translate }}</p>
+      </div>
+      <div class="progress">
+        <p>
+          <span>{{ 'inventory.progress' | translate }}</span>
+          <strong class="num">{{
+            'inventory.counted'
+              | translate: { done: state.counted().length, total: state.rows().length }
+          }}</strong>
+        </p>
+        <div
+          class="bar"
+          role="progressbar"
+          [attr.aria-label]="'inventory.progress' | translate"
+          aria-valuemin="0"
+          [attr.aria-valuemax]="state.rows().length"
+          [attr.aria-valuenow]="state.counted().length"
+        >
+          <span [style.width.%]="progress()"></span>
+        </div>
+      </div>
+      <div class="close">
+        @if (!closedAt()) {
+          <button
+            class="btn btn-primary btn-lg"
+            type="button"
+            [disabled]="!state.canClose()"
+            aria-describedby="close-hint"
+            (click)="openClose()"
+          >
+            <svg [vvsIcon]="icons.Lock" [size]="18"></svg>
+            {{ 'inventory.close' | translate }}
+          </button>
+          <p id="close-hint" class="hint">
+            {{ (state.canClose() ? 'inventory.closeReady' : 'inventory.closeHint') | translate }}
+          </p>
+        } @else {
+          <p class="done" role="status">
+            {{ 'inventory.closedAt' | translate: { time: closedAt() } }}
+          </p>
+        }
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="card list" [attr.aria-label]="'inventory.listLabel' | translate">
+        <div class="filters">
+          <vvs-filter-chips
+            [label]="'inventory.filterLabel' | translate"
+            [options]="filterOptions()"
+            [value]="state.filter()"
+            (valueChange)="state.filter.set($event)"
+          />
+          <label class="scan">
+            <svg [vvsIcon]="icons.ScanBarcode" [size]="18"></svg>
+            <span class="sr-only">{{ 'inventory.scan' | translate }}</span>
+            <input
+              #scanInput
+              class="scan-input"
+              inputmode="numeric"
+              autocomplete="off"
+              [placeholder]="'inventory.scan' | translate"
+              [value]="scan()"
+              [disabled]="!!closedAt()"
+              (keydown.enter)="scanned(scanInput.value)"
+            />
+          </label>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'inventory.col.article' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'inventory.col.theoretical' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'inventory.col.counted' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'inventory.col.gap' | translate }}</th>
+                <th scope="col" class="c-reason">{{ 'inventory.col.reason' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of state.visible(); track row.line.articleId) {
+                <tr
+                  [attr.data-gap]="
+                    row.gap === null || row.gap === 0 ? null : row.gap < 0 ? 'minus' : 'plus'
+                  "
+                >
+                  <th scope="row">
+                    <span class="cell-title">{{ row.line.name }}</span>
+                    <span class="cell-sub mono">{{ row.line.reference }}</span>
+                  </th>
+                  <td class="cell-num num muted">{{ row.line.theoretical }}</td>
+                  <td class="cell-num">
+                    <input
+                      #count
+                      class="qty num"
+                      type="number"
+                      min="0"
+                      inputmode="numeric"
+                      placeholder="—"
+                      [id]="'count-' + row.line.articleId"
+                      [value]="row.counted ?? ''"
+                      [disabled]="!!closedAt()"
+                      [attr.aria-label]="
+                        ('inventory.col.counted' | translate) + ' — ' + row.line.name
+                      "
+                      (focus)="count.select()"
+                      (input)="state.setCount(row.line.articleId, count.value)"
+                    />
+                  </td>
+                  <td class="cell-num gap num">
+                    @if (row.gap === null) {
+                      <span class="muted">—</span>
+                    } @else {
+                      <span
+                        [attr.data-sign]="row.gap === 0 ? 'zero' : row.gap < 0 ? 'minus' : 'plus'"
+                        >{{ signedGap(row.gap) }}</span
+                      >
+                    }
+                  </td>
+                  <td class="c-reason">
+                    @if (row.gap !== null && row.gap !== 0) {
+                      <select
+                        #reason
+                        class="reason"
+                        [disabled]="!!closedAt()"
+                        [attr.aria-label]="
+                          ('inventory.col.reason' | translate) + ' — ' + row.line.name
+                        "
+                        [attr.aria-invalid]="!row.reason"
+                        (change)="state.setReason(row.line.articleId, reason.value)"
+                      >
+                        <option value="" [selected]="!row.reason">
+                          {{ 'inventory.chooseReason' | translate }}
+                        </option>
+                        @for (option of reasons; track option) {
+                          <option [value]="option" [selected]="option === row.reason">
+                            {{ 'inventory.reason.' + option | translate }}
+                          </option>
+                        }
+                      </select>
+                    } @else {
+                      <span class="muted">—</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="empty">{{ 'inventory.empty' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="aside">
+        <section class="card pad" aria-labelledby="balance-title">
+          <h2 id="balance-title" class="caption">{{ 'inventory.balance' | translate }}</h2>
+          <dl class="balance">
+            <div>
+              <dt>{{ 'inventory.gapUnits' | translate }}</dt>
+              <dd
+                class="num"
+                [attr.data-sign]="
+                  state.totals().units < 0 ? 'minus' : state.totals().units > 0 ? 'plus' : 'zero'
+                "
+              >
+                {{ signedGap(state.totals().units) }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'inventory.gapValue' | translate }}</dt>
+              <dd
+                class="num"
+                [attr.data-sign]="
+                  state.totals().value < 0 ? 'minus' : state.totals().value > 0 ? 'plus' : 'zero'
+                "
+              >
+                {{ state.totals().value > 0 ? '+' : state.totals().value < 0 ? '−' : ''
+                }}{{
+                  (state.totals().value < 0 ? -state.totals().value : state.totals().value) | ariary
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>{{ 'inventory.gapArticles' | translate }}</dt>
+              <dd class="num plain">{{ state.gapRows().length }}</dd>
+            </div>
+          </dl>
+          @if (state.missingReasons().length) {
+            <p class="alert alert-warning" role="status">
+              {{ 'inventory.missingReasons' | translate: { count: state.missingReasons().length } }}
+            </p>
+          }
+        </section>
+
+        <section class="card pad" aria-labelledby="previous-title">
+          <h2 id="previous-title" class="caption">
+            {{ 'inventory.previous' | translate }}
+            <span class="code-chip" aria-hidden="true">INV-05</span>
+          </h2>
+          <ul class="previous">
+            @for (item of data.previous; track item.number) {
+              <li>
+                <span>
+                  <strong>{{ 'stocks.location.' + item.location | translate }}</strong>
+                  <span class="mono muted block"
+                    >{{ item.number }} · {{ item.closedOn | shortDate }}</span
+                  >
+                </span>
+                <strong
+                  class="num"
+                  [attr.data-sign]="
+                    item.gapUnits < 0 ? 'minus' : item.gapUnits > 0 ? 'plus' : 'zero'
+                  "
+                >
+                  {{ signedGap(item.gapUnits) }}
+                </strong>
+              </li>
+            }
+          </ul>
+        </section>
+      </aside>
+    </div>
+  } @else if (inventory.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="inventory.reload()" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="8" /></div>
+  }
+</div>
+
+<dialog #closeDialog class="confirm" aria-labelledby="close-title" aria-describedby="close-text">
+  <h2 id="close-title">{{ 'inventory.confirmTitle' | translate }}</h2>
+  <p id="close-text">
+    {{ 'inventory.confirmText' | translate: { count: state.gapRows().length } }}
+  </p>
+  <div class="confirm-actions">
+    <button class="btn btn-secondary" type="button" (click)="cancelClose()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button class="btn btn-primary" type="button" [disabled]="closing()" (click)="confirmClose()">
+      {{ 'inventory.close' | translate }}
+    </button>
+  </div>
+</dialog>

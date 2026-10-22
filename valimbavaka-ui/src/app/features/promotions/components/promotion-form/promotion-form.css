@@ -1,0 +1,82 @@
+:host {
+  display: block;
+}
+.form {
+  padding: 0;
+  overflow: hidden;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.head h2 {
+  font-size: var(--text-xl);
+}
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+}
+.label,
+.field legend {
+  font-weight: 600;
+}
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.with-unit {
+  position: relative;
+}
+.with-unit .input {
+  padding-right: 56px;
+  text-align: right;
+}
+.unit {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
+  color: var(--gris-moyen);
+  pointer-events: none;
+}
+.optional {
+  color: var(--gris-moyen);
+  font-weight: 400;
+}
+.channels {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-2);
+}
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  cursor: pointer;
+}
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--secondary-strong);
+}
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--gris-fond);
+}

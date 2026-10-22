@@ -1,0 +1,67 @@
+<section class="card flush" aria-labelledby="stock-alerts-title">
+  <header class="card-header">
+    <div>
+      <h2 id="stock-alerts-title">
+        {{ 'dashboard.stockAlerts.title' | translate }}
+        <span class="code-chip" aria-hidden="true">DSH-03 · STK-04</span>
+      </h2>
+      <p class="card-subtitle">
+        {{ 'dashboard.stockAlerts.subtitle' | translate: { count: alerts().length } }}
+      </p>
+    </div>
+    <div class="actions">
+      <a class="btn btn-secondary btn-sm" routerLink="/stocks">{{ 'common.seeAll' | translate }}</a>
+      <a class="btn btn-outline btn-sm" routerLink="/stocks">{{
+        'dashboard.stockAlerts.reorder' | translate
+      }}</a>
+    </div>
+  </header>
+  <div class="table-wrap">
+    <table class="table">
+      <caption class="sr-only">
+        {{
+          'dashboard.stockAlerts.title' | translate
+        }}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ 'dashboard.stockAlerts.article' | translate }}</th>
+          <th class="secondary" scope="col">{{ 'dashboard.stockAlerts.range' | translate }}</th>
+          <th class="secondary" scope="col">{{ 'dashboard.stockAlerts.location' | translate }}</th>
+          <th scope="col">{{ 'dashboard.stockAlerts.level' | translate }}</th>
+          <th scope="col">{{ 'dashboard.stockAlerts.state' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.articleId) {
+          <tr>
+            <td>
+              <span class="cell-title">{{ row.name }}</span>
+              <span class="cell-sub">{{ row.reference }}</span>
+            </td>
+            <td class="secondary"><vvs-range-tag [range]="row.range" /></td>
+            <td class="secondary">{{ row.location }}</td>
+            <td>
+              <span class="level">
+                <span class="gauge" aria-hidden="true"
+                  ><span [class.out]="row.out" [style.width.%]="row.fill"></span
+                ></span>
+                <span class="num">{{ row.quantity }} / {{ row.threshold }}</span>
+              </span>
+            </td>
+            <td>
+              @if (row.out) {
+                <vvs-status-badge tone="danger" [label]="'dashboard.stockAlerts.out' | translate" />
+              } @else {
+                <vvs-status-badge
+                  tone="warning"
+                  [label]="'dashboard.stockAlerts.low' | translate"
+                />
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>

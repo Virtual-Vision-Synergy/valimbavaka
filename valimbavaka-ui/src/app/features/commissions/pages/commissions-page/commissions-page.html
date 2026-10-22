@@ -1,0 +1,167 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'commissions.title' | translate"
+    [subtitle]="statement.value() ? monthLabel(month()) + ' · ' + statement.value()!.seller : ''"
+    [codes]="['COM-01', 'COM-02', 'COM-04']"
+  >
+    <label class="month">
+      <span class="sr-only">{{ 'commissions.month' | translate }}</span>
+      <select #monthSelect class="input" (change)="selectMonth(monthSelect.value)">
+        @for (item of months(); track item.value) {
+          <option [value]="item.value" [selected]="item.value === month()">{{ item.label }}</option>
+        }
+      </select>
+    </label>
+  </vvs-page-header>
+
+  @if (statement.value(); as data) {
+    <section class="card hero" aria-labelledby="estimate-title">
+      <div
+        class="ring"
+        role="img"
+        [attr.aria-label]="'commissions.ringLabel' | translate: { percent: progress() }"
+      >
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle class="track" cx="60" cy="60" r="52" />
+          <circle
+            class="arc"
+            cx="60"
+            cy="60"
+            r="52"
+            [attr.stroke-dasharray]="(progress() / 100) * circumference + ' ' + circumference"
+            transform="rotate(-90 60 60)"
+          />
+        </svg>
+        <p class="ring-text">
+          <strong class="num">{{ progress() }} %</strong>
+          <span>{{ 'commissions.ofGoal' | translate }}</span>
+        </p>
+      </div>
+
+      <div class="estimate">
+        <h2 id="estimate-title" class="caption">{{ 'commissions.estimated' | translate }}</h2>
+        <p class="estimate-value num">{{ estimate() | ariary }}</p>
+        <p class="muted">
+          {{
+            'commissions.salesGoal'
+              | translate
+                : { sales: (data.sales | ariary: 'compact'), goal: (data.goal | ariary: 'compact') }
+          }}
+        </p>
+        @if (remaining(); as rest) {
+          <p class="callout">
+            {{
+              'commissions.remaining'
+                | translate
+                  : {
+                      left: (rest.left | ariary: 'compact'),
+                      days: rest.days,
+                      perDay: (rest.perDay | ariary),
+                    }
+            }}
+          </p>
+        }
+      </div>
+
+      <dl class="split">
+        <div>
+          <dt>{{ 'commissions.validated' | translate }}</dt>
+          <dd class="num ok">{{ data.validated | ariary: 'plain' }}</dd>
+          <dd class="unit">Ar</dd>
+        </div>
+        <div>
+          <dt>{{ 'commissions.toValidate' | translate }}</dt>
+          <dd class="num warn">{{ data.toValidate | ariary: 'plain' }}</dd>
+          <dd class="unit">Ar</dd>
+        </div>
+        <div>
+          <dt>{{ 'commissions.salesCount' | translate }}</dt>
+          <dd class="num">{{ data.salesCount }}</dd>
+          <dd class="unit">{{ 'commissions.thisMonth' | translate }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <ul class="channels" [attr.aria-label]="'commissions.byChannel' | translate">
+      @for (item of data.channels; track item.channel) {
+        <li class="card channel">
+          <p class="channel-head">
+            <span class="caption">
+              {{
+                (item.channel === 'SALON' ? 'commissions.salon' : 'sales.channel.' + item.channel)
+                  | translate
+              }}
+            </span>
+            <strong class="rate">
+              {{
+                item.ratePercent === null
+                  ? ('commissions.fixed' | translate)
+                  : item.ratePercent + ' %'
+              }}
+            </strong>
+          </p>
+          <p class="channel-amount num">{{ item.amount | ariary }}</p>
+          <p class="muted">
+            @if (item.channel === 'SALON') {
+              {{ 'commissions.services' | translate: { count: item.base } }}
+            } @else {
+              {{ 'commissions.ofSales' | translate: { amount: (item.base | ariary: 'compact') } }}
+            }
+          </p>
+        </li>
+      }
+    </ul>
+
+    <section class="card detail" aria-labelledby="detail-title">
+      <header class="detail-head">
+        <h2 id="detail-title">
+          {{ 'commissions.detail' | translate }}
+          <span class="code-chip" aria-hidden="true">COM-03</span>
+        </h2>
+        <button class="btn btn-secondary" type="button" (click)="exportStatement()">
+          <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+          {{ 'commissions.export' | translate }}
+        </button>
+      </header>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'commissions.col.sale' | translate }}</th>
+              <th scope="col">{{ 'commissions.col.date' | translate }}</th>
+              <th scope="col" class="c-channel">{{ 'commissions.col.channel' | translate }}</th>
+              <th scope="col" class="cell-num c-base">{{ 'commissions.col.base' | translate }}</th>
+              <th scope="col" class="cell-num c-rate">{{ 'commissions.col.rate' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'commissions.col.commission' | translate }}</th>
+              <th scope="col">{{ 'commissions.col.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of data.lines; track line.sale) {
+              <tr>
+                <th scope="row" class="mono">{{ line.sale }}</th>
+                <td class="num">{{ line.date | shortDate }}</td>
+                <td class="c-channel">{{ 'sales.channel.' + line.channel | translate }}</td>
+                <td class="cell-num num c-base">{{ line.base | ariary: 'plain' }}</td>
+                <td class="cell-num num c-rate muted">{{ line.ratePercent }} %</td>
+                <td class="cell-num num">
+                  <strong>{{ line.amount | ariary: 'plain' }}</strong>
+                </td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="tones[line.status]"
+                    [label]="'commissions.status.' + line.status | translate"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  } @else if (statement.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="statement.reload()" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</div>

@@ -1,0 +1,22 @@
+<a class="skip-link" href="#main-content">{{ 'layout.skipToContent' | translate }}</a>
+
+<div class="demo-strip"><vvs-under-construction /></div>
+
+<main id="main-content" class="content" tabindex="-1">
+  <router-outlet />
+</main>
+
+<nav class="tabbar" [attr.aria-label]="'deliveries.driver.tabs' | translate">
+  @for (tab of tabs; track tab.path) {
+    <a
+      class="tab"
+      [routerLink]="tab.path"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      [routerLinkActiveOptions]="{ exact: tab.exact }"
+    >
+      <svg [vvsIcon]="tab.icon" [size]="22"></svg>
+      <span>{{ tab.labelKey | translate }}</span>
+    </a>
+  }
+</nav>

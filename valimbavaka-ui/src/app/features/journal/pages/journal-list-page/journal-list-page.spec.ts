@@ -1,5 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
@@ -40,6 +41,7 @@ describe('JournalListPage', () => {
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
+        provideRouter([]),
         provideTestTranslations(),
       ],
     }).compileComponents();

@@ -1,46 +1,79 @@
 /* ============================================================
    DESIGN TOKENS — VALIMBAVAKA COSMETICS
-   Charte graphique héritée de l'ancienne UI (Vue.js), portée
-   telle quelle pour le refonte Angular.
-   Référence complète : /resources/design/charte-graphique.md
+   Charte : /resources/design/charte-graphique.md.
+   Règle d'usage : les teintes de marque « vives » (--primary, --secondary) sont réservées
+   aux surfaces décoratives, barres et icônes ; tout texte ou fond de bouton porteur de texte
+   utilise une teinte « -strong » dont le contraste est ≥ 4,5:1 (WCAG 2.2 AA, vérifié).
    ============================================================ */
 :root {
-  /* === Couleur primaire (Orange — logo "Valimbavaka") === */
-  --primary: #F26716;
-  --primary-dark: #F25116;
-  --primary-light: #F9A86B;
-  --primary-xlight: #FEF0E6;
+  color-scheme: light;
 
-  /* === Couleur secondaire (Teal — feuille & arcs du logo) === */
-  --secondary: #06BFAD;
-  --secondary-dark: #04BF9D;
-  --secondary-light: #7DDDD6;
-  --secondary-xlight: #E0F7F5;
+  /* === Orange (logo « Valimbavaka ») === */
+  --primary: #f26716;
+  --primary-dark: #f25116;
+  --primary-light: #f9a86b;
+  --primary-xlight: #fef0e6;
+  /* Fond des CTA et texte orange : blanc dessus = 5,2:1 ; sur --primary-xlight = 4,7:1. */
+  --primary-strong: #b84a0a;
+  --primary-strong-hover: #9e3f08;
+  --on-primary-strong: #ffffff;
 
-  /* === Brun (texte "COSMETICS" du logo) === */
+  /* === Teal (feuille & arcs du logo) === */
+  --secondary: #06bfad;
+  --secondary-dark: #04bf9d;
+  --secondary-light: #7dddd6;
+  --secondary-xlight: #e0f7f5;
+  /* Texte teal et fond de la navigation : blanc dessus = 5,2:1 ; sur --secondary-xlight = 4,7:1. */
+  --secondary-strong: #057a6c;
+  --secondary-deep: #04665a;
+
+  /* === Brun (texte « COSMETICS ») === */
   --brun: #583426;
-  --brun-light: #8A5A4A;
+  --brun-light: #8a5a4a;
 
   /* === Fond & neutres === */
-  --fond: #F2F2F2;
-  --fond-dark: #E5E5E5;
-  --gris-anthracite: #2C3035;
-  --gris-moyen: #7F8C8D;
-  --gris-clair: #B0BEC0;
-  --gris-fond: #F8F8F8;
-  --blanc: #FFFFFF;
-  --noir: #1A1C1E;
+  --fond: #f2f2f2;
+  --fond-dark: #e5e5e5;
+  --gris-anthracite: #2c3035;
+  /* Texte secondaire : 4,9:1 sur --fond, 5,5:1 sur blanc (l'ancien #7F8C8D échouait). */
+  --gris-moyen: #5f6b6d;
+  --gris-clair: #b0bec0;
+  --gris-fond: #f8f8f8;
+  --blanc: #ffffff;
+  --noir: #1a1c1e;
+  /* Bordure de contrôle de formulaire : ≥ 3:1 sur blanc (WCAG 1.4.11). */
+  --border-control: #8a9799;
+  --border-subtle: #e3e7e8;
 
-  /* === Sémantique (succès / warning / danger) === */
-  --succes: #07AE12;
-  --succes-light: #D4F5D6;
-  --succes-dark: #057A0D;
-  --warning: #F1C40F;
-  --warning-light: #FEF9C3;
-  --warning-dark: #B8950B;
-  --danger: #E50101;
-  --danger-light: #FDDADA;
-  --danger-dark: #A80000;
+  /* === Sémantique (base décorative / fond clair / texte sur fond clair) === */
+  --succes: #07ae12;
+  --succes-light: #d4f5d6;
+  --succes-dark: #057a0d;
+  --warning: #f1c40f;
+  --warning-light: #fef9c3;
+  --warning-dark: #8a6d00;
+  --danger: #e50101;
+  --danger-light: #fddada;
+  --danger-dark: #a80000;
+  --info: #2f6fde;
+  --info-light: #e4edfc;
+  --info-dark: #1f4fa8;
+
+  /* === Gammes produit (texte sur fond pastel ≥ 4,5:1) === */
+  --range-botanika: #06bfad;
+  --range-botanika-bg: #e0f7f5;
+  --range-botanika-fg: #057a6c;
+  --range-zezika: #c2466a;
+  --range-zezika-bg: #fff0f5;
+  --range-zezika-fg: #a8325a;
+  --range-solika: #d9a400;
+  --range-solika-bg: #fef6d8;
+  --range-solika-fg: #7a5f00;
+
+  /* === Canaux de vente === */
+  --channel-shop: #06bfad;
+  --channel-facebook: #f26716;
+  --channel-phone: #8a5a4a;
 
   /* === Bordures === */
   --card-border: rgba(6, 191, 173, 0.12);
@@ -48,8 +81,15 @@
   /* === Typographie === */
   --font-display: 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'Cascadia Mono', Consolas, monospace;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-kpi: clamp(28px, 2.6vw, 36px);
 
-  /* === Espacements === */
+  /* === Espacements (grille 4 px) === */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -62,26 +102,47 @@
   --space-16: 64px;
 
   /* === Rayons === */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
   --radius-full: 9999px;
 
-  /* === Ombres === */
+  /* === Élévation (soft-UI : 3 niveaux) === */
   --shadow-sm: 0 1px 3px rgba(44, 48, 53, 0.08), 0 1px 2px rgba(44, 48, 53, 0.04);
-  --shadow-md: 0 4px 16px rgba(44, 48, 53, 0.10), 0 2px 6px rgba(44, 48, 53, 0.06);
+  --shadow-md: 0 4px 16px rgba(44, 48, 53, 0.1), 0 2px 6px rgba(44, 48, 53, 0.06);
   --shadow-lg: 0 12px 40px rgba(44, 48, 53, 0.14), 0 4px 12px rgba(44, 48, 53, 0.08);
-  --shadow-glow-primary: 0 0 24px rgba(242, 103, 22, 0.30);
-  --shadow-glow-secondary: 0 0 24px rgba(6, 191, 173, 0.30);
+  --shadow-glow-primary: 0 0 24px rgba(242, 103, 22, 0.3);
+  --shadow-glow-secondary: 0 0 24px rgba(6, 191, 173, 0.3);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
-  /* === Transitions === */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* === Verre (couches flottantes uniquement ; fond de repli opaque si backdrop-filter absent) === */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-fallback: #ffffff;
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-blur: saturate(180%) blur(14px);
+
+  /* === Dégradés de marque (le texte se place sur la partie foncée, à gauche) === */
+  /* Orange Valimbavaka franc : le texte du hero passe en encre sombre (≥ 5,9:1), le blanc échouerait (3,1:1). */
+  --gradient-hero: linear-gradient(115deg, #f26716 0%, #f57a32 50%, #f9a86b 100%);
+  --on-hero: #2b1406;
+  --gradient-nav: linear-gradient(180deg, #056e62 0%, #045a50 100%);
+
+  /* === Mouvement === */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 150ms var(--ease-standard);
+  --transition-base: 250ms var(--ease-standard);
+  --transition-slow: 400ms var(--ease-standard);
+
+  /* === Cibles tactiles === */
+  --target-min: 24px;
+  --target-touch: 44px;
 
   /* === Layout === */
   --sidebar-width: 260px;
-  --sidebar-collapsed: 68px;
-  --header-height: 70px;
+  --sidebar-collapsed: 72px;
+  --header-height: 64px;
+  --content-max: 1600px;
+  --page-gutter: clamp(16px, 3vw, 40px);
 }

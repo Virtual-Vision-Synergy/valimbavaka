@@ -1,0 +1,31 @@
+<header class="head">
+  <h1>{{ 'deliveries.driver.historyTitle' | translate }}</h1>
+  <p>{{ 'deliveries.driver.historyHint' | translate }}</p>
+</header>
+@if (round.value()) {
+  @if (done().length) {
+    <ol class="list">
+      @for (stop of done(); track stop.id) {
+        <li>
+          <span class="time num">{{ stop.time }}</span>
+          <span class="who">
+            <strong>{{ stop.customerName }}</strong>
+            <span
+              >{{ stop.district }} · <span class="num">{{ stop.amount | ariary }}</span></span
+            >
+          </span>
+          <vvs-status-badge
+            [tone]="tones[stop.status]"
+            [label]="'deliveries.status.' + stop.status | translate"
+          />
+        </li>
+      }
+    </ol>
+  } @else {
+    <vvs-list-state kind="empty" titleKey="deliveries.driver.historyEmpty" />
+  }
+} @else if (round.error()) {
+  <vvs-list-state kind="error" (retry)="round.reload()" />
+} @else {
+  <vvs-list-state kind="loading" [rows]="4" />
+}

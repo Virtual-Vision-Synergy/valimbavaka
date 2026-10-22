@@ -1,0 +1,92 @@
+@let d = data();
+<div class="grid grid-4">
+  <vvs-kpi-card
+    [label]="'dashboard.kpi.revenue' | translate"
+    [value]="d.revenue.amount | ariary: 'plain'"
+    unit="Ar"
+    [trend]="revenueTrend()"
+  >
+    <p>
+      {{
+        'dashboard.kpi.revenueCompare' | translate: { amount: (d.revenue.previousAmount | ariary) }
+      }}
+    </p>
+    <div class="meter"><span [style.width.%]="revenueProgress()"></span></div>
+    <p>
+      {{
+        'dashboard.kpi.revenueGoal'
+          | translate: { percent: revenueProgress(), target: (d.revenue.dailyTarget | ariary) }
+      }}
+    </p>
+  </vvs-kpi-card>
+
+  <vvs-kpi-card
+    [label]="'dashboard.kpi.sales' | translate"
+    [value]="'' + d.sales.tickets"
+    [unit]="'dashboard.kpi.tickets' | translate"
+    [trend]="{ tone: 'success', label: '+' + d.sales.delta }"
+  >
+    <p>
+      {{ 'dashboard.kpi.averageBasket' | translate: { amount: (d.sales.averageBasket | ariary) } }}
+    </p>
+    <div class="stack" aria-hidden="true">
+      @for (item of channelShares(); track item.channel) {
+        <span [attr.data-channel]="item.channel" [style.width.%]="item.share"></span>
+      }
+    </div>
+    <ul class="legend">
+      @for (item of channelShares(); track item.channel) {
+        <li [attr.data-channel]="item.channel">
+          {{ 'dashboard.channel.' + item.channel | translate }} {{ item.count }}
+        </li>
+      }
+    </ul>
+  </vvs-kpi-card>
+
+  <vvs-kpi-card
+    [label]="'dashboard.kpi.deliveries' | translate"
+    [value]="d.deliveries.done + ' / ' + d.deliveries.total"
+    [trend]="
+      d.deliveries.failed > 0
+        ? {
+            tone: 'danger',
+            label:
+              (d.deliveries.failed > 1 ? 'dashboard.kpi.failures' : 'dashboard.kpi.failure')
+              | translate: { count: d.deliveries.failed },
+          }
+        : undefined
+    "
+  >
+    <p>
+      {{
+        'dashboard.kpi.deliveriesDetail'
+          | translate: { inProgress: d.deliveries.inProgress, rounds: d.deliveries.activeRounds }
+      }}
+    </p>
+    <div class="stack" aria-hidden="true">
+      <span class="done" [style.width.%]="deliveryShares().done"></span>
+      <span class="progress" [style.width.%]="deliveryShares().inProgress"></span>
+      <span class="failed" [style.width.%]="deliveryShares().failed"></span>
+    </div>
+    <p>
+      {{ 'dashboard.kpi.collected' | translate: { amount: (d.deliveries.collected | ariary) } }}
+    </p>
+  </vvs-kpi-card>
+
+  <vvs-kpi-card
+    [label]="'dashboard.kpi.stockGap' | translate"
+    [value]="stockGapValue()"
+    [unit]="'dashboard.kpi.units' | translate"
+    [trend]="
+      d.stockGap.units !== 0
+        ? { tone: 'warning', label: 'dashboard.kpi.toJustify' | translate }
+        : undefined
+    "
+  >
+    <p>{{ 'dashboard.kpi.stockGapDetail' | translate: { count: d.stockGap.articles } }}</p>
+    <a class="link-arrow" routerLink="/inventory">
+      {{ 'dashboard.kpi.reconcile' | translate }}
+      <svg [vvsIcon]="icons.ArrowRight" [size]="16"></svg>
+    </a>
+  </vvs-kpi-card>
+</div>

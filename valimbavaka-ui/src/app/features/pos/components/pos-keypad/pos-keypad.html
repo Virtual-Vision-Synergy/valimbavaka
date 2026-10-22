@@ -1,0 +1,16 @@
+<div class="keypad" role="group" [attr.aria-label]="'pos.ticket.keypad' | translate">
+  @for (key of keys; track key) {
+    @if (key === 'BACK') {
+      <button
+        class="key"
+        type="button"
+        [attr.aria-label]="'pos.ticket.backspace' | translate"
+        (click)="pressed.emit(key)"
+      >
+        <svg [vvsIcon]="icons.Delete" [size]="24"></svg>
+      </button>
+    } @else {
+      <button class="key num" type="button" (click)="pressed.emit(key)">{{ key }}</button>
+    }
+  }
+</div>

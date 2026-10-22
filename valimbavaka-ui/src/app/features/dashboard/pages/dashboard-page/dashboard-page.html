@@ -1,0 +1,73 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'dashboard.title' | translate"
+    [subtitle]="'dashboard.subtitle' | translate"
+    [codes]="['DSH-01', 'DSH-04']"
+  >
+    <a *vvsHasPermission="'sales.read'" class="btn btn-primary" routerLink="/day/close">
+      <svg [vvsIcon]="icons.Lock"></svg>
+      {{ 'dashboard.hero.prepareClosing' | translate }}
+    </a>
+  </vvs-page-header>
+
+  <vvs-tabs
+    [label]="'dashboard.tab.label' | translate"
+    prefix="dashboard"
+    [tabs]="tabs"
+    [selected]="selectedTab()"
+    (selectedChange)="selectTab($event)"
+  />
+
+  <section
+    class="panel"
+    role="tabpanel"
+    tabindex="0"
+    [id]="'dashboard-panel-' + selectedTab()"
+    [attr.aria-labelledby]="'dashboard-tab-' + selectedTab()"
+    [attr.aria-busy]="dashboard.isLoading()"
+  >
+    @if (dashboard.error()) {
+      <div class="card">
+        <vvs-list-state kind="error" (retry)="dashboard.reload()" />
+      </div>
+    } @else if (dashboard.value(); as data) {
+      @switch (selectedTab()) {
+        @case ('overview') {
+          <vvs-dashboard-hero [data]="data" [firstName]="firstName()" />
+          <section class="card steps-card" [attr.aria-label]="'dashboard.step.title' | translate">
+            <vvs-stepper [label]="'dashboard.step.title' | translate" [steps]="steps()" />
+          </section>
+          <vvs-dashboard-kpis [data]="data" />
+          <div class="grid grid-main-aside">
+            <vvs-stock-alerts-card [alerts]="data.stockAlerts" [limit]="3" />
+            <vvs-activity-feed-card [activity]="data.activity" [limit]="4" />
+          </div>
+        }
+        @case ('analysis') {
+          <div class="grid grid-main-aside">
+            <vvs-revenue-chart-card [data]="data" />
+            <vvs-revenue-split-card [data]="data" />
+          </div>
+          <vvs-top-articles-card
+            [articles]="data.topArticles"
+            [sellers]="canSeeSellers() ? data.sellers : []"
+          />
+          <div class="grid grid-main-aside">
+            <vvs-stock-alerts-card [alerts]="data.stockAlerts" />
+            <vvs-activity-feed-card [activity]="data.activity" />
+          </div>
+        }
+      }
+    } @else {
+      <div class="skeleton hero-skeleton" aria-hidden="true"></div>
+      <div class="grid grid-4" aria-hidden="true">
+        @for (index of [1, 2, 3, 4]; track index) {
+          <div class="skeleton kpi-skeleton"></div>
+        }
+      </div>
+      <div class="card">
+        <vvs-list-state kind="loading" [rows]="4" />
+      </div>
+    }
+  </section>
+</div>

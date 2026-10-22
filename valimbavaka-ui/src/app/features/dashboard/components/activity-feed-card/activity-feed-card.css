@@ -1,0 +1,97 @@
+:host {
+  display: block;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.card-header {
+  align-items: center;
+}
+h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--succes-dark);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.pulse {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--succes);
+}
+.pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--succes);
+  animation: pulse 1.8s ease-out infinite;
+}
+.feed {
+  flex: 1;
+  list-style: none;
+}
+.event {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+}
+.event + .event {
+  border-top: 1px solid var(--border-subtle);
+}
+.icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-lg);
+  background: var(--secondary-xlight);
+  color: var(--secondary-strong);
+}
+[data-kind='DELIVERY'] {
+  background: var(--succes-light);
+  color: var(--succes-dark);
+}
+[data-kind='DELIVERY_FAILED'] {
+  background: var(--danger-light);
+  color: var(--danger-dark);
+}
+[data-kind='SERVICE'] {
+  background: var(--info-light);
+  color: var(--info-dark);
+}
+[data-kind='SHOOTING'] {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+.text {
+  min-width: 0;
+}
+.what {
+  color: var(--gris-anthracite);
+  line-height: 1.45;
+}
+.when {
+  font-size: var(--text-sm);
+}
+.link-arrow {
+  margin-top: var(--space-3);
+}
+@keyframes pulse {
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}

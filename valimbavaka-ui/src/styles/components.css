@@ -1,66 +1,390 @@
 /* ============================================================
-   COMPOSANTS — briques UI génériques (boutons, champs, carte, alertes)
+   COMPOSANTS — briques UI génériques (boutons, champs, carte, alertes, badges, tables)
+   Les composants Angular partagés (shared/components) s'appuient sur ces classes.
    ============================================================ */
+
+/* ── Surfaces ── */
 .card {
   background: var(--blanc);
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
   padding: var(--space-6);
 }
+.card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.card-subtitle {
+  margin-top: 2px;
+  font-size: var(--text-sm);
+}
+.glass {
+  background: var(--glass-bg-fallback);
+  border: 1px solid var(--glass-border);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+  }
+}
 
+/* ── Boutons ── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  min-height: 40px;
   padding: var(--space-2) var(--space-4);
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
-  font: 500 14px/1.4 var(--font-body), sans-serif;
+  font: 600 var(--text-md)/1.2 var(--font-body);
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
 }
-.btn:disabled { opacity: 0.55; cursor: not-allowed; }
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover:not(:disabled) { background: var(--primary-dark); }
-.btn-ghost { background: transparent; color: var(--gris-anthracite); border-color: var(--fond-dark); }
-.btn-ghost:hover:not(:disabled) { background: var(--fond); }
-.btn-danger { background: transparent; color: var(--danger); border-color: var(--danger-light); }
-.btn-danger:hover:not(:disabled) { background: var(--danger-light); }
-.btn-sm { padding: var(--space-1) var(--space-3); font-size: 13px; }
+.btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--primary-strong);
+  color: var(--on-primary-strong);
+  box-shadow:
+    0 1px 2px rgba(184, 74, 10, 0.25),
+    var(--shadow-inset);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-strong-hover);
+}
+.btn-secondary {
+  background: var(--blanc);
+  color: var(--gris-anthracite);
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--border-control);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--primary-strong);
+  border-color: var(--primary-strong);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--primary-xlight);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--gris-anthracite);
+  border-color: var(--border-subtle);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--fond);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--danger-dark);
+  border-color: var(--danger-dark);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--danger-light);
+}
+.btn-sm {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+}
+.btn-lg {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-lg);
+}
+.btn-icon {
+  width: 40px;
+  padding: 0;
+}
+.btn-block {
+  width: 100%;
+}
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--secondary-strong);
+  text-decoration: none;
+}
+.link-arrow:hover {
+  text-decoration: underline;
+}
 
-.field { display: flex; flex-direction: column; gap: var(--space-1); }
-.field label { font-size: 13px; font-weight: 600; color: var(--gris-anthracite); }
+/* ── Champs ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.field label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--gris-anthracite);
+}
+.field-hint {
+  font-size: var(--text-xs);
+  color: var(--gris-moyen);
+}
 .input {
   width: 100%;
+  min-height: 40px;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--gris-clair);
+  border: 1px solid var(--border-control);
   border-radius: var(--radius-lg);
   background: var(--blanc);
   color: var(--gris-anthracite);
-  font: 14px/1.5 var(--font-body), sans-serif;
+  font: var(--text-md)/1.5 var(--font-body);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
-.input:focus { border-color: var(--secondary); outline: none; box-shadow: 0 0 0 3px var(--secondary-xlight); }
-.input.ng-invalid.ng-touched { border-color: var(--danger); }
-.field-error { font-size: 12px; color: var(--danger); }
+.input::placeholder {
+  color: var(--gris-moyen);
+  opacity: 1;
+}
+.input:focus {
+  border-color: var(--secondary-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--secondary-xlight);
+}
+.input.ng-invalid.ng-touched {
+  border-color: var(--danger-dark);
+}
+.field-error {
+  font-size: var(--text-xs);
+  color: var(--danger-dark);
+}
 
+/* ── Alertes ── */
 .alert {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-lg);
-  font-size: 14px;
+  font-size: var(--text-md);
 }
-.alert-danger { background: var(--danger-light); color: var(--danger-dark); }
+.alert-danger {
+  background: var(--danger-light);
+  color: var(--danger-dark);
+}
+.alert-warning {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+.alert-info {
+  background: var(--info-light);
+  color: var(--info-dark);
+}
 
+/* ── Badges (pastille : point + texte, jamais la couleur seule) ── */
 .badge {
-  display: inline-block;
-  padding: 2px var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
   border-radius: var(--radius-full);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
 }
-.badge-success { background: var(--succes-light); color: var(--succes-dark); }
-.badge-muted { background: var(--fond-dark); color: var(--gris-moyen); }
-.badge-secondary { background: var(--secondary-xlight); color: var(--secondary-dark); }
-.badge-warning { background: var(--warning-light); color: var(--warning-dark); }
+.badge-dot::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge-success {
+  background: var(--succes-light);
+  color: var(--succes-dark);
+}
+.badge-muted {
+  background: var(--fond-dark);
+  color: var(--gris-moyen);
+}
+.badge-secondary {
+  background: var(--secondary-xlight);
+  color: var(--secondary-strong);
+}
+.badge-warning {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+.badge-danger {
+  background: var(--danger-light);
+  color: var(--danger-dark);
+}
+.badge-info {
+  background: var(--info-light);
+  color: var(--info-dark);
+}
+.badge-primary {
+  background: var(--primary-xlight);
+  color: var(--primary-strong);
+}
+
+/* Chip de code écran (DSH-01…) : repère de traçabilité maquette ↔ écran. */
+.code-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--gris-fond);
+  color: var(--gris-moyen);
+  font: 500 11px/1.7 var(--font-mono);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ── Tables ── */
+.table-wrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  font-size: var(--text-md);
+}
+.table tbody th {
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.table th {
+  padding: var(--space-3) var(--space-5);
+  background: var(--gris-fond);
+  color: var(--gris-moyen);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.table td {
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+.table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+.table tbody tr:hover {
+  background: var(--gris-fond);
+}
+.table .cell-num {
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.cell-title,
+.cell-sub {
+  display: block;
+}
+.cell-title {
+  font-weight: 600;
+  color: var(--gris-anthracite);
+}
+.cell-sub {
+  font: 12px/1.5 var(--font-mono);
+  color: var(--gris-moyen);
+}
+
+/* ── Barre de progression ── */
+.meter {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--fond-dark);
+}
+.meter > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--secondary);
+  transition: width var(--transition-slow);
+}
+
+/* ── Squelette de chargement ── */
+.skeleton {
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--fond-dark) 25%,
+    var(--gris-fond) 50%,
+    var(--fond-dark) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Grille de page ── */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-8) var(--page-gutter) var(--space-12);
+}
+.grid {
+  display: grid;
+  gap: var(--space-5);
+}
+.grid-4 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+.grid-main-aside {
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+}
+@media (max-width: 1100px) {
+  .grid-main-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

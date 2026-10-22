@@ -1,0 +1,109 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'suppliers.title' | translate"
+    [subtitle]="
+      suppliers.value()
+        ? ('suppliers.subtitle'
+          | translate: { count: suppliers.value()?.length, days: averageLead() })
+        : ''
+    "
+    [codes]="['FRS-01', 'FRS-02', 'FRS-03', 'FRS-04']"
+  >
+    <button class="btn btn-primary" type="button" (click)="demoAction()">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'suppliers.new' | translate }}
+    </button>
+  </vvs-page-header>
+
+  <div class="layout">
+    <section class="card list" [attr.aria-label]="'suppliers.listLabel' | translate">
+      <div class="filters">
+        <vvs-search-field
+          class="search"
+          [label]="'suppliers.search' | translate"
+          [placeholder]="'suppliers.searchPlaceholder' | translate"
+          [(value)]="query"
+        />
+        <vvs-filter-chips
+          [label]="'suppliers.typeFilter' | translate"
+          [options]="typeOptions()"
+          [(value)]="type"
+        />
+      </div>
+
+      @if (suppliers.error()) {
+        <vvs-list-state kind="error" (retry)="suppliers.reload()" />
+      } @else if (!suppliers.value()) {
+        <vvs-list-state kind="loading" [rows]="8" />
+      } @else if (!filtered().length) {
+        <vvs-list-state kind="empty" titleKey="suppliers.empty" messageKey="suppliers.emptyHint" />
+      } @else {
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'suppliers.col.supplier' | translate }}</th>
+                <th scope="col">{{ 'suppliers.col.type' | translate }}</th>
+                <th scope="col" class="c-city">{{ 'suppliers.col.city' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'suppliers.col.lead' | translate }}</th>
+                <th scope="col" class="cell-num c-last">
+                  {{ 'suppliers.col.lastReception' | translate }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (supplier of pageRows(); track supplier.id) {
+                <tr
+                  class="row"
+                  [class.selected]="supplier.id === selectedId()"
+                  [class.inactive]="!supplier.active"
+                >
+                  <th scope="row">
+                    <button
+                      class="row-link"
+                      type="button"
+                      [attr.aria-pressed]="supplier.id === selectedId()"
+                      (click)="selectedId.set(supplier.id)"
+                    >
+                      <span class="cell-title">{{ supplier.name }}</span>
+                    </button>
+                    <span class="cell-sub mono">{{ supplier.code }}</span>
+                  </th>
+                  <td>
+                    <vvs-status-badge
+                      [tone]="typeTones[supplier.type]"
+                      [label]="'suppliers.type.' + supplier.type | translate"
+                    />
+                  </td>
+                  <td class="c-city">{{ supplier.city }}</td>
+                  <td class="cell-num">
+                    <strong class="num">{{
+                      'suppliers.daysShort' | translate: { count: supplier.leadTimeDays }
+                    }}</strong>
+                    @if (supplier.type === 'IMPORT') {
+                      <span class="lead-note">· {{ 'suppliers.leadImport' | translate }}</span>
+                    } @else if (supplier.leadTimeDays >= longLead) {
+                      <span class="lead-note">· {{ 'suppliers.leadLong' | translate }}</span>
+                    }
+                  </td>
+                  <td class="cell-num c-last num">{{ supplier.lastReceptionOn | shortDate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+      }
+    </section>
+
+    @if (selectedId(); as id) {
+      <vvs-side-panel
+        [label]="'suppliers.detailLabel' | translate: { name: selectedName() }"
+        [focusKey]="id"
+        (closed)="selectedId.set(null)"
+      >
+        <vvs-supplier-detail [supplierId]="id" (edit)="demoAction()" />
+      </vvs-side-panel>
+    }
+  </div>
+</div>

@@ -1,0 +1,21 @@
+<div class="tablist" role="tablist" [attr.aria-label]="label()">
+  @for (tab of tabs(); track tab.id; let index = $index) {
+    <button
+      #tab
+      class="tab"
+      type="button"
+      role="tab"
+      [id]="prefix() + '-tab-' + tab.id"
+      [attr.aria-selected]="tab.id === selected()"
+      [attr.aria-controls]="prefix() + '-panel-' + tab.id"
+      [attr.tabindex]="tab.id === selected() ? 0 : -1"
+      (click)="selected.set(tab.id)"
+      (keydown)="onKeydown($event, index)"
+    >
+      {{ tab.labelKey | translate }}
+      @if (tab.count) {
+        <span class="count">{{ tab.count }}</span>
+      }
+    </button>
+  }
+</div>

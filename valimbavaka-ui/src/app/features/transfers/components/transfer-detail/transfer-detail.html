@@ -1,0 +1,70 @@
+<section class="detail">
+  @if (transfer.value(); as t) {
+    <header class="head">
+      <div class="title-row">
+        <h2 class="mono">{{ t.number }}</h2>
+        <vvs-status-badge
+          [tone]="tones[t.status]"
+          [label]="'transfers.status.' + t.status | translate"
+        />
+      </div>
+      <p class="muted">
+        {{ 'transfers.origin.' + t.origin | translate }} · {{ t.when | when }} · {{ t.operator }}
+      </p>
+      <div class="route">
+        <div class="end from">
+          <span class="end-label">{{ 'transfers.from' | translate }}</span>
+          <strong>{{ 'stocks.location.' + t.from | translate }}</strong>
+          <span class="num muted">−{{ t.unitCount }} u.</span>
+        </div>
+        <svg class="arrow" [vvsIcon]="icons.MoveRight" [size]="28" aria-hidden="true"></svg>
+        <div class="end to">
+          <span class="end-label">{{ 'transfers.to' | translate }}</span>
+          <strong>{{ 'stocks.location.' + t.to | translate }}</strong>
+          <span class="num muted">+{{ t.unitCount }} u.</span>
+        </div>
+      </div>
+    </header>
+
+    <ul class="lines">
+      @for (line of t.lines; track line.reference) {
+        <li>
+          <span>
+            {{ line.name }}
+            <span class="mono muted block">{{ line.reference }}</span>
+          </span>
+          <span class="qty">
+            <strong class="num">{{ line.quantity }} u.</strong>
+            @if (t.status === 'IN_TRANSIT') {
+              <span class="muted block">{{ 'transfers.pending' | translate }}</span>
+            } @else if (line.received === line.quantity) {
+              <span class="ok block">{{ 'transfers.receivedLine' | translate }}</span>
+            } @else {
+              <span class="gap block">
+                {{
+                  'transfers.gapLine' | translate: { received: line.received, sent: line.quantity }
+                }}
+              </span>
+            }
+          </span>
+        </li>
+      }
+      @if (t.hiddenLines > 0) {
+        <li class="more">{{ 'transfers.moreLines' | translate: { count: t.hiddenLines } }}</li>
+      }
+    </ul>
+
+    <footer class="actions">
+      <button class="btn btn-secondary" type="button" (click)="print.emit()">
+        {{ 'transfers.print' | translate }}
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="createReturn.emit()">
+        {{ 'transfers.createReturn' | translate }}
+      </button>
+    </footer>
+  } @else if (transfer.error()) {
+    <vvs-list-state kind="error" (retry)="transfer.reload()" />
+  } @else {
+    <vvs-list-state kind="loading" [rows]="5" />
+  }
+</section>

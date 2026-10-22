@@ -1,0 +1,52 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 220px);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--blanc);
+  box-shadow: var(--shadow-sm);
+}
+.visual {
+  display: grid;
+  place-items: center;
+  height: 104px;
+  background: var(--gris-fond);
+  color: var(--gris-moyen);
+  font-size: 28px;
+  font-weight: 700;
+}
+[data-range='BOTANIKA'] .visual {
+  background: var(--range-botanika-bg);
+  color: var(--range-botanika-fg);
+}
+[data-range='ZEZIKA'] .visual {
+  background: var(--range-zezika-bg);
+  color: var(--range-zezika-fg);
+}
+[data-range='SOLIKA'] .visual {
+  background: var(--range-solika-bg);
+  color: var(--range-solika-fg);
+}
+.name {
+  padding: var(--space-3) var(--space-3) var(--space-1);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+.price {
+  font-weight: 700;
+}
+.note {
+  margin-top: var(--space-3);
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}

@@ -1,0 +1,169 @@
+@if (round.value(); as data) {
+  <header class="hero">
+    <div class="hero-top">
+      <p class="date">
+        {{ longDate() }} ·
+        {{ 'deliveries.driver.roundName' | translate: { name: data.round.name } }}
+      </p>
+      <span class="net" [class.offline]="!online()" role="status">
+        <svg [vvsIcon]="online() ? icons.Wifi : icons.WifiOff" [size]="14"></svg>
+        {{ (online() ? 'deliveries.driver.online' : 'deliveries.driver.offline') | translate }}
+      </span>
+    </div>
+    <h1>{{ 'deliveries.driver.hello' | translate: { name: firstName() } }}</h1>
+    <dl class="tiles">
+      <div class="tile">
+        <dt>{{ 'deliveries.driver.stops' | translate }}</dt>
+        <dd class="num">
+          {{ doneCount() }}<small>/{{ stops().length }}</small>
+        </dd>
+      </div>
+      <div class="tile">
+        <dt>{{ 'deliveries.driver.collected' | translate }}</dt>
+        <dd class="num">{{ collected() | ariary: 'kilo' }}</dd>
+      </div>
+      <div class="tile">
+        <dt>{{ 'deliveries.driver.remaining' | translate }}</dt>
+        <dd class="num">{{ remaining() | ariary: 'kilo' }}</dd>
+      </div>
+    </dl>
+    <div
+      class="progress"
+      role="progressbar"
+      [attr.aria-label]="'deliveries.driver.progress' | translate"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="stops().length"
+      [attr.aria-valuenow]="doneCount()"
+    >
+      <span [style.width.%]="stops().length ? (doneCount() / stops().length) * 100 : 0"></span>
+    </div>
+  </header>
+
+  @if (pendingSync() > 0 || !online()) {
+    <p class="sync" role="status">
+      <svg [vvsIcon]="icons.CloudUpload" [size]="18"></svg>
+      {{ 'deliveries.driver.offlineNote' | translate: { count: pendingSync() } }}
+    </p>
+  }
+
+  @if (next(); as stop) {
+    <section class="next" aria-labelledby="next-title">
+      <p class="eyebrow">
+        {{ 'deliveries.driver.nextStop' | translate: { stop: stop.stop, count: stops().length } }}
+      </p>
+      <h2 id="next-title">{{ stop.customerName }}</h2>
+      <p class="address">{{ stop.address }}</p>
+      <div class="contact">
+        <a class="btn btn-secondary" [href]="telHref(stop.phone)">
+          <svg [vvsIcon]="icons.Phone" [size]="18"></svg>
+          {{ 'deliveries.driver.call' | translate }}
+        </a>
+        <a class="btn btn-secondary" [href]="mapsHref(stop.address)" target="_blank" rel="noopener">
+          <svg [vvsIcon]="icons.Navigation" [size]="18"></svg>
+          {{ 'deliveries.driver.directions' | translate }}
+        </a>
+      </div>
+      <p class="amount" [class.prepaid]="stop.prepaid">
+        <span>
+          {{
+            (stop.prepaid ? 'deliveries.driver.prepaid' : 'deliveries.driver.toCollect') | translate
+          }}
+          · {{ 'deliveries.detail.articles' | translate: { count: stop.articleCount } }}
+        </span>
+        <strong class="num">{{ stop.amount | ariary }}</strong>
+      </p>
+      <div class="actions">
+        <button class="btn fail" type="button" (click)="openFailure(stop)">
+          <svg [vvsIcon]="icons.CircleX" [size]="20"></svg>
+          {{ 'deliveries.driver.failure' | translate }}
+        </button>
+        <button class="btn deliver" type="button" (click)="markDelivered(stop)">
+          <svg [vvsIcon]="icons.CircleCheck" [size]="20"></svg>
+          {{
+            (stop.prepaid ? 'deliveries.driver.delivered' : 'deliveries.driver.deliveredPaid')
+              | translate
+          }}
+        </button>
+      </div>
+    </section>
+  } @else {
+    <section class="finished" aria-live="polite">
+      <svg [vvsIcon]="icons.CircleCheck" [size]="40"></svg>
+      <h2>{{ 'deliveries.driver.finished' | translate }}</h2>
+      <p>{{ 'deliveries.driver.finishedHint' | translate: { amount: (collected() | ariary) } }}</p>
+    </section>
+  }
+
+  @if (upcoming().length > 1) {
+    <section class="later" aria-labelledby="later-title">
+      <h2 id="later-title" class="caption">{{ 'deliveries.driver.later' | translate }}</h2>
+      <ol class="stops">
+        @for (stop of upcoming().slice(1); track stop.id) {
+          <li>
+            <span class="badge num" aria-hidden="true">{{ stop.stop }}</span>
+            <span class="who">
+              <strong>{{ stop.customerName }}</strong>
+              <span>{{ stop.district }}</span>
+            </span>
+            <span class="num">{{
+              stop.prepaid ? ('deliveries.driver.paid' | translate) : (stop.amount | ariary: 'kilo')
+            }}</span>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+
+  @if (pending(); as change) {
+    <div class="undo" role="status">
+      <span>
+        {{
+          (change.change.status === 'DELIVERED'
+            ? 'deliveries.driver.doneToast'
+            : 'deliveries.driver.failedToast'
+          ) | translate: { name: change.delivery.customerName }
+        }}
+      </span>
+      <button class="undo-btn" type="button" (click)="undo()">
+        {{ 'deliveries.driver.undo' | translate }}
+      </button>
+      <span class="countdown" aria-hidden="true"></span>
+    </div>
+  }
+} @else if (round.error()) {
+  <vvs-list-state kind="error" (retry)="round.reload()" />
+} @else {
+  <vvs-list-state kind="loading" [rows]="4" />
+}
+
+<dialog #failureDialog class="sheet" aria-labelledby="failure-title" (close)="failing.set(null)">
+  <form [formGroup]="failureForm" (ngSubmit)="confirmFailure()">
+    <h2 id="failure-title">
+      {{ 'deliveries.driver.failureTitle' | translate: { name: failing()?.customerName ?? '' } }}
+    </h2>
+    <fieldset class="reasons">
+      <legend>{{ 'deliveries.driver.reason' | translate }}</legend>
+      @for (reason of reasons; track reason) {
+        <label class="reason">
+          <input type="radio" formControlName="reason" [value]="reason" />
+          <span>{{ 'deliveries.reason.' + reason | translate }}</span>
+        </label>
+      }
+    </fieldset>
+    <label class="note">
+      <span>
+        {{ 'deliveries.driver.note' | translate }}
+        <span class="optional">{{ 'common.optional' | translate }}</span>
+      </span>
+      <textarea formControlName="note" rows="3" maxlength="280"></textarea>
+    </label>
+    <div class="sheet-actions">
+      <button class="btn btn-secondary" type="button" (click)="closeFailure()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button class="btn fail-solid" type="submit">
+        {{ 'deliveries.driver.confirmFailure' | translate }}
+      </button>
+    </div>
+  </form>
+</dialog>

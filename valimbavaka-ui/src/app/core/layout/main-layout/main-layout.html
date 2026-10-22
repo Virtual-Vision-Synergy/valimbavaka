@@ -1,18 +1,56 @@
-<aside class="sidebar">
-  <a class="brand" routerLink="/">
-    <img src="logo/logo-min.png" alt="" width="32" height="32" />
-    <span>{{ 'app.name' | translate }}</span>
-  </a>
+<a class="skip-link" href="#main-content">{{ 'layout.skipToContent' | translate }}</a>
 
-  <nav [attr.aria-label]="'layout.navigation' | translate">
+<div class="scrim" aria-hidden="true"></div>
+
+<aside class="sidebar" [attr.aria-label]="'layout.sidebar' | translate">
+  <div class="brand">
+    <a routerLink="/" class="brand-link" [attr.aria-label]="'layout.home' | translate">
+      <img
+        class="logo"
+        ngSrc="logo/logo-negatif-320.webp"
+        alt=""
+        width="128"
+        height="72"
+        priority
+      />
+    </a>
+    <button
+      class="collapse"
+      type="button"
+      [attr.aria-label]="(collapsed() ? 'layout.expandMenu' : 'layout.collapseMenu') | translate"
+      [attr.aria-expanded]="!collapsed()"
+      (click)="toggleSidebar()"
+    >
+      <svg [vvsIcon]="icons.ChevronLeft" [size]="16" [strokeWidth]="2.5"></svg>
+    </button>
+    <button
+      class="close-drawer"
+      type="button"
+      [attr.aria-label]="'layout.closeMenu' | translate"
+      (click)="closeDrawer()"
+    >
+      <svg [vvsIcon]="icons.X" [size]="20"></svg>
+    </button>
+  </div>
+
+  <nav class="nav" [attr.aria-label]="'layout.navigation' | translate">
     @for (section of sections(); track section.titleKey) {
       <div class="section">
-        <p class="section-title">{{ section.titleKey | translate }}</p>
-        <ul>
+        <p class="section-title" [id]="'nav-' + section.titleKey">
+          {{ section.titleKey | translate }}
+        </p>
+        <ul [attr.aria-labelledby]="'nav-' + section.titleKey">
           @for (item of section.items; track item.route) {
             <li>
-              <a [routerLink]="item.route" routerLinkActive="active" ariaCurrentWhenActive="page">
-                {{ item.labelKey | translate }}
+              <a
+                class="nav-link"
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                [attr.title]="collapsed() ? (item.labelKey | translate) : null"
+              >
+                <svg [vvsIcon]="item.icon" [size]="20" [strokeWidth]="1.75"></svg>
+                <span class="nav-label">{{ item.labelKey | translate }}</span>
               </a>
             </li>
           }
@@ -21,25 +59,33 @@
     }
   </nav>
 
-  <vvs-sync-status />
-
   @if (user(); as currentUser) {
     <div class="account">
       <div class="identity">
-        <span class="avatar" aria-hidden="true">{{ initial() }}</span>
-        <div>
-          <p class="name">{{ currentUser.firstName }} {{ currentUser.lastName }}</p>
+        <vvs-avatar-initials [name]="fullName()" [size]="40" />
+        <div class="who">
+          <p class="name">{{ fullName() }}</p>
           <p class="role">{{ currentUser.roleLabel }}</p>
         </div>
+        <span class="online" [attr.title]="'layout.online' | translate"></span>
       </div>
-      <vvs-language-switcher />
-      <button class="logout" type="button" (click)="logout()">
-        {{ 'layout.logout' | translate }}
+      <vvs-language-switcher class="lang" />
+      <a *vvsHasPermission="'users.create'" class="account-btn create" routerLink="/users/new">
+        <svg [vvsIcon]="icons.UserPlus" [size]="18"></svg>
+        <span class="nav-label">{{ 'layout.createAccount' | translate }}</span>
+      </a>
+      <button class="account-btn logout" type="button" (click)="logout()">
+        <svg [vvsIcon]="icons.LogOut" [size]="18"></svg>
+        <span class="nav-label">{{ 'layout.logout' | translate }}</span>
       </button>
+      <p class="version">v1.0.0-beta</p>
     </div>
   }
 </aside>
 
-<main class="content">
-  <router-outlet />
-</main>
+<div class="workspace">
+  <vvs-top-bar (menuRequested)="openDrawer()" />
+  <main id="main-content" class="content" tabindex="-1">
+    <router-outlet />
+  </main>
+</div>

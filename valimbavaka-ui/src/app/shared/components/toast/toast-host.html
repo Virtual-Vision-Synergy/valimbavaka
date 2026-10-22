@@ -1,0 +1,16 @@
+<div class="stack" role="status" aria-live="polite">
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast glass" [attr.data-tone]="toast.tone">
+      <svg class="toast-icon" [vvsIcon]="icons[toast.tone]"></svg>
+      <p>{{ toast.messageKey | translate: toast.params }}</p>
+      <button
+        class="btn btn-ghost btn-icon btn-sm"
+        type="button"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="dismiss(toast.id)"
+      >
+        <svg [vvsIcon]="icons.close" [size]="16"></svg>
+      </button>
+    </div>
+  }
+</div>

@@ -16,6 +16,7 @@ import { errorInterceptor } from './core/http/error-interceptor';
 import { sessionInterceptor } from './core/http/session-interceptor';
 import { LanguageService } from './core/i18n/language-service';
 import { TranslatedTitleStrategy } from './core/i18n/translated-title-strategy';
+import { UiPreferencesService } from './core/layout/ui-preferences-service';
 import { OutboxService } from './core/offline/outbox-service';
 
 export const appConfig: ApplicationConfig = {
@@ -31,6 +32,8 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => firstValueFrom(inject(LanguageService).init())),
     // Instancie la file d'attente hors ligne dès le démarrage : elle se synchronise seule (SYS-02).
     provideAppInitializer(() => void inject(OutboxService)),
+    // Applique le thème mémorisé (ou celui du système) avant le premier rendu.
+    provideAppInitializer(() => void inject(UiPreferencesService)),
     provideHttpClient(
       withFetch(),
       withInterceptors([authInterceptor, sessionInterceptor, errorInterceptor]),
