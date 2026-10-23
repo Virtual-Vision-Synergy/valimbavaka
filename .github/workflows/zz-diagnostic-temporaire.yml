@@ -1,0 +1,84 @@
+name: Diagnostic backend (branche temporaire)
+
+on:
+  push:
+    branches: ["chore/ci-diagnostic-**"]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: valimbavaka-core
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: valimbavaka-core/pom.xml
+
+      - name: Spotless (apply, puis diff)
+        run: |
+          mvn -B -ntp -q spotless:apply > /tmp/spotless.log 2>&1 || true
+          git diff --no-color > /tmp/spotless.patch || true
+          git stash -q || true
+
+      - name: mvn verify
+        run: |
+          set +e
+          mvn -B -ntp verify > /tmp/verify.log 2>&1
+          echo "VERIFY_EXIT=$?" > /tmp/verify.code
+          for d in target/surefire-reports target/failsafe-reports; do
+            for f in $d/*.txt; do
+              [ -f "$f" ] && grep -qE "FAILURE|ERROR" "$f" && cat "$f"
+            done
+          done > /tmp/failures.txt 2>/dev/null
+          grep -E "Tests run:|BUILD|\[ERROR\]" /tmp/verify.log | grep -vE "Tests run: [0-9]+, Failures: 0, Errors: 0" | head -150 > /tmp/summary.txt
+          exit 0
+
+      - name: Checkstyle
+        run: |
+          mvn -B -ntp -q checkstyle:check -Dcheckstyle.skip=false -Dcheckstyle.failOnViolation=false > /dev/null 2>&1 || true
+          python3 - <<'PY' > /tmp/checkstyle.txt
+          import xml.etree.ElementTree as ET, os
+          p = "target/checkstyle-result.xml"
+          if os.path.exists(p):
+              for f in ET.parse(p).getroot():
+                  for e in f:
+                      if e.get("severity") in ("error", "warning"):
+                          print(f"{e.get('severity')} {f.get('name').split('/src/')[-1]}:{e.get('line')} {e.get('message')}")
+          PY
+
+      - name: Annotations
+        if: always()
+        run: |
+          python3 - <<'PY'
+          def emit(level, title, path):
+              try:
+                  text = open(path, encoding="utf-8", errors="replace").read()
+              except FileNotFoundError:
+                  text = "(absent)"
+              text = text or "(vide)"
+              chunks = [text[i:i + 3500] for i in range(0, len(text), 3500)][:9]
+              for n, chunk in enumerate(chunks, 1):
+                  msg = chunk.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                  print(f"::{level} title={title} {n}/{len(chunks)}::{msg}")
+          emit("notice", "verify-code", "/tmp/verify.code")
+          emit("notice", "summary", "/tmp/summary.txt")
+          emit("error", "failures", "/tmp/failures.txt")
+          emit("warning", "spotless", "/tmp/spotless.patch")
+          PY
+          python3 - <<'PY'
+          text = open("/tmp/checkstyle.txt").read() or "(aucune violation)"
+          msg = text[:3500].replace("%", "%25").replace("\n", "%0A")
+          print(f"::notice title=checkstyle::{msg}")
+          PY
