@@ -76,5 +76,5 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Anomalies** :
   1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-04-garde-fous-administrateur`) : `DELETE /api/v1/users/{id}` et la permission `users.delete` sont retirés (migration `2026_10_23-01`), le bouton « Supprimer » aussi ; `ArchitectureTest.no_delete_endpoints` interdit tout `@DeleteMapping`.
   2. ✅ Corrigé le 2026-10-23 : mot de passe d'un nouveau compte à 15 caractères minimum, serveur et interface. Reste ouvert : refus des mots de passe courants (convention §9.2), gravité faible.
-  3. ⚠ `updateUser` est maintenant couvert en unitaire (6 tests) et en intégration (2 tests) ; les contrôles 403 de `POST` et `PUT` ne sont encore prouvés que par la règle ArchUnit : ajouter `createUser_withSellerToken_returns403`.
+  3. ✅ `updateUser` est couvert en unitaire (6 tests) et en intégration (2 tests) ; le 403 sur `POST /users` par une vendeuse est testé par la PR #149 (`AuthSecurityIT.createUser_withSellerToken_returns403AndCreatesNothing`).
 - **Recette manuelle** : 4 étapes 🧪.
