@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,7 +30,10 @@ import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Réservé à l'administrateur : chaque action exige la permission {@code users.*} correspondante. */
+/**
+ * Réservé à l'administrateur : chaque action exige la permission {@code users.*} correspondante. Un compte ne se
+ * supprime jamais, il se désactive (AUTH-03, JNL-02).
+ */
 @Tag(name = "Utilisateurs")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Requête mal formée (MALFORMED_REQUEST)"),
@@ -82,8 +84,11 @@ public class UserController {
     @Operation(summary = "Modifie un utilisateur")
     @ApiResponse(responseCode = "200", description = "Utilisateur modifié")
     @ApiResponse(responseCode = "404", description = "Utilisateur introuvable (NOT_FOUND)")
-    @ApiResponse(responseCode = "409", description = "Conflit de version ou d'email (CONFLICT)")
-    @ApiResponse(responseCode = "422", description = "Données invalides (VALIDATION_FAILED)")
+    @ApiResponse(responseCode = "409", description = "Email déjà utilisé (CONFLICT)")
+    @ApiResponse(
+            responseCode = "422",
+            description = "Données invalides, ou désactivation / retrait du rôle administrateur interdit "
+                    + "(VALIDATION_FAILED)")
     @HasPermission("users.update")
     public UserRDto updateUser(@PathVariable UUID id, @Valid @RequestBody UpdateUserWDto request) {
         return userService.updateUser(id, request);
@@ -97,15 +102,5 @@ public class UserController {
     @HasPermission("users.update")
     public UserRDto setActive(@PathVariable UUID id, @Valid @RequestBody UserStatusWDto request) {
         return userService.setActive(id, request.active());
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Supprime un utilisateur")
-    @ApiResponse(responseCode = "204", description = "Utilisateur supprimé")
-    @ApiResponse(responseCode = "404", description = "Utilisateur introuvable (NOT_FOUND)")
-    @HasPermission("users.delete")
-    public ResponseEntity<Void> deleteUserById(@PathVariable UUID id) {
-        userService.deleteUserById(id);
-        return ResponseEntity.noContent().build();
     }
 }

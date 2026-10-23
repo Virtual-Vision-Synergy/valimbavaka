@@ -17,9 +17,13 @@ public interface UserService {
 
     UserRDto createUser(CreateUserWDto request);
 
+    /**
+     * Modifie un compte. Mêmes garde-fous que {@link #setActive} : on ne peut ni se désactiver soi-même, ni retirer
+     * son propre rôle d'administrateur, ni désactiver ou rétrograder le dernier administrateur actif.
+     *
+     * @throws org.vvs.valimbavaka.core.exception.BusinessException si l'une de ces règles est enfreinte
+     */
     UserRDto updateUser(UUID userId, UpdateUserWDto request);
-
-    void deleteUserById(UUID userId);
 
     /**
      * Active ou désactive un compte (idempotent : aucun effet ni trace si l'état est déjà celui demandé).

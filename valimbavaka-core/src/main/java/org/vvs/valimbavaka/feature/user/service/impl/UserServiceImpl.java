@@ -45,6 +45,13 @@ public class UserServiceImpl implements UserService {
 
     private static final String RESOURCE_TYPE = "USER";
     private static final String EMAIL_ALREADY_USED = "Un utilisateur avec cet email existe déjà.";
+    private static final String OWN_ACCOUNT_DEACTIVATION = "Vous ne pouvez pas désactiver votre propre compte.";
+    private static final String OWN_ADMIN_ROLE_REMOVAL =
+            "Vous ne pouvez pas retirer votre propre rôle d'administrateur.";
+    private static final String LAST_ADMIN_DEACTIVATION =
+            "Le dernier administrateur actif ne peut pas être désactivé.";
+    private static final String LAST_ADMIN_ROLE_REMOVAL =
+            "Le dernier administrateur actif ne peut pas perdre son rôle.";
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "email", "firstName", "lastName");
 
     private final UserRepository userRepository;
@@ -107,9 +114,11 @@ public class UserServiceImpl implements UserService {
         if (userRepository.existsByEmailAndIdNot(User.normalizeEmail(request.email()), userId)) {
             throw new ConflictException(EMAIL_ALREADY_USED);
         }
+        Role role = findRole(request.roleId());
+        ensureCanUpdate(user, role, request.active());
         var profile = new UserProfile(request.email(), request.firstName(), request.lastName());
         var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
-        user.update(profile, findRole(request.roleId()), terms, request.active());
+        user.update(profile, role, terms, request.active());
         journalService.record(
                 JournalAction.UPDATE, RESOURCE_TYPE, userId, "Modification de l'utilisateur " + user.getEmail());
         return userMapper.toRDto(user);
@@ -133,16 +142,6 @@ public class UserServiceImpl implements UserService {
                 JournalAction.UPDATE, RESOURCE_TYPE, userId, action + " de l'utilisateur " + user.getEmail());
         log.info("Utilisateur {} {}", userId, active ? "activé" : "désactivé");
         return userMapper.toRDto(user);
-    }
-
-    @Override
-    @Transactional
-    public void deleteUserById(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> userNotFound(userId));
-        userRepository.delete(user);
-        journalService.record(
-                JournalAction.DELETE, RESOURCE_TYPE, userId, "Suppression de l'utilisateur " + user.getEmail());
-        log.info("Utilisateur {} supprimé", userId);
     }
 
     @Override
@@ -178,14 +177,45 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByIdWithRole(userId).orElseThrow(() -> userNotFound(userId));
     }
 
+    /** Le PUT applique les mêmes garde-fous que le PATCH de statut (AUTH-04). */
+    private void ensureCanUpdate(User user, Role newRole, boolean active) {
+        boolean deactivated = user.isActive() && !active;
+        boolean demoted = isAdministrator(user.getRole()) && !isAdministrator(newRole);
+        if (deactivated) {
+            ensureCanDeactivate(user);
+        } else if (demoted) {
+            ensureIsNotOwnAccount(user, OWN_ADMIN_ROLE_REMOVAL);
+            ensureAnotherActiveAdministrator(user, LAST_ADMIN_ROLE_REMOVAL);
+        }
+    }
+
     private void ensureCanDeactivate(User user) {
+        ensureIsNotOwnAccount(user, OWN_ACCOUNT_DEACTIVATION);
+        if (isAdministrator(user.getRole())) {
+            ensureAnotherActiveAdministrator(user, LAST_ADMIN_DEACTIVATION);
+        }
+    }
+
+    private void ensureIsNotOwnAccount(User user, String message) {
         if (auditorAware.getCurrentAuditor().filter(user.getId()::equals).isPresent()) {
-            throw new BusinessException("Vous ne pouvez pas désactiver votre propre compte.");
+            throw new BusinessException(message);
         }
-        boolean isAdmin = user.getRole().getName() == RoleName.ADMIN;
-        if (isAdmin && userRepository.countByRoleNameAndActiveTrue(RoleName.ADMIN) <= 1) {
-            throw new BusinessException("Le dernier administrateur actif ne peut pas être désactivé.");
+    }
+
+    /**
+     * Verrouille les administrateurs actifs le temps de la transaction : deux retraits simultanés ne peuvent pas
+     * laisser l'application sans administrateur.
+     */
+    private void ensureAnotherActiveAdministrator(User user, String message) {
+        boolean anotherActive = userRepository.findActiveByRoleNameForUpdate(RoleName.ADMIN).stream()
+                .anyMatch(administrator -> !administrator.getId().equals(user.getId()));
+        if (user.isActive() && !anotherActive) {
+            throw new BusinessException(message);
         }
+    }
+
+    private static boolean isAdministrator(Role role) {
+        return role.getName() == RoleName.ADMIN;
     }
 
     private Role findRole(UUID roleId) {
