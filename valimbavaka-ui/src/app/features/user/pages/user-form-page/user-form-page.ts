@@ -19,7 +19,8 @@ import { SalesChannelService } from '../../data-access/sales-channel-service';
 import { UserService } from '../../data-access/user-service';
 import { UserRDto, roleLabel } from '../../data-access/user-models';
 
-const MIN_PASSWORD_LENGTH = 8;
+/** 15 caractères minimum sans MFA (convention §9.2), comme le serveur. */
+const MIN_PASSWORD_LENGTH = 15;
 const MAX_NAME_LENGTH = 100;
 const MIN_COMMISSION_RATE = 0;
 const MAX_COMMISSION_RATE = 100;

@@ -165,16 +165,13 @@
       "actions": "Hetsika"
     },
     "actions": {
-      "edit": "Ovay",
-      "delete": "Fafao"
+      "edit": "Ovay"
     },
     "empty": {
       "title": "Tsy hita ny mpampiasa",
       "message": "Andramo anarana hafa na esory ny fikarohana."
     },
     "confirm": {
-      "deleteTitle": "Hofafana ve ity kaonty ity ?",
-      "delete": "Hofafana ny kaontin'i {{name}}. Tsy azo averina izany.",
       "activateTitle": "Hampandehanana ve ity kaonty ity ?",
       "deactivateTitle": "Hajanona ve ity kaonty ity ?"
     }

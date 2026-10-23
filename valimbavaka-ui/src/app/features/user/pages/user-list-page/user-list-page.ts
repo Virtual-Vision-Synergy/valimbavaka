@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Plus } from 'lucide';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { Observable, finalize } from 'rxjs';
+import { finalize } from 'rxjs';
 import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { errorMessage } from '../../../../core/http/problem-detail';
 import { AvatarInitials } from '../../../../shared/components/avatar-initials/avatar-initials';
@@ -26,13 +26,10 @@ const ROLE_TONES: Readonly<Record<RoleName, Tone>> = {
   DELIVERY_DRIVER: 'info',
 };
 
-/** Action en attente de confirmation (changement de statut ou suppression). */
-interface PendingAction {
-  readonly kind: 'toggle' | 'delete';
-  readonly user: UserRDto;
-}
-
-/** Liste des comptes (AUTH-03) : recherche, pagination serveur, activation et suppression confirmées. */
+/**
+ * Liste des comptes (AUTH-03) : recherche, pagination serveur, activation et désactivation confirmées.
+ * Un compte ne se supprime jamais (AUTH-03, JNL-02) : il se désactive.
+ */
 @Component({
   selector: 'vvs-user-list-page',
   imports: [
@@ -69,7 +66,8 @@ export class UserListPage {
   protected readonly search = signal('');
   protected readonly isLoading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
-  protected readonly pending = signal<PendingAction | null>(null);
+  /** Compte dont le changement de statut attend la confirmation. */
+  protected readonly pending = signal<UserRDto | null>(null);
 
   constructor() {
     this.loadUsers();
@@ -86,8 +84,8 @@ export class UserListPage {
     this.loadUsers();
   }
 
-  protected ask(kind: PendingAction['kind'], user: UserRDto): void {
-    this.pending.set({ kind, user });
+  protected ask(user: UserRDto): void {
+    this.pending.set(user);
   }
 
   protected dismiss(): void {
@@ -98,21 +96,14 @@ export class UserListPage {
     return `${user.firstName} ${user.lastName}`;
   }
 
-  /** Textes du dialogue de confirmation selon l'action en attente. */
-  protected dialogTexts(action: PendingAction): {
+  /** Textes du dialogue de confirmation selon le statut actuel du compte. */
+  protected dialogTexts(user: UserRDto): {
     heading: string;
     message: string;
     confirm: string;
   } {
-    const name = this.fullName(action.user);
-    if (action.kind === 'delete') {
-      return {
-        heading: this.translate.instant('user.confirm.deleteTitle'),
-        message: this.translate.instant('user.confirm.delete', { name }),
-        confirm: this.translate.instant('user.actions.delete'),
-      };
-    }
-    const key = action.user.active ? 'deactivate' : 'activate';
+    const name = this.fullName(user);
+    const key = user.active ? 'deactivate' : 'activate';
     return {
       heading: this.translate.instant(`user.confirm.${key}Title`),
       message: this.translate.instant(
@@ -124,27 +115,18 @@ export class UserListPage {
   }
 
   protected confirm(): void {
-    const action = this.pending();
+    const user = this.pending();
     this.pending.set(null);
-    if (!action) {
+    if (!user) {
       return;
     }
-    const request: Observable<unknown> =
-      action.kind === 'delete'
-        ? this.userService.delete(action.user.id)
-        : this.userService.setActive(action.user.id, !action.user.active);
-    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => (action.kind === 'delete' ? this.reloadAfterDelete() : this.loadUsers()),
-      error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
-    });
-  }
-
-  private reloadAfterDelete(): void {
-    const isLastItemOfPage = this.users().length === 1 && this.page() > 1;
-    if (isLastItemOfPage) {
-      this.page.update((page) => page - 1);
-    }
-    this.loadUsers();
+    this.userService
+      .setActive(user.id, !user.active)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadUsers(),
+        error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
+      });
   }
 
   protected loadUsers(): void {
