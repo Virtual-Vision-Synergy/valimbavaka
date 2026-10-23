@@ -83,7 +83,8 @@ class PasswordChangeIT {
         var newToken = accessToken(login(email, NEW_PASSWORD)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user.passwordChangeRequired").value(false))
-                .andExpect(jsonPath("$.user.permissions[?(@ == 'referentials.read')]").isNotEmpty()));
+                .andExpect(jsonPath("$.user.permissions[?(@ == 'referentials.read')]")
+                        .isNotEmpty()));
         mockMvc.perform(get(SALES_CHANNELS).header(HttpHeaders.AUTHORIZATION, bearer(newToken)))
                 .andExpect(status().isOk());
     }
@@ -135,7 +136,9 @@ class PasswordChangeIT {
 
     private ResultActions login(String email, String password) throws Exception {
         var body = "{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password);
-        return mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body));
+        return mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 
     private static String accessToken(ResultActions login) throws Exception {

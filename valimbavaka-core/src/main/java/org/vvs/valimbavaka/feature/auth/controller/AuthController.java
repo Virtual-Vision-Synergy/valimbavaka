@@ -14,6 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.vvs.valimbavaka.core.exception.UnauthorizedException;
 import org.vvs.valimbavaka.feature.auth.dto.AuthRDto;
 import org.vvs.valimbavaka.feature.auth.dto.CurrentUserRDto;
@@ -23,12 +30,6 @@ import org.vvs.valimbavaka.feature.auth.mapper.AuthMapper;
 import org.vvs.valimbavaka.feature.user.service.UserService;
 import org.vvs.valimbavaka.security.jwt.JwtSubject;
 import org.vvs.valimbavaka.security.service.AuthService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 /** Login, refresh, logout publics ; {@code /me} exige un access token valide (voir SecurityConfig). */
 @Tag(name = "Authentification")
@@ -90,7 +91,9 @@ public class AuthController {
         if (refreshToken != null) {
             authService.logout(refreshToken);
         }
-        return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, refreshCookies.clear()).build();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, refreshCookies.clear())
+                .build();
     }
 
     @GetMapping("/me")
@@ -118,7 +121,9 @@ public class AuthController {
     }
 
     private ResponseEntity<AuthRDto> withRefreshCookie(String refreshToken, AuthRDto body) {
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshCookies.issue(refreshToken)).body(body);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookies.issue(refreshToken))
+                .body(body);
     }
 
     private static String requireRefreshToken(@Nullable String refreshToken) {

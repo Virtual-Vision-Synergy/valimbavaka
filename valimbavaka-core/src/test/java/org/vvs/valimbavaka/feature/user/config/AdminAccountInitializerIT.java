@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+
 import org.vvs.valimbavaka.feature.user.domain.Role;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 import org.vvs.valimbavaka.feature.user.domain.User;
@@ -23,10 +24,13 @@ class AdminAccountInitializerIT {
 
     @Autowired
     private AdminAccountInitializer sut;
+
     @Autowired
     private RoleRepository roleRepository;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -35,8 +39,7 @@ class AdminAccountInitializerIT {
         // when
         var roleNames = roleRepository.findAll().stream().map(Role::getName).toList();
         // then
-        assertThat(roleNames).containsExactlyInAnyOrder(RoleName.ADMIN, RoleName.SELLER,
-                RoleName.DELIVERY_DRIVER);
+        assertThat(roleNames).containsExactlyInAnyOrder(RoleName.ADMIN, RoleName.SELLER, RoleName.DELIVERY_DRIVER);
     }
 
     /**
@@ -52,7 +55,8 @@ class AdminAccountInitializerIT {
         assertThat(administrators).singleElement().satisfies(admin -> {
             assertThat(admin.getEmail()).isEqualTo("admin.test@valimbavaka.mg");
             assertThat(admin.getPasswordHash()).doesNotContain("mot-de-passe-de-test-tres-long");
-            assertThat(passwordEncoder.matches("mot-de-passe-de-test-tres-long", admin.getPasswordHash())).isTrue();
+            assertThat(passwordEncoder.matches("mot-de-passe-de-test-tres-long", admin.getPasswordHash()))
+                    .isTrue();
         });
     }
 
