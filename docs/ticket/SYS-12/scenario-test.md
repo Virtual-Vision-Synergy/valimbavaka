@@ -1,0 +1,46 @@
+# Scénarios de test — SYS-12 · Idempotence côté serveur des saisies renvoyées
+
+> **À compléter par le traiteur du ticket**, avant de passer en revue. Le scénario sert de base au QA (Njara) et de référence aux tickets liés.
+
+Statut : ☐ à compléter · Ticket : [#138](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/138) · [description](description.md) · [guide](guide.md)
+
+Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
+
+## Pré-requis
+
+| Élément | Valeur |
+|---|---|
+| Rôle(s) utilisé(s) | _(à compléter)_ |
+| Données de départ | _(à compléter)_ |
+| Tickets à avoir déployés avant | SYS-02, JNL-01 |
+
+## Scénarios issus des critères d'acceptation
+
+| # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+|---|---|---|---|---|---|
+| 1 | Le serveur reconnaît l'en-tête `Idempotency-Key` : une même clé envoyée plusieurs fois ne crée qu'un seul enregistrement et renvoie le même résultat. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+| 2 | Le journal append-only ne reçoit qu'une seule écriture par saisie, même en cas de renvoi. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+| 3 | Une clé déjà utilisée avec un contenu différent est refusée avec une erreur claire. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+
+## Sécurité et erreurs
+
+| Cas | Résultat attendu | Test auto | OK |
+|---|---|---|---|
+| Appel sans jeton | 401 `UNAUTHENTICATED` | _(à compléter)_ | ☐ |
+| Appel avec un mauvais rôle | 403 `FORBIDDEN` | _(à compléter)_ | ☐ |
+| Champ interdit dans le corps (`role`, `id`) | ignoré (mass assignment) | _(à compléter)_ | ☐ |
+| Données invalides | 422 `VALIDATION_FAILED` | _(à compléter)_ | ☐ |
+| Ressource introuvable | 404 `NOT_FOUND` | _(à compléter)_ | ☐ |
+| Conflit / doublon | 409 `CONFLICT` | _(à compléter)_ | ☐ |
+
+_Supprimer les lignes qui ne s'appliquent pas (ticket frontend seul, pas d'écriture, etc.)._
+
+## Cas limites et hors ligne
+
+- _(à compléter : valeurs extrêmes, listes vides, pagination, perte de connexion, rejeu avec `Idempotency-Key` si la saisie passe par la file hors ligne)_
+
+## Résultat de l'exécution
+
+- Date : _(à compléter)_
+- Environnement : _(à compléter)_
+- Anomalies ouvertes : _(à compléter)_
