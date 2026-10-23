@@ -32,6 +32,20 @@
       "hide": "Afeno ny teny miafina",
       "capsLock": "Mihidy ny litera lehibe.",
       "noAccount": "Tsy manana kaonty ? Ny mpitantana ihany no afaka mamorona."
+    },
+    "password": {
+      "title": "Misafidiana ny tenimiafinao",
+      "intro": "Tongasoa {{name}}. Vonjimaika ny tenimiafinao : misafidiana vaovao mba hidirana amin'ny fampiharana.",
+      "current": "Tenimiafina ankehitriny",
+      "new": "Tenimiafina vaovao",
+      "hint": "Litera {{min}} farafahakeliny. Fehezanteny misy teny maromaro no mora tadidiana.",
+      "confirmation": "Hamafiso ny tenimiafina vaovao",
+      "required": "Tsy maintsy ampidirina ny tenimiafina ankehitriny.",
+      "tooShort": "Tsy maintsy misy litera {{min}} farafahakeliny ny tenimiafina vaovao.",
+      "mismatch": "Tsy mitovy ny tenimiafina roa.",
+      "submit": "Raketo ny tenimiafina",
+      "submitting": "Mirakitra…",
+      "logout": "Hivoaka"
     }
   },
   "sync": {

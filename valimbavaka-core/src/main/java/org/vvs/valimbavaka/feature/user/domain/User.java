@@ -93,6 +93,12 @@ public class User extends BaseEntity {
         this.active = isActive;
     }
 
+    /** Nouveau mot de passe choisi par le titulaire : le changement obligatoire est levé. */
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = Objects.requireNonNull(newPasswordHash);
+        this.passwordChangeRequired = false;
+    }
+
     public void activate() {
         this.active = true;
     }

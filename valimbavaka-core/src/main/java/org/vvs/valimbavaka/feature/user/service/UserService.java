@@ -42,4 +42,13 @@ public interface UserService {
      *         administrateur n'existe et que la configuration est absente ou invalide
      */
     boolean createInitialAdministratorIfMissing(AdminAccountProperties account);
+
+    /**
+     * Change le mot de passe du compte connecté et lève le changement obligatoire (premier administrateur, compte
+     * créé avec un mot de passe provisoire). Tracé au journal.
+     *
+     * @throws org.vvs.valimbavaka.core.exception.BusinessException si le mot de passe actuel est incorrect ou si le
+     *         nouveau est identique
+     */
+    void changeOwnPassword(UUID userId, String currentPassword, String newPassword);
 }

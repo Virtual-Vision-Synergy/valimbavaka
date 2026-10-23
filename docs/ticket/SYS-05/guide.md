@@ -92,6 +92,6 @@ ADMIN_FIRST_NAME=Admin ADMIN_LAST_NAME=Local ./mvnw spring-boot:run
 
 - Les trois listes sont en lecture seule : si le métier veut les gérer depuis l'application (ajout d'un canal, désactivation d'une gamme), un ticket d'écriture est à créer ; `is_active` existe déjà.
 - La liste des canaux de vente reste « à confirmer avec le métier » (critère du ticket) ; « Livraison » est à la fois un canal et un emplacement de stock.
-- Aucun écran de changement de mot de passe ni endpoint associé n'existe encore (voir AUTH-01) : le drapeau `isPasswordChangeRequired` est transmis mais rien ne permet de le lever dans l'application.
+- Le premier administrateur n'a aucune permission tant qu'il n'a pas changé son mot de passe (`POST /api/v1/auth/password`, écran `/password`, voir AUTH-01). Dans les tests d'intégration, `support/InitialAdministratorReadyForTests` lève ce drapeau pour `admin.test@valimbavaka.mg` après le démarrage.
 - Le rôle de l'administrateur initial est lu dans la base ; si les migrations n'ont pas tourné, le démarrage échoue avec « Rôle ADMIN absent ».
 - Les `created_by` / `updated_by` d'anciennes lignes ont été remis à `NULL` lors du passage en UUID (migration `2026_10_15-01-4`).

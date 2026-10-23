@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.user.service.impl;
 
 import java.time.Clock;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -54,8 +55,11 @@ public class AuthenticatedUserLoaderImpl implements AuthenticatedUserLoader {
 
     private AuthenticatedUser toAuthenticated(User user) {
         var role = user.getRole();
-        var permissions =
-                role.getPermissions().stream().map(Permission::getCode).collect(Collectors.toUnmodifiableSet());
+        // Tant que le mot de passe provisoire n'est pas changé, le jeton ne porte aucune permission : seules les
+        // routes d'authentification (/me, /password, /refresh, /logout) restent accessibles (AUTH-01, SYS-05).
+        Set<String> permissions = user.isPasswordChangeRequired()
+                ? Set.of()
+                : role.getPermissions().stream().map(Permission::getCode).collect(Collectors.toUnmodifiableSet());
         return new AuthenticatedUser(
                 user.getId(),
                 user.getEmail(),

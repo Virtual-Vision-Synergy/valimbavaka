@@ -18,7 +18,7 @@ En tant qu'administrateur, je veux que l'application démarre avec les vrais rô
 
 - [x] Les rôles sont exactement : Administrateur, Vendeuse, Livreur (pas d'Opératrice, pas de rôle générique « USER »). Le changeset initial ADMIN/USER est corrigé par un nouveau changeset (jamais en modifiant l'ancien). — *✅ vérifié en base.*
 - [x] Les référentiels sont disponibles : canaux de vente (boutique, Facebook, téléphone, livraison — liste à confirmer), gammes (Zezika, Botanika, Solika), emplacements de stock (entrepôt, boutique, livraison, salon). — *✅ vérifié en base (codes en anglais depuis `2026_10_16-01`).*
-- [ ] Au premier démarrage sur une base sans administrateur, un compte administrateur est créé à partir de variables d'environnement (jamais de mot de passe écrit dans le code ou dans un changelog), et doit changer son mot de passe à la première connexion. — *⚠ partiel : compte créé avec `passwordChangeRequired`, mais aucun écran pour changer le mot de passe.*
+- [x] Au premier démarrage sur une base sans administrateur, un compte administrateur est créé à partir de variables d'environnement (jamais de mot de passe écrit dans le code ou dans un changelog), et doit changer son mot de passe à la première connexion. — *✅ vérifié : aucune permission tant que le mot de passe n'est pas changé, écran `/password` (corrigé le 2026-10-23).*
 
 ## Détails
 

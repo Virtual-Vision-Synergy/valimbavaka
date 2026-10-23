@@ -53,6 +53,25 @@ describe('AuthService', () => {
     expect(restored).toBe(false);
   });
 
+  it('should renew the session after changing the password so the role permissions come back', () => {
+    TestBed.inject(AuthStore).signIn('provisoire', {
+      ...buildUser('ADMIN'),
+      permissions: [],
+      passwordChangeRequired: true,
+    });
+    const body = { currentPassword: 'provisoire-long', newPassword: 'nouveau-mot-de-passe' };
+
+    sut.changePassword(body).subscribe();
+    const change = http.expectOne('/api/v1/auth/password');
+    expect(change.request.body).toEqual(body);
+    change.flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/v1/auth/refresh').flush(response('ADMIN'));
+
+    const user = TestBed.inject(AuthStore).currentUser();
+    expect(user?.passwordChangeRequired).toBe(false);
+    expect(user?.permissions).toContain('users.read');
+  });
+
   it('should clear the session on logout even if the server call fails', () => {
     TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
     sut.logout().subscribe();

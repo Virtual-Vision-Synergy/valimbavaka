@@ -108,4 +108,4 @@ Aujourd'hui `GET /api/v1/users` n'a ni filtre `role` ni filtre `active` : un tic
 - `PUT /api/v1/users/{id}` applique les garde-fous de `setActive` sur `active` et sur le retrait du rôle administrateur (voir [AUTH-04](../AUTH-04/guide.md)).
 - Aucun compte ne se supprime : il n'existe aucun `DELETE` (règle ArchUnit `no_delete_endpoints`).
 - Question client en attente (voir le ticket) : propriétaire de la commission, et connexion par email ou identifiant.
-- Aucun endpoint de changement de mot de passe ni de réinitialisation : le mot de passe n'est défini qu'à la création.
+- Le mot de passe saisi par l'administrateur à la création n'est pas marqué provisoire ; le titulaire peut le changer lui-même (`POST /api/v1/auth/password`, AUTH-01). Pas de réinitialisation par email.

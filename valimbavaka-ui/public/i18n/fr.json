@@ -32,6 +32,20 @@
       "hide": "Masquer le mot de passe",
       "capsLock": "Verrouillage des majuscules activé.",
       "noAccount": "Pas de compte ? Seul un administrateur peut en créer un."
+    },
+    "password": {
+      "title": "Choisir votre mot de passe",
+      "intro": "Bienvenue {{name}}. Votre mot de passe est provisoire : choisissez-en un nouveau pour accéder à l'application.",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "hint": "{{min}} caractères minimum. Une phrase de plusieurs mots est plus simple à retenir.",
+      "confirmation": "Confirmer le nouveau mot de passe",
+      "required": "Le mot de passe actuel est obligatoire.",
+      "tooShort": "Le nouveau mot de passe doit contenir au moins {{min}} caractères.",
+      "mismatch": "Les deux mots de passe ne correspondent pas.",
+      "submit": "Enregistrer le mot de passe",
+      "submitting": "Enregistrement…",
+      "logout": "Se déconnecter"
     }
   },
   "sync": {

@@ -14,19 +14,22 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.vvs.valimbavaka.core.exception.UnauthorizedException;
-import org.vvs.valimbavaka.feature.auth.dto.AuthRDto;
-import org.vvs.valimbavaka.feature.auth.dto.CurrentUserRDto;
-import org.vvs.valimbavaka.feature.auth.dto.LoginWDto;
-import org.vvs.valimbavaka.feature.auth.mapper.AuthMapper;
-import org.vvs.valimbavaka.security.jwt.JwtSubject;
-import org.vvs.valimbavaka.security.service.AuthService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.vvs.valimbavaka.core.exception.UnauthorizedException;
+import org.vvs.valimbavaka.feature.auth.dto.AuthRDto;
+import org.vvs.valimbavaka.feature.auth.dto.CurrentUserRDto;
+import org.vvs.valimbavaka.feature.auth.dto.LoginWDto;
+import org.vvs.valimbavaka.feature.auth.dto.PasswordChangeWDto;
+import org.vvs.valimbavaka.feature.auth.mapper.AuthMapper;
+import org.vvs.valimbavaka.feature.user.service.UserService;
+import org.vvs.valimbavaka.security.jwt.JwtSubject;
+import org.vvs.valimbavaka.security.service.AuthService;
 
 /** Login, refresh, logout publics ; {@code /me} exige un access token valide (voir SecurityConfig). */
 @Tag(name = "Authentification")
@@ -42,11 +45,17 @@ public class AuthController {
     private final AuthService authService;
     private final AuthMapper authMapper;
     private final RefreshCookieFactory refreshCookies;
+    private final UserService userService;
 
-    public AuthController(AuthService authService, AuthMapper authMapper, RefreshCookieFactory refreshCookies) {
+    public AuthController(
+            AuthService authService,
+            AuthMapper authMapper,
+            RefreshCookieFactory refreshCookies,
+            UserService userService) {
         this.authService = authService;
         this.authMapper = authMapper;
         this.refreshCookies = refreshCookies;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -82,7 +91,9 @@ public class AuthController {
         if (refreshToken != null) {
             authService.logout(refreshToken);
         }
-        return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, refreshCookies.clear()).build();
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, refreshCookies.clear())
+                .build();
     }
 
     @GetMapping("/me")
@@ -93,8 +104,26 @@ public class AuthController {
         return authMapper.toRDto(authService.currentUser(JwtSubject.requireUserId(jwt)));
     }
 
+    @PostMapping("/password")
+    @Operation(
+            summary = "Changement de son propre mot de passe",
+            description = "Lève le changement obligatoire ; appeler ensuite /refresh pour obtenir un jeton "
+                    + "portant de nouveau les permissions du rôle.")
+    @ApiResponse(responseCode = "204", description = "Mot de passe changé")
+    @ApiResponse(responseCode = "401", description = "Non authentifié (UNAUTHENTICATED)")
+    @ApiResponse(
+            responseCode = "422",
+            description = "Mot de passe actuel incorrect, nouveau trop court ou identique (VALIDATION_FAILED)")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody PasswordChangeWDto request) {
+        userService.changeOwnPassword(JwtSubject.requireUserId(jwt), request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
+    }
+
     private ResponseEntity<AuthRDto> withRefreshCookie(String refreshToken, AuthRDto body) {
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshCookies.issue(refreshToken)).body(body);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookies.issue(refreshToken))
+                .body(body);
     }
 
     private static String requireRefreshToken(@Nullable String refreshToken) {
