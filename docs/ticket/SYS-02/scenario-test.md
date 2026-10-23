@@ -76,7 +76,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102. **Base** : table `idempotency_keys` vérifiée (clé primaire par utilisateur).
 - **Anomalies** :
-  1. ⚠ Écart de documentation : l'ADR `0001` dit que la file est vidée à la déconnexion ; le code la conserve par compte. Mettre l'ADR à jour.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-02-deconnexion-barre-superieure`) : l'ADR `0001` décrit maintenant la file conservée par compte à la déconnexion.
   2. ⚠ Les cas 409 « en cours », libération sur 5xx et purge 24 h n’ont pas de test : tests à écrire dans SYS-12 (ouvert).
   3. ⚠ Aucun formulaire métier n'utilise encore `submit` (objet de SYS-07).
 - **Recette manuelle** : 3 étapes 🧪.

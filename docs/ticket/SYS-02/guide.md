@@ -97,7 +97,7 @@ save(): void {
 
 ## Points d'attention
 
-- **Écart doc / code** : l'ADR dit que la file est vidée à la déconnexion, mais le code conserve les saisies de chaque compte (`ownerId`) et ne les rejoue qu'au retour de ce compte ; seul `clear()` vide la file. À aligner dans l'ADR.
+- Une déconnexion conserve les saisies de chaque compte (`ownerId`) : elles ne sont rejouées qu'au retour de ce compte. Seul `clear()` vide la file (ADR 0001 mis à jour le 2026-10-23).
 - Plusieurs tickets sont déjà prévus sur ce socle : l'ordre de synchronisation en cas de blocage ([SYS-10](../SYS-10/description.md)), la session expirée avec des saisies en attente ([SYS-11](../SYS-11/description.md)) et la reprise automatique ([SYS-08](../SYS-08/description.md)) sont ouverts ; une partie est déjà couverte par le code (relances, FIFO, 401) mais n'est pas validée par ces tickets.
 - Aucun formulaire métier ne passe encore par `submit` hors maquette : le formulaire fournisseur (`features/supplier`) utilise `HttpClient` directement, c'est l'objet de [SYS-07](../SYS-07/description.md).
 - Sans service worker, rien ne se synchronise application fermée : la file est rejouée à la réouverture. Hors périmètre de l'ADR : PWA et résolution de conflits métier.

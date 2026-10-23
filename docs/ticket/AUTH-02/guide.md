@@ -26,7 +26,7 @@ La déconnexion révoque la session côté serveur (toute la famille de refresh 
 ### Frontend
 
 - `core/auth/auth-service.ts#logout()` : appelle `POST /api/v1/auth/logout`, ignore une erreur réseau, puis `AuthStore.signOut()` seulement si c'est toujours le même compte connecté (pas d'écrasement d'une nouvelle session).
-- Boutons : `core/layout/main-layout` (zone du compte dans la barre latérale, libellé `layout.logout`) et `features/deliveries/pages/driver-profile-page` (espace livreur). Les deux redirigent vers `/login`.
+- Boutons : `core/layout/top-bar` (barre supérieure, toujours visible, `aria-label` `layout.logout`), `core/layout/main-layout` (zone du compte dans la barre latérale) et `features/deliveries/pages/driver-profile-page` (espace livreur). Tous appellent `AuthService.logout()` puis naviguent vers `/login`.
 - À la déconnexion, la file hors ligne conserve les saisies de chaque compte sans les envoyer sous un autre compte : voir [SYS-02](../SYS-02/guide.md) et [SYS-11](../SYS-11/description.md).
 
 ## Règles métier à respecter par les autres tickets
@@ -73,6 +73,6 @@ protected logout(): void {
 
 ## Points d'attention
 
-- Le critère du ticket parle d'un bouton « dans la barre supérieure ». Dans le code, le bouton est dans la zone du compte de la barre latérale (`main-layout.html`) ; `top-bar` ne le contient pas. À confirmer avec le ticket et la maquette.
+- Le bouton de la barre supérieure a été ajouté le 2026-10-23 pour respecter le critère ; celui de la barre latérale est conservé.
 - Le jeton d'accès (15 min) n'est pas invalidé par la déconnexion : seul le refresh token l'est.
 - Le cookie n'est effacé que si la réponse atteint le navigateur ; en cas d'erreur réseau, l'interface se déconnecte quand même localement.
