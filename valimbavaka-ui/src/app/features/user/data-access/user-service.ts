@@ -30,8 +30,4 @@ export class UserService {
     const body: UserStatusWDto = { active };
     return this.http.patch<UserRDto>(`${this.baseUrl}/${id}/status`, body);
   }
-
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
-  }
 }

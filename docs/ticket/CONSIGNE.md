@@ -112,19 +112,22 @@ Règles : décrire ce que le code **fait vraiment** (pas ce que le ticket demand
 
 Ne pas corriger en silence dans son propre ticket. Ouvrir une issue `fix/…` qui cite la ligne d'anomalie du scénario concerné, et mettre à jour ce scénario quand la correction est fusionnée.
 
-Écarts déjà relevés le 2026-10-23, à prendre en charge :
+Écarts relevés le 2026-10-23 et leur correction (chaque PR met à jour les dossiers concernés) :
 
-| Gravité | Écart | Dossier |
-|---|---|---|
-| haute | `DELETE /api/v1/users/{id}` supprime réellement un compte (contraire à AUTH-03 et JNL-02) | [AUTH-03](AUTH-03/scenario-test.md#résultat-de-lexécution) |
-| haute | `PUT /api/v1/users/{id}` permet de désactiver ou de rétrograder le dernier administrateur | [AUTH-04](AUTH-04/scenario-test.md#résultat-de-lexécution) |
-| moyenne | aucun écran ni endpoint de changement de mot de passe (premier administrateur bloqué sur `passwordChangeRequired`) | [AUTH-01](AUTH-01/scenario-test.md#résultat-de-lexécution), [SYS-05](SYS-05/scenario-test.md#résultat-de-lexécution) |
-| moyenne | mot de passe minimum 8 caractères au lieu de 15 (convention §9.2) | [AUTH-03](AUTH-03/scenario-test.md#résultat-de-lexécution) |
-| moyenne | conflits de version et violations de contrainte renvoyés en 500 au lieu de 409 | [FRS-01](FRS-01/scenario-test.md#résultat-de-lexécution), [SYS-06](SYS-06/scenario-test.md#résultat-de-lexécution) |
-| moyenne | libellé de journal > 500 caractères : l'opération métier échoue en 500 | [JNL-01](JNL-01/scenario-test.md#résultat-de-lexécution) |
-| faible | bouton de déconnexion dans la barre latérale et non la barre supérieure | [AUTH-02](AUTH-02/scenario-test.md#résultat-de-lexécution) |
-| faible | table technique `dev` encore auditée en `bigint` | [SYS-06](SYS-06/scenario-test.md#résultat-de-lexécution) |
-| faible | ADR 0001 : « file vidée à la déconnexion », le code la conserve par compte | [SYS-02](SYS-02/scenario-test.md#résultat-de-lexécution) |
+| Gravité | Écart | Correction | Dossier |
+|---|---|---|---|
+| haute | `DELETE /api/v1/users/{id}` supprimait réellement un compte (contraire à AUTH-03 et JNL-02) | PR #146 : endpoint, permission et bouton retirés ; ArchUnit `no_delete_endpoints` | [AUTH-03](AUTH-03/scenario-test.md#résultat-de-lexécution) |
+| haute | `PUT /api/v1/users/{id}` permettait de désactiver ou de rétrograder le dernier administrateur | PR #146 : mêmes garde-fous que `PATCH /status`, verrou sur les admins actifs | [AUTH-04](AUTH-04/scenario-test.md#résultat-de-lexécution) |
+| moyenne | aucun écran ni endpoint de changement de mot de passe (premier administrateur bloqué sur `passwordChangeRequired`) | PR #147 : `POST /api/v1/auth/password`, écran `/password`, aucune permission tant que le mot de passe est provisoire | [AUTH-01](AUTH-01/scenario-test.md#résultat-de-lexécution), [SYS-05](SYS-05/scenario-test.md#résultat-de-lexécution) |
+| moyenne | mot de passe minimum 8 caractères au lieu de 15 (convention §9.2) | PR #146 (création de compte) et #147 (changement) : 15 caractères | [AUTH-03](AUTH-03/scenario-test.md#résultat-de-lexécution) |
+| moyenne | conflits de version et violations d'unicité renvoyés en 500 au lieu de 409 | PR #148 : 409 dans `GlobalExceptionHandler`, version sur la fiche fournisseur | [FRS-01](FRS-01/scenario-test.md#résultat-de-lexécution), [SYS-06](SYS-06/scenario-test.md#résultat-de-lexécution) |
+| moyenne | libellé de journal > 500 caractères : l'opération métier échouait en 500 | PR #148 : libellé tronqué | [JNL-01](JNL-01/scenario-test.md#résultat-de-lexécution) |
+| faible | bouton de déconnexion dans la barre latérale et non la barre supérieure | PR #149 : bouton dans la barre supérieure | [AUTH-02](AUTH-02/scenario-test.md#résultat-de-lexécution) |
+| faible | table technique `dev` encore auditée en `bigint` | PR #146 : tables `dev`, `revinfo`, `revchanges` supprimées | [SYS-06](SYS-06/scenario-test.md#résultat-de-lexécution) |
+| faible | course entre deux désactivations simultanées des deux derniers admins | PR #146 : verrou pessimiste | [AUTH-04](AUTH-04/scenario-test.md#résultat-de-lexécution) |
+| faible | ADR 0001 : « file vidée à la déconnexion », le code la conserve par compte | PR #149 : ADR corrigé | [SYS-02](SYS-02/scenario-test.md#résultat-de-lexécution) |
+
+Restent ouverts (gravité faible) : refus des mots de passe courants (convention §9.2) ; `PUBLIC_ROUTES` liste `register` et `forgot-password` qui n'existent pas ; tests d'idempotence 409 « en cours », libération sur 5xx et purge 24 h (SYS-12).
 
 ## 8. À ne pas faire
 

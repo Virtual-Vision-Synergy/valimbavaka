@@ -16,7 +16,7 @@ En tant qu'administrateur, je veux que chaque enregistrement mémorise l'utilisa
 
 > Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
 
-- [ ] Les colonnes created_by / updated_by sont du même type que l'identifiant utilisateur (UUID), corrigé par un nouveau changeset avant la première mise en production. — *⚠ presque : toutes les tables métier en UUID ; la table technique `dev` reste en `bigint`.*
+- [x] Les colonnes created_by / updated_by sont du même type que l'identifiant utilisateur (UUID), corrigé par un nouveau changeset avant la première mise en production. — *✅ vérifié en base : plus aucune colonne d'audit en `bigint` (table `dev` supprimée le 2026-10-23).*
 - [x] L'auteur est renseigné automatiquement à partir de l'utilisateur connecté (pas de saisie manuelle). — *✅ vérifié par lecture du code (`SecurityAuditorAware`).*
 
 ## Détails

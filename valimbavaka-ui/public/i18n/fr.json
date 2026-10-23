@@ -165,16 +165,13 @@
       "actions": "Actions"
     },
     "actions": {
-      "edit": "Modifier",
-      "delete": "Supprimer"
+      "edit": "Modifier"
     },
     "empty": {
       "title": "Aucun utilisateur trouvé",
       "message": "Essayez un autre nom ou retirez la recherche."
     },
     "confirm": {
-      "deleteTitle": "Supprimer ce compte ?",
-      "delete": "Le compte de {{name}} sera supprimé. Cette action est définitive.",
       "activateTitle": "Activer ce compte ?",
       "deactivateTitle": "Désactiver ce compte ?"
     }

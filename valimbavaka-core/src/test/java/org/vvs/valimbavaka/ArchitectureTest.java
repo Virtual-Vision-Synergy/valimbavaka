@@ -166,15 +166,10 @@ class ArchitectureTest {
             .should()
             .beAnnotatedWith(READ_ONLY_TRANSACTION);
 
-    // JNL-02 : aucune suppression définitive d'opération validée. Seul le référentiel utilisateur expose un DELETE
-    // (un utilisateur n'est pas une opération, et sa suppression est tracée au journal).
+    // JNL-02 / AUTH-03 : aucune suppression définitive n'est exposée. Une opération validée s'annule ou se
+    // contre-passe ; une donnée de référence (utilisateur, fournisseur) se désactive.
     @ArchTest
-    static final ArchRule delete_endpoints_are_limited_to_the_user_reference = noMethods()
-            .that()
-            .areAnnotatedWith(DeleteMapping.class)
-            .should()
-            .beDeclaredInClassesThat()
-            .resideOutsideOfPackage("..feature.user..");
+    static final ArchRule no_delete_endpoints = noMethods().should().beAnnotatedWith(DeleteMapping.class);
 
     // JNL-02 : un repository de feature métier n'hérite ni de JpaRepository ni de CrudRepository (delete*) ;
     // il passe par OperationRepository. Le référentiel et l'authentification sont des données, pas des opérations.

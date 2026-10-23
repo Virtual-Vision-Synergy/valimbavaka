@@ -85,4 +85,4 @@ CREATE TABLE articles (
 - Les écritures faites au démarrage (administrateur initial) ou par une tâche planifiée n'ont pas d'auteur : `created_by` reste `NULL`. Un accompagnement par le journal (auteur « Système ») est possible via [JNL-01](../JNL-01/guide.md).
 - L'audit ne s'applique qu'aux entités passant par JPA ; une écriture en SQL direct (`JdbcClient`, comme `idempotency_keys`) ne renseigne pas d'auteur.
 - L'activation de l'audit JPA dépend du bean `AuditorAware<UUID>` : un second bean du même type casserait l'injection.
-- La table technique `dev` (premier changeset `2026_09_15-01`, sans entité Java) a encore `created_by` / `updated_by` en `bigint` et `created_at` sans fuseau, de même que les tables `revinfo` / `revchanges` d'Envers, inutilisé. Vérifié en base le 2026-10-23 : à supprimer par un nouveau changeset avant la mise en production.
+- La table technique `dev` (premier changeset `2026_09_15-01`), seule encore auditée en `bigint`, a été supprimée avec `revinfo` / `revchanges` par `2026_10_23-02`.

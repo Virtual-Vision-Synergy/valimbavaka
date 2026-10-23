@@ -1,9 +1,11 @@
 package org.vvs.valimbavaka.feature.user.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,7 +30,10 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 import org.vvs.valimbavaka.support.IntegrationTest;
 
-/** AUTH-04 : activation/désactivation d'un compte, réservée à l'administrateur et tracée au journal. */
+/**
+ * AUTH-04 : activation/désactivation d'un compte, réservée à l'administrateur et tracée au journal. Le PUT applique
+ * les mêmes garde-fous que le PATCH, et aucun compte ne se supprime.
+ */
 @IntegrationTest
 @AutoConfigureMockMvc
 class UserStatusIT {
@@ -137,6 +142,65 @@ class UserStatusIT {
         // Assert
         var reloaded = userRepository.findByIdWithRole(userId).orElseThrow();
         assertThat(reloaded.getRole().getName()).isEqualTo(RoleName.DELIVERY_DRIVER);
+    }
+
+    @Test
+    void updateUser_ownAccountDeactivated_returns422AndKeepsTheAccountActive() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var adminId = idOf(ADMIN_EMAIL);
+        var body = adminUpdateBody(RoleName.ADMIN, false);
+
+        // Act + Assert
+        mockMvc.perform(putUser(adminId, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        assertThat(userRepository.findByIdWithRole(adminId).orElseThrow().isActive())
+                .isTrue();
+    }
+
+    @Test
+    void updateUser_ownAdministratorRoleRemoved_returns422AndKeepsTheRole() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var adminId = idOf(ADMIN_EMAIL);
+        var body = adminUpdateBody(RoleName.DELIVERY_DRIVER, true);
+
+        // Act + Assert
+        mockMvc.perform(putUser(adminId, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        assertThat(userRepository
+                        .findByIdWithRole(adminId)
+                        .orElseThrow()
+                        .getRole()
+                        .getName())
+                .isEqualTo(RoleName.ADMIN);
+    }
+
+    @Test
+    void deleteUser_isNotExposed() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var userId = idOf(createDriver());
+
+        // Act + Assert
+        mockMvc.perform(delete("/api/v1/users/" + userId).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isMethodNotAllowed());
+        assertThat(userRepository.findById(userId)).isPresent();
+    }
+
+    private String adminUpdateBody(RoleName role, boolean active) {
+        var roleId = roleRepository.findByName(role).orElseThrow().getId();
+        return ("{\"email\":\"%s\",\"firstName\":\"Rasoa\",\"lastName\":\"Rakoto\","
+                        + "\"roleId\":\"%s\",\"active\":%s}")
+                .formatted(ADMIN_EMAIL, roleId, active);
+    }
+
+    private static MockHttpServletRequestBuilder putUser(UUID userId, String body) {
+        return put("/api/v1/users/" + userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body);
     }
 
     private UUID idOf(String email) {

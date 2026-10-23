@@ -21,7 +21,8 @@ public record CreateUserWDto(
         String email,
 
         @NotBlank(message = "Le mot de passe est obligatoire")
-        @Size(min = 8, max = 128, message = "Le mot de passe doit contenir entre {min} et {max} caractères")
+        // 15 caractères minimum sans MFA (NIST SP 800-63B, convention §9.2).
+        @Size(min = 15, max = 128, message = "Le mot de passe doit contenir entre {min} et {max} caractères")
         String password,
 
         @NotBlank(message = "Le prénom est obligatoire")
@@ -32,13 +33,12 @@ public record CreateUserWDto(
         @Size(max = 100, message = "Le nom ne doit pas dépasser {max} caractères")
         String lastName,
 
-        @NotNull(message = "Le rôle est obligatoire")
-        UUID roleId,
+        @NotNull(message = "Le rôle est obligatoire") UUID roleId,
 
         @Nullable UUID salesChannelId,
 
         @DecimalMin(value = "0.00", message = "Le taux de commission ne peut pas être négatif")
         @DecimalMax(value = "100.00", message = "Le taux de commission ne peut pas dépasser {value} %")
         @Digits(integer = 3, fraction = 2, message = "Le taux de commission accepte 2 décimales au maximum")
-        @Nullable BigDecimal commissionRate) {
-}
+        @Nullable
+        BigDecimal commissionRate) {}

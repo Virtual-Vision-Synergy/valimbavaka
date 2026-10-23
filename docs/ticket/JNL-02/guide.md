@@ -27,7 +27,7 @@ Journal : `JournalAction` contient `CANCEL` et `REVERSE` ; la contrainte `ck_jou
 
 ### Garde-fous automatiques (`ArchitectureTest`)
 
-- `delete_endpoints_are_limited_to_the_user_reference` : aucun `@DeleteMapping` en dehors de `feature.user`.
+- `no_delete_endpoints` : aucun `@DeleteMapping` dans toute l'application.
 - `operation_features_have_no_deleting_repository` : un repository de feature métier ne peut pas être assignable à `CrudRepository` (donc ni `JpaRepository`) ; le référentiel et l'authentification sont traités comme des données, pas comme des opérations.
 - `operation_repositories_declare_no_delete` : aucune méthode dont le nom correspond à `(delete|remove).*` sur un `OperationRepository`.
 
@@ -85,7 +85,6 @@ public class SaleServiceImpl implements SaleService, ReversibleOperationService<
 
 ## Points d'attention
 
-- Le critère « aucune fonction de suppression définitive n'est exposée » n'est pas absolu : `DELETE /api/v1/users/{id}` existe (`users.delete`) et l'ArchUnit l'autorise explicitement pour `feature.user` ; il écrit une ligne `DELETE` dans le journal.
 - Le socle ne contient aucune implémentation concrète de `ReversibleOperationService` : le premier ticket d'opération (vente, transfert, production) la fournit et définit ce que « écriture inverse » signifie pour son domaine.
 - Le commentaire du ticket indique que l'IT Testcontainers du journal n'avait pas pu tourner en local (pas de Docker) : à valider en CI.
 - `OperationRepository` n'expose que `save` et `findById` : les requêtes de liste ou de recherche se déclarent en plus dans le repository de la feature (`@Query`, `Page<T>`), sans nom commençant par `delete` ou `remove`.

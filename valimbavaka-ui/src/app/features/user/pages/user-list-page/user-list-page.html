@@ -74,14 +74,11 @@
                     *vvsHasPermission="'users.update'"
                     class="btn btn-ghost btn-sm"
                     type="button"
-                    (click)="ask('toggle', user)"
+                    (click)="ask(user)"
                   >
                     {{
                       (user.active ? 'user.status.deactivate' : 'user.status.activate') | translate
                     }}
-                  </button>
-                  <button class="btn btn-danger btn-sm" type="button" (click)="ask('delete', user)">
-                    {{ 'user.actions.delete' | translate }}
                   </button>
                 </td>
               </tr>
@@ -105,13 +102,13 @@
   </section>
 </div>
 
-@if (pending(); as action) {
-  @let texts = dialogTexts(action);
+@if (pending(); as pendingUser) {
+  @let texts = dialogTexts(pendingUser);
   <vvs-confirm-dialog
     [heading]="texts.heading"
     [message]="texts.message"
     [confirmLabel]="texts.confirm"
-    [danger]="action.kind === 'delete' || action.user.active"
+    [danger]="pendingUser.active"
     (confirmed)="confirm()"
     (cancelled)="dismiss()"
   />

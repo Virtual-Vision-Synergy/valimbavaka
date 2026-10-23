@@ -73,6 +73,16 @@ describe('UserListPage', () => {
     expect(rows[1].textContent).toContain('DÉSACTIVÉ');
   });
 
+  it('should offer no way to delete an account, only to deactivate it', async () => {
+    httpMock.expectOne(isListRequest).flush(pageOf([user()]));
+    await fixture.whenStable();
+
+    const labels = [...element.querySelectorAll('tbody button')].map((button) =>
+      button.textContent?.trim(),
+    );
+    expect(labels).toEqual(['Désactiver']);
+  });
+
   it('should deactivate an active user after confirmation and reload the list', async () => {
     httpMock.expectOne(isListRequest).flush(pageOf([user()]));
     await fixture.whenStable();

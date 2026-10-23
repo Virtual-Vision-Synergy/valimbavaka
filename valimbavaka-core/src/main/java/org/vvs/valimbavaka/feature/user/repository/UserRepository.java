@@ -1,11 +1,15 @@
 package org.vvs.valimbavaka.feature.user.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.persistence.LockModeType;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
@@ -49,5 +53,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByRoleName(RoleName roleName);
 
-    long countByRoleNameAndActiveTrue(RoleName roleName);
+    /** Comptes actifs du rôle, verrouillés en écriture jusqu'à la fin de la transaction (garde-fous AUTH-04). */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.role.name = :roleName and u.active = true")
+    List<User> findActiveByRoleNameForUpdate(RoleName roleName);
 }

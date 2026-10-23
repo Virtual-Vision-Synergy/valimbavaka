@@ -15,12 +15,12 @@ L'administrateur crée et modifie les comptes (identité, rôle, et pour une ven
 | GET | `/api/v1/users` | `users.read` | `PageQuery` (`page`, `size`, `search`, `sortBy`, `sortDirection`) | 200 `PageResponse<UserRDto>` | 401, 403 |
 | GET | `/api/v1/users/{id}` | `users.read` | - | 200 `UserRDto` | 404 `NOT_FOUND` |
 | POST | `/api/v1/users` | `users.create` | `CreateUserWDto` | 201 `UserRDto` + `Location` | 409 `CONFLICT` (email), 422 `VALIDATION_FAILED` |
-| PUT | `/api/v1/users/{id}` | `users.update` | `UpdateUserWDto` | 200 `UserRDto` | 404, 409, 422 |
+| PUT | `/api/v1/users/{id}` | `users.update` | `UpdateUserWDto` | 200 `UserRDto` | 404, 409, 422 (données invalides ou garde-fous AUTH-04) |
 | GET | `/api/v1/roles` | `roles.read` | `PageQuery` | 200 `PageResponse<RoleRDto>` | 401, 403 |
 
-Tri autorisé sur `/users` : `createdAt` (défaut, décroissant), `email`, `firstName`, `lastName`. Les endpoints `PATCH /{id}/status` et `DELETE /{id}` sont décrits dans [AUTH-04](../AUTH-04/guide.md).
+Tri autorisé sur `/users` : `createdAt` (défaut, décroissant), `email`, `firstName`, `lastName`. L'endpoint `PATCH /{id}/status` est décrit dans [AUTH-04](../AUTH-04/guide.md).
 
-**`CreateUserWDto`** : `email` (obligatoire, email valide, 255 max), `password` (8 à 128 caractères), `firstName`, `lastName` (obligatoires, 100 max), `roleId` (UUID, obligatoire), `salesChannelId` (UUID, facultatif), `commissionRate` (0 à 100, 2 décimales, facultatif).
+**`CreateUserWDto`** : `email` (obligatoire, email valide, 255 max), `password` (15 à 128 caractères, convention §9.2), `firstName`, `lastName` (obligatoires, 100 max), `roleId` (UUID, obligatoire), `salesChannelId` (UUID, facultatif), `commissionRate` (0 à 100, 2 décimales, facultatif).
 **`UpdateUserWDto`** : mêmes champs sans `password`, plus `active` (obligatoire). Le mot de passe ne se modifie pas ici.
 **`UserRDto`** : `id`, `email`, `firstName`, `lastName`, `role` (`RoleRDto`), `salesChannelId`, `commissionRate`, `active`, `passwordChangeRequired`, `createdAt`, `updatedAt`. Jamais de hash de mot de passe.
 
@@ -35,7 +35,7 @@ Tri autorisé sur `/users` : `createdAt` (défaut, décroissant), `email`, `firs
 
 ### Services et ports Java
 
-- `feature.user.service.UserService` : `getUsers`, `getUserById`, `createUser`, `updateUser`, `setActive`, `deleteUserById`, `createInitialAdministratorIfMissing`.
+- `feature.user.service.UserService` : `getUsers`, `getUserById`, `createUser`, `updateUser`, `setActive`, `createInitialAdministratorIfMissing`.
 - `feature.user.service.RoleService` : lecture des rôles.
 - `feature.user.service.impl.AuthenticatedUserLoaderImpl` implémente le port `security.AuthenticatedUserLoader`.
 - Autre feature qui a besoin d'un utilisateur : stocker son UUID (pas d'association JPA entre features) et lire l'auteur courant via `SecurityAuditorAware` ou `JwtSubject`.
@@ -51,7 +51,7 @@ Tri autorisé sur `/users` : `createdAt` (défaut, décroissant), `email`, `firs
 ### Données
 
 - Tables `users` (colonnes `is_active`, `is_password_change_required`, `sales_channel_id`, `commission_rate NUMERIC(5,2)` avec `CHECK` 0 à 100, `failed_attempts`, `locked_until`) et `roles` ; migrations `2026_10_07-01`, `2026_10_15-01` (rôles, canaux, audit), `2026_10_16-02` (canal et commission).
-- Permissions `users.read`, `users.create`, `users.update`, `users.delete`, `roles.read` (migration `2026_10_19-01`), toutes réservées à `ADMIN`.
+- Permissions `users.read`, `users.create`, `users.update`, `roles.read` (migration `2026_10_19-01`), toutes réservées à `ADMIN` ; `users.delete` a été retirée par `2026_10_23-01`.
 
 ## Règles métier à respecter par les autres tickets
 
@@ -105,7 +105,7 @@ Aujourd'hui `GET /api/v1/users` n'a ni filtre `role` ni filtre `active` : un tic
 
 ## Points d'attention
 
-- `PUT /api/v1/users/{id}` accepte `active` et un nouveau `roleId` sans passer par les garde-fous de `setActive` (voir [AUTH-04](../AUTH-04/guide.md)).
-- `DELETE /api/v1/users/{id}` existe (`users.delete`) alors que le ticket dit qu'un utilisateur ne se supprime jamais ; il est tracé `DELETE` dans le journal. L'ArchUnit de JNL-02 l'autorise explicitement pour `feature.user`.
+- `PUT /api/v1/users/{id}` applique les garde-fous de `setActive` sur `active` et sur le retrait du rôle administrateur (voir [AUTH-04](../AUTH-04/guide.md)).
+- Aucun compte ne se supprime : il n'existe aucun `DELETE` (règle ArchUnit `no_delete_endpoints`).
 - Question client en attente (voir le ticket) : propriétaire de la commission, et connexion par email ou identifiant.
 - Aucun endpoint de changement de mot de passe ni de réinitialisation : le mot de passe n'est défini qu'à la création.
