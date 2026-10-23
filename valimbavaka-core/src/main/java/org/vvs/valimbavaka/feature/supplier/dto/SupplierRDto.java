@@ -19,4 +19,5 @@ public record SupplierRDto(
         @Nullable String notes,
         boolean active,
         Instant createdAt,
-        Instant updatedAt) {}
+        Instant updatedAt,
+        long version) {}

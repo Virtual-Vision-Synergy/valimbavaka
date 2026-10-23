@@ -14,6 +14,8 @@ export interface SupplierRDto {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  /** Version lue : renvoyée à la modification pour refuser (409) l'écrasement d'un changement concurrent. */
+  version: number;
 }
 
 /** Miroir de SupplierWDto : création et modification (ni id ni statut). */
@@ -25,6 +27,8 @@ export interface SupplierWDto {
   email: string | null;
   address: string | null;
   notes: string | null;
+  /** Version lue lors de l'ouverture de la fiche ; absente en création. */
+  version?: number | null;
 }
 
 /** Miroir de SupplierStatusWDto. */

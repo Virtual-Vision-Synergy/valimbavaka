@@ -77,6 +77,21 @@ class JournalServiceImplTest {
     }
 
     @Test
+    void record_descriptionLongerThanTheColumn_isTruncatedInsteadOfFailingTheOperation() {
+        // given
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.empty());
+        var description = "Annulation de la vente : " + "a".repeat(600);
+        // when
+        sut.record(JournalAction.CANCEL, "SALE", UUID.randomUUID(), description);
+        // then
+        var saved = savedEntry().getDescription();
+        assertThat(saved)
+                .hasSize(JournalEntry.DESCRIPTION_MAX_LENGTH)
+                .startsWith("Annulation de la vente : ")
+                .endsWith("…");
+    }
+
+    @Test
     void record_noAuthenticatedUser_attributesTheEntryToTheSystem() {
         // given
         when(auditorAware.getCurrentAuditor()).thenReturn(Optional.empty());

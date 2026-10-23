@@ -33,6 +33,7 @@ public class SupplierServiceImpl implements SupplierService {
 
     private static final String RESOURCE_TYPE = "SUPPLIER";
     private static final String NAME_ALREADY_USED = "A supplier with this name already exists.";
+    private static final String STALE_VERSION = "The supplier was modified in the meantime: reload it and try again.";
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "name", "type");
 
     private final SupplierRepository supplierRepository;
@@ -77,6 +78,9 @@ public class SupplierServiceImpl implements SupplierService {
     @Transactional
     public SupplierRDto updateSupplier(UUID supplierId, SupplierWDto request) {
         Supplier supplier = findSupplier(supplierId);
+        if (request.version() != null && request.version() != supplier.getVersion()) {
+            throw new ConflictException(STALE_VERSION);
+        }
         if (supplierRepository.existsByNameIgnoreCaseAndIdNot(request.name().strip(), supplierId)) {
             throw new ConflictException(NAME_ALREADY_USED);
         }

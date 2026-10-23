@@ -29,6 +29,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class JournalEntry {
 
+    /** Longueur de la colonne {@code description} ; au-delà, le libellé est tronqué plutôt que l'opération refusée. */
+    public static final int DESCRIPTION_MAX_LENGTH = 500;
+
     @Id
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
@@ -55,7 +58,7 @@ public class JournalEntry {
     @Column(name = "resource_id", nullable = false, updatable = false)
     private UUID resourceId;
 
-    @Column(name = "description", nullable = false, updatable = false, length = 500)
+    @Column(name = "description", nullable = false, updatable = false, length = DESCRIPTION_MAX_LENGTH)
     private String description;
 
     public static JournalEntry of(Instant occurredAt, Actor actor, JournalAction action, Subject subject) {
@@ -66,8 +69,14 @@ public class JournalEntry {
         entry.action = action;
         entry.resourceType = subject.resourceType();
         entry.resourceId = subject.resourceId();
-        entry.description = subject.description();
+        entry.description = truncate(subject.description());
         return entry;
+    }
+
+    private static String truncate(String description) {
+        return description.length() <= DESCRIPTION_MAX_LENGTH
+                ? description
+                : description.substring(0, DESCRIPTION_MAX_LENGTH - 1) + "…";
     }
 
     /** Auteur de l'opération. */

@@ -37,6 +37,8 @@ export class SupplierFormPage implements OnInit {
   protected readonly types: readonly SupplierType[] = ['LOCAL', 'FOREIGN'];
   protected readonly isSaving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  /** Version de la fiche ouverte : le serveur refuse (409) si elle a changé entre-temps. */
+  private version: number | null = null;
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(150)]],
@@ -75,7 +77,7 @@ export class SupplierFormPage implements OnInit {
     this.isSaving.set(true);
     this.errorMessage.set(null);
     const id = this.id();
-    const body = this.form.getRawValue();
+    const body = { ...this.form.getRawValue(), version: this.version };
     const request = id ? this.supplierService.update(id, body) : this.supplierService.create(body);
     request
       .pipe(
@@ -89,6 +91,7 @@ export class SupplierFormPage implements OnInit {
   }
 
   private fill(supplier: SupplierRDto): void {
+    this.version = supplier.version;
     this.form.setValue({
       name: supplier.name,
       type: supplier.type,

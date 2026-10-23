@@ -15,18 +15,18 @@ L'administrateur consulte et modifie la fiche d'un fournisseur : nom, type (loca
 | GET | `/api/v1/suppliers` | `suppliers.read` | `PageQuery` + `type` (`LOCAL`/`FOREIGN`) + `active` (booléen) | 200 `PageResponse<SupplierRDto>` | 401, 403 |
 | GET | `/api/v1/suppliers/{id}` | `suppliers.read` | — | 200 `SupplierRDto` | 401, 403, 404 |
 | POST | `/api/v1/suppliers` | `suppliers.create` | `SupplierWDto` | 201 `SupplierRDto` + `Location` | 401, 403, 409 (nom déjà pris), 422 |
-| PUT | `/api/v1/suppliers/{id}` | `suppliers.update` | `SupplierWDto` | 200 `SupplierRDto` | 401, 403, 404, 409 (nom), 422 ; conflit de version : 500 (voir points d'attention) |
+| PUT | `/api/v1/suppliers/{id}` | `suppliers.update` | `SupplierWDto` | 200 `SupplierRDto` | 401, 403, 404, 409 (nom ou version périmée), 422 |
 | PATCH | `/api/v1/suppliers/{id}/status` | `suppliers.update` | `SupplierStatusWDto` (`active`) | 200 `SupplierRDto` | 401, 403, 404, 422 |
 
 Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 
 - Tri autorisé : `createdAt` (défaut, décroissant), `name`, `type`. `search` porte sur le nom et le nom du contact.
-- `SupplierWDto` : `name` (obligatoire, ≤ 150), `type` (obligatoire), `contactName` (≤ 150), `phone` (≤ 50), `email` (format courriel, ≤ 255), `address` (≤ 500), `notes` (≤ 2000). **Ni `id`, ni `active`** : un `id` ou un statut envoyé dans le corps est ignoré (test de mass assignment).
+- `SupplierWDto` : `name` (obligatoire, ≤ 150), `type` (obligatoire), `contactName` (≤ 150), `phone` (≤ 50), `email` (format courriel, ≤ 255), `address` (≤ 500), `notes` (≤ 2000), `version` (facultatif : version lue, une valeur périmée donne 409). **Ni `id`, ni `active`** : un `id` ou un statut envoyé dans le corps est ignoré (test de mass assignment).
 - `SupplierRDto` : `id`, `name`, `type`, `contactName`, `phone`, `email`, `address`, `notes`, `active`, `createdAt`, `updatedAt`.
 - Unicité du nom insensible à la casse (index `uq_suppliers_name` sur `lower(name)`) ; le nom est nettoyé (`strip`) avant comparaison.
 - `PATCH /status` est idempotent : aucune modification ni ligne de journal si l'état est déjà celui demandé.
 - Journal : `CREATE` à la création, `UPDATE` à la modification et au changement d'état, ressource `SUPPLIER`.
-- Verrou optimiste (`version`) : présent sur l'entité, mais `SupplierWDto` ne transporte pas la version (le second enregistrement écrase le premier) et un conflit simultané remonte en **500** : `GlobalExceptionHandler` ne traduit ni `ObjectOptimisticLockingFailureException` ni `DataIntegrityViolationException`.
+- Verrou optimiste : `SupplierRDto.version` est renvoyée par le formulaire dans `SupplierWDto.version` ; si la fiche a changé entre-temps, 409 « The supplier was modified in the meantime: reload it and try again. ». Un conflit détecté au commit (verrou JPA) ou un doublon refusé par la base donnent aussi 409.
 
 ### Service Java
 

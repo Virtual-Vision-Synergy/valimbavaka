@@ -46,7 +46,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Cas | Exemple | Résultat attendu | Comment c'est vérifié | Statut |
 |---|---|---|---|---|
 | Libellé de 500 caractères | `description = 'a' × 500` | accepté | colonne `VARCHAR(500)` | ✅ base |
-| Libellé de 501 caractères | `'a' × 501` | doit être tronqué ou refusé proprement | refus de la base « value too long » ; `record` ne tronque pas, l'opération métier échoue en 500 | ❌ écart |
+| Libellé de 501 caractères ou plus | `'a' × 600` | tronqué à 500 caractères, terminé par « … », l'opération métier aboutit | `JournalServiceImplTest.record_descriptionLongerThanTheColumn_isTruncatedInsteadOfFailingTheOperation` | ✅ auto (corrigé le 2026-10-23) |
 | Nom d'auteur long | prénom + nom de 200 caractères | accepté (`actor_name` ≤ 255 ; prénom et nom ≤ 100 chacun) | insertion en base | ✅ base |
 | Nom de l'auteur modifié après coup | renommer l'administrateur | les anciennes lignes gardent l'ancien nom | `actor_name` figé à l'écriture | 🔍 code |
 | Pagination | `page=1&size=100` ; `size=101` | 100 lignes ; 422 au-delà | `PageQuery` ; `journal-list-page.spec.ts` « should request the next page » | ✅ auto |
@@ -72,7 +72,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102. **Base** : migrations `2026_10_19-02` et `2026_10_20-02` rejouées sur PostgreSQL 16 ; triggers `UPDATE`, `DELETE`, `TRUNCATE` et contrainte d'action vérifiés à la main.
 - **Anomalies** :
-  1. ❌ Gravité moyenne : un libellé de plus de 500 caractères fait échouer toute l'opération métier en 500. Tronquer `description` à 500 dans `JournalEntry.of` (avec « … ») et ajouter `record_descriptionLongerThan500_isTruncated`.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/FRS-01-conflits-409`) : `JournalEntry.of` tronque le libellé à 500 caractères (« … ») au lieu de faire échouer l'opération.
   2. ⚠ Le critère « chaque opération génère une ligne » repose sur l'appel de `record` par chaque service : aucune règle ArchUnit ne le vérifie.
   3. ⚠ Pas de filtre par ressource, auteur ou période sur `GET /api/v1/journal` (nécessaire pour ART-06 et LIV-07).
 - **Recette manuelle** : 3 étapes 🧪.

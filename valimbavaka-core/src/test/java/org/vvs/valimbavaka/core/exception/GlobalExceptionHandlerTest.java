@@ -6,12 +6,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.SQLException;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +60,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleMethodArgumentNotValid_invalidBody_returns422WithFieldErrors() throws Exception {
-        mockMvc.perform(post("/validated").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\"}"))
+        mockMvc.perform(post("/validated")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\"}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors[0].field").value("name"));
@@ -64,7 +70,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleExceptionInternal_unreadableJson_returns400MalformedRequest() throws Exception {
-        mockMvc.perform(post("/validated").contentType(MediaType.APPLICATION_JSON).content("{"))
+        mockMvc.perform(post("/validated")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
     }
@@ -77,8 +85,29 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.detail").value("Erreur interne"));
     }
 
-    record NamedWDto(@NotBlank String name) {
+    @Test
+    void handleOptimisticLocking_concurrentUpdate_returns409() throws Exception {
+        mockMvc.perform(get("/stale"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
     }
+
+    @Test
+    void handleDataIntegrity_uniqueViolation_returns409() throws Exception {
+        mockMvc.perform(get("/duplicate"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void handleDataIntegrity_otherViolation_returns500WithoutInternalDetail() throws Exception {
+        mockMvc.perform(get("/too-long"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.detail").value("Erreur interne"));
+    }
+
+    record NamedWDto(@NotBlank String name) {}
 
     @RestController
     static class FailingController {
@@ -101,6 +130,23 @@ class GlobalExceptionHandlerTest {
         @PostMapping("/validated")
         void validated(@Valid @RequestBody NamedWDto body) {
             // le corps est validé avant l'appel
+        }
+
+        @GetMapping("/stale")
+        void stale() {
+            throw new ObjectOptimisticLockingFailureException("Supplier", "id");
+        }
+
+        @GetMapping("/duplicate")
+        void duplicate() {
+            throw new DataIntegrityViolationException(
+                    "doublon", new SQLException("duplicate key value violates unique constraint", "23505"));
+        }
+
+        @GetMapping("/too-long")
+        void tooLong() {
+            throw new DataIntegrityViolationException(
+                    "trop long", new SQLException("value too long for type character varying(500)", "22001"));
         }
 
         @GetMapping("/bug")

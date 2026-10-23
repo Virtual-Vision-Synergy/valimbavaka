@@ -106,4 +106,4 @@ public class SupplierServiceImpl implements SupplierService {
 - Le journal ne stocke qu'un libellé : pas de valeur avant / après. Les tickets qui exigent le détail d'un changement doivent le mettre dans `description` (≤ 500 caractères) ou prévoir un autre mécanisme.
 - Le critère « chaque opération métier génère une ligne » est garanti par convention d'appel, pas par un mécanisme automatique : un module qui oublie `record` n'est pas détecté par un test global.
 - Les tests d'intégration Testcontainers (triggers de base) demandent Docker ; ils tournent en CI.
-- Un libellé de plus de 500 caractères n'est pas tronqué : la base le refuse et **toute l'opération métier échoue en 500** (vérifié en base le 2026-10-23). Garder les libellés courts, ou tronquer dans `JournalEntry.of`.
+- Un libellé de plus de 500 caractères est tronqué (« … ») par `JournalEntry.of` : l'opération métier n'échoue pas, mais la fin du texte est perdue. Garder les libellés courts.
