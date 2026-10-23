@@ -1,105 +1,96 @@
 # Guide d'intégration — FRS-01 · Fiche fournisseur complète
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ⚠ pré-rempli depuis le code au 2026-10-23 — à vérifier et compléter · Ticket : [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+L'administrateur consulte et modifie la fiche d'un fournisseur : nom, type (local ou étranger), contact, téléphone, courriel, adresse, notes, état actif. Un fournisseur ne se supprime pas, il se désactive. Chaque écriture est tracée dans le journal. Le bloc « articles fournis » est prévu dans l'interface mais reste vide tant que [ART-01](../ART-01/description.md) n'est pas livré.
 
 ## Contrat exposé
 
-### Endpoints backend
+### Endpoints backend (`/api/v1/suppliers`, administrateur seul)
 
-| Méthode | URL | Permission | Entrée | Sortie |
-|---|---|---|---|---|
-| GET | `/api/v1/suppliers` | suppliers.read | `PageQuery + filtres` | `PageResponse<SupplierRDto>` |
-| GET | `/api/v1/suppliers/{id}` | suppliers.read | `-` | `SupplierRDto` |
+| Méthode | URL | Permission | Entrée | Sortie | Erreurs |
+|---|---|---|---|---|---|
+| GET | `/api/v1/suppliers` | `suppliers.read` | `PageQuery` + `type` (`LOCAL`/`FOREIGN`) + `active` (booléen) | 200 `PageResponse<SupplierRDto>` | 401, 403 |
+| GET | `/api/v1/suppliers/{id}` | `suppliers.read` | — | 200 `SupplierRDto` | 401, 403, 404 |
+| POST | `/api/v1/suppliers` | `suppliers.create` | `SupplierWDto` | 201 `SupplierRDto` + `Location` | 401, 403, 409 (nom déjà pris), 422 |
+| PUT | `/api/v1/suppliers/{id}` | `suppliers.update` | `SupplierWDto` | 200 `SupplierRDto` | 401, 403, 404, 409 (version ou nom), 422 |
+| PATCH | `/api/v1/suppliers/{id}/status` | `suppliers.update` | `SupplierStatusWDto` (`active`) | 200 `SupplierRDto` | 401, 403, 404, 422 |
 
-_Relevé dans les contrôleurs ; compléter erreurs possibles, filtres et exemples de corps._
+Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 
-### Services et ports Java réutilisables
+- Tri autorisé : `createdAt` (défaut, décroissant), `name`, `type`. `search` porte sur le nom et le nom du contact.
+- `SupplierWDto` : `name` (obligatoire, ≤ 150), `type` (obligatoire), `contactName` (≤ 150), `phone` (≤ 50), `email` (format courriel, ≤ 255), `address` (≤ 500), `notes` (≤ 2000). **Ni `id`, ni `active`** : un `id` ou un statut envoyé dans le corps est ignoré (test de mass assignment).
+- `SupplierRDto` : `id`, `name`, `type`, `contactName`, `phone`, `email`, `address`, `notes`, `active`, `createdAt`, `updatedAt`.
+- Unicité du nom insensible à la casse (index `uq_suppliers_name` sur `lower(name)`) ; le nom est nettoyé (`strip`) avant comparaison.
+- `PATCH /status` est idempotent : aucune modification ni ligne de journal si l'état est déjà celui demandé.
+- Journal : `CREATE` à la création, `UPDATE` à la modification et au changement d'état, ressource `SUPPLIER`.
+- Verrou optimiste (`version`) : deux modifications concurrentes donnent un 409.
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+### Service Java
 
-### Frontend
+`feature.supplier.service.SupplierService` : `getSuppliers(query, type, active)`, `getSupplierById`, `createSupplier`, `updateSupplier`, `setActive`. Les autres features ne doivent pas lire `SupplierRepository` : pas d'association JPA entre features, un article référence son fournisseur par `supplierId` (UUID).
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+### Frontend (`features/supplier`)
+
+- Routes lazy `/suppliers` (garde `suppliers.read`), `/suppliers/new`, `/suppliers/:id/edit`.
+- `data-access/supplier-service.ts` : `list(query)`, `getById`, `create`, `update`, `setActive`. Types dans `supplier-models.ts` (`SupplierRDto`, `SupplierWDto`, `SupplierStatusWDto`).
+- `pages/supplier-list-page` (liste, activation / désactivation) et `pages/supplier-form-page` (création et modification ; bloc « articles fournis » vide en attendant ART-01).
 
 ### Données
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+- Table `suppliers` (`id` UUID, `name`, `type` avec contrainte `LOCAL` / `FOREIGN`, `contact_name`, `phone`, `email`, `address`, `notes`, `is_active`, audit, `version`).
+- Permissions `suppliers.create` et `suppliers.update` créées et données à `ADMIN` ; `suppliers.read` existait déjà (AUTH-01) et reste réservée à l'administrateur.
+- Migration : `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_21-01-changelog.sql`.
 
-## Règles métier à respecter par les autres tickets
+## Règles métier pour les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- Seul l'administrateur gère les fournisseurs ; une vendeuse ou un livreur reçoit 403 sur toute la ressource.
+- Un fournisseur désactivé reste lisible et conserve son historique ; les écrans de sélection (réapprovisionnement, article) doivent proposer uniquement les fournisseurs `active = true` (le filtre `active` de la liste existe).
+- Le type de fournisseur (`LOCAL` / `FOREIGN`) pilote le délai de réapprovisionnement : voir [FRS-04](../FRS-04/description.md).
+- Référencer un fournisseur par son UUID, jamais par son nom (le nom est modifiable).
 
 ## Fichiers concernés
 
-_Fichiers existants repérés dans les PR liées ; ajouter ceux modifiés ensuite._
+**Backend** (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/`)
+- `controller/SupplierController.java`
+- `domain/Supplier.java`, `SupplierDetails.java`, `SupplierType.java`
+- `dto/SupplierRDto.java`, `SupplierWDto.java`, `SupplierStatusWDto.java`, `mapper/SupplierMapper.java`
+- `repository/SupplierRepository.java`
+- `service/SupplierService.java`, `service/impl/SupplierServiceImpl.java`
 
-**Backend**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierController.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/domain/Supplier.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/domain/SupplierDetails.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/domain/SupplierType.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/dto/SupplierRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/dto/SupplierStatusWDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/dto/SupplierWDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/mapper/SupplierMapper.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/repository/SupplierRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/service/SupplierService.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/service/impl/SupplierServiceImpl.java`
-
-**Frontend**
-- `valimbavaka-ui/src/app/features/supplier/data-access/supplier-models.ts`
-- `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.ts`
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/supplier-form-page.css`
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/supplier-form-page.html`
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/supplier-form-page.ts`
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.css`
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.html`
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.ts`
-- `valimbavaka-ui/src/app/features/supplier/supplier.routes.ts`
-- `valimbavaka-ui/src/app/features/suppliers/components/supplier-detail/supplier-detail.css`
-- `valimbavaka-ui/src/app/features/suppliers/components/supplier-detail/supplier-detail.html`
-- `valimbavaka-ui/src/app/features/suppliers/components/supplier-detail/supplier-detail.ts`
-- `valimbavaka-ui/src/app/features/suppliers/data-access/supplier-fixtures.ts`
-- `valimbavaka-ui/src/app/features/suppliers/data-access/supplier-models.ts`
-- `valimbavaka-ui/src/app/features/suppliers/data-access/supplier-service.ts`
-- `valimbavaka-ui/src/app/features/suppliers/data-access/supplier-tones.ts`
-- `valimbavaka-ui/src/app/features/suppliers/pages/supplier-list-page/supplier-list-page.css`
-- `valimbavaka-ui/src/app/features/suppliers/pages/supplier-list-page/supplier-list-page.html`
-- `valimbavaka-ui/src/app/features/suppliers/pages/supplier-list-page/supplier-list-page.ts`
-- `valimbavaka-ui/src/app/features/suppliers/suppliers.routes.ts`
+**Frontend** (`valimbavaka-ui/src/app/features/supplier/`)
+- `supplier.routes.ts`, `data-access/*`, `pages/supplier-list-page/*`, `pages/supplier-form-page/*`
+- Attention : le dossier `features/suppliers/` (avec un « s ») contient la **maquette** de DSG-01 (fixtures, pas d'appel API) et n'est pas branché sur la route `/suppliers`.
 
 **Tests**
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/repository/SupplierRepositoryIT.java`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/service/impl/SupplierServiceImplTest.java`
 - `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.spec.ts`
 
 ## Dépendances
 
-**Ce ticket s'appuie sur** :
-- [JNL-01](../JNL-01/description.md) · [guide](../JNL-01/guide.md)
+**Ce ticket s'appuie sur** : [JNL-01](../JNL-01/guide.md) (journal), [JNL-02](../JNL-02/guide.md) (pas de suppression), [AUTH-01](../AUTH-01/guide.md) (permissions).
 
-**Ces tickets s'appuient sur lui** :
-- [FRS-02](../FRS-02/description.md) · [guide](../FRS-02/guide.md)
-- [FRS-03](../FRS-03/description.md) · [guide](../FRS-03/guide.md)
-- [FRS-04](../FRS-04/description.md) · [guide](../FRS-04/guide.md)
-- [ART-01](../ART-01/description.md) · [guide](../ART-01/guide.md)
-- [STK-05](../STK-05/description.md) · [guide](../STK-05/guide.md)
-- [STK-06](../STK-06/description.md) · [guide](../STK-06/guide.md)
+**Ces tickets s'appuient sur lui** : [FRS-02](../FRS-02/description.md), [FRS-03](../FRS-03/description.md), [FRS-04](../FRS-04/description.md), [ART-01](../ART-01/description.md), [STK-05](../STK-05/description.md), [STK-06](../STK-06/description.md).
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
+```ts
+// Sélecteur de fournisseur (ex. fiche article)
+this.supplierService
+  .list({ page: 1, size: 100, sortBy: 'name' })
+  .subscribe((page) => this.suppliers.set(page.items.filter((s) => s.active)));
 ```
+
+Le filtre `type` / `active` du backend est disponible pour un appel direct : `GET /api/v1/suppliers?type=LOCAL&active=true`.
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- **Chevauchement avec FRS-02 (ouvert)** : la création, la modification et l'activation existent déjà côté serveur et dans l'interface (formulaire, liste). FRS-02, FRS-03 (filtre par type) et le champ `search` doivent partir de cet existant, pas le refaire. Le filtre par type a son paramètre `type` côté API ; l'interface n'est pas vérifiée dans cette note.
+- Le bloc « articles fournis » est vide : il se remplit avec [ART-01](../ART-01/description.md), qui référence le fournisseur depuis l'article. Prévoir un endpoint de lecture des articles par fournisseur dans ART-01.
+- L'écriture n'utilise pas encore `OutboxService` : un fournisseur ne peut pas être saisi hors ligne ([SYS-07](../SYS-07/description.md)).
+- Messages d'erreur serveur en anglais (« A supplier with this name already exists. ») : le journal aussi (« Supplier created: … »), alors que les autres modules écrivent en français.
+- Pas de test d'interface pour les pages liste et formulaire (seul `supplier-service.spec.ts` existe).

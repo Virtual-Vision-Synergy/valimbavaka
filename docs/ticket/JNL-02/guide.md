@@ -1,95 +1,91 @@
 # Guide d'intégration — JNL-02 · Interdiction de suppression des opérations validées
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ⚠ pré-rempli depuis le code au 2026-10-23 — à vérifier et compléter · Ticket : [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+Une opération métier validée ne se supprime jamais. Le socle technique ne laisse que deux issues : l'**annulation à chaud** (`CANCEL`) ou la **contre-passation** (`REVERSE`, écriture inverse / avoir). Ce ticket ne livre pas d'endpoint : il fournit les types partagés que les tickets d'opérations (vente, transfert, production, etc.) doivent utiliser, et des règles ArchUnit qui font échouer le build si on ajoute une suppression.
 
 ## Contrat exposé
 
-### Endpoints backend
+### Types Java partagés (`org.vvs.valimbavaka.shared.operation`)
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
-|---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+| Type | Rôle |
+|---|---|
+| `OperationStatus` | `VALIDATED`, `CANCELLED`, `REVERSED`. `ensureCanCancel()` et `ensureCanReverse()` lèvent `ConflictException` (409) si l'opération n'est plus `VALIDATED`. |
+| `OperationRepository<T, ID>` | Interface de base des repositories d'opérations : étend `Repository` (pas `JpaRepository`), expose seulement `save` et `findById`. Aucune méthode `delete*` ni `remove*` ne peut y être ajoutée (ArchUnit). |
+| `ReversibleOperationService<R>` | `R cancel(UUID operationId, String reason)` et `R reverse(UUID operationId, String reason)`. Chaque implémentation trace `CANCEL` ou `REVERSE` dans le journal, dans la même transaction. |
 
-### Services et ports Java réutilisables
+Journal : `JournalAction` contient `CANCEL` et `REVERSE` ; la contrainte `ck_journal_entries_action` les accepte (migration `2026_10_20-02-changelog.sql`).
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+### Règle pour les tickets d'opérations
 
-### Frontend
+1. L'entité porte un `OperationStatus status` initialisé à `VALIDATED` à la validation.
+2. Son repository **étend `OperationRepository`** (pas `JpaRepository`, pas `CrudRepository`).
+3. Son service implémente `ReversibleOperationService<XxxRDto>` : `cancel` appelle `status.ensureCanCancel()`, passe à `CANCELLED`, trace `CANCEL` ; `reverse` appelle `status.ensureCanReverse()`, crée l'écriture inverse, passe l'originale à `REVERSED`, trace `REVERSE`.
+4. Aucun `@DeleteMapping` sur ces ressources.
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+### Garde-fous automatiques (`ArchitectureTest`)
 
-### Données
-
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+- `delete_endpoints_are_limited_to_the_user_reference` : aucun `@DeleteMapping` en dehors de `feature.user`.
+- `operation_features_have_no_deleting_repository` : un repository de feature métier ne peut pas être assignable à `CrudRepository` (donc ni `JpaRepository`) ; le référentiel et l'authentification sont traités comme des données, pas comme des opérations.
+- `operation_repositories_declare_no_delete` : aucune méthode dont le nom correspond à `(delete|remove).*` sur un `OperationRepository`.
 
 ## Règles métier à respecter par les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
-- ⚠ Règle pour les tickets d'opérations à venir (voir commentaire du ticket) : leurs repositories étendent `OperationRepository` (pas de `delete*`, pas de `JpaRepository`) et leurs services passent par `ReversibleOperationService` (`cancel` / `reverse`).
+- Jamais de suppression physique d'une opération validée : annulation ou contre-passation uniquement. Un motif (`reason`) est transmis aux deux méthodes ; le libellé du journal doit le contenir.
+- `cancel` et `reverse` ne s'appliquent qu'à une opération encore `VALIDATED` ; sinon 409 `CONFLICT` « L'opération ne peut pas être annulée / contre-passée : statut … ».
+- La contre-passation crée une écriture inverse (avoir) plutôt que de modifier l'originale ; voir [FAC-04](../FAC-04/description.md) pour les factures.
+- Les données de référence (utilisateurs, fournisseurs, articles) se désactivent au lieu de se supprimer ; elles ne sont pas des « opérations » au sens de ce ticket.
 
 ## Fichiers concernés
 
-_Fichiers existants repérés dans les PR liées ; ajouter ceux modifiés ensuite._
+**Backend** (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/`)
+- `shared/operation/OperationStatus.java`, `OperationRepository.java`, `ReversibleOperationService.java`
+- `feature/journal/domain/JournalAction.java` (`CANCEL`, `REVERSE`)
 
-**Backend**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/controller/JournalController.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/domain/JournalAction.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/domain/JournalEntry.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/dto/JournalEntryRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/mapper/JournalMapper.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/repository/JournalEntryRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/service/JournalService.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal/service/impl/JournalServiceImpl.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/shared/operation/OperationRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/shared/operation/OperationStatus.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/shared/operation/ReversibleOperationService.java`
-
-**Frontend**
-- `valimbavaka-ui/src/app/features/journal/data-access/journal-models.ts`
-- `valimbavaka-ui/src/app/features/journal/data-access/journal-service.ts`
-- `valimbavaka-ui/src/app/features/journal/journal.routes.ts`
-- `valimbavaka-ui/src/app/features/journal/pages/journal-list-page/journal-list-page.css`
-- `valimbavaka-ui/src/app/features/journal/pages/journal-list-page/journal-list-page.html`
-- `valimbavaka-ui/src/app/features/journal/pages/journal-list-page/journal-list-page.ts`
+**Migration Liquibase**
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_20-02-changelog.sql` (le commentaire du ticket cite `2026_10_20-01`, mais le fichier réel est `2026_10_20-02`)
 
 **Tests**
-- `valimbavaka-ui/src/app/features/journal/data-access/journal-service.spec.ts`
-- `valimbavaka-ui/src/app/features/journal/pages/journal-list-page/journal-list-page.spec.ts`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/shared/operation/OperationStatusTest.java`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/ArchitectureTest.java` (règles JNL-02)
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/journal/repository/JournalAppendOnlyIT.java` (actions `CANCEL` / `REVERSE`)
 
 ## Dépendances
 
 **Ce ticket s'appuie sur** :
-- [JNL-01](../JNL-01/description.md) · [guide](../JNL-01/guide.md)
+- [JNL-01](../JNL-01/guide.md) (journal et `JournalService`)
 
 **Ces tickets s'appuient sur lui** :
-- [AUTH-03](../AUTH-03/description.md) · [guide](../AUTH-03/guide.md)
-- [TRF-03](../TRF-03/description.md) · [guide](../TRF-03/guide.md)
-- [PRD-01](../PRD-01/description.md) · [guide](../PRD-01/guide.md)
-- [SHO-01](../SHO-01/description.md) · [guide](../SHO-01/guide.md)
-- [LIV-01](../LIV-01/description.md) · [guide](../LIV-01/guide.md)
-- [JR-01](../JR-01/description.md) · [guide](../JR-01/guide.md)
-- [VTE-01](../VTE-01/description.md) · [guide](../VTE-01/guide.md)
-- [FAC-04](../FAC-04/description.md) · [guide](../FAC-04/guide.md)
-- [INV-04](../INV-04/description.md) · [guide](../INV-04/guide.md)
-- [SRV-02](../SRV-02/description.md) · [guide](../SRV-02/guide.md)
-- [STK-06](../STK-06/description.md) · [guide](../STK-06/guide.md)
+- [AUTH-03](../AUTH-03/guide.md), [TRF-03](../TRF-03/description.md), [PRD-01](../PRD-01/description.md), [SHO-01](../SHO-01/description.md), [LIV-01](../LIV-01/description.md), [JR-01](../JR-01/description.md), [VTE-01](../VTE-01/description.md), [FAC-04](../FAC-04/description.md), [INV-04](../INV-04/description.md), [SRV-02](../SRV-02/description.md), [STK-06](../STK-06/description.md)
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
+```java
+// Repository d'une opération (ex. vente)
+public interface SaleRepository extends OperationRepository<Sale, UUID> { }
+
+// Service
+@Service
+@Transactional(readOnly = true)
+public class SaleServiceImpl implements SaleService, ReversibleOperationService<SaleRDto> {
+
+    @Override
+    @Transactional
+    public SaleRDto cancel(UUID saleId, String reason) {
+        var sale = saleRepository.findById(saleId).orElseThrow(...);
+        sale.getStatus().ensureCanCancel();
+        sale.cancel();
+        journalService.record(JournalAction.CANCEL, "SALE", saleId, "Annulation de la vente : " + reason);
+        return saleMapper.toRDto(sale);
+    }
+}
 ```
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- Le critère « aucune fonction de suppression définitive n'est exposée » n'est pas absolu : `DELETE /api/v1/users/{id}` existe (`users.delete`) et l'ArchUnit l'autorise explicitement pour `feature.user` ; il écrit une ligne `DELETE` dans le journal.
+- Le socle ne contient aucune implémentation concrète de `ReversibleOperationService` : le premier ticket d'opération (vente, transfert, production) la fournit et définit ce que « écriture inverse » signifie pour son domaine.
+- Le commentaire du ticket indique que l'IT Testcontainers du journal n'avait pas pu tourner en local (pas de Docker) : à valider en CI.
+- `OperationRepository` n'expose que `save` et `findById` : les requêtes de liste ou de recherche se déclarent en plus dans le repository de la feature (`@Query`, `Page<T>`), sans nom commençant par `delete` ou `remove`.

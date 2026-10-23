@@ -1,65 +1,87 @@
 # Guide d'intégration — SYS-06 · Audit : auteur des opérations en UUID
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ⚠ pré-rempli depuis le code au 2026-10-23 — à vérifier et compléter · Ticket : [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+Toute entité qui hérite de `BaseEntity` reçoit automatiquement un identifiant UUID v7, les dates de création et de modification, l'UUID du compte qui l'a créée (`created_by`) et modifiée (`updated_by`), et une version pour le verrou optimiste. L'auteur vient du jeton de l'utilisateur connecté : il n'est jamais saisi à la main ni fourni par un DTO.
 
 ## Contrat exposé
 
-### Endpoints backend
+### Type partagé : `shared/domain/BaseEntity`
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
-|---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+| Champ | Colonne | Remplissage |
+|---|---|---|
+| `id` | `id` UUID | `@UuidGenerator(style = VERSION_7)` |
+| `createdAt` / `updatedAt` | `created_at` / `updated_at` `TIMESTAMPTZ` | audit JPA (`@CreatedDate`, `@LastModifiedDate`), en UTC |
+| `createdBy` / `updatedBy` | `created_by` / `updated_by` **UUID**, nullables | audit JPA (`@CreatedBy`, `@LastModifiedBy`) via `SecurityAuditorAware` |
+| `version` | `version` BIGINT, défaut 0 | `@Version` (verrou optimiste, conflit géré en 409) |
 
-### Services et ports Java réutilisables
+- `SecurityAuditorAware implements AuditorAware<UUID>` (`security/audit`) lit le claim `sub` du jeton d'accès via `JwtSubject.userIdOf`. Hors requête authentifiée (démarrage, tâche planifiée), l'auteur est vide, donc `null`.
+- `AuditableUser` (`security/audit`) est le contrat du principal (`UUID getId()`), porté par `security/` pour qu'il ne dépende d'aucune feature.
+- Les entités héritent de `BaseEntity` ; les DTO d'entrée ne contiennent jamais `id`, `createdBy`, `updatedBy`.
+- Les entités qui en héritent aujourd'hui : utilisateur, rôle, référentiels (canaux, gammes, emplacements), fournisseur, jetons de rafraîchissement ; `JournalEntry` a son propre auteur nominatif (`actor_id`, `actor_name`).
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+### Migrations
 
-### Frontend
+- `2026_10_15-01-4` : `created_by` / `updated_by` passés de BIGINT à UUID (anciennes valeurs mises à `NULL`), `created_at` / `updated_at` en `TIMESTAMPTZ`, colonne `version` sur `roles` et `users`.
+- Les nouvelles tables (`sales_channels`, `product_ranges`, `stock_locations`, `suppliers`, `refresh_tokens`) créent directement `created_by UUID`, `updated_by UUID`, `version`.
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+## Règles métier pour les autres tickets
 
-### Données
-
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
-
-## Règles métier à respecter par les autres tickets
-
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- **Toute nouvelle table métier** a les colonnes `id UUID`, `created_at`, `updated_at`, `created_by UUID`, `updated_by UUID`, `version BIGINT NOT NULL DEFAULT 0`, et l'entité hérite de `BaseEntity`.
+- Ne jamais ajouter un `created_by` de type `BIGINT`, `VARCHAR` ou un nom d'utilisateur : toujours l'UUID.
+- Ne jamais renseigner l'auteur à la main (`setCreatedBy`) : il n'y a pas de setter, et les tests ne doivent pas non plus l'imposer.
+- Pour afficher « créé par », résoudre l'UUID au moment de la lecture ou le copier dans le journal ; l'UUID est stable, le nom peut changer ([JNL-01](../JNL-01/guide.md) fige le nom au moment de l'opération).
+- Une entité mise à jour sans changement de valeur n'est pas modifiée : `updated_by` ne bouge pas.
+- Toute modification concurrente se traduit par une `ObjectOptimisticLockingFailureException` : la traduire en 409 `CONFLICT` si la feature l'expose.
 
 ## Fichiers concernés
 
-_Fichiers existants repérés dans les PR liées ; ajouter ceux modifiés ensuite._
+**Backend** (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/`)
+- `shared/domain/BaseEntity.java`
+- `security/audit/SecurityAuditorAware.java`, `AuditableUser.java`
+- `security/jwt/JwtSubject.java` (lecture du `sub`)
 
-**Backend**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/security/audit/AuditableUser.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/security/audit/SecurityAuditorAware.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/shared/domain/BaseEntity.java`
+**Migration**
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_15-01-changelog.sql` (changeset `2026_10_15-01-4`)
+
+**Tests** : voir le scénario ; la couverture directe est faible.
 
 ## Dépendances
 
-**Ce ticket s'appuie sur** :
-- [SYS-05](../SYS-05/description.md) · [guide](../SYS-05/guide.md)
+**Ce ticket s'appuie sur** : [SYS-05](../SYS-05/guide.md).
 
-**Ces tickets s'appuient sur lui** :
-- [JNL-01](../JNL-01/description.md) · [guide](../JNL-01/guide.md)
-- [LIV-07](../LIV-07/description.md) · [guide](../LIV-07/guide.md)
+**Ces tickets s'appuient sur lui** : [JNL-01](../JNL-01/guide.md), [LIV-07](../LIV-07/description.md) ; de fait toutes les entités métier.
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
+```java
+@Entity
+@Table(name = "articles")
+@Getter
+public class Article extends BaseEntity {
+    @Column(name = "name", nullable = false)
+    private String name;
+}
+```
+
+```sql
+CREATE TABLE articles (
+    id UUID NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    created_by UUID,
+    updated_by UUID,
+    version BIGINT NOT NULL DEFAULT 0,
+    CONSTRAINT pk_articles PRIMARY KEY (id)
+);
 ```
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- Les anciennes lignes `created_by` / `updated_by` ont été mises à `NULL` lors du changement de type (sans conséquence tant qu'il n'y avait pas de production).
+- Les écritures faites au démarrage (administrateur initial) ou par une tâche planifiée n'ont pas d'auteur : `created_by` reste `NULL`. Un accompagnement par le journal (auteur « Système ») est possible via [JNL-01](../JNL-01/guide.md).
+- L'audit ne s'applique qu'aux entités passant par JPA ; une écriture en SQL direct (`JdbcClient`, comme `idempotency_keys`) ne renseigne pas d'auteur.
+- L'activation de l'audit JPA dépend du bean `AuditorAware<UUID>` : un second bean du même type casserait l'injection.

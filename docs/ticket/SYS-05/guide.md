@@ -1,130 +1,96 @@
 # Guide d'intégration — SYS-05 · Rôles métier, référentiels et compte administrateur initial
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ⚠ pré-rempli depuis le code au 2026-10-23 — à vérifier et compléter · Ticket : [#111](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/111) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#111](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/111) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+Une base neuve démarre avec exactement trois rôles (Administrateur, Vendeuse, Livreur), trois référentiels métier prêts à l'emploi (canaux de vente, gammes, emplacements de stock) et, si aucun administrateur n'existe, un premier compte administrateur créé depuis des variables d'environnement. Ce compte doit changer son mot de passe à la première connexion.
 
 ## Contrat exposé
 
-### Endpoints backend
+### Rôles
 
-| Méthode | URL | Permission | Entrée | Sortie |
-|---|---|---|---|---|
-| GET | `/api/v1/sales-channels` | referentials.read | `-` | `SalesChannelRDto[]` |
-| GET | `/api/v1/product-ranges` | referentials.read | `-` | `ProductRangeRDto[]` |
-| GET | `/api/v1/stock-locations` | referentials.read | `-` | `StockLocationRDto[]` |
-| GET | `/api/v1/roles` | roles.read | `-` | `RoleRDto[]` |
+- Codes techniques : `ADMIN` (Administrateur), `SELLER` (Vendeuse), `DELIVERY_DRIVER` (Livreur) ; libellés français conservés. Contrainte `CHECK` sur `roles.name`.
+- Historique des migrations : `2026_10_15-01-1` crée ADMINISTRATEUR / VENDEUSE / LIVREUR et supprime l'ancien `USER` (utilisateurs rattachés à VENDEUSE) ; `2026_10_16-01` renomme les codes en anglais. L'ancien changeset n'a pas été modifié.
+- Les droits de chaque rôle sont dans [AUTH-01](../AUTH-01/guide.md) (table `permissions`).
 
-_Relevé dans les contrôleurs ; compléter erreurs possibles, filtres et exemples de corps._
+### Référentiels (lecture seule)
 
-### Services et ports Java réutilisables
+| Méthode | URL | Permission | Sortie |
+|---|---|---|---|
+| GET | `/api/v1/sales-channels` | `referentials.read` | `PageResponse<SalesChannelRDto>` |
+| GET | `/api/v1/product-ranges` | `referentials.read` | `PageResponse<ProductRangeRDto>` |
+| GET | `/api/v1/stock-locations` | `referentials.read` | `PageResponse<StockLocationRDto>` |
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+Valeurs initiales (colonnes `code` / `label`, `is_active`) :
+- Canaux de vente : `BOUTIQUE` Boutique, `FACEBOOK` Facebook, `TELEPHONE` Téléphone, `LIVRAISON` Livraison (liste à confirmer avec le métier).
+- Gammes : `ZEZIKA`, `BOTANIKA`, `SOLIKA`.
+- Emplacements de stock : `ENTREPOT` Entrepôt, `BOUTIQUE` Boutique, `LIVRAISON` Livraison, `SALON` Salon.
+
+Aucun endpoint d'écriture sur les référentiels : ils évoluent par migration. `referentials.read` est donnée à `ADMIN` et `SELLER`.
+
+### Compte administrateur initial
+
+- Au démarrage, `AdminAccountInitializer` (`ApplicationRunner`) appelle `UserService#createInitialAdministratorIfMissing`. Idempotent : si un administrateur existe, rien n'est fait.
+- Variables d'environnement (préfixe `vvs.bootstrap.admin`) : `ADMIN_EMAIL`, `ADMIN_PASSWORD` (15 à 128 caractères), `ADMIN_FIRST_NAME`, `ADMIN_LAST_NAME`. Exemple dans `.env.example`. Aucune valeur par défaut, jamais dans le code ni dans un changelog.
+- Variables absentes ou invalides sur une base sans administrateur : le démarrage échoue avec `AdminAccountConfigurationException` qui nomme les variables en cause (le mot de passe n'apparaît jamais, `toString` le masque).
+- Le compte est créé avec `isPasswordChangeRequired = true` (`User#createWithTemporaryPassword`) ; le champ remonte dans `UserRDto` et dans `CurrentUserRDto` (`/auth/me`) pour que l'interface force le changement.
 
 ### Frontend
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+- `features/referential/data-access/referential-service.ts` : `listSalesChannels()`, `listProductRanges()`, `listStockLocations()` (une seule page de 100, triée par libellé, renvoie un tableau).
+- `features/user/data-access/sales-channel-service.ts` : usage du canal de vente dans le formulaire de vendeuse (AUTH-03).
 
-### Données
+## Règles métier pour les autres tickets
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
-
-## Règles métier à respecter par les autres tickets
-
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- **Ne jamais coder les rôles ni les listes en dur dans l'interface** : lire les référentiels via l'API.
+- Un nouveau code de référentiel passe par une migration Liquibase additive (jamais en modifiant `2026_10_15-01`).
+- Référencer un référentiel par son UUID (`id`), pas par son `code`, dans les tables métier ; le `code` sert aux règles (ex. emplacement `LIVRAISON`).
+- Un rôle ne s'ajoute pas sans migration qui élargit la contrainte `ck_roles_name` et sans revoir `RoleName`.
 
 ## Fichiers concernés
 
-_Fichiers existants repérés dans les PR liées ; ajouter ceux modifiés ensuite._
+**Backend** (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/`)
+- `referential/controller/ReferentialController.java`, `service/*`, `repository/*`, `domain/*`, `dto/*`, `mapper/ReferentialMapper.java`
+- `user/config/AdminAccountInitializer.java`, `AdminAccountProperties.java` ; `user/service/impl/UserServiceImpl.java` (`createInitialAdministratorIfMissing`) ; `user/domain/User.java`
 
-**Backend**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/controller/ReferentialController.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/domain/ProductRange.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/domain/ReferentialEntity.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/domain/SalesChannel.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/domain/StockLocation.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/dto/ProductRangeRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/dto/SalesChannelRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/dto/StockLocationRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/mapper/ReferentialMapper.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/repository/ProductRangeRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/repository/SalesChannelRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/repository/StockLocationRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/service/ReferentialService.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/referential/service/impl/ReferentialServiceImpl.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/config/AdminAccountInitializer.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/config/AdminAccountProperties.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/controller/RoleController.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/controller/UserController.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/domain/Permission.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/domain/Role.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/domain/RoleName.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/domain/SellerTerms.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/domain/User.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/domain/UserProfile.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/dto/CreateUserWDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/dto/RoleRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/dto/UpdateUserWDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/dto/UserRDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/dto/UserStatusWDto.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/exception/AdminAccountConfigurationException.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/mapper/RoleMapper.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/mapper/UserMapper.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/repository/RoleRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/repository/UserRepository.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/service/RoleService.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/service/UserService.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/service/impl/AuthenticatedUserLoaderImpl.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/service/impl/RoleServiceImpl.java`
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/user/service/impl/UserServiceImpl.java`
+**Migrations**
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_15-01-changelog.sql` (rôles, `roles`, `is_active`, mot de passe temporaire, audit en UUID, trois référentiels)
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_16-01-changelog.sql` (codes en anglais)
 
-**Frontend**
-- `valimbavaka-ui/src/app/features/referential/data-access/referential-models.ts`
-- `valimbavaka-ui/src/app/features/referential/data-access/referential-service.ts`
+**Configuration** : `.env.example` (variables `ADMIN_*`)
+
+**Frontend** (`valimbavaka-ui/src/app/features/referential/`) : `data-access/referential-service.ts`, `referential-models.ts`
 
 **Tests**
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/user/config/AdminAccountInitializerIT.java`, `AdminAccountPropertiesTest.java`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/referential/service/impl/ReferentialServiceImplIT.java`
 - `valimbavaka-ui/src/app/features/referential/data-access/referential-service.spec.ts`
 
 ## Dépendances
 
-**Ce ticket s'appuie sur** :
-- _(rien)_
+**Ce ticket s'appuie sur** : aucun.
 
-**Ces tickets s'appuient sur lui** :
-- [AUTH-01](../AUTH-01/description.md) · [guide](../AUTH-01/guide.md)
-- [AUTH-03](../AUTH-03/description.md) · [guide](../AUTH-03/guide.md)
-- [ART-01](../ART-01/description.md) · [guide](../ART-01/guide.md)
-- [ART-03](../ART-03/description.md) · [guide](../ART-03/guide.md)
-- [ART-05](../ART-05/description.md) · [guide](../ART-05/guide.md)
-- [STK-01](../STK-01/description.md) · [guide](../STK-01/guide.md)
-- [STK-03](../STK-03/description.md) · [guide](../STK-03/guide.md)
-- [TRF-03](../TRF-03/description.md) · [guide](../TRF-03/guide.md)
-- [PRO-01](../PRO-01/description.md) · [guide](../PRO-01/guide.md)
-- [VTE-01](../VTE-01/description.md) · [guide](../VTE-01/guide.md)
-- [VTE-08](../VTE-08/description.md) · [guide](../VTE-08/guide.md)
-- [INV-01](../INV-01/description.md) · [guide](../INV-01/guide.md)
-- [COM-01](../COM-01/description.md) · [guide](../COM-01/guide.md)
-- [COM-02](../COM-02/description.md) · [guide](../COM-02/guide.md)
-- [DSH-04](../DSH-04/description.md) · [guide](../DSH-04/guide.md)
-- [RPT-01](../RPT-01/description.md) · [guide](../RPT-01/guide.md)
-- [RPT-04](../RPT-04/description.md) · [guide](../RPT-04/guide.md)
-- [SYS-06](../SYS-06/description.md) · [guide](../SYS-06/guide.md)
-- [STK-06](../STK-06/description.md) · [guide](../STK-06/guide.md)
+**Ces tickets s'appuient sur lui** : [AUTH-01](../AUTH-01/guide.md), [AUTH-03](../AUTH-03/guide.md), [SYS-06](../SYS-06/guide.md), [ART-01](../ART-01/description.md), [ART-03](../ART-03/description.md), [ART-05](../ART-05/description.md), [STK-01](../STK-01/description.md), [STK-03](../STK-03/description.md) et la suite.
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
+```ts
+// Liste déroulante de gammes
+this.referentialService.listProductRanges().subscribe((ranges) => this.ranges.set(ranges));
+```
+
+Premier démarrage d'un environnement :
+
+```
+ADMIN_EMAIL=admin@valimbavaka.mg ADMIN_PASSWORD=<15 caractères minimum> \
+ADMIN_FIRST_NAME=Admin ADMIN_LAST_NAME=Local ./mvnw spring-boot:run
 ```
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- Les trois listes sont en lecture seule : si le métier veut les gérer depuis l'application (ajout d'un canal, désactivation d'une gamme), un ticket d'écriture est à créer ; `is_active` existe déjà.
+- La liste des canaux de vente reste « à confirmer avec le métier » (critère du ticket) ; « Livraison » est à la fois un canal et un emplacement de stock.
+- Aucun écran de changement de mot de passe ni endpoint associé n'existe encore (voir AUTH-01) : le drapeau `isPasswordChangeRequired` est transmis mais rien ne permet de le lever dans l'application.
+- Le rôle de l'administrateur initial est lu dans la base ; si les migrations n'ont pas tourné, le démarrage échoue avec « Rôle ADMIN absent ».
+- Les `created_by` / `updated_by` d'anciennes lignes ont été remis à `NULL` lors du passage en UUID (migration `2026_10_15-01-4`).
