@@ -1,10 +1,13 @@
 package org.vvs.valimbavaka.core.exception;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -30,6 +33,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     private static final String CODE = "code";
     private static final String VALIDATION_FAILED = "VALIDATION_FAILED";
+    private static final String CONFLICT = "CONFLICT";
+    /** SQLSTATE PostgreSQL d'une violation de contrainte d'unicité. */
+    private static final String UNIQUE_VIOLATION = "23505";
 
     @ExceptionHandler(BusinessException.class)
     public ProblemDetail handleBusiness(BusinessException ex) {
@@ -44,6 +50,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDenied(AccessDeniedException ex) {
         return ProblemDetails.of(HttpStatus.FORBIDDEN, "FORBIDDEN", "Accès refusé");
+    }
+
+    /** Modification concurrente détectée par le verrou optimiste ({@code @Version}) : 409, à recharger. */
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ProblemDetail handleOptimisticLocking(OptimisticLockingFailureException ex) {
+        return ProblemDetails.of(
+                HttpStatus.CONFLICT,
+                CONFLICT,
+                "La ressource a été modifiée entre-temps : rechargez-la puis recommencez.");
+    }
+
+    /**
+     * Doublon refusé par la base (deux créations simultanées passées toutes deux par le contrôle applicatif) : 409.
+     * Toute autre violation de contrainte reste une erreur interne.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrity(DataIntegrityViolationException ex) {
+        if (isUniqueViolation(ex)) {
+            return ProblemDetails.of(HttpStatus.CONFLICT, CONFLICT, "Cette valeur est déjà utilisée.");
+        }
+        return handleUnexpected(ex);
     }
 
     @ExceptionHandler(Exception.class)
@@ -82,6 +109,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     ? "MALFORMED_REQUEST" : HttpStatus.valueOf(statusCode.value()).name());
         }
         return super.handleExceptionInternal(ex, body, headers, statusCode, request);
+    }
+
+    private static boolean isUniqueViolation(Throwable ex) {
+        for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+            if (cause instanceof SQLException sql && UNIQUE_VIOLATION.equals(sql.getSQLState())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ResponseEntity<Object> validationFailed(List<FieldErrorDetail> errors) {

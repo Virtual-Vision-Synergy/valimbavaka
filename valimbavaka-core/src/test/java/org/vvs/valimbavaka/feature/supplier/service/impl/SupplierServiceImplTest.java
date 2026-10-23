@@ -58,7 +58,7 @@ class SupplierServiceImplTest {
         when(supplierRepository.existsByNameIgnoreCase("Coopérative Itasy")).thenReturn(false);
         when(supplierRepository.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
         var request = new SupplierWDto(
-                "  Coopérative Itasy ", SupplierType.LOCAL, " ", "034 00 000 00", "Contact@Itasy.MG", null, null);
+                "  Coopérative Itasy ", SupplierType.LOCAL, " ", "034 00 000 00", "Contact@Itasy.MG", null, null, null);
 
         // Act
         sut.createSupplier(request);
@@ -100,7 +100,8 @@ class SupplierServiceImplTest {
                 "+33 1 00 00 00 00",
                 "lee@ocean.com",
                 "Marseille",
-                "Raw materials");
+                "Raw materials",
+                null);
 
         // Act
         sut.updateSupplier(SUPPLIER_ID, request);
@@ -126,6 +127,21 @@ class SupplierServiceImplTest {
         // Act + Assert
         assertThatThrownBy(() -> sut.updateSupplier(SUPPLIER_ID, request("Import Océan")))
                 .isInstanceOf(ConflictException.class);
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void updateSupplier_staleVersion_throwsConflictAndChangesNothing() {
+        // Arrange
+        var supplier = existingSupplier();
+        when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
+        var staleRequest = new SupplierWDto("Import Océan", SupplierType.FOREIGN, null, null, null, null, null, 7L);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.updateSupplier(SUPPLIER_ID, staleRequest))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("modified in the meantime");
+        assertThat(supplier.getName()).isNotEqualTo("Import Océan");
         verifyNoInteractions(journalService);
     }
 
@@ -173,6 +189,6 @@ class SupplierServiceImplTest {
     }
 
     private static SupplierWDto request(String name) {
-        return new SupplierWDto(name, SupplierType.LOCAL, null, null, null, null, null);
+        return new SupplierWDto(name, SupplierType.LOCAL, null, null, null, null, null, null);
     }
 }

@@ -174,6 +174,26 @@ class SupplierSecurityIT {
     }
 
     @Test
+    void updateSupplier_staleVersion_returns409AndKeepsTheSheet() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var name = uniqueName();
+        var id = createSupplier(token, name);
+        var body = """
+                {"name":"%s","type":"FOREIGN","version":42}
+                """.formatted(uniqueName());
+
+        // Act + Assert
+        mockMvc.perform(put(SUPPLIERS + "/" + id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+        assertThat(supplierRepository.findById(id).orElseThrow().getName()).isEqualTo(name);
+    }
+
+    @Test
     void setActive_byAdmin_deactivatesSupplier() throws Exception {
         // Arrange
         var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);

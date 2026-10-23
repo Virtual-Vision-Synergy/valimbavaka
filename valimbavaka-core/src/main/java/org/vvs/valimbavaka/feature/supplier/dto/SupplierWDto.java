@@ -31,4 +31,8 @@ public record SupplierWDto(
         String address,
 
         @Size(max = 2000, message = "Notes must not exceed {max} characters") @Nullable
-        String notes) {}
+        String notes,
+
+        // Version read by the client (SupplierRDto.version): a stale value is refused with 409 instead of silently
+        // overwriting a concurrent update. Optional on creation.
+        @Nullable Long version) {}

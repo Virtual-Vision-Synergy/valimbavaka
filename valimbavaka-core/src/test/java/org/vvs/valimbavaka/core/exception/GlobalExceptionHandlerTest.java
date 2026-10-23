@@ -6,11 +6,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.SQLException;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -77,6 +81,28 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.detail").value("Erreur interne"));
     }
 
+    @Test
+    void handleOptimisticLocking_concurrentUpdate_returns409() throws Exception {
+        mockMvc.perform(get("/stale"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void handleDataIntegrity_uniqueViolation_returns409() throws Exception {
+        mockMvc.perform(get("/duplicate"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void handleDataIntegrity_otherViolation_returns500WithoutInternalDetail() throws Exception {
+        mockMvc.perform(get("/too-long"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+                .andExpect(jsonPath("$.detail").value("Erreur interne"));
+    }
+
     record NamedWDto(@NotBlank String name) {
     }
 
@@ -101,6 +127,23 @@ class GlobalExceptionHandlerTest {
         @PostMapping("/validated")
         void validated(@Valid @RequestBody NamedWDto body) {
             // le corps est validé avant l'appel
+        }
+
+        @GetMapping("/stale")
+        void stale() {
+            throw new ObjectOptimisticLockingFailureException("Supplier", "id");
+        }
+
+        @GetMapping("/duplicate")
+        void duplicate() {
+            throw new DataIntegrityViolationException(
+                    "doublon", new SQLException("duplicate key value violates unique constraint", "23505"));
+        }
+
+        @GetMapping("/too-long")
+        void tooLong() {
+            throw new DataIntegrityViolationException(
+                    "trop long", new SQLException("value too long for type character varying(500)", "22001"));
         }
 
         @GetMapping("/bug")
