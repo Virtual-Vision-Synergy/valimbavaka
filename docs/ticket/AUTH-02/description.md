@@ -16,7 +16,7 @@ En tant qu'utilisateur, je veux me déconnecter de mon poste afin de permettre �
 
 > Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
 
-- [ ] Un bouton de déconnexion est visible en permanence dans la barre supérieure. — *⚠ partiel : bouton visible en permanence, mais dans la barre latérale, pas la barre supérieure.*
+- [x] Un bouton de déconnexion est visible en permanence dans la barre supérieure. — *✅ vérifié : bouton dans la barre supérieure (corrigé le 2026-10-23).*
 
 <img width="1911" height="912" alt="Image" src="https://github.com/user-attachments/assets/097368ea-e852-447b-9892-2e833778f192" />
 

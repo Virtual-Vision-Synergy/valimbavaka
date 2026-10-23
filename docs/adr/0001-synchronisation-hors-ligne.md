@@ -18,7 +18,10 @@ Pattern **outbox** côté Angular (`core/offline/`) :
 - Refus métier (autres 4xx) : l'entrée passe immédiatement en `FAILED`, reste visible et ne bloque pas
   la suite (`retry` / `discard`).
 - Chaque entrée porte un UUID envoyé dans l'en-tête `Idempotency-Key` ; l'en-tête est autorisé en CORS.
-- La file est vidée à la déconnexion : les saisies d'un compte ne partent jamais sous un autre.
+- Chaque entrée est rattachée au compte qui l'a créée (`ownerId`) : une déconnexion **conserve** les saisies,
+  qui ne sont rejouées qu'au retour de ce compte et ne partent jamais sous un autre (SYS-11). Seul
+  `OutboxService.clear()` vide la file. *(Mise à jour du 2026-10-23 : la version initiale indiquait une file vidée
+  à la déconnexion, ce que le code ne fait plus.)*
 
 ## Côté serveur
 `IdempotencyFilter` (`security/idempotency`, après l'authentification) traite les écritures

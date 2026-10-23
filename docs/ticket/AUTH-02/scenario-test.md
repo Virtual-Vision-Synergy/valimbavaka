@@ -17,7 +17,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
 | 1 | Bouton de déconnexion visible en permanence | Étant donné un utilisateur connecté · Quand la coquille s'affiche | nom, libellé du rôle et bouton de déconnexion visibles | `main-layout.spec.ts` « should display the name and the role label of the signed in user with a logout button » | ✅ auto |
-| 1b | … dans la **barre supérieure** | Quand on regarde la barre supérieure | le bouton y est | le bouton est dans la zone compte de la barre latérale, pas dans la barre supérieure | ❌ écart |
+| 1b | … dans la **barre supérieure** | Quand on regarde la barre supérieure | bouton « Déconnexion » présent (y compris sur mobile, où la barre latérale est repliée) ; un clic ferme la session et ramène à `/login` | `main-layout.spec.ts` « should keep a logout button in the top bar that ends the session » | ✅ auto (corrigé le 2026-10-23) |
 | 2 | Retour au login et nouvelle authentification exigée | Quand l'utilisateur clique sur « Se déconnecter » | session vidée, redirection `/login` | `auth-service.spec.ts` « should clear the session on logout even if the server call fails » ; `auth-store.spec.ts` « should forget the user and the token on sign out » | ✅ auto |
 | 2b | idem (URL protégée ensuite) | Quand il rouvre `/dashboard` | renvoyé au login | `auth-guard.spec.ts` « authGuard should redirect an anonymous visitor to the login page » | ✅ auto |
 | 2c | idem (serveur) | Quand le cookie de la session fermée est rejoué sur `/refresh` | 401, aucune nouvelle session | `AuthSecurityIT.refresh_afterLogout_returns401` ; `AuthServiceImplTest.logout_knownToken_revokesItsFamily` | ✅ auto |
@@ -27,8 +27,8 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Déconnexion sans cookie | `POST /api/v1/auth/logout` sans `vvs_refresh` | 204 et cookie effacé (`Max-Age=0`) | `AuthController.logout` : `required = false`, `authService.logout` appelé seulement si le cookie existe | 🔍 code |
-| Déconnexion depuis une origine non autorisée | `Origin: https://evil.example` | 403 `FORBIDDEN` | `OriginCheckFilter.PROTECTED_PATHS` contient `/api/v1/auth/logout` ; le test IT ne couvre que `/refresh` | 🔍 code |
+| Déconnexion sans cookie | `POST /api/v1/auth/logout` sans `vvs_refresh` | 204 et cookie effacé (`Max-Age=0`) | `AuthSecurityIT.logout_withoutCookie_returns204AndClearsTheCookie` | ✅ auto |
+| Déconnexion depuis une origine non autorisée | `Origin: https://evil.example` | 403 `FORBIDDEN`, la session n'est pas fermée | `AuthSecurityIT.logout_fromForeignOrigin_returns403` | ✅ auto |
 | Serveur injoignable pendant la déconnexion | réseau coupé | l'interface se déconnecte quand même | `auth-service.spec.ts` « should clear the session on logout even if the server call fails » | ✅ auto |
 | Un autre compte se connecte pendant l'appel de déconnexion | A clique « Se déconnecter », B se connecte avant la réponse | la session de B n'est pas effacée | `AuthService.logout` : `finalize` ne vide la session que si l'utilisateur courant est toujours A | 🔍 code |
 | Jeton de refresh d'une autre famille | cookie d'une session déjà révoquée | 204, aucune autre session touchée | `AuthServiceImpl.logout` : révoque uniquement la famille du jeton trouvé | 🔍 code |
@@ -62,6 +62,6 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop` (voir AUTH-01 pour le détail).
 - **Frontend** : `ng test` local, 102 tests verts sur 102.
 - **Anomalies** :
-  1. ❌ Le bouton de déconnexion est dans la barre latérale (zone compte), alors que le critère demande la barre supérieure. Gravité faible : à trancher avec le client (modifier le critère ou déplacer le bouton).
-  2. ⚠ Trois comportements ne sont garantis que par lecture du code, sans test : logout sans cookie, contrôle d'origine sur `/logout`, `finalize` lors d'un changement de compte. Ajouter `logout_withoutCookie_returns204AndClearsCookie` et `logout_fromForeignOrigin_returns403` dans `AuthSecurityIT`.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-02-deconnexion-barre-superieure`) : bouton de déconnexion ajouté dans la barre supérieure ; celui de la zone compte de la barre latérale reste.
+  2. ✅ Logout sans cookie et contrôle d'origine sur `/logout` sont maintenant testés ; seul le `finalize` lors d'un changement de compte reste vérifié par lecture du code.
 - **Recette manuelle** : 4 étapes 🧪.

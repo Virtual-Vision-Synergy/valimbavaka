@@ -18,6 +18,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.jayway.jsonpath.JsonPath;
+
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 import org.vvs.valimbavaka.feature.user.domain.SellerTerms;
 import org.vvs.valimbavaka.feature.user.domain.User;
@@ -25,8 +28,6 @@ import org.vvs.valimbavaka.feature.user.domain.UserProfile;
 import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 import org.vvs.valimbavaka.support.IntegrationTest;
-
-import com.jayway.jsonpath.JsonPath;
 
 /** Sécurité de bout en bout (AUTH-01) : le rôle vient du compte, les droits sont contrôlés côté serveur. */
 @IntegrationTest
@@ -39,12 +40,16 @@ class AuthSecurityIT {
 
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private RoleRepository roleRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -59,7 +64,9 @@ class AuthSecurityIT {
                 .andExpect(jsonPath("$.user.permissions[?(@ == 'users.read')]").isNotEmpty())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty());
         assertThat(result.andReturn().getResponse().getHeader(HttpHeaders.SET_COOKIE))
-                .contains("vvs_refresh=").contains("HttpOnly").contains("SameSite=Strict");
+                .contains("vvs_refresh=")
+                .contains("HttpOnly")
+                .contains("SameSite=Strict");
     }
 
     @Test
@@ -69,7 +76,9 @@ class AuthSecurityIT {
         var body = "{\"email\":\"%s\",\"password\":\"%s\",\"role\":\"ADMIN\"}".formatted(email, PASSWORD);
 
         // Act + Assert
-        mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user.role").value("DELIVERY_DRIVER"))
                 .andExpect(jsonPath("$.user.permissions[?(@ == 'users.read')]").isEmpty());
@@ -138,9 +147,13 @@ class AuthSecurityIT {
     @Test
     void refresh_reusedCookie_isRejectedAndRevokesTheWholeSession() throws Exception {
         // Arrange
-        var firstCookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+        var firstCookie =
+                login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
         var rotated = mockMvc.perform(post("/api/v1/auth/refresh").cookie(firstCookie))
-                .andExpect(status().isOk()).andReturn().getResponse().getCookie("vvs_refresh");
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getCookie("vvs_refresh");
 
         // Act + Assert : l'ancien cookie est rejeté, puis le nouveau l'est aussi (famille révoquée)
         mockMvc.perform(post("/api/v1/auth/refresh").cookie(firstCookie)).andExpect(status().isUnauthorized());
@@ -150,7 +163,8 @@ class AuthSecurityIT {
     @Test
     void refresh_afterLogout_returns401() throws Exception {
         // Arrange
-        var cookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+        var cookie =
+                login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
         mockMvc.perform(post("/api/v1/auth/logout").cookie(cookie)).andExpect(status().isNoContent());
 
         // Act + Assert
@@ -165,7 +179,8 @@ class AuthSecurityIT {
     @Test
     void refresh_fromForeignOrigin_returns403EvenWithAValidCookie() throws Exception {
         // Arrange
-        var cookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+        var cookie =
+                login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
 
         // Act + Assert
         mockMvc.perform(post("/api/v1/auth/refresh").cookie(cookie).header(HttpHeaders.ORIGIN, "https://evil.example"))
@@ -175,16 +190,61 @@ class AuthSecurityIT {
     @Test
     void refresh_fromAllowedOrigin_returns200() throws Exception {
         // Arrange
-        var cookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+        var cookie =
+                login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
 
         // Act + Assert
         mockMvc.perform(post("/api/v1/auth/refresh").cookie(cookie).header(HttpHeaders.ORIGIN, "http://localhost:4200"))
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void logout_withoutCookie_returns204AndClearsTheCookie() throws Exception {
+        // Act
+        var result = mockMvc.perform(post("/api/v1/auth/logout")).andExpect(status().isNoContent());
+
+        // Assert
+        assertThat(result.andReturn().getResponse().getHeader(HttpHeaders.SET_COOKIE))
+                .contains("vvs_refresh=")
+                .contains("Max-Age=0");
+    }
+
+    @Test
+    void logout_fromForeignOrigin_returns403() throws Exception {
+        // Arrange
+        var cookie =
+                login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/auth/logout").cookie(cookie).header(HttpHeaders.ORIGIN, "https://evil.example"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(cookie)).andExpect(status().isOk());
+    }
+
+    @Test
+    void createUser_withSellerToken_returns403AndCreatesNothing() throws Exception {
+        // Arrange
+        var token = accessToken(createSeller(), PASSWORD);
+        var email = "intrus-" + UUID.randomUUID() + "@valimbavaka.mg";
+        var roleId = roleRepository.findByName(RoleName.ADMIN).orElseThrow().getId();
+        var body = ("{\"email\":\"%s\",\"password\":\"%s\",\"firstName\":\"Hery\",\"lastName\":\"Rabe\","
+                        + "\"roleId\":\"%s\"}")
+                .formatted(email, PASSWORD, roleId);
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
+        assertThat(userRepository.findByEmailWithRoleAndPermissions(email)).isEmpty();
+    }
+
     private org.springframework.test.web.servlet.ResultActions login(String email, String password) throws Exception {
         var body = "{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password);
-        return mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body));
+        return mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 
     private String accessToken(String email, String password) throws Exception {
@@ -195,8 +255,8 @@ class AuthSecurityIT {
     private String createDeliveryDriver() {
         var email = "livreur-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = roleRepository.findByName(RoleName.DELIVERY_DRIVER).orElseThrow();
-        userRepository.save(User.create(new UserProfile(email, "Tiana", "Ranaivoson"),
-                passwordEncoder.encode(PASSWORD), role));
+        userRepository.save(
+                User.create(new UserProfile(email, "Tiana", "Ranaivoson"), passwordEncoder.encode(PASSWORD), role));
         return email;
     }
 
@@ -204,8 +264,11 @@ class AuthSecurityIT {
         var email = "vendeuse-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = roleRepository.findByName(RoleName.SELLER).orElseThrow();
         var channelId = jdbcTemplate.queryForObject("select id from sales_channels limit 1", UUID.class);
-        userRepository.save(User.create(new UserProfile(email, "Hanta", "Rasolofoson"),
-                passwordEncoder.encode(PASSWORD), role, new SellerTerms(channelId, new BigDecimal("5.00"))));
+        userRepository.save(User.create(
+                new UserProfile(email, "Hanta", "Rasolofoson"),
+                passwordEncoder.encode(PASSWORD),
+                role,
+                new SellerTerms(channelId, new BigDecimal("5.00"))));
         return email;
     }
 }
