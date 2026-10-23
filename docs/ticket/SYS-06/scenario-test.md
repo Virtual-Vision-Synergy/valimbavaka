@@ -61,6 +61,6 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Base** : types de toutes les colonnes d'audit relus après les 10 migrations.
 - **Anomalies** :
   1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-04-garde-fous-administrateur`) : tables `dev`, `revinfo`, `revchanges` et séquence `revinfo_seq` supprimées par `2026_10_23-02` (Envers n'est pas utilisé).
-  2. ❌ Gravité moyenne : conflit de version renvoyé en 500 (voir FRS-01).
+  2. ✅ Corrigé par la PR #148 (`fix/FRS-01-conflits-409`) : conflit de version renvoyé en 409 (voir FRS-01).
   3. ⚠ Aucun test ne vérifie que `created_by` contient bien l'UUID du compte connecté : ajouter `save_byAuthenticatedAdmin_fillsCreatedByWithHisId` dans `SupplierSecurityIT`.
 - **Recette manuelle** : 2 étapes 🧪.
