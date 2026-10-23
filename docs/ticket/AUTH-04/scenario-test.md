@@ -25,9 +25,10 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | 3b | idem (session ouverte) | Quand il renouvelle sa session | refusé, famille révoquée | `AuthServiceImplTest.refresh_deactivatedAccount_revokesFamilyAndThrowsUnauthorized` | ✅ auto |
 | 4 | Dernier administrateur : pas de désactivation | Quand on désactive le dernier admin actif via `PATCH /status` | 422 « Le dernier administrateur actif ne peut pas être désactivé. », rien tracé | `UserServiceImplTest.setActive_lastActiveAdministrator_throwsBusinessExceptionAndRecordsNothing` | ✅ auto |
 | 4b | idem (propre compte) | Quand A1 se désactive lui-même | 422 | `UserStatusIT.setActive_ownAccount_returns422` ; `UserServiceImplTest.setActive_ownAccount_throwsBusinessExceptionAndRecordsNothing` | ✅ auto |
-| 4c | Dernier administrateur : pas de retrait de rôle | Quand on passe son `roleId` à `SELLER` via `PUT /api/v1/users/{id}` | refusé | `UserServiceImpl.updateUser` appelle `User#update` sans `ensureCanDeactivate` : accepté | ❌ écart |
-| 4d | idem via `PUT` avec `active=false` | Quand on désactive le dernier admin ou son propre compte par `PUT` | refusé comme via `PATCH` | même chemin que 4c : accepté | ❌ écart |
-| 4e | idem via `DELETE` | Quand on supprime le dernier admin | refusé | `deleteUserById` sans garde-fou : supprimé | ❌ écart |
+| 4c | Dernier administrateur : pas de retrait de rôle | Quand on passe son `roleId` à `SELLER` via `PUT /api/v1/users/{id}` | 422 « Le dernier administrateur actif ne peut pas perdre son rôle. » ; sur son propre compte : « … retirer votre propre rôle d'administrateur. » | `UserServiceImplTest.updateUser_lastActiveAdministratorDemoted_throwsBusinessExceptionAndChangesNothing`, `updateUser_ownAdministratorRoleRemoved_throwsBusinessExceptionAndChangesNothing` ; `UserStatusIT.updateUser_ownAdministratorRoleRemoved_returns422AndKeepsTheRole` | ✅ auto (corrigé le 2026-10-23) |
+| 4d | idem via `PUT` avec `active=false` | Quand on désactive le dernier admin ou son propre compte par `PUT` | 422 comme via `PATCH` | `UserServiceImplTest.updateUser_lastActiveAdministratorDeactivated_throwsBusinessExceptionAndChangesNothing`, `updateUser_ownAccountDeactivated_throwsBusinessExceptionAndChangesNothing` ; `UserStatusIT.updateUser_ownAccountDeactivated_returns422AndKeepsTheAccountActive` | ✅ auto (corrigé le 2026-10-23) |
+| 4e | idem via `DELETE` | Quand on supprime un compte | 405 : la suppression n'existe plus | `UserStatusIT.deleteUser_isNotExposed` | ✅ auto (corrigé le 2026-10-23) |
+| 4f | Rétrograder un admin quand un autre reste actif | A1 passe A2 en vendeuse | accepté, ligne `UPDATE` | `UserServiceImplTest.updateUser_administratorDemotedWhileAnotherIsActive_updatesAndRecordsInJournal` | ✅ auto |
 
 ## Sécurité et erreurs
 
@@ -49,7 +50,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Session ouverte au moment de la désactivation | vendeuse connectée, désactivée par A1 | son jeton d'accès reste valable jusqu'à 15 min ; le refresh suivant échoue et la déconnecte | `AuthServiceImpl.currentUser` / `refresh` refusent un compte inactif ; le JWT n'est pas révoqué | 🔍 code |
 | Deux administrateurs | A1 désactive A2, puis tente de se désactiver | 1ʳᵉ action acceptée, 2ᵉ refusée (propre compte et dernier admin) | `ensureCanDeactivate` + `countByRoleNameAndActiveTrue(ADMIN)` | 🔍 code |
 | Réactivation d'un compte verrouillé | 5 échecs, puis désactivation et réactivation | le verrou (`locked_until`, `failed_attempts`) n'est pas levé par l'activation | `User#activate` ne touche que `active` | 🔍 code |
-| Désactivations simultanées des deux derniers admins | A1 et A2 se désactivent mutuellement au même instant | un seul doit réussir | le décompte n'est pas verrouillé ; chaque transaction voit encore 2 admins | ❌ écart (risque faible) |
+| Désactivations simultanées des deux derniers admins | A1 et A2 se désactivent mutuellement au même instant | une seule réussit | `UserRepository.findActiveByRoleNameForUpdate` verrouille les administrateurs actifs (`PESSIMISTIC_WRITE`) le temps de la transaction | 🔍 code (corrigé le 2026-10-23) |
 | Désactivation hors ligne | file hors ligne | rejouée avec la même `Idempotency-Key`, une seule ligne de journal | voir SYS-02 (`IdempotencyIT`) | ✅ auto |
 
 ## Tests existants
@@ -70,8 +71,8 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102.
 - **Anomalies** :
-  1. ❌ Gravité haute : `PUT /api/v1/users/{id}` contourne le garde-fou (désactivation ou retrait du rôle `ADMIN` du dernier administrateur ou de son propre compte). Corriger en appelant `ensureCanDeactivate` et un contrôle « dernier admin » sur le changement de rôle dans `updateUser`, avec deux tests.
-  2. ❌ Gravité haute : `DELETE /api/v1/users/{id}` n'a aucun garde-fou (voir AUTH-03, anomalie 1).
-  3. ❌ Gravité faible : course possible entre deux désactivations simultanées des deux derniers admins (verrou pessimiste ou contrainte à prévoir).
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-04-garde-fous-administrateur`) : `PUT /api/v1/users/{id}` applique les mêmes garde-fous que `PATCH /status` (désactivation et retrait du rôle administrateur).
+  2. ✅ Corrigé le 2026-10-23 : `DELETE /api/v1/users/{id}` n'existe plus (voir AUTH-03).
+  3. ✅ Corrigé le 2026-10-23 : les administrateurs actifs sont verrouillés pendant la vérification ; pas de test de concurrence automatisé.
   4. ⏭ Critère 2 : à porter par les tickets qui créent les listes de sélection (ajouter `active` et `role` comme filtres de `GET /api/v1/users`).
 - **Recette manuelle** : 3 étapes 🧪.

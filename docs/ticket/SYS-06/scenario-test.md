@@ -17,7 +17,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
 | 1 | `created_by` / `updated_by` en UUID | Migrations appliquées | type `uuid` sur `users`, `roles`, `permissions`, `sales_channels`, `product_ranges`, `stock_locations`, `suppliers`, `refresh_tokens` | lecture de `information_schema.columns` | ✅ base |
-| 1b | idem (tables restantes) | Toutes les tables avec `created_by` | aucune en `bigint` | la table technique `dev` (changeset `1789471390262-2`) a encore `created_by` / `updated_by` en `bigint` et `created_at` sans fuseau | ❌ écart |
+| 1b | idem (tables restantes) | Toutes les tables avec `created_by` | aucune en `bigint` | la table technique `dev` (seule en `bigint`) est supprimée par la migration `2026_10_23-02`, avec `revinfo` et `revchanges` ; vérifié en base après migration et rollback | ✅ base (corrigé le 2026-10-23) |
 | 1c | Persistance des champs d'audit | Enregistrement d'un fournisseur | `created_at`, `updated_at` renseignés ; `version` à 0 | `SupplierRepositoryIT.save_newSupplier_isPersistedWithAuditFields` | ✅ auto |
 | 2 | Auteur renseigné depuis l'utilisateur connecté | L'administrateur crée une ressource | `created_by` = `updated_by` = UUID du `sub` du jeton | `SecurityAuditorAware.getCurrentAuditor` → `JwtSubject.userIdOf` ; `BaseEntity` `@CreatedBy` / `@LastModifiedBy` ; aucun test d'intégration ne relit `created_by` | 🔍 code |
 | 2b | idem (même source que le journal) | Le journal écrit son auteur | même `AuditorAware<UUID>` | `JournalServiceImplTest.record_authenticatedUser_savesTimestampedEntryInTheNameOfTheUser` | ✅ auto |
@@ -60,7 +60,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Base** : types de toutes les colonnes d'audit relus après les 10 migrations.
 - **Anomalies** :
-  1. ❌ Gravité faible : la table technique `dev` (issue du premier changeset `2026_09_15-01`, sans entité Java) garde `created_by` / `updated_by` en `bigint`. Ajouter un changeset qui la supprime (avec `revinfo` et `revchanges` si Envers n'est pas utilisé) avant la mise en production.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-04-garde-fous-administrateur`) : tables `dev`, `revinfo`, `revchanges` et séquence `revinfo_seq` supprimées par `2026_10_23-02` (Envers n'est pas utilisé).
   2. ❌ Gravité moyenne : conflit de version renvoyé en 500 (voir FRS-01).
   3. ⚠ Aucun test ne vérifie que `created_by` contient bien l'UUID du compte connecté : ajouter `save_byAuthenticatedAdmin_fillsCreatedByWithHisId` dans `SupplierSecurityIT`.
 - **Recette manuelle** : 2 étapes 🧪.

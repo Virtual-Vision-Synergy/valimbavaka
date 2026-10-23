@@ -21,10 +21,10 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | 1c | idem | Opération `CANCELLED` ou `REVERSED` · annulation | `ConflictException` (409) | `OperationStatusTest.ensureCanCancel_alreadyClosedOperation_throwsConflict` | ✅ auto |
 | 1d | idem | Opération close · contre-passation | `ConflictException` (409) | `OperationStatusTest.ensureCanReverse_alreadyClosedOperation_throwsConflict` | ✅ auto |
 | 1e | Le journal trace ces deux issues | Insertion d'une ligne `CANCEL` ou `REVERSE` | acceptée ; `PURGE` refusée | `JournalAppendOnlyIT.save_cancellationOrReversal_isAcceptedByTheDatabase` ; insertions vérifiées en base | ✅ auto · ✅ base |
-| 2 | Aucune suppression définitive dans le socle | Analyse du code | aucun `@DeleteMapping` hors `feature.user` | `ArchitectureTest.delete_endpoints_are_limited_to_the_user_reference` | ✅ auto |
+| 2 | Aucune suppression définitive dans le socle | Analyse du code | aucun `@DeleteMapping` dans toute l'application | `ArchitectureTest.no_delete_endpoints` | ✅ auto |
 | 2b | idem | Un repository de feature métier hérite de `JpaRepository` ou `CrudRepository` | le build échoue | `ArchitectureTest.operation_features_have_no_deleting_repository` | ✅ auto |
 | 2c | idem | Une méthode `delete*` ou `remove*` est ajoutée à un `OperationRepository` | le build échoue | `ArchitectureTest.operation_repositories_declare_no_delete` | ✅ auto |
-| 2d | idem (exception) | `DELETE /api/v1/users/{id}` | ne devrait pas exister | endpoint présent et autorisé explicitement par la règle ArchUnit | ❌ écart |
+| 2d | idem (utilisateurs) | `DELETE /api/v1/users/{id}` | 405 | `UserStatusIT.deleteUser_isNotExposed` | ✅ auto (corrigé le 2026-10-23) |
 
 ## Sécurité et erreurs
 
@@ -60,6 +60,6 @@ Aucune étape d'interface : ticket purement technique. Contrôle conseillé lors
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` (ArchUnit compris) vert sur un code identique à `develop`. **Base** : contrainte d'action vérifiée (`CANCEL` et `REVERSE` acceptées, `PURGE` refusée).
 - **Anomalies** :
-  1. ❌ Gravité haute : `DELETE /api/v1/users/{id}` reste une suppression définitive exposée (voir AUTH-03). Une fois retiré, supprimer l'exception `feature.user` de la règle ArchUnit.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-04-garde-fous-administrateur`) : `DELETE /api/v1/users/{id}` retiré ; la règle ArchUnit `no_delete_endpoints` n'a plus d'exception.
   2. ⚠ Aucune implémentation de `ReversibleOperationService` n'existe : les cas 404, 422 et 403 seront testés par le premier ticket d'opération (VTE-01, TRF-03 ou PRD-01).
   3. ⚠ Le commentaire du ticket cite la migration `2026_10_20-01` ; le fichier réel est `2026_10_20-02`.

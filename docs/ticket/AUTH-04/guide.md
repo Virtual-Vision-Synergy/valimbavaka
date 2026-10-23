@@ -72,9 +72,9 @@ this.userService.setActive(user.id, false).subscribe({
 });
 ```
 
-## Points d'attention (écarts constatés dans le code)
+## Points d'attention
 
-- **Le garde-fou « dernier administrateur » ne couvre que `PATCH /status`.** `PUT /api/v1/users/{id}` accepte `active` et `roleId` et appelle directement `User#update` : on peut ainsi désactiver, ou retirer le rôle `ADMIN` du dernier administrateur actif (ou de son propre compte) sans passer par `ensureCanDeactivate`. Le critère 4 du ticket (« ni désactivé ni privé de son rôle ») n'est donc garanti que pour la désactivation par `PATCH`.
-- `DELETE /api/v1/users/{id}` n'a aucun de ces garde-fous (ni propre compte, ni dernier administrateur) et supprime réellement la ligne.
+- Les garde-fous s'appliquent aussi au `PUT /api/v1/users/{id}` : ni désactivation ni retrait du rôle `ADMIN` sur son propre compte ou sur le dernier administrateur actif (messages « Vous ne pouvez pas retirer votre propre rôle d'administrateur. », « Le dernier administrateur actif ne peut pas perdre son rôle. »). Les administrateurs actifs sont verrouillés pendant la vérification (`UserRepository.findActiveByRoleNameForUpdate`).
+- Aucun compte ne se supprime (plus de `DELETE /api/v1/users/{id}`).
 - Critère 2 du ticket (utilisateurs désactivés absents des listes de sélection opérationnelles) : aucune liste de ce type n'existe encore ; `GET /api/v1/users` renvoie tous les comptes, actifs ou non, ce qui est voulu pour l'écran d'administration.
 - Le jeton d'accès émis avant la désactivation reste utilisable jusqu'à son expiration.

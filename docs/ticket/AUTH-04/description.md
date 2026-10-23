@@ -25,7 +25,7 @@ En tant qu'administrateur, je veux activer/désactiver un utilisateur afin de co
 
 - [x] Un utilisateur désactivé ne peut plus se connecter. — *✅ vérifié (connexion et refresh).*
 
-- [ ] Le dernier administrateur actif ne peut être ni désactivé ni privé de son rôle. — *❌ écart : garanti seulement par `PATCH /status` ; `PUT` et `DELETE` le contournent.*
+- [x] Le dernier administrateur actif ne peut être ni désactivé ni privé de son rôle. — *✅ corrigé le 2026-10-23 : mêmes garde-fous sur `PUT`, suppression retirée.*
 
 ## Détails
 

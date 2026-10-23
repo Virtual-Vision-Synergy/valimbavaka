@@ -33,7 +33,7 @@ En tant qu'administrateur, je veux créer et modifier un utilisateur (nom, rôle
 
 - [x] La création et la modification des utilisateurs sont réservées à l'administrateur, contrôlé côté serveur (pas seulement en masquant l'interface). — *✅ vérifié : `@HasPermission` + règle ArchUnit.*
 
-- [ ] Un utilisateur ne se supprime jamais : il se désactive (AUTH-04), conformément à JNL-02. — *❌ écart : `DELETE /api/v1/users/{id}` supprime réellement un compte.*
+- [x] Un utilisateur ne se supprime jamais : il se désactive (AUTH-04), conformément à JNL-02. — *✅ corrigé le 2026-10-23 : suppression retirée (API, permission, interface).*
 
 ## Détails
 

@@ -18,7 +18,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 |---|---|---|---|---|---|
 | 1 | Le rôle choisi détermine la coquille | Quand l'administrateur crée une vendeuse puis qu'elle se connecte | menu et permissions de la vendeuse | `AuthSecurityIT.me_withSellerToken_returnsOnlyTheSellerPermissions` ; `menu.spec.ts` « should show sales and catalogue modules but no administration to a seller » | ✅ auto |
 | 2 | Formulaire de saisie | Quand l'administrateur saisit email, mot de passe, prénom, nom, rôle | compte créé (201), ligne `CREATE` | `UserServiceImplTest.createUser_validRequest_recordsCreationInJournal` ; `JournalSecurityIT.createUser_byAdmin_leavesANominativeTimestampedLineInTheJournal` | ✅ auto |
-| 2b | Formulaire de modification | Quand il modifie un compte | formulaire pré-rempli, mot de passe non modifiable, champs mis à jour, ligne `UPDATE` | `UserServiceImpl.updateUser` ; `user-form-page.ts` désactive le champ mot de passe en modification ; aucun test de `updateUser` | 🔍 code |
+| 2b | Formulaire de modification | Quand il modifie un compte | formulaire pré-rempli, mot de passe non modifiable, champs mis à jour, ligne `UPDATE` | `UserServiceImplTest.updateUser_administratorDemotedWhileAnotherIsActive_updatesAndRecordsInJournal` ; `user-form-page.ts` désactive le champ mot de passe en modification | ✅ auto · 🔍 code |
 | 3 | Canal de vente et taux de commission | Quand le rôle est vendeuse avec `STORE` et `12.50` | canal et taux enregistrés | `UserServiceImplTest.createUser_sellerWithChannelAndCommission_savesSellerTerms` | ✅ auto |
 | 3b | idem | Vendeuse sans commission | 422 | `UserServiceImplTest.createUser_sellerWithoutCommission_throwsBusinessException` | ✅ auto |
 | 3c | idem | Administrateur avec commission | 422 | `UserServiceImplTest.createUser_administratorWithCommission_throwsBusinessException` | ✅ auto |
@@ -26,18 +26,17 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | 3e | idem (interface) | Quand le rôle choisi n'est pas vendeuse | canal et commission masqués et envoyés à `null` | `user-form-page.ts` (`isSeller`) | 🔍 code |
 | 4 | Rôles proposés = Administrateur, Vendeuse, Livreur | Quand le formulaire charge les rôles | exactement trois | `AdminAccountInitializerIT.migrations_freshDatabase_seedExactlyTheThreeBusinessRoles` ; `user-service.spec.ts` « should return the business roles from the first page » ; contrainte `ck_roles_name` (insertion `USER` refusée) | ✅ auto · ✅ base |
 | 5 | Création et modification réservées à l'admin, côté serveur | Quand une vendeuse appelle `POST` ou `PUT /api/v1/users` | 403 ; sans jeton 401 | `@HasPermission("users.create")` / `("users.update")`, rendu obligatoire par `ArchitectureTest.endpoints_require_permission` ; seul `GET` a un test IT (`AuthSecurityIT.getUsers_withNonAdminRole_returns403`) ; permissions `users.*` données à `ADMIN` seul en base | ✅ auto · ✅ base |
-| 6 | Un utilisateur ne se supprime jamais, il se désactive | Quand on cherche une suppression | aucune suppression possible | `DELETE /api/v1/users/{id}` existe (`users.delete`) et supprime la ligne : `UserServiceImplTest.deleteUserById_existingUser_recordsDeletionInJournal` | ❌ écart |
+| 6 | Un utilisateur ne se supprime jamais, il se désactive | Quand on appelle `DELETE /api/v1/users/{id}` | 405, le compte existe toujours ; aucun bouton « Supprimer » dans la liste | `UserStatusIT.deleteUser_isNotExposed` ; `ArchitectureTest.no_delete_endpoints` ; `user-list-page.spec.ts` « should offer no way to delete an account, only to deactivate it » | ✅ auto (corrigé le 2026-10-23) |
 
 ## Sécurité et erreurs
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
 | Email déjà utilisé (création) | `vendeuse.test@valimbavaka.mg` existant | 409 `CONFLICT`, rien dans le journal | `UserServiceImplTest.createUser_emailAlreadyUsed_throwsConflict`, `createUser_emailAlreadyUsed_recordsNothingInJournal` | ✅ auto |
-| Email déjà utilisé par un autre compte (modification) | renommer B avec l'email de A | 409 | `UserServiceImpl.updateUser` : `existsByEmailAndIdNot` avant la mise à jour | 🔍 code |
+| Email déjà utilisé par un autre compte (modification) | renommer B avec `" Autre@Valimbavaka.mg "` | 409, rien dans le journal | `UserServiceImplTest.updateUser_emailUsedByAnotherUser_throwsConflictAndRecordsNothing` | ✅ auto |
 | `id` ou `role` dans le corps | `{"id":"…","role":"ADMIN",…}` | ignorés ; le rôle passe uniquement par `roleId` | `ArchitectureTest.input_dtos_have_no_id_or_role` ; `UserStatusIT.setActive_massAssignmentOfRole_isIgnored` | ✅ auto |
-| Données invalides | email `abc`, mot de passe `1234567`, taux `100.01` ou `12.345`, taux `-1` | 422 `VALIDATION_FAILED` avec la liste des champs | contraintes `@Email`, `@Size(min = 8)`, `@DecimalMin`, `@DecimalMax`, `@Digits` de `CreateUserWDto` / `UpdateUserWDto`, traduites en 422 par `GlobalExceptionHandler` | 🔍 code |
+| Données invalides | email `abc`, mot de passe de 14 caractères, taux `100.01` ou `12.345`, taux `-1` | 422 `VALIDATION_FAILED` avec la liste des champs | contraintes `@Email`, `@Size(min = 15)`, `@DecimalMin`, `@DecimalMax`, `@Digits` de `CreateUserWDto` / `UpdateUserWDto`, traduites en 422 par `GlobalExceptionHandler` | 🔍 code |
 | Utilisateur introuvable | UUID au hasard | 404 `NOT_FOUND` | `UserServiceImplTest.getUserById_unknownId_throwsNotFound` | ✅ auto |
-| Suppression d'un identifiant inconnu | UUID au hasard | 404, rien dans le journal | `UserServiceImplTest.deleteUserById_unknownId_throwsNotFoundAndRecordsNothing` | ✅ auto |
 | Création rejouée (file hors ligne) | même `Idempotency-Key` | un seul compte | `IdempotencyIT.createUser_replayedWithSameKey_returnsSameResponseWithoutDuplicate` | ✅ auto |
 | Pagination et recherche | `page=1&size=20&search=` | recherche vide non envoyée, tri en liste blanche | `user-service.spec.ts` « should request a page with the VVS pagination parameters and skip an empty search » | ✅ auto |
 
@@ -52,7 +51,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Taux négatif | `-1` | 422 | `@DecimalMin` | 🔍 code |
 | Email avec majuscules et espaces | `  Rasoa@Valimbavaka.MG ` | enregistré `rasoa@valimbavaka.mg` ; doublon détecté même avec une autre casse | `User.normalizeEmail` (`strip` + minuscules) utilisé à la création et à la modification | 🔍 code |
 | Passage vendeuse → livreur | rôle modifié | l'interface envoie canal et taux à `null` ; sinon 422 (règle `validateTerms` de l'entité) | `user-form-page.ts` + `User.validateTerms` | 🔍 code |
-| Mot de passe de 8 à 14 caractères | `motdepas` | accepté | `@Size(min = 8)` et `MIN_PASSWORD_LENGTH = 8` côté interface ; la convention §9.2 exige 15 sans MFA | ❌ écart |
+| Mot de passe de 14 caractères | `court-14-carac` | 422 ; 15 caractères acceptés (convention §9.2, sans MFA) | `@Size(min = 15)` de `CreateUserWDto` et `MIN_PASSWORD_LENGTH = 15` côté interface | 🔍 code (corrigé le 2026-10-23) |
 | Mot de passe très long | 128 caractères | accepté ; 129 refusé | `@Size(max = 128)` | 🔍 code |
 | Prénom ou nom de 101 caractères | — | 422 | `@Size(max = 100)` | 🔍 code |
 
@@ -75,7 +74,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102. **Base** : migrations rejouées sur PostgreSQL 16 ; insertion d'un rôle `USER` refusée par `ck_roles_name`.
 - **Anomalies** :
-  1. ❌ `DELETE /api/v1/users/{id}` supprime réellement un compte, contraire au critère 6 et à JNL-02. Gravité haute. Recommandation : retirer l'endpoint et la permission `users.delete`, puis resserrer `ArchitectureTest.delete_endpoints_are_limited_to_the_user_reference`.
-  2. ❌ Mot de passe minimum 8 caractères (serveur et interface) alors que la convention §9.2 impose 15 sans MFA ; pas de refus des mots de passe courants. Gravité moyenne.
-  3. ⚠ `updateUser` n'a aucun test (ni service, ni IT, ni interface) ; les contrôles 403 de `POST` et `PUT` ne sont prouvés que par la règle ArchUnit. Ajouter `updateUser_emailUsedByAnotherUser_throwsConflict`, `updateUser_validRequest_recordsUpdateInJournal`, `createUser_withSellerToken_returns403`.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/AUTH-04-garde-fous-administrateur`) : `DELETE /api/v1/users/{id}` et la permission `users.delete` sont retirés (migration `2026_10_23-01`), le bouton « Supprimer » aussi ; `ArchitectureTest.no_delete_endpoints` interdit tout `@DeleteMapping`.
+  2. ✅ Corrigé le 2026-10-23 : mot de passe d'un nouveau compte à 15 caractères minimum, serveur et interface. Reste ouvert : refus des mots de passe courants (convention §9.2), gravité faible.
+  3. ⚠ `updateUser` est maintenant couvert en unitaire (6 tests) et en intégration (2 tests) ; les contrôles 403 de `POST` et `PUT` ne sont encore prouvés que par la règle ArchUnit : ajouter `createUser_withSellerToken_returns403`.
 - **Recette manuelle** : 4 étapes 🧪.
