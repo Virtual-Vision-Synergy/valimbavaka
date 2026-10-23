@@ -182,6 +182,47 @@ class AuthSecurityIT {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void logout_withoutCookie_returns204AndClearsTheCookie() throws Exception {
+        // Act
+        var result = mockMvc.perform(post("/api/v1/auth/logout")).andExpect(status().isNoContent());
+
+        // Assert
+        assertThat(result.andReturn().getResponse().getHeader(HttpHeaders.SET_COOKIE))
+                .contains("vvs_refresh=")
+                .contains("Max-Age=0");
+    }
+
+    @Test
+    void logout_fromForeignOrigin_returns403() throws Exception {
+        // Arrange
+        var cookie = login(ADMIN_EMAIL, ADMIN_PASSWORD).andReturn().getResponse().getCookie("vvs_refresh");
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/auth/logout").cookie(cookie).header(HttpHeaders.ORIGIN, "https://evil.example"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(cookie)).andExpect(status().isOk());
+    }
+
+    @Test
+    void createUser_withSellerToken_returns403AndCreatesNothing() throws Exception {
+        // Arrange
+        var token = accessToken(createSeller(), PASSWORD);
+        var email = "intrus-" + UUID.randomUUID() + "@valimbavaka.mg";
+        var roleId = roleRepository.findByName(RoleName.ADMIN).orElseThrow().getId();
+        var body = ("{\"email\":\"%s\",\"password\":\"%s\",\"firstName\":\"Hery\",\"lastName\":\"Rabe\","
+                        + "\"roleId\":\"%s\"}")
+                .formatted(email, PASSWORD, roleId);
+
+        // Act + Assert
+        mockMvc.perform(post("/api/v1/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
+        assertThat(userRepository.findByEmailWithRoleAndPermissions(email)).isEmpty();
+    }
+
     private org.springframework.test.web.servlet.ResultActions login(String email, String password) throws Exception {
         var body = "{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password);
         return mockMvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body));

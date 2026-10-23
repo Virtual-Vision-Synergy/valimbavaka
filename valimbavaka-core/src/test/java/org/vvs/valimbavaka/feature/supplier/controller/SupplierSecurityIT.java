@@ -200,6 +200,24 @@ class SupplierSecurityIT {
     }
 
     @Test
+    void createSupplier_byAdmin_fillsTheAuditAuthorWithHisAccountId() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var adminId = userRepository
+                .findByEmailWithRoleAndPermissions(ADMIN_EMAIL)
+                .orElseThrow()
+                .getId();
+
+        // Act
+        var id = createSupplier(token, uniqueName());
+
+        // Assert
+        var saved = supplierRepository.findById(id).orElseThrow();
+        assertThat(saved.getCreatedBy()).isEqualTo(adminId);
+        assertThat(saved.getUpdatedBy()).isEqualTo(adminId);
+    }
+
+    @Test
     void deleteSupplier_isNotExposed() throws Exception {
         // Arrange
         var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
