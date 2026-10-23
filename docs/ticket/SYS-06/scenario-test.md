@@ -1,42 +1,50 @@
 # Scénarios de test — SYS-06 · Audit : auteur des opérations en UUID
 
-> **À compléter par le traiteur du ticket**, avant de passer en revue. Le scénario sert de base au QA (Njara) et de référence aux tickets liés.
+Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) · [description](description.md) · [guide](guide.md)
 
-Statut : ☐ à compléter · Ticket : [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) · [description](description.md) · [guide](guide.md)
-
-Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
+Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, Testcontainers PostgreSQL (jamais H2).
 
 ## Pré-requis
 
 | Élément | Valeur |
 |---|---|
-| Rôle(s) utilisé(s) | _(à compléter)_ |
-| Données de départ | _(à compléter)_ |
+| Rôle(s) utilisé(s) | `ADMIN` (pour créer une ressource authentifiée) |
+| Données de départ | un administrateur, base migrée |
 | Tickets à avoir déployés avant | SYS-05 |
 
 ## Scénarios issus des critères d'acceptation
 
-| # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+| # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | Les colonnes created_by / updated_by sont du même type que l'identifiant utilisateur (UUID), corrigé par un nouveau changeset avant la première mise en production. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
-| 2 | L'auteur est renseigné automatiquement à partir de l'utilisateur connecté (pas de saisie manuelle). | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+| 1 | `created_by` / `updated_by` en UUID | Quand les migrations s'appliquent | colonnes de type UUID sur les tables auditées | `SupplierRepositoryIT.save_newSupplier_isPersistedWithAuditFields` (écriture sur une table créée avec ces colonnes) ; type vérifié à la main (recette) | ☐ |
+| 2 | Auteur renseigné automatiquement à partir de l'utilisateur connecté | Quand l'administrateur crée une ressource | `created_by` et `updated_by` = son UUID | _(à ajouter : aucun test d'intégration dédié repéré)_ ; indirectement `JournalServiceImplTest.record_authenticatedUser_savesTimestampedEntryInTheNameOfTheUser` (lit le même `AuditorAware<UUID>`) | ☐ |
+| 2b | Pas de saisie manuelle | Quand un DTO d'entrée contient `createdBy` ou `id` | ignoré | `SupplierSecurityIT.createSupplier_massAssignmentOfIdAndStatus_isIgnored` | ☐ |
+| 2c | Modification par un autre compte | Quand un autre compte modifie la ressource | `updated_by` change, `created_by` reste | _(à ajouter)_ | ☐ |
 
 ## Sécurité et erreurs
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | _(à compléter)_ | ☐ |
-| Appel avec un mauvais rôle | 403 `FORBIDDEN` | _(à compléter)_ | ☐ |
-| Champ interdit dans le corps (`role`, `id`) | ignoré (mass assignment) | _(à compléter)_ | ☐ |
-| Données invalides | 422 `VALIDATION_FAILED` | _(à compléter)_ | ☐ |
-| Ressource introuvable | 404 `NOT_FOUND` | _(à compléter)_ | ☐ |
-| Conflit / doublon | 409 `CONFLICT` | _(à compléter)_ | ☐ |
-
-_Supprimer les lignes qui ne s'appliquent pas (ticket frontend seul, pas d'écriture, etc.)._
+| Écriture hors requête authentifiée (démarrage) | auteur `NULL`, pas d'erreur | `AdminAccountInitializerIT.run_atStartupWithoutAdministrator_createsAdministratorRequiringPasswordChange` (création sans compte connecté) | ☐ |
+| Jeton sans `sub` UUID valide | auteur vide | _(à ajouter : test unitaire de `SecurityAuditorAware`)_ | ☐ |
+| Modification concurrente (version) | 409 `CONFLICT` | _(à ajouter)_ | ☐ |
 
 ## Cas limites et hors ligne
 
-- _(à compléter : valeurs extrêmes, listes vides, pagination, perte de connexion, rejeu avec `Idempotency-Key` si la saisie passe par la file hors ligne)_
+- Écriture rejouée depuis la file hors ligne (SYS-02) : l'auteur est le compte du jeton au moment du rejeu, pas celui de la saisie initiale (même compte, car la file est rattachée à son propriétaire).
+- Un seul bean `AuditorAware<UUID>` doit exister.
+
+## Tests existants (repérés dans le code)
+
+- Pas de classe de test dédiée à `BaseEntity` ni à `SecurityAuditorAware`. Couverture indirecte : `SupplierRepositoryIT`, `AdminAccountInitializerIT`, `JournalServiceImplTest`, `UserServiceImplTest` (mock de `AuditorAware<UUID>`).
+- Frontend : sans objet.
+
+## À faire à la main (recette QA)
+
+- Se connecter en administrateur, créer un fournisseur, puis en base : `SELECT created_by, updated_by FROM suppliers` donne l'UUID de l'administrateur (`SELECT id FROM users WHERE email = …`).
+- `\d suppliers` et `\d users` : `created_by` et `updated_by` sont de type `uuid`.
+- Modifier la ressource avec un second compte administrateur : `updated_by` change, `created_by` non.
+- Les anciennes lignes migrées ont `created_by` à `NULL`.
 
 ## Résultat de l'exécution
 
