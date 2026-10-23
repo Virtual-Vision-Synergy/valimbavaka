@@ -24,10 +24,10 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | 2b | Gammes | `GET /api/v1/product-ranges` | `ZEZIKA`, `BOTANIKA`, `SOLIKA` | `ReferentialServiceImplIT.getProductRanges_freshDatabase_returnsSeededRanges` | ✅ auto · ✅ base |
 | 2c | Emplacements de stock | `GET /api/v1/stock-locations` | `WAREHOUSE` Entrepôt, `STORE` Boutique, `DELIVERY` Livraison, `TRADE_SHOW` Salon | `ReferentialServiceImplIT.getStockLocations_freshDatabase_returnsSeededLocations` | ✅ auto · ✅ base |
 | 2d | idem (interface) | Chargement des trois listes | endpoints dédiés, tri par libellé, 100 éléments | `referential-service.spec.ts` « should list sales channels sorted by label », « should call the dedicated endpoints for ranges and stock locations » | ✅ auto |
-| 3 | Administrateur initial depuis l'environnement | Base sans administrateur · démarrage | compte créé, changement de mot de passe requis | `AdminAccountInitializerIT.run_atStartupWithoutAdministrator_createsAdministratorRequiringPasswordChange` ; `UserServiceImplTest.createInitialAdministratorIfMissing_validVariables_createsAdministratorRequiringPasswordChange` | ✅ auto |
+| 3 | Administrateur initial depuis l'environnement | Base sans administrateur · démarrage | compte créé, changement de mot de passe requis | `AdminAccountInitializerIT.run_atStartupWithoutAdministrator_createsAdministratorFromEnvironmentVariables` ; `UserServiceImplTest.createInitialAdministratorIfMissing_validVariables_createsAdministratorRequiringPasswordChange` | ✅ auto |
 | 3b | idem (idempotent) | Un administrateur existe déjà | rien n'est créé | `AdminAccountInitializerIT.run_administratorAlreadyExists_isIdempotent` ; `UserServiceImplTest.createInitialAdministratorIfMissing_administratorExists_createsNothing` | ✅ auto |
 | 3c | Jamais de mot de passe dans le code ou un changelog | Recherche dans les migrations | aucune valeur de mot de passe | recherche dans les 10 fichiers de migration : seule la colonne `password` apparaît | ✅ base |
-| 3d | « doit changer son mot de passe à la première connexion » | Première connexion de l'administrateur | écran de changement imposé | drapeau `is_password_change_required` posé, mais aucun écran ni endpoint pour le lever | ❌ écart |
+| 3d | « doit changer son mot de passe à la première connexion » | Première connexion de l'administrateur | aucune permission tant que le mot de passe n'est pas changé ; écran `/password` imposé | `PasswordChangeIT.login_temporaryPassword_grantsNoPermissionUntilItIsChanged`, `changePassword_validRequest_liftsTheRequirementAndRestoresThePermissions` ; `auth-guard.spec.ts` | ✅ auto (corrigé le 2026-10-23) |
 
 ## Sécurité et erreurs
 
@@ -68,7 +68,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102. **Base** : les 10 migrations rejouées sur PostgreSQL 16 vierge sans erreur ; rôles, référentiels et permissions relus.
 - **Anomalies** :
-  1. ❌ Gravité moyenne : le changement de mot de passe obligatoire n'est pas réalisable (voir AUTH-01).
+  1. ✅ Corrigé le 2026-10-23 (branche `feature/AUTH-01-changement-mot-de-passe`) : changement de mot de passe obligatoire réalisable et imposé par le serveur (voir AUTH-01). Dans les tests d'intégration, l'administrateur de test est rendu utilisable après démarrage (`InitialAdministratorReadyForTests`).
   2. ⚠ La liste des canaux de vente reste « à confirmer avec le métier ».
   3. ⚠ Le livreur n'a pas `referentials.read` : à revoir si l'espace livreur doit afficher des emplacements ou des canaux.
 - **Recette manuelle** : 3 étapes 🧪.

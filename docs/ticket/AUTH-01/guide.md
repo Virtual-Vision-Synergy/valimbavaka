@@ -15,6 +15,7 @@ L'utilisateur se connecte par email et mot de passe. Le serveur applique toujour
 | POST | `/login` | public, limité en débit | `LoginWDto` (`email`, `password`) | 200 `AuthRDto` + cookie `vvs_refresh` | 401 `UNAUTHENTICATED`, 422, 429 `RATE_LIMITED` (+ `Retry-After`) |
 | POST | `/refresh` | public, cookie `vvs_refresh` | - | 200 `AuthRDto` (rotation) + nouveau cookie | 401 `UNAUTHENTICATED`, 403 `FORBIDDEN` (origine) |
 | GET | `/me` | jeton d'accès | - | `CurrentUserRDto` | 401 `UNAUTHENTICATED` |
+| POST | `/password` | jeton d'accès | `PasswordChangeWDto` (`currentPassword`, `newPassword` 15 à 128 caractères) | 204 ; appeler ensuite `/refresh` | 401, 422 `VALIDATION_FAILED` (mot de passe actuel incorrect, nouveau trop court ou identique) |
 
 `AuthRDto` : `accessToken`, `tokenType` (`Bearer`), `expiresIn` (secondes), `user`.
 `CurrentUserRDto` : `id`, `email`, `firstName`, `lastName`, `role` (`ADMIN` / `SELLER` / `DELIVERY_DRIVER`), `roleLabel` (Administrateur / Vendeuse / Livreur), `permissions` (codes `module.action`), `passwordChangeRequired`.
@@ -119,5 +120,5 @@ Frontend, cacher un bouton et garder une route :
 
 - Question client toujours ouverte (label `needs-info`) : connexion par email ou par identifiant / téléphone. Le code actuel n'accepte que l'email.
 - `PUBLIC_ROUTES` dans `SecurityConfig` contient aussi `/api/v1/auth/register` et `/api/v1/auth/forgot-password`, alors qu'aucun contrôleur ne les expose : à nettoyer ou à justifier.
-- `CurrentUserRDto.passwordChangeRequired` existe (premier administrateur, voir SYS-05), mais côté interface il n'apparaît que dans les modèles TypeScript : aucun écran ni redirection de changement de mot de passe n'a été trouvé, et aucun endpoint de changement de mot de passe n'existe.
+- **Mot de passe provisoire** (`passwordChangeRequired = true`, premier administrateur SYS-05) : le jeton et `/me` ne portent **aucune permission** tant que le mot de passe n'est pas changé (seules `/me`, `/password`, `/refresh`, `/logout` répondent). L'interface redirige vers `/password` (`authGuard`, `passwordChangeGuard`, page `features/auth/pages/password-change-page`) ; `AuthService.changePassword` enchaîne `POST /password` puis `/refresh` pour retrouver les droits du rôle. Un ticket qui ajoute un écran n'a rien à faire de plus.
 - Le jeton d'accès porte les claims `roles` et `permissions` : après un changement de rôle par l'administrateur, l'ancien jeton garde ses droits jusqu'à son expiration (15 min). Seul `/me` relit le rôle en base.

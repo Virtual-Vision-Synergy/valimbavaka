@@ -27,7 +27,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Écriture hors requête authentifiée | création de l'administrateur au démarrage | auteur `NULL`, pas d'erreur | `AdminAccountInitializerIT.run_atStartupWithoutAdministrator_createsAdministratorRequiringPasswordChange` | ✅ auto |
+| Écriture hors requête authentifiée | création de l'administrateur au démarrage | auteur `NULL`, pas d'erreur | `AdminAccountInitializerIT.run_atStartupWithoutAdministrator_createsAdministratorFromEnvironmentVariables` | ✅ auto |
 | Jeton sans `sub` | jeton sans claim `sub` | auteur vide (`Optional.empty`) | `JwtSubject.userIdOf` | 🔍 code |
 | `sub` qui n'est pas un UUID | `sub = "abc"` | `IllegalArgumentException` (500) ; impossible en pratique car le jeton est signé par le serveur avec l'UUID du compte | `JwtSubject.userIdOf` (`UUID::fromString`) | 🔍 code |
 | Conflit de version | deux mises à jour concurrentes | 409 attendu | `ObjectOptimisticLockingFailureException` n'est pas traduite : 500 | ❌ écart |

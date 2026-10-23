@@ -62,7 +62,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Utilisateur connecté qui ouvre `/login` | — | renvoyé vers l'accueil | `auth-guard.spec.ts` « guestGuard should send an authenticated user back to the home page » | ✅ auto |
 | Permissions exactes du rôle | vendeuse connectée | `can('users.read')` faux | `auth-store.spec.ts` « should grant exactly the permissions of the signed in role » | ✅ auto |
 | Accessibilité de la page de connexion | — | aucune violation détectée | `login-page.a11y.spec.ts` | ✅ auto |
-| Compte avec changement de mot de passe obligatoire | administrateur initial | l'écran de changement est imposé | aucun écran ni endpoint de changement de mot de passe | ❌ écart |
+| Compte avec changement de mot de passe obligatoire | vendeuse au mot de passe provisoire | aucune permission (403 sur `/sales-channels`) puis droits rendus après `POST /password` ; l'interface impose `/password` | `PasswordChangeIT.login_temporaryPassword_grantsNoPermissionUntilItIsChanged`, `changePassword_validRequest_liftsTheRequirementAndRestoresThePermissions`, `changePassword_wrongCurrentPassword_returns422`, `changePassword_newPasswordShorterThan15_returns422`, `changePassword_withoutToken_returns401` ; `auth-guard.spec.ts` « authGuard should send a user with a temporary password to the password page » ; `password-change-page.spec.ts` (4 tests) ; `password-change-page.a11y.spec.ts` | ✅ auto (corrigé le 2026-10-23) |
 
 ## Tests existants
 
@@ -84,7 +84,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Backend** : CI GitHub, job « Backend (Spring Boot) » (`mvn -B -ntp verify`, Testcontainers PostgreSQL 16, ArchUnit) vert sur le commit `b009e97`, dont le code est identique à `develop` au 2026-10-23. 27 classes de test, 138 `@Test`, 5 tests paramétrés, 16 règles ArchUnit.
 - **Frontend** : `ng test --watch=false` relancé localement (Node 24) : 29 fichiers, 102 tests, 102 verts.
 - **Anomalies** :
-  1. ❌ Aucun écran ni endpoint de changement de mot de passe : le drapeau `passwordChangeRequired` du premier administrateur (SYS-05) ne peut pas être levé. Gravité moyenne, à traiter dans un ticket dédié.
+  1. ✅ Corrigé le 2026-10-23 (branche `feature/AUTH-01-changement-mot-de-passe`) : `POST /api/v1/auth/password` et l'écran `/password` ; tant que le mot de passe provisoire n'est pas changé, le serveur n'accorde aucune permission.
   2. ⚠ `PUBLIC_ROUTES` (interface) liste `register` et `forgot-password`, qui n'existent pas. Gravité faible.
   3. ⚠ Connexion par email uniquement (question client ouverte sur la connexion par téléphone). Gravité faible.
 - **Recette manuelle** : 4 étapes 🧪 à passer par le traiteur ou la QA sur l'environnement de test.
