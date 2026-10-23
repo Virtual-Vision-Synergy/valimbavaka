@@ -79,6 +79,15 @@
         }
       }
     </div>
+    <button
+      class="icon-btn logout"
+      type="button"
+      [attr.aria-label]="'layout.logout' | translate"
+      [title]="'layout.logout' | translate"
+      (click)="logout()"
+    >
+      <svg [vvsIcon]="icons.LogOut" [size]="20"></svg>
+    </button>
   </div>
 </header>
 

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
+import { vi } from 'vitest';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { AuthStore } from '../../auth/auth-store';
@@ -50,6 +51,19 @@ describe('MainLayout', () => {
     expect(navText(element)).toContain('Tableau de bord');
     expect(navText(element)).not.toContain('Ventes');
     expect(navText(element)).not.toContain('Utilisateurs');
+  });
+
+  it('should keep a logout button in the top bar that ends the session', async () => {
+    const element = await render('SELLER');
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const button = element.querySelector<HTMLButtonElement>('header.bar button.logout');
+
+    button?.click();
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/logout').flush(null);
+
+    expect(button?.getAttribute('aria-label')).toBe('Déconnexion');
+    expect(TestBed.inject(AuthStore).isAuthenticated()).toBe(false);
+    expect(navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('should display the name and the role label of the signed in user with a logout button', async () => {

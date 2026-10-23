@@ -10,9 +10,10 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
-import { Bell, ChevronRight, Menu, Moon, Search, Sun } from 'lucide';
+import { Bell, ChevronRight, LogOut, Menu, Moon, Search, Sun } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { filter, map } from 'rxjs';
+import { AuthService } from '../../auth/auth-service';
 import { LanguageService } from '../../i18n/language-service';
 import { SyncStatus } from '../../offline/sync-status';
 import { findMenuEntry } from '../menu';
@@ -22,7 +23,10 @@ import { SearchDialog } from '../search-dialog/search-dialog';
 import { UiPreferencesService } from '../ui-preferences-service';
 import { Icon } from '../../../shared/components/icon/icon';
 
-/** Barre supérieure : fil d'Ariane, recherche globale (Ctrl K), synchronisation, date, thème, notifications. */
+/**
+ * Barre supérieure : fil d'Ariane, recherche globale (Ctrl K), synchronisation, date, thème, notifications et
+ * déconnexion, visible en permanence (AUTH-02).
+ */
 @Component({
   selector: 'vvs-top-bar',
   imports: [RouterLink, TranslatePipe, SyncStatus, SearchDialog, NotificationPanel, Icon],
@@ -32,8 +36,9 @@ import { Icon } from '../../../shared/components/icon/icon';
   host: { '(document:keydown)': 'onShortcut($event)' },
 })
 export class TopBar {
-  protected readonly icons = { Bell, ChevronRight, Menu, Moon, Search, Sun };
+  protected readonly icons = { Bell, ChevronRight, LogOut, Menu, Moon, Search, Sun };
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
   private readonly preferences = inject(UiPreferencesService);
   private readonly language = inject(LanguageService);
   private readonly searchButton = viewChild.required<ElementRef<HTMLButtonElement>>('searchButton');
@@ -62,6 +67,10 @@ export class TopBar {
       year: 'numeric',
     }).format(new Date()),
   );
+
+  protected logout(): void {
+    this.authService.logout().subscribe(() => void this.router.navigate(['/login']));
+  }
 
   protected toggleTheme(): void {
     this.preferences.toggleTheme();
