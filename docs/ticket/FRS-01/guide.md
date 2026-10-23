@@ -1,6 +1,6 @@
 # Guide d'intégration — FRS-01 · Fiche fournisseur complète
 
-Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ complet au 2026-10-23 — vérifié sur le code, les tests (CI + exécution locale) et la base · Ticket : [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -15,7 +15,7 @@ L'administrateur consulte et modifie la fiche d'un fournisseur : nom, type (loca
 | GET | `/api/v1/suppliers` | `suppliers.read` | `PageQuery` + `type` (`LOCAL`/`FOREIGN`) + `active` (booléen) | 200 `PageResponse<SupplierRDto>` | 401, 403 |
 | GET | `/api/v1/suppliers/{id}` | `suppliers.read` | — | 200 `SupplierRDto` | 401, 403, 404 |
 | POST | `/api/v1/suppliers` | `suppliers.create` | `SupplierWDto` | 201 `SupplierRDto` + `Location` | 401, 403, 409 (nom déjà pris), 422 |
-| PUT | `/api/v1/suppliers/{id}` | `suppliers.update` | `SupplierWDto` | 200 `SupplierRDto` | 401, 403, 404, 409 (version ou nom), 422 |
+| PUT | `/api/v1/suppliers/{id}` | `suppliers.update` | `SupplierWDto` | 200 `SupplierRDto` | 401, 403, 404, 409 (nom), 422 ; conflit de version : 500 (voir points d'attention) |
 | PATCH | `/api/v1/suppliers/{id}/status` | `suppliers.update` | `SupplierStatusWDto` (`active`) | 200 `SupplierRDto` | 401, 403, 404, 422 |
 
 Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
@@ -26,7 +26,7 @@ Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 - Unicité du nom insensible à la casse (index `uq_suppliers_name` sur `lower(name)`) ; le nom est nettoyé (`strip`) avant comparaison.
 - `PATCH /status` est idempotent : aucune modification ni ligne de journal si l'état est déjà celui demandé.
 - Journal : `CREATE` à la création, `UPDATE` à la modification et au changement d'état, ressource `SUPPLIER`.
-- Verrou optimiste (`version`) : deux modifications concurrentes donnent un 409.
+- Verrou optimiste (`version`) : présent sur l'entité, mais `SupplierWDto` ne transporte pas la version (le second enregistrement écrase le premier) et un conflit simultané remonte en **500** : `GlobalExceptionHandler` ne traduit ni `ObjectOptimisticLockingFailureException` ni `DataIntegrityViolationException`.
 
 ### Service Java
 

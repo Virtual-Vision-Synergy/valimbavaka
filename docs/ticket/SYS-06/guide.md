@@ -1,6 +1,6 @@
 # Guide d'intégration — SYS-06 · Audit : auteur des opérations en UUID
 
-Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ complet au 2026-10-23 — vérifié sur le code, les tests (CI + exécution locale) et la base · Ticket : [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -15,7 +15,7 @@ Toute entité qui hérite de `BaseEntity` reçoit automatiquement un identifiant
 | `id` | `id` UUID | `@UuidGenerator(style = VERSION_7)` |
 | `createdAt` / `updatedAt` | `created_at` / `updated_at` `TIMESTAMPTZ` | audit JPA (`@CreatedDate`, `@LastModifiedDate`), en UTC |
 | `createdBy` / `updatedBy` | `created_by` / `updated_by` **UUID**, nullables | audit JPA (`@CreatedBy`, `@LastModifiedBy`) via `SecurityAuditorAware` |
-| `version` | `version` BIGINT, défaut 0 | `@Version` (verrou optimiste, conflit géré en 409) |
+| `version` | `version` BIGINT, défaut 0 | `@Version` (verrou optimiste ; aujourd'hui un conflit remonte en 500, voir points d'attention) |
 
 - `SecurityAuditorAware implements AuditorAware<UUID>` (`security/audit`) lit le claim `sub` du jeton d'accès via `JwtSubject.userIdOf`. Hors requête authentifiée (démarrage, tâche planifiée), l'auteur est vide, donc `null`.
 - `AuditableUser` (`security/audit`) est le contrat du principal (`UUID getId()`), porté par `security/` pour qu'il ne dépende d'aucune feature.
@@ -34,7 +34,7 @@ Toute entité qui hérite de `BaseEntity` reçoit automatiquement un identifiant
 - Ne jamais renseigner l'auteur à la main (`setCreatedBy`) : il n'y a pas de setter, et les tests ne doivent pas non plus l'imposer.
 - Pour afficher « créé par », résoudre l'UUID au moment de la lecture ou le copier dans le journal ; l'UUID est stable, le nom peut changer ([JNL-01](../JNL-01/guide.md) fige le nom au moment de l'opération).
 - Une entité mise à jour sans changement de valeur n'est pas modifiée : `updated_by` ne bouge pas.
-- Toute modification concurrente se traduit par une `ObjectOptimisticLockingFailureException` : la traduire en 409 `CONFLICT` si la feature l'expose.
+- Toute modification concurrente lève une `ObjectOptimisticLockingFailureException`. Elle n'est pas encore traduite en 409 par `GlobalExceptionHandler` (réponse 500) : ajouter ce handler dans `core/exception` plutôt que dans chaque feature.
 
 ## Fichiers concernés
 
@@ -85,3 +85,4 @@ CREATE TABLE articles (
 - Les écritures faites au démarrage (administrateur initial) ou par une tâche planifiée n'ont pas d'auteur : `created_by` reste `NULL`. Un accompagnement par le journal (auteur « Système ») est possible via [JNL-01](../JNL-01/guide.md).
 - L'audit ne s'applique qu'aux entités passant par JPA ; une écriture en SQL direct (`JdbcClient`, comme `idempotency_keys`) ne renseigne pas d'auteur.
 - L'activation de l'audit JPA dépend du bean `AuditorAware<UUID>` : un second bean du même type casserait l'injection.
+- La table technique `dev` (premier changeset `2026_09_15-01`, sans entité Java) a encore `created_by` / `updated_by` en `bigint` et `created_at` sans fuseau, de même que les tables `revinfo` / `revchanges` d'Envers, inutilisé. Vérifié en base le 2026-10-23 : à supprimer par un nouveau changeset avant la mise en production.

@@ -17,21 +17,23 @@ En tant qu'administrateur, je veux créer et modifier un utilisateur (nom, rôle
 
 ## Critères d'acceptation
 
-- [ ] Le rôle choisi détermine la coquille applicative de l'utilisateur.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [x] Le rôle choisi détermine la coquille applicative de l'utilisateur. — *✅ vérifié.*
 
 <img width="1906" height="923" alt="Image" src="https://github.com/user-attachments/assets/4a376ff1-1023-4190-a1e9-70437bf3bceb" />
 
-- [ ] Un formulaire permet de saisir/modifier ces champs.
+- [x] Un formulaire permet de saisir/modifier ces champs. — *✅ vérifié (modification sans test automatique).*
 
 <img width="1917" height="911" alt="Image" src="https://github.com/user-attachments/assets/70c4c6de-e5b9-414a-9ff5-dd51bfdf3acd" />
 
-- [ ] Le formulaire inclut aussi le canal de vente et le taux de commission de l'utilisateur.
+- [x] Le formulaire inclut aussi le canal de vente et le taux de commission de l'utilisateur. — *✅ vérifié.*
 
-- [ ] Les rôles proposés sont exactement Administrateur, Vendeuse, Livreur (SYS-05).
+- [x] Les rôles proposés sont exactement Administrateur, Vendeuse, Livreur (SYS-05). — *✅ vérifié en base.*
 
-- [ ] La création et la modification des utilisateurs sont réservées à l'administrateur, contrôlé côté serveur (pas seulement en masquant l'interface).
+- [x] La création et la modification des utilisateurs sont réservées à l'administrateur, contrôlé côté serveur (pas seulement en masquant l'interface). — *✅ vérifié : `@HasPermission` + règle ArchUnit.*
 
-- [ ] Un utilisateur ne se supprime jamais : il se désactive (AUTH-04), conformément à JNL-02.
+- [ ] Un utilisateur ne se supprime jamais : il se désactive (AUTH-04), conformément à JNL-02. — *❌ écart : `DELETE /api/v1/users/{id}` supprime réellement un compte.*
 
 ## Détails
 

@@ -1,6 +1,6 @@
 # Guide d'intégration — JNL-02 · Interdiction de suppression des opérations validées
 
-Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ complet au 2026-10-23 — vérifié sur le code, les tests (CI + exécution locale) et la base · Ticket : [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 

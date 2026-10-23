@@ -14,7 +14,9 @@ En tant qu'administrateur, je veux une fiche fournisseur complète (type, contac
 
 ## Critères d'acceptation
 
-- [ ] Tous les champs sont visibles et modifiables.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [x] Tous les champs sont visibles et modifiables. — *✅ vérifié (bloc « articles fournis » rempli par ART-01).*
 
 ## Détails
 

@@ -1,6 +1,6 @@
 # Guide d'intégration — SYS-05 · Rôles métier, référentiels et compte administrateur initial
 
-Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#111](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/111) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ complet au 2026-10-23 — vérifié sur le code, les tests (CI + exécution locale) et la base · Ticket : [#111](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/111) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -23,9 +23,10 @@ Une base neuve démarre avec exactement trois rôles (Administrateur, Vendeuse, 
 | GET | `/api/v1/stock-locations` | `referentials.read` | `PageResponse<StockLocationRDto>` |
 
 Valeurs initiales (colonnes `code` / `label`, `is_active`) :
-- Canaux de vente : `BOUTIQUE` Boutique, `FACEBOOK` Facebook, `TELEPHONE` Téléphone, `LIVRAISON` Livraison (liste à confirmer avec le métier).
+- Canaux de vente : `STORE` Boutique, `FACEBOOK` Facebook, `PHONE` Téléphone, `DELIVERY` Livraison (liste à confirmer avec le métier).
 - Gammes : `ZEZIKA`, `BOTANIKA`, `SOLIKA`.
-- Emplacements de stock : `ENTREPOT` Entrepôt, `BOUTIQUE` Boutique, `LIVRAISON` Livraison, `SALON` Salon.
+- Emplacements de stock : `WAREHOUSE` Entrepôt, `STORE` Boutique, `DELIVERY` Livraison, `TRADE_SHOW` Salon.
+- Codes créés en français par `2026_10_15-01`, puis renommés en anglais par `2026_10_16-01` (libellés inchangés). Valeurs relues en base le 2026-10-23.
 
 Aucun endpoint d'écriture sur les référentiels : ils évoluent par migration. `referentials.read` est donnée à `ADMIN` et `SELLER`.
 
@@ -45,7 +46,7 @@ Aucun endpoint d'écriture sur les référentiels : ils évoluent par migration.
 
 - **Ne jamais coder les rôles ni les listes en dur dans l'interface** : lire les référentiels via l'API.
 - Un nouveau code de référentiel passe par une migration Liquibase additive (jamais en modifiant `2026_10_15-01`).
-- Référencer un référentiel par son UUID (`id`), pas par son `code`, dans les tables métier ; le `code` sert aux règles (ex. emplacement `LIVRAISON`).
+- Référencer un référentiel par son UUID (`id`), pas par son `code`, dans les tables métier ; le `code` sert aux règles (ex. emplacement `DELIVERY`).
 - Un rôle ne s'ajoute pas sans migration qui élargit la contrainte `ck_roles_name` et sans revoir `RoleName`.
 
 ## Fichiers concernés

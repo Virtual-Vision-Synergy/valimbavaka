@@ -14,8 +14,10 @@ En tant qu'utilisateur, je veux que mes saisies soient sauvegardées automatique
 
 ## Critères d'acceptation
 
-- [ ] Les saisies hors ligne sont mises en file et synchronisées au retour du réseau.
-- [ ] L'architecture de synchronisation est posée avant le développement des modules métier pour éviter une reprise ultérieure.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [x] Les saisies hors ligne sont mises en file et synchronisées au retour du réseau. — *✅ vérifié.*
+- [x] L'architecture de synchronisation est posée avant le développement des modules métier pour éviter une reprise ultérieure. — *✅ vérifié : file, idempotence serveur, ADR 0001.*
 
 ## Détails
 

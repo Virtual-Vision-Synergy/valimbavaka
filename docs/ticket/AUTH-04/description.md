@@ -15,15 +15,17 @@ En tant qu'administrateur, je veux activer/désactiver un utilisateur afin de co
 
 ## Critères d'acceptation
 
-- [ ] La liste des utilisateurs affiche un badge ACTIF/DÉSACTIVÉ.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [x] La liste des utilisateurs affiche un badge ACTIF/DÉSACTIVÉ. — *✅ vérifié.*
 
 <img width="1917" height="905" alt="Image" src="https://github.com/user-attachments/assets/6f110801-feb0-459a-842c-69101da2e677" />
 
-- [ ] Un utilisateur désactivé n'apparaît plus dans les listes de sélection opérationnelles.(Les get prend en compte que les user desactive ne soit plus dan la liste(login,vente,etc)
+- [ ] Un utilisateur désactivé n'apparaît plus dans les listes de sélection opérationnelles.(Les get prend en compte que les user desactive ne soit plus dan la liste(login,vente,etc) — *⏭ à porter par les tickets qui créent les listes de sélection (VTE-01, LIV-01, COM-03).*
 
-- [ ] Un utilisateur désactivé ne peut plus se connecter.
+- [x] Un utilisateur désactivé ne peut plus se connecter. — *✅ vérifié (connexion et refresh).*
 
-- [ ] Le dernier administrateur actif ne peut être ni désactivé ni privé de son rôle.
+- [ ] Le dernier administrateur actif ne peut être ni désactivé ni privé de son rôle. — *❌ écart : garanti seulement par `PATCH /status` ; `PUT` et `DELETE` le contournent.*
 
 ## Détails
 

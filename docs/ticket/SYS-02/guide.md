@@ -1,6 +1,6 @@
 # Guide d'intégration — SYS-02 · Sauvegarde automatique hors-ligne
 
-Statut : ✔ rempli depuis le code et les tests au 2026-10-23 — à valider par le traiteur · Ticket : [#16](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/16) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ complet au 2026-10-23 — vérifié sur le code, les tests (CI + exécution locale) et la base · Ticket : [#16](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/16) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 

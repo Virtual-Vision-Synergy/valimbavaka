@@ -1,8 +1,8 @@
 # Scénarios de test — JNL-02 · Interdiction de suppression des opérations validées
 
-Statut : ✔ rempli depuis les tests existants au 2026-10-23 — à valider par le traiteur · Ticket : [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) · [description](description.md) · [guide](guide.md)
+Statut : ✅ exécuté le 2026-10-23 · Ticket : [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) · [description](description.md) · [guide](guide.md)
 
-Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL.
+Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ base = vérifié en base après migrations · 🔍 code = vérifié par lecture du code (aucun test) · ❌ écart = comportement différent de l'attendu · ⏭ hors périmètre = renvoyé au premier ticket d'opération. Détail : [CONSIGNE.md](../CONSIGNE.md#4-remplir-le-scénario-de-test).
 
 ## Pré-requis
 
@@ -14,44 +14,52 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 
 ## Scénarios issus des critères d'acceptation
 
-| # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+| # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | Seules l'annulation à chaud ou la contre-passation sont possibles | Étant donné une opération `VALIDATED` · Quand on demande l'annulation | autorisée | `OperationStatusTest.ensureCanCancel_validatedOperation_passes` | ☐ |
-| 1b | idem | Quand on demande la contre-passation | autorisée | `OperationStatusTest.ensureCanReverse_validatedOperation_passes` | ☐ |
-| 1c | idem | Étant donné une opération déjà `CANCELLED` ou `REVERSED` · Quand on demande l'annulation | `ConflictException` (409) | `OperationStatusTest.ensureCanCancel_alreadyClosedOperation_throwsConflict` | ☐ |
-| 1d | idem | Quand on demande la contre-passation d'une opération déjà close | `ConflictException` (409) | `OperationStatusTest.ensureCanReverse_alreadyClosedOperation_throwsConflict` | ☐ |
-| 1e | Le journal trace ces deux issues | Quand une ligne `CANCEL` ou `REVERSE` est insérée | la base l'accepte | `JournalAppendOnlyIT.save_cancellationOrReversal_isAcceptedByTheDatabase` | ☐ |
-| 2 | Aucune suppression définitive n'est exposée dans le socle | Quand on analyse le code | aucun `@DeleteMapping` hors `feature.user` | `ArchitectureTest.delete_endpoints_are_limited_to_the_user_reference` | ☐ |
-| 2b | idem | Quand un repository de feature métier hérite de `JpaRepository` ou `CrudRepository` | le build échoue | `ArchitectureTest.operation_features_have_no_deleting_repository` | ☐ |
-| 2c | idem | Quand une méthode `delete*` ou `remove*` est ajoutée à un `OperationRepository` | le build échoue | `ArchitectureTest.operation_repositories_declare_no_delete` | ☐ |
+| 1 | Seules l'annulation à chaud et la contre-passation sont possibles | Opération `VALIDATED` · annulation demandée | autorisée | `OperationStatusTest.ensureCanCancel_validatedOperation_passes` | ✅ auto |
+| 1b | idem | Opération `VALIDATED` · contre-passation demandée | autorisée | `OperationStatusTest.ensureCanReverse_validatedOperation_passes` | ✅ auto |
+| 1c | idem | Opération `CANCELLED` ou `REVERSED` · annulation | `ConflictException` (409) | `OperationStatusTest.ensureCanCancel_alreadyClosedOperation_throwsConflict` | ✅ auto |
+| 1d | idem | Opération close · contre-passation | `ConflictException` (409) | `OperationStatusTest.ensureCanReverse_alreadyClosedOperation_throwsConflict` | ✅ auto |
+| 1e | Le journal trace ces deux issues | Insertion d'une ligne `CANCEL` ou `REVERSE` | acceptée ; `PURGE` refusée | `JournalAppendOnlyIT.save_cancellationOrReversal_isAcceptedByTheDatabase` ; insertions vérifiées en base | ✅ auto · ✅ base |
+| 2 | Aucune suppression définitive dans le socle | Analyse du code | aucun `@DeleteMapping` hors `feature.user` | `ArchitectureTest.delete_endpoints_are_limited_to_the_user_reference` | ✅ auto |
+| 2b | idem | Un repository de feature métier hérite de `JpaRepository` ou `CrudRepository` | le build échoue | `ArchitectureTest.operation_features_have_no_deleting_repository` | ✅ auto |
+| 2c | idem | Une méthode `delete*` ou `remove*` est ajoutée à un `OperationRepository` | le build échoue | `ArchitectureTest.operation_repositories_declare_no_delete` | ✅ auto |
+| 2d | idem (exception) | `DELETE /api/v1/users/{id}` | ne devrait pas exister | endpoint présent et autorisé explicitement par la règle ArchUnit | ❌ écart |
 
 ## Sécurité et erreurs
 
-| Cas | Résultat attendu | Test auto | OK |
-|---|---|---|---|
-| Suppression directe d'une ligne de journal | refusée par la base | `JournalAppendOnlyIT.delete_existingEntry_isRejectedByTheDatabase` | ☐ |
-| Annulation d'une opération inexistante | 404 `NOT_FOUND` | _(à ajouter dans le premier ticket qui implémente `ReversibleOperationService`)_ | ☐ |
-| Annulation sans motif | 422 `VALIDATION_FAILED` | _(à ajouter dans le premier ticket d'opération)_ | ☐ |
-| Annulation par un rôle sans droit | 403 `FORBIDDEN` | _(à ajouter dans le premier ticket d'opération)_ | ☐ |
-| `DELETE /api/v1/users/{id}` | exception volontaire aux règles | `ArchitectureTest.delete_endpoints_are_limited_to_the_user_reference` (exception codée) ; _(à clarifier avec AUTH-03 / AUTH-04)_ | ☐ |
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Suppression directe d'une ligne de journal | `DELETE FROM journal_entries` | refusée par la base | `JournalAppendOnlyIT.delete_existingEntry_isRejectedByTheDatabase` | ✅ auto |
+| Conflit d'état traduit en HTTP | `ensureCanCancel` sur `CANCELLED` | 409 `CONFLICT` | `ConflictException extends BusinessException`, traduite par `GlobalExceptionHandler.handleBusiness` | 🔍 code |
+| Annulation d'une opération inexistante | UUID au hasard | 404 | aucun service d'opération encore livré | ⏭ hors périmètre (premier ticket d'opération) |
+| Annulation sans motif | `reason` vide | 422 | idem | ⏭ hors périmètre |
+| Annulation par un rôle sans droit | jeton livreur | 403 | idem | ⏭ hors périmètre |
 
-## Cas limites et hors ligne
+## Cas limites
 
-- Annulation rejouée depuis la file hors ligne avec la même `Idempotency-Key` : une seule annulation, une seule ligne `CANCEL` dans le journal (voir SYS-02).
-- Contre-passation d'une opération déjà annulée : refusée (409) ; annulation d'une opération contre-passée : refusée (409).
+| Cas | Exemple | Résultat attendu | Comment c'est vérifié | Statut |
+|---|---|---|---|---|
+| Contre-passer une opération annulée | `CANCELLED` → `reverse` | 409 | `OperationStatus.ensureCanReverse` | ✅ auto |
+| Annuler une opération contre-passée | `REVERSED` → `cancel` | 409 | `OperationStatus.ensureCanCancel` | ✅ auto |
+| Annulation rejouée hors ligne | même `Idempotency-Key` | une seule annulation, une seule ligne `CANCEL` | mécanisme SYS-02, `IdempotencyIT` | ✅ auto |
+| Repository d'opération sans `delete` | `interface SaleRepository extends OperationRepository<Sale, UUID>` | seulement `save` et `findById` hérités | `OperationRepository extends Repository` | 🔍 code |
+| Données de référence (utilisateur, fournisseur) | désactivation au lieu de suppression | autorisé, ce ne sont pas des opérations | `operation_features_have_no_deleting_repository` exclut référentiel et authentification | ✅ auto |
 
-## Tests existants (repérés dans le code)
+## Tests existants
 
 - Backend : `shared/operation/OperationStatusTest.java`, `ArchitectureTest.java`, `feature/journal/repository/JournalAppendOnlyIT.java`
-- Frontend : aucun (ticket purement backend)
+- Frontend : sans objet (ticket backend)
 
-## À faire à la main (recette QA)
+## Recette manuelle
 
-- Ajouter volontairement un `@DeleteMapping` ou une méthode `deleteXxx` dans une copie locale et vérifier que `ArchitectureTest` échoue.
-- Une fois un premier ticket d'opération livré (vente, transfert, production) : vérifier annulation, contre-passation, impossibilité de supprimer, et les deux lignes de journal.
+Aucune étape d'interface : ticket purement technique. Contrôle conseillé lors de la revue de chaque ticket d'opération : la PR ne doit contenir ni `@DeleteMapping` ni repository `JpaRepository` dans la feature.
 
 ## Résultat de l'exécution
 
-- Date : _(à compléter)_
-- Environnement : _(à compléter)_
-- Anomalies ouvertes : _(à compléter)_
+- **Date** : 2026-10-23.
+- **Backend** : CI GitHub `mvn verify` (ArchUnit compris) vert sur un code identique à `develop`. **Base** : contrainte d'action vérifiée (`CANCEL` et `REVERSE` acceptées, `PURGE` refusée).
+- **Anomalies** :
+  1. ❌ Gravité haute : `DELETE /api/v1/users/{id}` reste une suppression définitive exposée (voir AUTH-03). Une fois retiré, supprimer l'exception `feature.user` de la règle ArchUnit.
+  2. ⚠ Aucune implémentation de `ReversibleOperationService` n'existe : les cas 404, 422 et 403 seront testés par le premier ticket d'opération (VTE-01, TRF-03 ou PRD-01).
+  3. ⚠ Le commentaire du ticket cite la migration `2026_10_20-01` ; le fichier réel est `2026_10_20-02`.

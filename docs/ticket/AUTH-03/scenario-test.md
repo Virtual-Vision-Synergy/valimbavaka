@@ -1,66 +1,81 @@
 # Scénarios de test — AUTH-03 · Création et modification d'un utilisateur
 
-Statut : ✔ rempli depuis les tests existants au 2026-10-23 — à valider par le traiteur · Ticket : [#12](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/12) · [description](description.md) · [guide](guide.md)
+Statut : ✅ exécuté le 2026-10-23 — reste la recette manuelle (🧪) · Ticket : [#12](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/12) · [description](description.md) · [guide](guide.md)
 
-Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
+Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ base = vérifié en base après migrations · 🔍 code = vérifié par lecture du code (aucun test) · ❌ écart = comportement différent de l'attendu · 🧪 recette = à faire à la main dans le navigateur. Détail : [CONSIGNE.md](../CONSIGNE.md#4-remplir-le-scénario-de-test).
 
 ## Pré-requis
 
 | Élément | Valeur |
 |---|---|
 | Rôle(s) utilisé(s) | `ADMIN` (autorisé), `SELLER` (refusé) |
-| Données de départ | un administrateur actif, les 3 rôles, les canaux de vente du référentiel (Boutique, Facebook, Téléphone, Livraison) |
+| Données de départ | un administrateur actif, les 3 rôles, les canaux de vente `STORE`, `FACEBOOK`, `PHONE`, `DELIVERY` |
 | Tickets à avoir déployés avant | AUTH-01, JNL-01, SYS-05, JNL-02 |
 
 ## Scénarios issus des critères d'acceptation
 
-| # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+| # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | Le rôle choisi détermine la coquille de l'utilisateur | Quand l'administrateur crée un compte `SELLER` puis qu'il se connecte | menu et permissions de la vendeuse | `AuthSecurityIT.me_withSellerToken_returnsOnlyTheSellerPermissions` ; `menu.spec.ts` | ☐ |
-| 2 | Un formulaire permet de saisir / modifier les champs | Quand l'administrateur remplit email, mot de passe, prénom, nom, rôle | compte créé, 201 | `UserServiceImplTest.createUser_validRequest_recordsCreationInJournal` | ☐ |
-| 2b | idem (modification) | Quand il modifie un compte existant | formulaire pré-rempli, champs mis à jour, `UPDATE` tracé | _(à ajouter : aucun test de `updateUser` repéré côté service ni côté interface)_ | ☐ |
-| 3 | Canal de vente et taux de commission | Quand le rôle est vendeuse avec canal et taux | `SellerTerms` enregistrés | `UserServiceImplTest.createUser_sellerWithChannelAndCommission_savesSellerTerms` | ☐ |
-| 3b | idem | Quand la vendeuse n'a pas de commission | refus 422 | `UserServiceImplTest.createUser_sellerWithoutCommission_throwsBusinessException` | ☐ |
-| 3c | idem | Quand un administrateur reçoit une commission | refus 422 | `UserServiceImplTest.createUser_administratorWithCommission_throwsBusinessException` | ☐ |
-| 3d | idem | Quand le canal n'existe pas ou est inactif | refus 422 | `UserServiceImplTest.createUser_unknownSalesChannel_throwsBusinessException` | ☐ |
-| 4 | Rôles proposés = Administrateur, Vendeuse, Livreur | Quand le formulaire charge les rôles | exactement trois rôles | `AdminAccountInitializerIT.migrations_freshDatabase_seedExactlyTheThreeBusinessRoles` ; `user-service.spec.ts` « should return the business roles from the first page » | ☐ |
-| 5 | Création / modification réservées à l'admin, contrôlé côté serveur | Étant donné une vendeuse · Quand elle appelle `POST /api/v1/users` | 403 `FORBIDDEN` ; sans jeton 401 | `AuthSecurityIT.getUsers_withNonAdminRole_returns403`, `getUsers_withoutToken_returns401` _(à ajouter : le même contrôle sur `POST` et `PUT`)_ | ☐ |
-| 6 | Un utilisateur ne se supprime jamais, il se désactive | Quand on ouvre la liste | l'action principale est la désactivation | voir AUTH-04 ; _(à clarifier : `DELETE /api/v1/users/{id}` existe)_ | ☐ |
+| 1 | Le rôle choisi détermine la coquille | Quand l'administrateur crée une vendeuse puis qu'elle se connecte | menu et permissions de la vendeuse | `AuthSecurityIT.me_withSellerToken_returnsOnlyTheSellerPermissions` ; `menu.spec.ts` « should show sales and catalogue modules but no administration to a seller » | ✅ auto |
+| 2 | Formulaire de saisie | Quand l'administrateur saisit email, mot de passe, prénom, nom, rôle | compte créé (201), ligne `CREATE` | `UserServiceImplTest.createUser_validRequest_recordsCreationInJournal` ; `JournalSecurityIT.createUser_byAdmin_leavesANominativeTimestampedLineInTheJournal` | ✅ auto |
+| 2b | Formulaire de modification | Quand il modifie un compte | formulaire pré-rempli, mot de passe non modifiable, champs mis à jour, ligne `UPDATE` | `UserServiceImpl.updateUser` ; `user-form-page.ts` désactive le champ mot de passe en modification ; aucun test de `updateUser` | 🔍 code |
+| 3 | Canal de vente et taux de commission | Quand le rôle est vendeuse avec `STORE` et `12.50` | canal et taux enregistrés | `UserServiceImplTest.createUser_sellerWithChannelAndCommission_savesSellerTerms` | ✅ auto |
+| 3b | idem | Vendeuse sans commission | 422 | `UserServiceImplTest.createUser_sellerWithoutCommission_throwsBusinessException` | ✅ auto |
+| 3c | idem | Administrateur avec commission | 422 | `UserServiceImplTest.createUser_administratorWithCommission_throwsBusinessException` | ✅ auto |
+| 3d | idem | Canal inexistant ou inactif | 422 « Canal de vente introuvable » | `UserServiceImplTest.createUser_unknownSalesChannel_throwsBusinessException` | ✅ auto |
+| 3e | idem (interface) | Quand le rôle choisi n'est pas vendeuse | canal et commission masqués et envoyés à `null` | `user-form-page.ts` (`isSeller`) | 🔍 code |
+| 4 | Rôles proposés = Administrateur, Vendeuse, Livreur | Quand le formulaire charge les rôles | exactement trois | `AdminAccountInitializerIT.migrations_freshDatabase_seedExactlyTheThreeBusinessRoles` ; `user-service.spec.ts` « should return the business roles from the first page » ; contrainte `ck_roles_name` (insertion `USER` refusée) | ✅ auto · ✅ base |
+| 5 | Création et modification réservées à l'admin, côté serveur | Quand une vendeuse appelle `POST` ou `PUT /api/v1/users` | 403 ; sans jeton 401 | `@HasPermission("users.create")` / `("users.update")`, rendu obligatoire par `ArchitectureTest.endpoints_require_permission` ; seul `GET` a un test IT (`AuthSecurityIT.getUsers_withNonAdminRole_returns403`) ; permissions `users.*` données à `ADMIN` seul en base | ✅ auto · ✅ base |
+| 6 | Un utilisateur ne se supprime jamais, il se désactive | Quand on cherche une suppression | aucune suppression possible | `DELETE /api/v1/users/{id}` existe (`users.delete`) et supprime la ligne : `UserServiceImplTest.deleteUserById_existingUser_recordsDeletionInJournal` | ❌ écart |
 
 ## Sécurité et erreurs
 
-| Cas | Résultat attendu | Test auto | OK |
-|---|---|---|---|
-| Email déjà utilisé (création) | 409 `CONFLICT`, rien dans le journal | `UserServiceImplTest.createUser_emailAlreadyUsed_throwsConflict`, `createUser_emailAlreadyUsed_recordsNothingInJournal` | ☐ |
-| Email déjà utilisé par un autre compte (modification) | 409 | _(à ajouter)_ | ☐ |
-| Champ `role`, `id` dans le corps | non pris en compte (le rôle passe uniquement par `roleId`) | ArchUnit `input_dtos_have_no_id_or_role` ; `UserStatusIT.setActive_massAssignmentOfRole_isIgnored` (statut) | ☐ |
-| Données invalides (email mal formé, mot de passe < 8, taux > 100 ou > 2 décimales) | 422 `VALIDATION_FAILED` | _(à ajouter)_ | ☐ |
-| Utilisateur introuvable | 404 `NOT_FOUND` | `UserServiceImplTest.getUserById_unknownId_throwsNotFound` | ☐ |
-| Création tracée dans le journal | une ligne `CREATE` nominative et horodatée | `UserServiceImplTest.createUser_validRequest_recordsCreationInJournal` ; `JournalSecurityIT.createUser_byAdmin_leavesANominativeTimestampedLineInTheJournal` | ☐ |
-| Création rejouée avec la même `Idempotency-Key` (file hors ligne) | un seul compte | `IdempotencyIT.createUser_replayedWithSameKey_returnsSameResponseWithoutDuplicate` | ☐ |
-| Pagination et recherche | `page` base 1, `size` ≤ 100, tri en liste blanche | `user-service.spec.ts` « should request a page with the VVS pagination parameters and skip an empty search » | ☐ |
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Email déjà utilisé (création) | `vendeuse.test@valimbavaka.mg` existant | 409 `CONFLICT`, rien dans le journal | `UserServiceImplTest.createUser_emailAlreadyUsed_throwsConflict`, `createUser_emailAlreadyUsed_recordsNothingInJournal` | ✅ auto |
+| Email déjà utilisé par un autre compte (modification) | renommer B avec l'email de A | 409 | `UserServiceImpl.updateUser` : `existsByEmailAndIdNot` avant la mise à jour | 🔍 code |
+| `id` ou `role` dans le corps | `{"id":"…","role":"ADMIN",…}` | ignorés ; le rôle passe uniquement par `roleId` | `ArchitectureTest.input_dtos_have_no_id_or_role` ; `UserStatusIT.setActive_massAssignmentOfRole_isIgnored` | ✅ auto |
+| Données invalides | email `abc`, mot de passe `1234567`, taux `100.01` ou `12.345`, taux `-1` | 422 `VALIDATION_FAILED` avec la liste des champs | contraintes `@Email`, `@Size(min = 8)`, `@DecimalMin`, `@DecimalMax`, `@Digits` de `CreateUserWDto` / `UpdateUserWDto`, traduites en 422 par `GlobalExceptionHandler` | 🔍 code |
+| Utilisateur introuvable | UUID au hasard | 404 `NOT_FOUND` | `UserServiceImplTest.getUserById_unknownId_throwsNotFound` | ✅ auto |
+| Suppression d'un identifiant inconnu | UUID au hasard | 404, rien dans le journal | `UserServiceImplTest.deleteUserById_unknownId_throwsNotFoundAndRecordsNothing` | ✅ auto |
+| Création rejouée (file hors ligne) | même `Idempotency-Key` | un seul compte | `IdempotencyIT.createUser_replayedWithSameKey_returnsSameResponseWithoutDuplicate` | ✅ auto |
+| Pagination et recherche | `page=1&size=20&search=` | recherche vide non envoyée, tri en liste blanche | `user-service.spec.ts` « should request a page with the VVS pagination parameters and skip an empty search » | ✅ auto |
 
-## Cas limites et hors ligne
+## Cas limites
 
-- Taux de commission : `0`, `100`, `100.01`, `12.345`, valeur négative.
-- Email avec majuscules et espaces : normalisé avant le contrôle d'unicité.
-- Changement de rôle d'une vendeuse vers livreur : canal et commission doivent être renvoyés à `null`.
-- Création de compte depuis la file hors ligne : voir SYS-02 et SYS-07.
+| Cas | Exemple d'entrée | Résultat attendu | Comment c'est vérifié | Statut |
+|---|---|---|---|---|
+| Taux minimal | `0` | accepté | `@DecimalMin("0.00")` | 🔍 code |
+| Taux maximal | `100` | accepté | `@DecimalMax("100.00")` ; colonne `NUMERIC(5,2)` | 🔍 code · ✅ base |
+| Taux trop grand | `100.01` | 422 | `@DecimalMax` | 🔍 code |
+| Trop de décimales | `12.345` | 422 | `@Digits(fraction = 2)` | 🔍 code |
+| Taux négatif | `-1` | 422 | `@DecimalMin` | 🔍 code |
+| Email avec majuscules et espaces | `  Rasoa@Valimbavaka.MG ` | enregistré `rasoa@valimbavaka.mg` ; doublon détecté même avec une autre casse | `User.normalizeEmail` (`strip` + minuscules) utilisé à la création et à la modification | 🔍 code |
+| Passage vendeuse → livreur | rôle modifié | l'interface envoie canal et taux à `null` ; sinon 422 (règle `validateTerms` de l'entité) | `user-form-page.ts` + `User.validateTerms` | 🔍 code |
+| Mot de passe de 8 à 14 caractères | `motdepas` | accepté | `@Size(min = 8)` et `MIN_PASSWORD_LENGTH = 8` côté interface ; la convention §9.2 exige 15 sans MFA | ❌ écart |
+| Mot de passe très long | 128 caractères | accepté ; 129 refusé | `@Size(max = 128)` | 🔍 code |
+| Prénom ou nom de 101 caractères | — | 422 | `@Size(max = 100)` | 🔍 code |
 
-## Tests existants (repérés dans le code)
+## Tests existants
 
-- Backend : `feature/user/service/impl/UserServiceImplTest.java`, `feature/user/controller/UserStatusIT.java`, `feature/user/config/AdminAccountInitializerIT.java`, `feature/auth/controller/AuthSecurityIT.java`, `security/idempotency/IdempotencyIT.java`
-- Frontend : `features/user/data-access/user-service.spec.ts`, `features/user/pages/user-list-page/user-list-page.spec.ts`
+- Backend : `feature/user/service/impl/UserServiceImplTest.java`, `feature/user/controller/UserStatusIT.java`, `feature/user/config/AdminAccountInitializerIT.java`, `feature/auth/controller/AuthSecurityIT.java`, `feature/journal/controller/JournalSecurityIT.java`, `security/idempotency/IdempotencyIT.java`, `ArchitectureTest.java`
+- Frontend : `features/user/data-access/user-service.spec.ts`, `features/user/pages/user-list-page/user-list-page.spec.ts` (pas de test pour `user-form-page`)
 
-## À faire à la main (recette QA)
+## Recette manuelle (🧪)
 
-- Créer une vendeuse (canal + taux), un livreur et un administrateur ; vérifier que seul le formulaire de la vendeuse montre canal et commission.
-- Se connecter avec chaque compte créé et contrôler le menu.
-- Modifier le rôle d'un compte existant et vérifier le journal.
-- Tenter la création avec un email déjà pris : message d'erreur serveur affiché.
+| Étape | Attendu | Statut |
+|---|---|---|
+| Créer une vendeuse (canal + taux), un livreur, un administrateur | seul le formulaire vendeuse montre canal et commission | 🧪 recette |
+| Se connecter avec chaque compte créé | menu du rôle | 🧪 recette |
+| Modifier le rôle d'un compte | ligne `UPDATE` dans le journal | 🧪 recette |
+| Créer avec un email déjà pris | message du serveur affiché | 🧪 recette |
 
 ## Résultat de l'exécution
 
-- Date : _(à compléter)_
-- Environnement : _(à compléter)_
-- Anomalies ouvertes : _(à compléter)_
+- **Date** : 2026-10-23.
+- **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102. **Base** : migrations rejouées sur PostgreSQL 16 ; insertion d'un rôle `USER` refusée par `ck_roles_name`.
+- **Anomalies** :
+  1. ❌ `DELETE /api/v1/users/{id}` supprime réellement un compte, contraire au critère 6 et à JNL-02. Gravité haute. Recommandation : retirer l'endpoint et la permission `users.delete`, puis resserrer `ArchitectureTest.delete_endpoints_are_limited_to_the_user_reference`.
+  2. ❌ Mot de passe minimum 8 caractères (serveur et interface) alors que la convention §9.2 impose 15 sans MFA ; pas de refus des mots de passe courants. Gravité moyenne.
+  3. ⚠ `updateUser` n'a aucun test (ni service, ni IT, ni interface) ; les contrôles 403 de `POST` et `PUT` ne sont prouvés que par la règle ArchUnit. Ajouter `updateUser_emailUsedByAnotherUser_throwsConflict`, `updateUser_validRequest_recordsUpdateInJournal`, `createUser_withSellerToken_returns403`.
+- **Recette manuelle** : 4 étapes 🧪.

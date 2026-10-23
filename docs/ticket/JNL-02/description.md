@@ -14,8 +14,10 @@ En tant qu'administrateur, je veux qu'aucune opération validée ne puisse être
 
 ## Critères d'acceptation
 
-- [ ] Seules l'annulation à chaud ou la contre-passation (avoir) sont possibles.
-- [ ] Aucune fonction de suppression définitive n'est exposée dans le socle technique.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [x] Seules l'annulation à chaud ou la contre-passation (avoir) sont possibles. — *✅ vérifié : `OperationStatus`, `ReversibleOperationService`.*
+- [ ] Aucune fonction de suppression définitive n'est exposée dans le socle technique. — *⚠ partiel : règles ArchUnit en place, mais `DELETE /api/v1/users/{id}` reste exposé.*
 
 ## Détails
 

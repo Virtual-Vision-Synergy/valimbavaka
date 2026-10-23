@@ -14,11 +14,13 @@ En tant qu'utilisateur, je veux me connecter avec mon compte afin que le systèm
 
 ## Critères d'acceptation
 
-- [ ] Le rôle appliqué à la connexion est exclusivement celui défini sur le compte par l'administrateur (AUTH-03) — l'utilisateur ne peut ni le choisir ni le modifier lui-même.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [x] Le rôle appliqué à la connexion est exclusivement celui défini sur le compte par l'administrateur (AUTH-03) — l'utilisateur ne peut ni le choisir ni le modifier lui-même. — *✅ vérifié : rôle lu sur le compte, champ `role` du corps ignoré.*
 
 <img width="1917" height="911" alt="Image" src="https://github.com/user-attachments/assets/9d470a86-24fd-4a87-ab18-c79440274b70" />
 
-- [ ] L'interface affichée après connexion correspond uniquement à ce rôle attribué. les menu affiché sont seulement celui de l'user(securité niveau UI + niveau requete)
+- [x] L'interface affichée après connexion correspond uniquement à ce rôle attribué. les menu affiché sont seulement celui de l'user(securité niveau UI + niveau requete) — *✅ vérifié : menu par rôle + 403 côté API.*
 
 <img width="1919" height="910" alt="Image" src="https://github.com/user-attachments/assets/325fde84-2104-4e56-a103-922bdb773073" />
 

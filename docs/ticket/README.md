@@ -11,10 +11,14 @@ docs/ticket/<ID>/
 
 ## Règle de travail
 
+**La consigne complète est dans [CONSIGNE.md](CONSIGNE.md)** : à lire avant de prendre un ticket.
+
 1. **Avant de commencer** un ticket : lire sa `description.md` et le `guide.md` de chaque ticket listé dans « Dépend de ».
-2. **Pendant** : le traiteur complète `scenario-test.md` (critères, sécurité, hors ligne).
-3. **À la fin** : le traiteur complète `guide.md` (endpoints, fichiers exposés, contrat, dépendances) puis passe le ticket en revue.
-4. Les tickets marqués ⚠ ont un guide pré-rempli depuis le code : à vérifier, pas à croire sur parole.
+2. **Avant de coder** : écrire le scénario de test à partir des critères ; **pendant** : y reporter le nom de chaque test.
+3. **Avant la PR** : exécuter les tests, mettre les statuts et le résultat, puis écrire `guide.md` (endpoints, fichiers exposés, contrat, pièges). Les fichiers du dossier font partie de la PR.
+4. **Après le merge** : la QA passe la recette manuelle (🧪) et met à jour le scénario.
+5. Modèles complets : [AUTH-04](AUTH-04/scenario-test.md), [FRS-01](FRS-01/scenario-test.md), [JNL-02](JNL-02/scenario-test.md).
+6. Les tickets marqués ⚠ ont un guide pré-rempli depuis le code : à vérifier, pas à croire sur parole.
 
 ## Règles communes (rappel)
 
@@ -30,15 +34,15 @@ docs/ticket/<ID>/
 
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
-| [AUTH-01](AUTH-01/description.md) | Connexion selon le rôle attribué | 2 | And-Matia | [#10](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/10) ✅ | [SYS-05](SYS-05/description.md) | [✔](AUTH-01/scenario-test.md) | [✔](AUTH-01/guide.md) |
-| [AUTH-02](AUTH-02/description.md) | Déconnexion utilisateur | 1 | And-Matia | [#11](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/11) ✅ | [AUTH-01](AUTH-01/description.md) | [✔](AUTH-02/scenario-test.md) | [✔](AUTH-02/guide.md) |
-| [AUTH-03](AUTH-03/description.md) | Création et modification d'un utilisateur | 2 | And-Matia | [#12](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/12) ✅ | [AUTH-01](AUTH-01/description.md), [JNL-01](JNL-01/description.md), [SYS-05](SYS-05/description.md), [JNL-02](JNL-02/description.md) | [✔](AUTH-03/scenario-test.md) | [✔](AUTH-03/guide.md) |
-| [AUTH-04](AUTH-04/description.md) | Activation / désactivation d'un utilisateur | 1 | And-Matia | [#13](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/13) ✅ | [AUTH-03](AUTH-03/description.md), [JNL-01](JNL-01/description.md) | [✔](AUTH-04/scenario-test.md) | [✔](AUTH-04/guide.md) |
-| [JNL-01](JNL-01/description.md) | Journal append-only des opérations | 2 | And-Matia | [#14](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/14) ✅ | [AUTH-01](AUTH-01/description.md), [SYS-06](SYS-06/description.md) | [✔](JNL-01/scenario-test.md) | [✔](JNL-01/guide.md) |
-| [JNL-02](JNL-02/description.md) | Interdiction de suppression des opérations validées | 2 | And-Matia | [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) ✅ | [JNL-01](JNL-01/description.md) | [✔](JNL-02/scenario-test.md) | [✔](JNL-02/guide.md) |
-| [SYS-02](SYS-02/description.md) | Sauvegarde automatique hors-ligne | 2 | And-Matia | [#16](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/16) ✅ | [AUTH-01](AUTH-01/description.md) | [✔](SYS-02/scenario-test.md) | [✔](SYS-02/guide.md) |
-| [SYS-05](SYS-05/description.md) | Rôles métier, référentiels et compte administrateur initial | 2 | ManaJudy | [#111](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/111) ✅ | — | [✔](SYS-05/scenario-test.md) | [✔](SYS-05/guide.md) |
-| [SYS-06](SYS-06/description.md) | Audit : auteur des opérations en UUID | 1 | ManaJudy | [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) ✅ | [SYS-05](SYS-05/description.md) | [✔](SYS-06/scenario-test.md) | [✔](SYS-06/guide.md) |
+| [AUTH-01](AUTH-01/description.md) | Connexion selon le rôle attribué | 2 | And-Matia | [#10](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/10) ✅ | [SYS-05](SYS-05/description.md) | [✅](AUTH-01/scenario-test.md) | [✅](AUTH-01/guide.md) |
+| [AUTH-02](AUTH-02/description.md) | Déconnexion utilisateur | 1 | And-Matia | [#11](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/11) ✅ | [AUTH-01](AUTH-01/description.md) | [✅](AUTH-02/scenario-test.md) | [✅](AUTH-02/guide.md) |
+| [AUTH-03](AUTH-03/description.md) | Création et modification d'un utilisateur | 2 | And-Matia | [#12](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/12) ✅ | [AUTH-01](AUTH-01/description.md), [JNL-01](JNL-01/description.md), [SYS-05](SYS-05/description.md), [JNL-02](JNL-02/description.md) | [✅](AUTH-03/scenario-test.md) | [✅](AUTH-03/guide.md) |
+| [AUTH-04](AUTH-04/description.md) | Activation / désactivation d'un utilisateur | 1 | And-Matia | [#13](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/13) ✅ | [AUTH-03](AUTH-03/description.md), [JNL-01](JNL-01/description.md) | [✅](AUTH-04/scenario-test.md) | [✅](AUTH-04/guide.md) |
+| [JNL-01](JNL-01/description.md) | Journal append-only des opérations | 2 | And-Matia | [#14](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/14) ✅ | [AUTH-01](AUTH-01/description.md), [SYS-06](SYS-06/description.md) | [✅](JNL-01/scenario-test.md) | [✅](JNL-01/guide.md) |
+| [JNL-02](JNL-02/description.md) | Interdiction de suppression des opérations validées | 2 | And-Matia | [#15](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/15) ✅ | [JNL-01](JNL-01/description.md) | [✅](JNL-02/scenario-test.md) | [✅](JNL-02/guide.md) |
+| [SYS-02](SYS-02/description.md) | Sauvegarde automatique hors-ligne | 2 | And-Matia | [#16](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/16) ✅ | [AUTH-01](AUTH-01/description.md) | [✅](SYS-02/scenario-test.md) | [✅](SYS-02/guide.md) |
+| [SYS-05](SYS-05/description.md) | Rôles métier, référentiels et compte administrateur initial | 2 | ManaJudy | [#111](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/111) ✅ | — | [✅](SYS-05/scenario-test.md) | [✅](SYS-05/guide.md) |
+| [SYS-06](SYS-06/description.md) | Audit : auteur des opérations en UUID | 1 | ManaJudy | [#112](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/112) ✅ | [SYS-05](SYS-05/description.md) | [✅](SYS-06/scenario-test.md) | [✅](SYS-06/guide.md) |
 | [SYS-07](SYS-07/description.md) | Brancher un premier formulaire sur la file hors ligne | 2 | And-Matia | [#133](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/133) 🟡 | [SYS-02](SYS-02/description.md), [FRS-02](FRS-02/description.md) | [☐](SYS-07/scenario-test.md) | [☐](SYS-07/guide.md) |
 | [SYS-08](SYS-08/description.md) | Reprise automatique de la synchronisation | 1 | Kei-Shiro | [#134](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/134) 🟡 | [SYS-02](SYS-02/description.md) | [⚠](SYS-08/scenario-test.md) | [⚠](SYS-08/guide.md) |
 | [SYS-09](SYS-09/description.md) | Suivi et gestion des saisies en échec | 2 | Kei-Shiro | [#135](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/135) 🟡 | [SYS-02](SYS-02/description.md), [SYS-07](SYS-07/description.md) | [☐](SYS-09/scenario-test.md) | [☐](SYS-09/guide.md) |
@@ -50,7 +54,7 @@ docs/ticket/<ID>/
 
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
-| [FRS-01](FRS-01/description.md) | Fiche fournisseur complète | 1 | And-Matia | [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) ✅ | [JNL-01](JNL-01/description.md) | [✔](FRS-01/scenario-test.md) | [✔](FRS-01/guide.md) |
+| [FRS-01](FRS-01/description.md) | Fiche fournisseur complète | 1 | And-Matia | [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) ✅ | [JNL-01](JNL-01/description.md) | [✅](FRS-01/scenario-test.md) | [✅](FRS-01/guide.md) |
 | [FRS-02](FRS-02/description.md) | Création / modification d'un fournisseur | 1 | And-Matia | [#18](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/18) 🟡 | [FRS-01](FRS-01/description.md), [JNL-01](JNL-01/description.md) | [⚠](FRS-02/scenario-test.md) | [⚠](FRS-02/guide.md) |
 | [FRS-03](FRS-03/description.md) | Filtrage des fournisseurs par type | 1 | Njara-Niaina | [#19](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/19) 🟡 | [FRS-01](FRS-01/description.md) | [☐](FRS-03/scenario-test.md) | [☐](FRS-03/guide.md) |
 
@@ -224,4 +228,4 @@ docs/ticket/<ID>/
 |---|---|---|---|---|---|---|---|
 | [DSG-01](DSG-01/description.md) | Maquettes Claude Design de toutes les pages | 2 | ManaJudy | [#128](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/128) 🟡 | — | [⚠](DSG-01/scenario-test.md) | [⚠](DSG-01/guide.md) |
 
-Légende : ✅ fermé · 🟡 ouvert · ☐ à compléter · ⚠ pré-rempli depuis le code, à vérifier. ✔ rempli depuis le code et les tests, à valider par le traiteur.
+Légende : ✅ fermé (colonne GitHub) ou dossier complet et vérifié (colonnes Scénario et Guide) · 🟡 ouvert · ☐ à compléter · ⚠ pré-rempli depuis le code, à vérifier.

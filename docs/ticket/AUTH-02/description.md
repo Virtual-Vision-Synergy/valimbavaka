@@ -14,11 +14,13 @@ En tant qu'utilisateur, je veux me déconnecter de mon poste afin de permettre �
 
 ## Critères d'acceptation
 
-- [ ] Un bouton de déconnexion est visible en permanence dans la barre supérieure.
+> Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
+
+- [ ] Un bouton de déconnexion est visible en permanence dans la barre supérieure. — *⚠ partiel : bouton visible en permanence, mais dans la barre latérale, pas la barre supérieure.*
 
 <img width="1911" height="912" alt="Image" src="https://github.com/user-attachments/assets/097368ea-e852-447b-9892-2e833778f192" />
 
-- [ ] La déconnexion ramène à l'écran de connexion et exige une nouvelle authentification — aucun changement de rôle n'est possible sans reconnexion avec un autre compte.
+- [x] La déconnexion ramène à l'écran de connexion et exige une nouvelle authentification — aucun changement de rôle n'est possible sans reconnexion avec un autre compte. — *✅ vérifié : session vidée, refresh révoqué.*
 
 <img width="1917" height="902" alt="Image" src="https://github.com/user-attachments/assets/0b699b20-5377-4938-959a-8cc643f05bec" />
 
