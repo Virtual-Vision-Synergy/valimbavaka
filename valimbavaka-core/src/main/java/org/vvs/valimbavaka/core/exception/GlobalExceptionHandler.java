@@ -80,8 +80,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         List<FieldErrorDetail> errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> new FieldErrorDetail(error.getField(), String.valueOf(error.getDefaultMessage())))
                 .toList();
@@ -89,8 +89,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @Override
-    protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
-            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         List<FieldErrorDetail> errors = ex.getParameterValidationResults().stream()
                 .flatMap(result -> result.getResolvableErrors().stream()
                         .map(error -> new FieldErrorDetail(
@@ -102,11 +102,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     /** Ajoute le code machine aux ProblemDetail produits par Spring MVC (400 requête mal formée, 405…). */
     @Override
-    protected @Nullable ResponseEntity<Object> handleExceptionInternal(Exception ex, @Nullable Object body,
-            HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+    protected @Nullable ResponseEntity<Object> handleExceptionInternal(
+            Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         if (body instanceof ProblemDetail problem && problem.getProperties() == null) {
-            problem.setProperty(CODE, statusCode.value() == HttpStatus.BAD_REQUEST.value()
-                    ? "MALFORMED_REQUEST" : HttpStatus.valueOf(statusCode.value()).name());
+            problem.setProperty(
+                    CODE,
+                    statusCode.value() == HttpStatus.BAD_REQUEST.value()
+                            ? "MALFORMED_REQUEST"
+                            : HttpStatus.valueOf(statusCode.value()).name());
         }
         return super.handleExceptionInternal(ex, body, headers, statusCode, request);
     }
@@ -121,8 +124,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     private static ResponseEntity<Object> validationFailed(List<FieldErrorDetail> errors) {
-        var problem = ProblemDetails.of(HttpStatus.UNPROCESSABLE_CONTENT, VALIDATION_FAILED,
-                errors.size() + " champ(s) invalide(s)");
+        var problem = ProblemDetails.of(
+                HttpStatus.UNPROCESSABLE_CONTENT, VALIDATION_FAILED, errors.size() + " champ(s) invalide(s)");
         problem.setProperty("errors", errors);
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(problem);
     }

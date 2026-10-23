@@ -14,8 +14,8 @@ import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,7 +60,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleMethodArgumentNotValid_invalidBody_returns422WithFieldErrors() throws Exception {
-        mockMvc.perform(post("/validated").contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"\"}"))
+        mockMvc.perform(post("/validated")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"\"}"))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.errors[0].field").value("name"));
@@ -68,7 +70,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleExceptionInternal_unreadableJson_returns400MalformedRequest() throws Exception {
-        mockMvc.perform(post("/validated").contentType(MediaType.APPLICATION_JSON).content("{"))
+        mockMvc.perform(post("/validated")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
     }
@@ -103,8 +107,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.detail").value("Erreur interne"));
     }
 
-    record NamedWDto(@NotBlank String name) {
-    }
+    record NamedWDto(@NotBlank String name) {}
 
     @RestController
     static class FailingController {
