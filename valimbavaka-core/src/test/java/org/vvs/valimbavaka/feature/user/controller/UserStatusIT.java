@@ -170,7 +170,11 @@ class UserStatusIT {
         mockMvc.perform(putUser(adminId, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
-        assertThat(userRepository.findByIdWithRole(adminId).orElseThrow().getRole().getName())
+        assertThat(userRepository
+                        .findByIdWithRole(adminId)
+                        .orElseThrow()
+                        .getRole()
+                        .getName())
                 .isEqualTo(RoleName.ADMIN);
     }
 
@@ -194,7 +198,9 @@ class UserStatusIT {
     }
 
     private static MockHttpServletRequestBuilder putUser(UUID userId, String body) {
-        return put("/api/v1/users/" + userId).contentType(MediaType.APPLICATION_JSON).content(body);
+        return put("/api/v1/users/" + userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body);
     }
 
     private UUID idOf(String email) {

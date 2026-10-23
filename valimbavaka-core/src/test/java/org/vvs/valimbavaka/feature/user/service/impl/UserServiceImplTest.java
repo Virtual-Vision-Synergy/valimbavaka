@@ -381,7 +381,8 @@ class UserServiceImplTest {
         // given
         var userId = UUID.randomUUID();
         when(userRepository.findByIdWithRole(userId)).thenReturn(Optional.of(targetUser));
-        when(userRepository.existsByEmailAndIdNot("autre@valimbavaka.mg", userId)).thenReturn(true);
+        when(userRepository.existsByEmailAndIdNot("autre@valimbavaka.mg", userId))
+                .thenReturn(true);
         // when / then
         assertThatThrownBy(() -> sut.updateUser(userId, updateRequest(" Autre@Valimbavaka.mg ", true)))
                 .isInstanceOf(ConflictException.class);

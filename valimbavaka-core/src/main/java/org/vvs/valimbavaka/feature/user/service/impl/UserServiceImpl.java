@@ -48,8 +48,7 @@ public class UserServiceImpl implements UserService {
     private static final String OWN_ACCOUNT_DEACTIVATION = "Vous ne pouvez pas désactiver votre propre compte.";
     private static final String OWN_ADMIN_ROLE_REMOVAL =
             "Vous ne pouvez pas retirer votre propre rôle d'administrateur.";
-    private static final String LAST_ADMIN_DEACTIVATION =
-            "Le dernier administrateur actif ne peut pas être désactivé.";
+    private static final String LAST_ADMIN_DEACTIVATION = "Le dernier administrateur actif ne peut pas être désactivé.";
     private static final String LAST_ADMIN_ROLE_REMOVAL =
             "Le dernier administrateur actif ne peut pas perdre son rôle.";
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "email", "firstName", "lastName");

@@ -33,13 +33,12 @@ public record CreateUserWDto(
         @Size(max = 100, message = "Le nom ne doit pas dépasser {max} caractères")
         String lastName,
 
-        @NotNull(message = "Le rôle est obligatoire")
-        UUID roleId,
+        @NotNull(message = "Le rôle est obligatoire") UUID roleId,
 
         @Nullable UUID salesChannelId,
 
         @DecimalMin(value = "0.00", message = "Le taux de commission ne peut pas être négatif")
         @DecimalMax(value = "100.00", message = "Le taux de commission ne peut pas dépasser {value} %")
         @Digits(integer = 3, fraction = 2, message = "Le taux de commission accepte 2 décimales au maximum")
-        @Nullable BigDecimal commissionRate) {
-}
+        @Nullable
+        BigDecimal commissionRate) {}
