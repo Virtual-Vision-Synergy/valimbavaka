@@ -48,8 +48,8 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Espaces autour du nom | `"  Huiles Ravo  "` | enregistré « Huiles Ravo », doublon détecté | `Supplier` applique `strip` ; le service compare le nom nettoyé. La base seule accepterait « ␣Huiles Ravo␣ » (index sur `lower(name)` sans `trim`) | 🔍 code · ✅ base |
 | Limites de longueur | nom 150, téléphone 50, courriel 255, adresse 500, notes 2000 | acceptés ; +1 caractère → 422 | `SupplierWDto` + colonnes de la table | 🔍 code · ✅ base |
 | Champs facultatifs vides | seulement nom + type | accepté, autres champs `null` | colonnes nullables | ✅ base |
-| Deux administrateurs modifient la même fiche | A et B ouvrent puis enregistrent | le second écrase le premier sans alerte | `SupplierWDto` ne transporte pas `version` : pas de contrôle de concurrence côté client ; un conflit simultané en base donne 500, pas 409 | ❌ écart |
-| Deux créations simultanées du même nom | course entre 2 requêtes | 409 attendu | le contrôle `existsByNameIgnoreCase` passe pour les deux ; l'index refuse le second → 500 | ❌ écart |
+| Deux administrateurs modifient la même fiche | A et B ouvrent la fiche (version 3), A enregistre, puis B | B reçoit 409 « The supplier was modified in the meantime… » et recharge | `SupplierServiceImplTest.updateSupplier_staleVersion_throwsConflictAndChangesNothing` ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` ; `supplier-form-page.spec.ts` « should send back the version read so that a concurrent change is refused », « should show the server message when the sheet was modified in the meantime » | ✅ auto (corrigé le 2026-10-23) |
+| Deux créations simultanées du même nom | course entre 2 requêtes | le second reçoit 409 `CONFLICT` | l'index `uq_suppliers_name` refuse le second ; `GlobalExceptionHandler` traduit le SQLSTATE `23505` en 409 : `GlobalExceptionHandlerTest.handleDataIntegrity_uniqueViolation_returns409` | ✅ auto (corrigé le 2026-10-23) |
 | Pagination | `size=101` | 422 | `PageQuery` (`@MaxPageSize`) | 🔍 code |
 | Tri hors liste blanche | `sortBy=email` | ignoré, retour au tri par défaut `createdAt` décroissant (pas d'erreur) | `PageQuery.toPageable` ; `SORT_FIELDS` = `createdAt`, `name`, `type` | 🔍 code |
 | Écriture hors ligne | réseau coupé | non prise en charge (`HttpClient` direct) | `supplier-service.ts` | ⏭ hors périmètre (SYS-07) |
@@ -73,8 +73,8 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Date** : 2026-10-23.
 - **Backend** : CI GitHub `mvn verify` vert sur un code identique à `develop`. **Frontend** : `ng test` local, 102 tests verts sur 102. **Base** : migration `2026_10_21-01` rejouée ; unicité insensible à la casse et contrainte de type vérifiées.
 - **Anomalies** :
-  1. ❌ Gravité moyenne : conflits concurrents (même fiche ou même nom) renvoyés en 500 au lieu de 409. Traduire `ObjectOptimisticLockingFailureException` et `DataIntegrityViolationException` en 409 dans `GlobalExceptionHandler`, et transporter `version` dans `SupplierWDto` pour détecter les modifications perdues.
-  2. ⚠ La documentation OpenAPI du `PUT` annonce « 409 version » alors que ce cas n'est pas produit.
+  1. ✅ Corrigé le 2026-10-23 (branche `fix/FRS-01-conflits-409`) : verrou optimiste et doublon en base renvoyés en 409 ; `SupplierRDto` expose `version`, que le formulaire renvoie, et une version périmée est refusée.
+  2. ✅ La réponse « 409 version » documentée sur le `PUT` est désormais réellement produite.
   3. ⚠ Messages serveur et libellés du journal en anglais (« Supplier created: … ») contrairement aux autres modules.
   4. ⚠ Aucun test des pages fournisseur.
 - **Recette manuelle** : 4 étapes 🧪.

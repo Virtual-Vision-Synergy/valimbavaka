@@ -15,7 +15,7 @@ Toute entité qui hérite de `BaseEntity` reçoit automatiquement un identifiant
 | `id` | `id` UUID | `@UuidGenerator(style = VERSION_7)` |
 | `createdAt` / `updatedAt` | `created_at` / `updated_at` `TIMESTAMPTZ` | audit JPA (`@CreatedDate`, `@LastModifiedDate`), en UTC |
 | `createdBy` / `updatedBy` | `created_by` / `updated_by` **UUID**, nullables | audit JPA (`@CreatedBy`, `@LastModifiedBy`) via `SecurityAuditorAware` |
-| `version` | `version` BIGINT, défaut 0 | `@Version` (verrou optimiste ; aujourd'hui un conflit remonte en 500, voir points d'attention) |
+| `version` | `version` BIGINT, défaut 0 | `@Version` (verrou optimiste ; un conflit est renvoyé en 409 `CONFLICT`) |
 
 - `SecurityAuditorAware implements AuditorAware<UUID>` (`security/audit`) lit le claim `sub` du jeton d'accès via `JwtSubject.userIdOf`. Hors requête authentifiée (démarrage, tâche planifiée), l'auteur est vide, donc `null`.
 - `AuditableUser` (`security/audit`) est le contrat du principal (`UUID getId()`), porté par `security/` pour qu'il ne dépende d'aucune feature.
@@ -34,7 +34,7 @@ Toute entité qui hérite de `BaseEntity` reçoit automatiquement un identifiant
 - Ne jamais renseigner l'auteur à la main (`setCreatedBy`) : il n'y a pas de setter, et les tests ne doivent pas non plus l'imposer.
 - Pour afficher « créé par », résoudre l'UUID au moment de la lecture ou le copier dans le journal ; l'UUID est stable, le nom peut changer ([JNL-01](../JNL-01/guide.md) fige le nom au moment de l'opération).
 - Une entité mise à jour sans changement de valeur n'est pas modifiée : `updated_by` ne bouge pas.
-- Toute modification concurrente lève une `ObjectOptimisticLockingFailureException`. Elle n'est pas encore traduite en 409 par `GlobalExceptionHandler` (réponse 500) : ajouter ce handler dans `core/exception` plutôt que dans chaque feature.
+- Toute modification concurrente lève une `OptimisticLockingFailureException`, traduite en 409 `CONFLICT` par `GlobalExceptionHandler`. Pour détecter aussi les modifications « perdues » entre la lecture et l'enregistrement, exposer `version` dans le `RDto` et l'accepter dans le `WDto` (modèle : fiche fournisseur, FRS-01).
 
 ## Fichiers concernés
 

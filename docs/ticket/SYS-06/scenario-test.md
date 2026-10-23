@@ -30,7 +30,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Écriture hors requête authentifiée | création de l'administrateur au démarrage | auteur `NULL`, pas d'erreur | `AdminAccountInitializerIT.run_atStartupWithoutAdministrator_createsAdministratorRequiringPasswordChange` | ✅ auto |
 | Jeton sans `sub` | jeton sans claim `sub` | auteur vide (`Optional.empty`) | `JwtSubject.userIdOf` | 🔍 code |
 | `sub` qui n'est pas un UUID | `sub = "abc"` | `IllegalArgumentException` (500) ; impossible en pratique car le jeton est signé par le serveur avec l'UUID du compte | `JwtSubject.userIdOf` (`UUID::fromString`) | 🔍 code |
-| Conflit de version | deux mises à jour concurrentes | 409 attendu | `ObjectOptimisticLockingFailureException` n'est pas traduite : 500 | ❌ écart |
+| Conflit de version | deux mises à jour concurrentes | 409 `CONFLICT` | `GlobalExceptionHandlerTest.handleOptimisticLocking_concurrentUpdate_returns409` ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` | ✅ auto (corrigé le 2026-10-23) |
 
 ## Cas limites
 
