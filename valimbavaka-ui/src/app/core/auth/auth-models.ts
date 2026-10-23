@@ -24,3 +24,9 @@ export interface LoginWDto {
   email: string;
   password: string;
 }
+
+/** Changement de son propre mot de passe (le provisoire doit être changé à la première connexion). */
+export interface PasswordChangeWDto {
+  currentPassword: string;
+  newPassword: string;
+}

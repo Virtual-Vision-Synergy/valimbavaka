@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
-import { AuthRDto, LoginWDto } from './auth-models';
+import { Observable, catchError, finalize, map, of, shareReplay, switchMap, tap } from 'rxjs';
+import { AuthRDto, LoginWDto, PasswordChangeWDto } from './auth-models';
 import { AuthStore } from './auth-store';
 
 export const AUTH_URL_PREFIX = '/api/v1/auth';
@@ -33,6 +33,17 @@ export class AuthService {
       map(() => true),
       catchError(() => of(false)),
     );
+  }
+
+  /**
+   * Change le mot de passe du compte connecté, puis renouvelle la session : le nouveau jeton porte de nouveau les
+   * permissions du rôle (le serveur n'en accorde aucune tant que le mot de passe provisoire n'est pas changé).
+   */
+  changePassword(body: PasswordChangeWDto): Observable<AuthRDto> {
+    const userId = this.authStore.currentUser()?.id;
+    return this.http
+      .post<void>(`${AUTH_URL_PREFIX}/password`, body)
+      .pipe(switchMap(() => this.refresh(userId)));
   }
 
   logout(): Observable<void> {

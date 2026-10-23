@@ -1,6 +1,6 @@
 import { isDevMode } from '@angular/core';
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/auth/auth-guard';
+import { authGuard, guestGuard, passwordChangeGuard } from './core/auth/auth-guard';
 import { permissionGuard } from './core/auth/permission-guard';
 import { DriverLayout } from './core/layout/driver-layout/driver-layout';
 import { homeGuard } from './core/layout/home-guard';
@@ -27,6 +27,11 @@ export const routes: Routes = [
     path: 'login',
     canActivate: [guestGuard],
     loadChildren: () => import('./features/auth/auth.routes').then((m) => m.AUTH_ROUTES),
+  },
+  {
+    path: 'password',
+    canActivate: [passwordChangeGuard],
+    loadChildren: () => import('./features/auth/password.routes').then((m) => m.PASSWORD_ROUTES),
   },
   {
     // Espace mobile du livreur : coquille dédiée, sans barre latérale.
