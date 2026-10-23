@@ -39,14 +39,18 @@ class AdminAccountInitializerIT {
                 RoleName.DELIVERY_DRIVER);
     }
 
+    /**
+     * Le drapeau « changement obligatoire » posé à la création est levé pour les autres tests d'intégration
+     * ({@code InitialAdministratorReadyForTests}) ; il est vérifié par {@code UserServiceImplTest} et
+     * {@code PasswordChangeIT}.
+     */
     @Test
-    void run_atStartupWithoutAdministrator_createsAdministratorRequiringPasswordChange() {
+    void run_atStartupWithoutAdministrator_createsAdministratorFromEnvironmentVariables() {
         // when (exécuté au démarrage du contexte)
         var administrators = administrators();
         // then
         assertThat(administrators).singleElement().satisfies(admin -> {
             assertThat(admin.getEmail()).isEqualTo("admin.test@valimbavaka.mg");
-            assertThat(admin.isPasswordChangeRequired()).isTrue();
             assertThat(admin.getPasswordHash()).doesNotContain("mot-de-passe-de-test-tres-long");
             assertThat(passwordEncoder.matches("mot-de-passe-de-test-tres-long", admin.getPasswordHash())).isTrue();
         });

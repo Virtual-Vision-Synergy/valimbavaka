@@ -42,6 +42,7 @@ import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 class UserServiceImplTest {
 
     private static final String RAW_PASSWORD = "mot-de-passe-provisoire-long";
+    private static final String NEW_PASSWORD = "nouveau-mot-de-passe-choisi";
     private static final String PASSWORD_HASH = "{bcrypt}hash";
 
     @Mock
@@ -148,6 +149,59 @@ class UserServiceImplTest {
                         User::isPasswordChangeRequired,
                         User::isActive)
                 .containsExactly("admin@valimbavaka.mg", PASSWORD_HASH, administratorRole, true, true);
+    }
+
+    @Test
+    void changeOwnPassword_wrongCurrentPassword_throwsBusinessExceptionAndChangesNothing() {
+        // given
+        var userId = givenAccountWithPassword();
+        when(passwordEncoder.matches("pas-le-bon", PASSWORD_HASH)).thenReturn(false);
+        // when / then
+        assertThatThrownBy(() -> sut.changeOwnPassword(userId, "pas-le-bon", NEW_PASSWORD))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("actuel est incorrect");
+        verify(targetUser, never()).changePassword(any());
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void changeOwnPassword_sameAsCurrent_throwsBusinessExceptionAndChangesNothing() {
+        // given
+        var userId = givenAccountWithPassword();
+        when(passwordEncoder.matches(RAW_PASSWORD, PASSWORD_HASH)).thenReturn(true);
+        // when / then
+        assertThatThrownBy(() -> sut.changeOwnPassword(userId, RAW_PASSWORD, RAW_PASSWORD))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("différent");
+        verify(targetUser, never()).changePassword(any());
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void changeOwnPassword_validRequest_storesNewHashAndRecordsInJournal() {
+        // given
+        var userId = givenAccountWithPassword();
+        when(passwordEncoder.matches(RAW_PASSWORD, PASSWORD_HASH)).thenReturn(true);
+        when(passwordEncoder.matches(NEW_PASSWORD, PASSWORD_HASH)).thenReturn(false);
+        when(passwordEncoder.encode(NEW_PASSWORD)).thenReturn("{argon2}nouveau");
+        when(targetUser.getEmail()).thenReturn("admin@valimbavaka.mg");
+        // when
+        sut.changeOwnPassword(userId, RAW_PASSWORD, NEW_PASSWORD);
+        // then
+        verify(targetUser).changePassword("{argon2}nouveau");
+        verify(journalService)
+                .record(
+                        JournalAction.UPDATE,
+                        "USER",
+                        userId,
+                        "Changement du mot de passe de l'utilisateur admin@valimbavaka.mg");
+    }
+
+    private UUID givenAccountWithPassword() {
+        var userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(targetUser));
+        when(targetUser.getPasswordHash()).thenReturn(PASSWORD_HASH);
+        return userId;
     }
 
     @Test

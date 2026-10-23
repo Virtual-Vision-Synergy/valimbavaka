@@ -18,7 +18,9 @@ import org.vvs.valimbavaka.core.exception.UnauthorizedException;
 import org.vvs.valimbavaka.feature.auth.dto.AuthRDto;
 import org.vvs.valimbavaka.feature.auth.dto.CurrentUserRDto;
 import org.vvs.valimbavaka.feature.auth.dto.LoginWDto;
+import org.vvs.valimbavaka.feature.auth.dto.PasswordChangeWDto;
 import org.vvs.valimbavaka.feature.auth.mapper.AuthMapper;
+import org.vvs.valimbavaka.feature.user.service.UserService;
 import org.vvs.valimbavaka.security.jwt.JwtSubject;
 import org.vvs.valimbavaka.security.service.AuthService;
 
@@ -42,11 +44,17 @@ public class AuthController {
     private final AuthService authService;
     private final AuthMapper authMapper;
     private final RefreshCookieFactory refreshCookies;
+    private final UserService userService;
 
-    public AuthController(AuthService authService, AuthMapper authMapper, RefreshCookieFactory refreshCookies) {
+    public AuthController(
+            AuthService authService,
+            AuthMapper authMapper,
+            RefreshCookieFactory refreshCookies,
+            UserService userService) {
         this.authService = authService;
         this.authMapper = authMapper;
         this.refreshCookies = refreshCookies;
+        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -91,6 +99,22 @@ public class AuthController {
     @ApiResponse(responseCode = "401", description = "Non authentifié (UNAUTHENTICATED)")
     public CurrentUserRDto me(@AuthenticationPrincipal Jwt jwt) {
         return authMapper.toRDto(authService.currentUser(JwtSubject.requireUserId(jwt)));
+    }
+
+    @PostMapping("/password")
+    @Operation(
+            summary = "Changement de son propre mot de passe",
+            description = "Lève le changement obligatoire ; appeler ensuite /refresh pour obtenir un jeton "
+                    + "portant de nouveau les permissions du rôle.")
+    @ApiResponse(responseCode = "204", description = "Mot de passe changé")
+    @ApiResponse(responseCode = "401", description = "Non authentifié (UNAUTHENTICATED)")
+    @ApiResponse(
+            responseCode = "422",
+            description = "Mot de passe actuel incorrect, nouveau trop court ou identique (VALIDATION_FAILED)")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal Jwt jwt, @Valid @RequestBody PasswordChangeWDto request) {
+        userService.changeOwnPassword(JwtSubject.requireUserId(jwt), request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     private ResponseEntity<AuthRDto> withRefreshCookie(String refreshToken, AuthRDto body) {

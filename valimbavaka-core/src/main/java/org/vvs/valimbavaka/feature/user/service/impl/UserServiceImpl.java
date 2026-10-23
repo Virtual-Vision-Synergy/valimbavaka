@@ -174,6 +174,25 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+    @Override
+    @Transactional
+    public void changeOwnPassword(UUID userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId).orElseThrow(() -> userNotFound(userId));
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new BusinessException("Le mot de passe actuel est incorrect.");
+        }
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash())) {
+            throw new BusinessException("Le nouveau mot de passe doit être différent de l'actuel.");
+        }
+        user.changePassword(Objects.requireNonNull(passwordEncoder.encode(newPassword)));
+        journalService.record(
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                userId,
+                "Changement du mot de passe de l'utilisateur " + user.getEmail());
+        log.info("Mot de passe de l'utilisateur {} changé", userId);
+    }
+
     private User findUserWithRole(UUID userId) {
         return userRepository.findByIdWithRole(userId).orElseThrow(() -> userNotFound(userId));
     }
