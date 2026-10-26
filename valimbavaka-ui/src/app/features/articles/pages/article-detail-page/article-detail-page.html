@@ -40,10 +40,14 @@
           </p>
         </div>
         <div class="actions">
-          <button class="btn btn-secondary" type="button" (click)="demoAction()">
+          <a
+            class="btn btn-secondary"
+            [routerLink]="['/articles', a.id, 'edit']"
+            *vvsHasPermission="'articles.update'"
+          >
             <svg [vvsIcon]="icons.Pencil" [size]="18"></svg>
             {{ 'articles.detail.edit' | translate }}
-          </button>
+          </a>
           @if (a.manufactured) {
             <a class="btn btn-primary" routerLink="/production">
               <svg [vvsIcon]="icons.Plus" [size]="18"></svg>

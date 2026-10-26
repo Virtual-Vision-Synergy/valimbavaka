@@ -6,9 +6,6 @@ export type { ArticleType, StockLocation } from '../../../shared/data-access/dem
 /** Disponibilité dérivée du stock total et du seuil minimum. */
 export type StockStatus = 'AVAILABLE' | 'LOW' | 'OUT';
 
-/** Unité de gestion (miroir de l'énumération backend ArticleUnit). */
-export type ArticleUnit = 'PIECE' | 'KILOGRAM' | 'LITER';
-
 /** Ligne de la liste des articles (ART-03). */
 export interface ArticleRDto {
   readonly id: string;
@@ -63,37 +60,4 @@ export interface ArticleDetailRDto extends ArticleRDto {
   readonly promotion: ArticlePromotionRDto | null;
   readonly endedPromotions: number;
   readonly movements: readonly ArticleMovementRDto[];
-}
-
-/** Création d'article (ART-02) : jamais d'identifiant ni de référence (attribués par le serveur). */
-export interface ArticleWDto {
-  readonly name: string;
-  readonly type: ArticleType;
-  readonly range: ProductRange | null;
-  readonly barcode: string | null;
-  readonly manufactured: boolean;
-  readonly salonUsable: boolean;
-  readonly price: number | null;
-  readonly unit: ArticleUnit;
-  readonly threshold: number;
-  readonly supplierId: string | null;
-}
-
-export interface SupplierOptionRDto {
-  readonly id: string;
-  readonly name: string;
-}
-
-/** Valeur brute du formulaire de création (brouillon conservé pendant la saisie). */
-export interface ArticleFormValue {
-  readonly name: string;
-  readonly range: ProductRange | null;
-  readonly barcode: string;
-  readonly type: ArticleType;
-  readonly manufactured: boolean;
-  readonly salonUsable: boolean;
-  readonly price: number | null;
-  readonly unit: ArticleUnit;
-  readonly threshold: number | null;
-  readonly supplierId: string | null;
 }

@@ -15,8 +15,8 @@ En tant qu'administrateur, je veux créer/modifier un article afin de maintenir 
 
 ## Critères d'acceptation
 
-- [ ] Le formulaire pré-remplit les valeurs existantes en modification.
-- [ ] L'enregistrement met à jour la fiche article.
+- [x] Le formulaire pré-remplit les valeurs existantes en modification. — *⚠ partiel : tests écrits, non exécutés (voir [scénario](scenario-test.md), cas 1 à 1h) ; accessible depuis le détail, mais le catalogue de démonstration reste sur des données fictives (ART-05, ART-06)*
+- [x] L'enregistrement met à jour la fiche article. — *⚠ partiel : tests écrits, non exécutés (voir [scénario](scenario-test.md), cas 2 à 2h)*
 
 ## Détails
 

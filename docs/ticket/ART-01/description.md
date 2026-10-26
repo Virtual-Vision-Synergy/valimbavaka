@@ -57,7 +57,7 @@ _Confirmée le 2026-10-26 ; liste complète dans [guide.md](guide.md#fichiers-co
 
 **Frontend (`valimbavaka-ui`)**
 - `valimbavaka-ui/src/app/features/article` (fiche réelle : service, modèles, `article-sheet-page`)
-- `valimbavaka-ui/src/app/features/articles` (maquette : seules les routes `sheet/new` et `:id/edit` y sont ajoutées)
+- `valimbavaka-ui/src/app/features/articles` (maquette : seules les routes `new` et `:id/edit` y servent la fiche réelle, depuis ART-02)
 - `valimbavaka-ui/src/app/features/supplier` (bloc « articles fournis », lien avec [FRS-01](../FRS-01/description.md))
 
 **Backend (`valimbavaka-core`)**

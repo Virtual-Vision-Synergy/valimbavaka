@@ -9,6 +9,7 @@ import {
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Download, Plus, Upload } from 'lucide';
+import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ArticleThumb } from '../../../../shared/components/article-thumb/article-thumb';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
@@ -63,6 +64,7 @@ function matches(article: ArticleRDto, filters: ArticleFilters): boolean {
 @Component({
   selector: 'vvs-article-list-page',
   imports: [
+    HasPermissionDirective,
     RouterLink,
     TranslatePipe,
     AriaryPipe,

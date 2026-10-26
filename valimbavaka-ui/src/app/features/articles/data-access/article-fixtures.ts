@@ -1,11 +1,10 @@
 import {
   DEMO_ARTICLES,
-  DEMO_SUPPLIERS,
   DemoArticle,
   STOCK_LOCATIONS,
   totalStock,
 } from '../../../shared/data-access/demo-catalog';
-import { ArticleDetailRDto, ArticleRDto, StockStatus, SupplierOptionRDto } from './article-models';
+import { ArticleDetailRDto, ArticleRDto, StockStatus } from './article-models';
 
 function statusOf(total: number, threshold: number): StockStatus {
   if (total === 0) {
@@ -32,13 +31,6 @@ function toRow(article: DemoArticle): ArticleRDto {
 }
 
 export const ARTICLES_FIXTURE: readonly ArticleRDto[] = DEMO_ARTICLES.map(toRow);
-
-export const SUPPLIER_OPTIONS_FIXTURE: readonly SupplierOptionRDto[] = DEMO_SUPPLIERS.map(
-  ({ id, name }) => ({ id, name }),
-);
-
-/** Prochaine référence attribuée par le serveur (affichée en lecture seule). */
-export const NEXT_REFERENCE = 'ART-0214';
 
 const PROMOTED = ['ART-0031', 'ART-0087'];
 
