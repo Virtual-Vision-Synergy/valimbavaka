@@ -15,9 +15,9 @@ En tant qu'utilisateur, je veux qu'une saisie renvoyée plusieurs fois ne crée 
 
 ## Critères d'acceptation
 
-- [ ] Le serveur reconnaît l'en-tête `Idempotency-Key` : une même clé envoyée plusieurs fois ne crée qu'un seul enregistrement et renvoie le même résultat.
-- [ ] Le journal append-only ne reçoit qu'une seule écriture par saisie, même en cas de renvoi.
-- [ ] Une clé déjà utilisée avec un contenu différent est refusée avec une erreur claire.
+- [x] Le serveur reconnaît l'en-tête `Idempotency-Key` : une même clé envoyée plusieurs fois ne crée qu'un seul enregistrement et renvoie le même résultat. — *⚠ partiel : tests écrits, non exécutés ; filtre livré par SYS-02, tests ajoutés (cas 1 à 1g)*
+- [x] Le journal append-only ne reçoit qu'une seule écriture par saisie, même en cas de renvoi. — *⚠ partiel : tests écrits, non exécutés (cas 2)*
+- [x] Une clé déjà utilisée avec un contenu différent est refusée avec une erreur claire. — *⚠ partiel : écart corrigé (empreinte du corps, migration `2026_10_26-02`) ; tests écrits, non exécutés (cas 3 à 3e)*
 
 ## Détails
 

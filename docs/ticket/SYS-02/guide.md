@@ -39,6 +39,7 @@ clear(): Promise<void>
 | Rejeu identique | même statut et même corps, avec `Idempotency-Replayed: true` ; aucune nouvelle écriture |
 | Clé non UUID | 400 `MALFORMED_REQUEST` |
 | Même clé, autre méthode ou autre chemin | 422 `VALIDATION_FAILED` |
+| Même clé, même chemin, **corps différent** | 422 `VALIDATION_FAILED` « … avec un contenu différent » (ajouté par [SYS-12](../SYS-12/guide.md)) |
 | Même clé pendant le traitement | 409 `CONFLICT` « Requête en cours de traitement. » |
 | Sans jeton d'accès | le filtre ne fait rien, l'autorisation répond 401 |
 | 5xx, 401, 403 | clé libérée : le client peut réessayer |

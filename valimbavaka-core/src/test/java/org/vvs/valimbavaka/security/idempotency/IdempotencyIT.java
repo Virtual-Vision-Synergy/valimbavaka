@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.security.idempotency;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -36,6 +39,9 @@ class IdempotencyIT {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @Autowired
+    private JdbcClient jdbc;
 
     @Test
     void createUser_replayedWithSameKey_returnsSameResponseWithoutDuplicate() throws Exception {
@@ -98,6 +104,57 @@ class IdempotencyIT {
                         .content("{}")
                         .header("Idempotency-Key", UUID.randomUUID().toString()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void createUser_keyReusedWithDifferentBody_returns422() throws Exception {
+        // Arrange
+        var token = adminToken();
+        var key = UUID.randomUUID().toString();
+        mockMvc.perform(createUser(newUserBody("un-" + UUID.randomUUID() + "@valimbavaka.mg"), token, key))
+                .andExpect(status().isCreated());
+
+        // Act + Assert : même méthode, même chemin, contenu différent
+        mockMvc.perform(createUser(newUserBody("deux-" + UUID.randomUUID() + "@valimbavaka.mg"), token, key))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
+                .andExpect(jsonPath("$.detail").value(containsString("contenu différent")));
+    }
+
+    @Test
+    void createSupplier_replayedWithSameKey_writesOneRecordAndOneJournalLine() throws Exception {
+        // Arrange
+        var token = adminToken();
+        var key = UUID.randomUUID().toString();
+        var name = "Rejeu " + UUID.randomUUID();
+        var journalBefore = journalLines();
+
+        // Act : trois envois de la même saisie (coupure réseau, rejeu de la file hors ligne)
+        for (var attempt = 0; attempt < 3; attempt++) {
+            mockMvc.perform(createSupplier(name, token, key)).andExpect(status().isCreated());
+        }
+
+        // Assert
+        assertThat(jdbc.sql("SELECT count(*) FROM suppliers WHERE name = :name")
+                        .param("name", name)
+                        .query(Long.class)
+                        .single())
+                .isEqualTo(1L);
+        assertThat(journalLines() - journalBefore).isEqualTo(1L);
+    }
+
+    private long journalLines() {
+        return jdbc.sql("SELECT count(*) FROM journal_entries WHERE resource_type = 'SUPPLIER'")
+                .query(Long.class)
+                .single();
+    }
+
+    private MockHttpServletRequestBuilder createSupplier(String name, String token, String key) {
+        return post("/api/v1/suppliers")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"%s\",\"type\":\"LOCAL\"}".formatted(name))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .header("Idempotency-Key", key);
     }
 
     private MockHttpServletRequestBuilder createUser(String body, String token, String key) {
