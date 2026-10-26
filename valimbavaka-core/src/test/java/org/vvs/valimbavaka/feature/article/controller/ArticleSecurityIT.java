@@ -3,7 +3,6 @@ package org.vvs.valimbavaka.feature.article.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -121,7 +120,8 @@ class ArticleSecurityIT extends ArticleApiTestSupport {
 
     @Test
     void getArticles_sortOutsideTheWhiteList_fallsBackToDefaultSort() throws Exception {
-        mockMvc.perform(get(ARTICLES).param("sortBy", "supplierId; drop table articles")
+        mockMvc.perform(get(ARTICLES)
+                        .param("sortBy", "supplierId; drop table articles")
                         .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isOk());
     }

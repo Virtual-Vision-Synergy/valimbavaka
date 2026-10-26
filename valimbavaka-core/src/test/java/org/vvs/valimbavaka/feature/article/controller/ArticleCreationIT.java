@@ -207,7 +207,8 @@ class ArticleCreationIT extends ArticleApiTestSupport {
         mockMvc.perform(postJson(ARTICLES, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.supplierId").value(supplierId.toString()));
-        mockMvc.perform(get(ARTICLES).param("supplierId", supplierId.toString())
+        mockMvc.perform(get(ARTICLES)
+                        .param("supplierId", supplierId.toString())
                         .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(jsonPath("$.totalCount").value(1));
     }

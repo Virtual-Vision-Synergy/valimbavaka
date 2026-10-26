@@ -102,10 +102,12 @@ class ArticleRepositoryIT {
         var saved = sut.save(article(prefix + " Gommage", ArticleType.FINISHED, barcode, "12500"));
 
         // Act + Assert
-        assertThat(sut.search(prefix.toUpperCase(), null, null, null, null, PageRequest.of(0, 10)).getContent())
+        assertThat(sut.search(prefix.toUpperCase(), null, null, null, null, PageRequest.of(0, 10))
+                        .getContent())
                 .extracting(Article::getId)
                 .containsExactly(saved.getId());
-        assertThat(sut.search(barcode, null, null, null, null, PageRequest.of(0, 10)).getContent())
+        assertThat(sut.search(barcode, null, null, null, null, PageRequest.of(0, 10))
+                        .getContent())
                 .extracting(Article::getId)
                 .containsExactly(saved.getId());
         assertThat(sut.search(saved.getCode().toLowerCase(), null, null, null, null, PageRequest.of(0, 10))
@@ -119,8 +121,8 @@ class ArticleRepositoryIT {
         // Arrange
         var rangeId = productRangeRepository.findAll().getFirst().getId();
         var prefix = "Filtre-" + UUID.randomUUID();
-        var finished = sut.save(Article.create(
-                nextCode(), details(prefix + "-fini", ArticleType.FINISHED, null, "8500", rangeId)));
+        var finished = sut.save(
+                Article.create(nextCode(), details(prefix + "-fini", ArticleType.FINISHED, null, "8500", rangeId)));
         sut.save(article(prefix + "-matiere", ArticleType.RAW_MATERIAL, null, null));
         var inactive = article(prefix + "-inactif", ArticleType.FINISHED, null, "8500");
         inactive.deactivate();
@@ -140,9 +142,18 @@ class ArticleRepositoryIT {
         var supplierName = "Fournisseur-" + UUID.randomUUID();
         var supplier = supplierRepository.save(
                 Supplier.create(new SupplierDetails(supplierName, SupplierType.LOCAL, null, null, null, null, null)));
-        var supplied = sut.save(Article.create(nextCode(), new ArticleDetails(
-                uniqueName(), null, ArticleType.RAW_MATERIAL, null, ArticleUnit.KILOGRAM,
-                new BigDecimal("12000"), null, new BigDecimal("5"), supplier.getId())));
+        var supplied = sut.save(Article.create(
+                nextCode(),
+                new ArticleDetails(
+                        uniqueName(),
+                        null,
+                        ArticleType.RAW_MATERIAL,
+                        null,
+                        ArticleUnit.KILOGRAM,
+                        new BigDecimal("12000"),
+                        null,
+                        new BigDecimal("5"),
+                        supplier.getId())));
         sut.save(article(uniqueName(), ArticleType.RAW_MATERIAL, null, null));
 
         // Act
@@ -166,8 +177,15 @@ class ArticleRepositoryIT {
 
     private static ArticleDetails details(String name, ArticleType type, String barcode, String price, UUID rangeId) {
         return new ArticleDetails(
-                name, barcode, type, rangeId, ArticleUnit.PIECE, null,
-                price == null ? null : new BigDecimal(price), new BigDecimal("40"), null);
+                name,
+                barcode,
+                type,
+                rangeId,
+                ArticleUnit.PIECE,
+                null,
+                price == null ? null : new BigDecimal(price),
+                new BigDecimal("40"),
+                null);
     }
 
     private static String uniqueName() {

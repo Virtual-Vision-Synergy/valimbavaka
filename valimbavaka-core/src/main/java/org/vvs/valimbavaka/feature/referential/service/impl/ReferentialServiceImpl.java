@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
 import org.vvs.valimbavaka.feature.referential.dto.SalesChannelRDto;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
@@ -29,8 +30,10 @@ public class ReferentialServiceImpl implements ReferentialService {
     private final StockLocationRepository stockLocationRepository;
     private final ReferentialMapper referentialMapper;
 
-    public ReferentialServiceImpl(SalesChannelRepository salesChannelRepository,
-            ProductRangeRepository productRangeRepository, StockLocationRepository stockLocationRepository,
+    public ReferentialServiceImpl(
+            SalesChannelRepository salesChannelRepository,
+            ProductRangeRepository productRangeRepository,
+            StockLocationRepository stockLocationRepository,
             ReferentialMapper referentialMapper) {
         this.salesChannelRepository = salesChannelRepository;
         this.productRangeRepository = productRangeRepository;
@@ -40,20 +43,20 @@ public class ReferentialServiceImpl implements ReferentialService {
 
     @Override
     public PageResponse<SalesChannelRDto> getSalesChannels(PageQuery query) {
-        return PageResponse.from(salesChannelRepository.findByActiveTrue(pageable(query))
-                .map(referentialMapper::toRDto));
+        return PageResponse.from(
+                salesChannelRepository.findByActiveTrue(pageable(query)).map(referentialMapper::toRDto));
     }
 
     @Override
     public PageResponse<ProductRangeRDto> getProductRanges(PageQuery query) {
-        return PageResponse.from(productRangeRepository.findByActiveTrue(pageable(query))
-                .map(referentialMapper::toRDto));
+        return PageResponse.from(
+                productRangeRepository.findByActiveTrue(pageable(query)).map(referentialMapper::toRDto));
     }
 
     @Override
     public PageResponse<StockLocationRDto> getStockLocations(PageQuery query) {
-        return PageResponse.from(stockLocationRepository.findByActiveTrue(pageable(query))
-                .map(referentialMapper::toRDto));
+        return PageResponse.from(
+                stockLocationRepository.findByActiveTrue(pageable(query)).map(referentialMapper::toRDto));
     }
 
     @Override

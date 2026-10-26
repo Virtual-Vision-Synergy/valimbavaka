@@ -120,7 +120,15 @@ class ArticleReferenceCheckerTest {
 
     private static ArticleWDto request(ArticleType type, UUID rangeId, BigDecimal price, UUID supplierId) {
         return new ArticleWDto(
-                "Savon noir 100 g", null, type, rangeId, ArticleUnit.PIECE, null, price, BigDecimal.TEN, supplierId,
+                "Savon noir 100 g",
+                null,
+                type,
+                rangeId,
+                ArticleUnit.PIECE,
+                null,
+                price,
+                BigDecimal.TEN,
+                supplierId,
                 null);
     }
 }

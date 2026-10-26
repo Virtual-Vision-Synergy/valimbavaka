@@ -13,12 +13,12 @@ import org.vvs.valimbavaka.feature.supplier.service.SupplierService;
 
 /** Business rules of the sheet that look at other features: a finished product needs a range and a price. */
 @Component
-class ArticleReferenceChecker {
+public class ArticleReferenceChecker {
 
     private final ReferentialService referentialService;
     private final SupplierService supplierService;
 
-    ArticleReferenceChecker(ReferentialService referentialService, SupplierService supplierService) {
+    public ArticleReferenceChecker(ReferentialService referentialService, SupplierService supplierService) {
         this.referentialService = referentialService;
         this.supplierService = supplierService;
     }

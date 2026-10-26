@@ -28,8 +28,15 @@ class ArticleTest {
     void create_rawMaterial_dropsRangeAndPrice() {
         // Arrange
         var details = new ArticleDetails(
-                "Beurre de karité brut", null, ArticleType.RAW_MATERIAL, RANGE_ID, ArticleUnit.KILOGRAM,
-                new BigDecimal("12000"), new BigDecimal("15000"), new BigDecimal("5"), null);
+                "Beurre de karité brut",
+                null,
+                ArticleType.RAW_MATERIAL,
+                RANGE_ID,
+                ArticleUnit.KILOGRAM,
+                new BigDecimal("12000"),
+                new BigDecimal("15000"),
+                new BigDecimal("5"),
+                null);
 
         // Act
         var sut = Article.create("ART-0002", details);
@@ -43,9 +50,18 @@ class ArticleTest {
     @Test
     void create_nameBarcodeWithSpaces_isStrippedAndBlankBarcodeBecomesNull() {
         // Act
-        var sut = Article.create("ART-0003", new ArticleDetails(
-                "  Gommage café 200 g ", "  ", ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                null, new BigDecimal("12500"), BigDecimal.ZERO, null));
+        var sut = Article.create(
+                "ART-0003",
+                new ArticleDetails(
+                        "  Gommage café 200 g ",
+                        "  ",
+                        ArticleType.FINISHED,
+                        RANGE_ID,
+                        ArticleUnit.PIECE,
+                        null,
+                        new BigDecimal("12500"),
+                        BigDecimal.ZERO,
+                        null));
 
         // Assert
         assertThat(sut.getName()).isEqualTo("Gommage café 200 g");
@@ -57,8 +73,15 @@ class ArticleTest {
         // Arrange
         var sut = Article.create("ART-0004", finished("Savon noir 100 g"));
         var same = new ArticleDetails(
-                " Savon noir 100 g ", null, ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                new BigDecimal("3120.0"), new BigDecimal("8500.000"), new BigDecimal("40"), null);
+                " Savon noir 100 g ",
+                null,
+                ArticleType.FINISHED,
+                RANGE_ID,
+                ArticleUnit.PIECE,
+                new BigDecimal("3120.0"),
+                new BigDecimal("8500.000"),
+                new BigDecimal("40"),
+                null);
 
         // Act + Assert
         assertThat(sut.update(same)).isFalse();
@@ -69,8 +92,15 @@ class ArticleTest {
         // Arrange
         var sut = Article.create("ART-0005", finished("Savon noir 100 g"));
         var changed = new ArticleDetails(
-                "Savon noir 100 g", null, ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                new BigDecimal("3120"), new BigDecimal("9000.50"), new BigDecimal("40"), null);
+                "Savon noir 100 g",
+                null,
+                ArticleType.FINISHED,
+                RANGE_ID,
+                ArticleUnit.PIECE,
+                new BigDecimal("3120"),
+                new BigDecimal("9000.50"),
+                new BigDecimal("40"),
+                null);
 
         // Act
         var result = sut.update(changed);
@@ -86,8 +116,15 @@ class ArticleTest {
         // Arrange
         var sut = Article.create("ART-0006", finished("Pâte à savon"));
         var changed = new ArticleDetails(
-                "Pâte à savon", null, ArticleType.SEMI_FINISHED, RANGE_ID, ArticleUnit.KILOGRAM,
-                new BigDecimal("3120"), new BigDecimal("8500"), new BigDecimal("40"), null);
+                "Pâte à savon",
+                null,
+                ArticleType.SEMI_FINISHED,
+                RANGE_ID,
+                ArticleUnit.KILOGRAM,
+                new BigDecimal("3120"),
+                new BigDecimal("8500"),
+                new BigDecimal("40"),
+                null);
 
         // Act
         var result = sut.update(changed);
@@ -113,7 +150,14 @@ class ArticleTest {
 
     private static ArticleDetails finished(String name) {
         return new ArticleDetails(
-                name, null, ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                new BigDecimal("3120"), new BigDecimal("8500"), new BigDecimal("40"), null);
+                name,
+                null,
+                ArticleType.FINISHED,
+                RANGE_ID,
+                ArticleUnit.PIECE,
+                new BigDecimal("3120"),
+                new BigDecimal("8500"),
+                new BigDecimal("40"),
+                null);
     }
 }

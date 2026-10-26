@@ -127,8 +127,16 @@ class ArticleServiceImplTest {
         var article = existingArticle();
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(article));
         var request = new ArticleWDto(
-                "Savon noir 120 g", null, ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                new BigDecimal("3300"), new BigDecimal("9000"), new BigDecimal("25"), null, null);
+                "Savon noir 120 g",
+                null,
+                ArticleType.FINISHED,
+                RANGE_ID,
+                ArticleUnit.PIECE,
+                new BigDecimal("3300"),
+                new BigDecimal("9000"),
+                new BigDecimal("25"),
+                null,
+                null);
 
         // Act
         sut.updateArticle(ARTICLE_ID, request);
@@ -164,8 +172,16 @@ class ArticleServiceImplTest {
         var article = existingArticle();
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.of(article));
         var request = new ArticleWDto(
-                "Autre nom", null, ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                null, new BigDecimal("8500"), BigDecimal.TEN, null, 42L);
+                "Autre nom",
+                null,
+                ArticleType.FINISHED,
+                RANGE_ID,
+                ArticleUnit.PIECE,
+                null,
+                new BigDecimal("8500"),
+                BigDecimal.TEN,
+                null,
+                42L);
 
         // Act + Assert
         assertThatThrownBy(() -> sut.updateArticle(ARTICLE_ID, request)).isInstanceOf(ConflictException.class);
@@ -180,8 +196,8 @@ class ArticleServiceImplTest {
         when(articleRepository.existsByBarcodeAndIdNot(BARCODE, ARTICLE_ID)).thenReturn(true);
 
         // Act + Assert
-        assertThatThrownBy(() ->
-                        sut.updateArticle(ARTICLE_ID, request("Savon noir 100 g", ArticleType.FINISHED, BARCODE)))
+        assertThatThrownBy(
+                        () -> sut.updateArticle(ARTICLE_ID, request("Savon noir 100 g", ArticleType.FINISHED, BARCODE)))
                 .isInstanceOf(ConflictException.class);
         verifyNoInteractions(journalService);
     }
@@ -192,8 +208,7 @@ class ArticleServiceImplTest {
         when(articleRepository.findById(ARTICLE_ID)).thenReturn(Optional.empty());
 
         // Act + Assert
-        assertThatThrownBy(() ->
-                        sut.updateArticle(ARTICLE_ID, request("Savon noir 100 g", ArticleType.FINISHED, null)))
+        assertThatThrownBy(() -> sut.updateArticle(ARTICLE_ID, request("Savon noir 100 g", ArticleType.FINISHED, null)))
                 .isInstanceOf(NotFoundException.class);
     }
 
@@ -229,14 +244,31 @@ class ArticleServiceImplTest {
     }
 
     private static Article existingArticle() {
-        return Article.create("ART-0031", new ArticleDetails(
-                "Savon noir 100 g", null, ArticleType.FINISHED, RANGE_ID, ArticleUnit.PIECE,
-                new BigDecimal("3120"), new BigDecimal("8500"), new BigDecimal("40"), null));
+        return Article.create(
+                "ART-0031",
+                new ArticleDetails(
+                        "Savon noir 100 g",
+                        null,
+                        ArticleType.FINISHED,
+                        RANGE_ID,
+                        ArticleUnit.PIECE,
+                        new BigDecimal("3120"),
+                        new BigDecimal("8500"),
+                        new BigDecimal("40"),
+                        null));
     }
 
     private static ArticleWDto request(String name, ArticleType type, String barcode) {
         return new ArticleWDto(
-                name, barcode, type, RANGE_ID, ArticleUnit.PIECE,
-                new BigDecimal("3120"), new BigDecimal("8500"), new BigDecimal("40"), null, null);
+                name,
+                barcode,
+                type,
+                RANGE_ID,
+                ArticleUnit.PIECE,
+                new BigDecimal("3120"),
+                new BigDecimal("8500"),
+                new BigDecimal("40"),
+                null,
+                null);
     }
 }

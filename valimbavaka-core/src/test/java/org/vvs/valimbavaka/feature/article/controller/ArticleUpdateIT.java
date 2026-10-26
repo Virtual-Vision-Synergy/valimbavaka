@@ -3,7 +3,6 @@ package org.vvs.valimbavaka.feature.article.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -163,7 +162,9 @@ class ArticleUpdateIT extends ArticleApiTestSupport {
         var token = adminToken();
         var name = uniqueName();
         var id = createArticle(token, finishedBody(name));
-        var body = finishedBody(name).replace("\"threshold\":40", "\"threshold\":25").replace("}", ",\"version\":0}");
+        var body = finishedBody(name)
+                .replace("\"threshold\":40", "\"threshold\":25")
+                .replace("}", ",\"version\":0}");
 
         // Act
         mockMvc.perform(putJson(ARTICLES + "/" + id, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))

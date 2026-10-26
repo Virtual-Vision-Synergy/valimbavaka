@@ -131,7 +131,9 @@ public class ArticleServiceImpl implements ArticleService {
     private static ArticleDetails toDetails(ArticleWDto request) {
         return new ArticleDetails(
                 request.name(),
-                request.barcode() == null || request.barcode().isBlank() ? null : request.barcode().strip(),
+                request.barcode() == null || request.barcode().isBlank()
+                        ? null
+                        : request.barcode().strip(),
                 request.type(),
                 request.rangeId(),
                 request.unit(),
