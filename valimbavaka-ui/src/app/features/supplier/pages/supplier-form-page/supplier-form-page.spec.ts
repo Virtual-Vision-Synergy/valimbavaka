@@ -9,6 +9,7 @@ import { SupplierRDto } from '../../data-access/supplier-models';
 import { SupplierFormPage } from './supplier-form-page';
 
 const SUPPLIERS_URL = '/api/v1/suppliers';
+const ARTICLES_URL = '/api/v1/articles';
 const SUPPLIER_URL = '/api/v1/suppliers/0195f0a0-0000-7000-8000-0000000000f1';
 
 const supplier: SupplierRDto = {
@@ -59,6 +60,12 @@ describe('SupplierFormPage', () => {
     vi.restoreAllMocks();
   });
 
+  const flushArticles = (items: unknown[] = []): void => {
+    httpMock
+      .expectOne((req) => req.url === ARTICLES_URL)
+      .flush({ items, page: 1, pageSize: 100, totalCount: items.length, totalPages: 1 });
+  };
+
   const field = <T extends HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
     id: string,
   ): T => element.querySelector<T>(`#${id}`) as T;
@@ -79,7 +86,14 @@ describe('SupplierFormPage', () => {
     beforeEach(async () => {
       await setup(supplier.id);
       httpMock.expectOne(SUPPLIER_URL).flush(supplier);
+      flushArticles();
       await fixture.whenStable();
+    });
+
+    it('should say that no article is supplied when the list is empty', () => {
+      expect(element.querySelector('.articles')?.textContent).toContain(
+        'Aucun article fourni par ce fournisseur.',
+      );
     });
 
     it('should fill the form with the sheet read from the server', () => {
@@ -286,6 +300,27 @@ describe('SupplierFormPage', () => {
     });
   });
 
+  describe('with supplied articles', () => {
+    it('should list the articles of this supplier, read with its identifier', async () => {
+      await setup(supplier.id);
+      httpMock.expectOne(SUPPLIER_URL).flush(supplier);
+      const request = httpMock.expectOne((req) => req.url === ARTICLES_URL);
+      expect(request.request.params.get('supplierId')).toBe(supplier.id);
+      request.flush({
+        items: [{ id: 'a1', code: 'ART-0031', name: 'Beurre de karité brut' }],
+        page: 1,
+        pageSize: 100,
+        totalCount: 1,
+        totalPages: 1,
+      });
+      await fixture.whenStable();
+
+      fixture.detectChanges();
+      expect(element.querySelector('.supplied')?.textContent).toContain('ART-0031');
+      expect(element.querySelector('.supplied')?.textContent).toContain('Beurre de karité brut');
+    });
+  });
+
   describe('when the sheet does not exist', () => {
     it('should show the server message', async () => {
       await setup(supplier.id);
@@ -299,6 +334,7 @@ describe('SupplierFormPage', () => {
         },
         { status: 404, statusText: 'Not Found' },
       );
+      flushArticles();
       await fixture.whenStable();
 
       expect(element.querySelector('[role="alert"]')?.textContent).toContain(

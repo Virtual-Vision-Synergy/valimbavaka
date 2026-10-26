@@ -18,7 +18,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 |---|---|---|---|---|---|
 | 1 | Tous les champs sont visibles | Quand l'administrateur ouvre une fiche | nom, type, contact, téléphone, courriel, adresse, notes, état, dates | `SupplierRepositoryIT.save_newSupplier_isPersistedWithAuditFields` ; `SupplierRDto` expose les 11 champs ; formulaire `supplier-form-page.html` avec les 7 champs saisissables | ✅ auto · 🔍 code |
 | 1b | idem | Fournisseur inexistant | 404 | `SupplierSecurityIT.getSupplierById_unknownId_returns404` ; `SupplierServiceImplTest.getSupplierById_unknownId_throwsNotFound` | ✅ auto |
-| 1c | Bloc « articles fournis » | Quand la fiche s'affiche | bloc présent, vide | section `articles` du formulaire ; contenu apporté par ART-01 | ⏭ hors périmètre (ART-01) |
+| 1c | Bloc « articles fournis » | Quand la fiche s'affiche | bloc présent ; liste les articles du fournisseur (code + nom) ou « Aucun article fourni par ce fournisseur. » | `supplier-form-page.spec.ts` « should list the articles of this supplier, read with its identifier » et « should say that no article is supplied when the list is empty » (ajoutés par ART-01) ; `ArticleSecurityIT.createArticle_withActiveSupplier_linksTheArticleToIt` | ☐ à lancer (ART-01) |
 | 2 | Tous les champs sont modifiables | Quand il modifie les 7 champs | tous changés, ligne `UPDATE` | `SupplierSecurityIT.updateSupplier_byAdmin_changesEveryField` ; `SupplierServiceImplTest.updateSupplier_existingSupplier_appliesAllFieldsAndTracesInJournal` | ✅ auto |
 | 2b | Création | Fournisseur valide | 201 + `Location`, ligne `CREATE` | `SupplierSecurityIT.createSupplier_byAdmin_returns201AndTracesInJournal` ; `SupplierServiceImplTest.createSupplier_newName_savesNormalizedActiveSupplierAndTracesInJournal` | ✅ auto |
 | 2c | Désactivation au lieu de suppression | Il désactive « Huiles Ravo » | `active = false`, ligne `UPDATE` | `SupplierSecurityIT.setActive_byAdmin_deactivatesSupplier` ; `SupplierServiceImplTest.setActive_activeSupplierDeactivated_deactivatesAndTracesInJournal` ; `supplier-service.spec.ts` « désactive un fournisseur via PATCH /status, sans suppression » | ✅ auto |
@@ -66,7 +66,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Créer un fournisseur local et un étranger, modifier chaque champ | valeurs visibles dans la liste et la fiche | 🧪 recette |
 | Désactiver puis réactiver | badge mis à jour, deux lignes dans le Journal | 🧪 recette |
 | Se connecter en vendeuse | pas de menu Fournisseurs, URL refusée | 🧪 recette |
-| Ouvrir une fiche | bloc « articles fournis » présent et vide | 🧪 recette |
+| Ouvrir une fiche d'un fournisseur ayant des articles | bloc « articles fournis » : codes et noms, lien vers la fiche article | 🧪 recette |
 
 ## Résultat de l'exécution
 

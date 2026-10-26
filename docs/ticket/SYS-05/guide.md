@@ -28,6 +28,8 @@ Valeurs initiales (colonnes `code` / `label`, `is_active`) :
 - Emplacements de stock : `WAREHOUSE` Entrepôt, `STORE` Boutique, `DELIVERY` Livraison, `TRADE_SHOW` Salon.
 - Codes créés en français par `2026_10_15-01`, puis renommés en anglais par `2026_10_16-01` (libellés inchangés). Valeurs relues en base le 2026-10-23.
 
+Contrôles de référence pour les autres features : `ReferentialService.isActiveSalesChannel(UUID)` et `isActiveProductRange(UUID)` (ajouté par [ART-01](../ART-01/guide.md) : vrai si la gamme existe et est active).
+
 Aucun endpoint d'écriture sur les référentiels : ils évoluent par migration. `referentials.read` est donnée à `ADMIN` et `SELLER`.
 
 ### Compte administrateur initial

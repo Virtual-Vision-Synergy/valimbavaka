@@ -16,7 +16,7 @@ En tant qu'administrateur, je veux une fiche fournisseur complète (type, contac
 
 > Vérifiés le 2026-10-23 sur le code, les tests et la base : détail dans [scenario-test.md](scenario-test.md).
 
-- [x] Tous les champs sont visibles et modifiables. — *✅ vérifié (bloc « articles fournis » rempli par ART-01).*
+- [x] Tous les champs sont visibles et modifiables. — *✅ vérifié ; le bloc « articles fournis » est rempli depuis ART-01 (2026-10-26, tests à lancer).*
 
 ## Détails
 
@@ -27,7 +27,7 @@ En tant qu'administrateur, je veux une fiche fournisseur complète (type, contac
 | **Story points** | 1 |
 | **Utilisateur concerné** | Administrateur |
 
-> Le bloc « articles fournis » de la fiche se remplit une fois ART-01 livré (c'est l'article qui référence son fournisseur).
+> Le bloc « articles fournis » de la fiche est rempli depuis [ART-01](../ART-01/description.md) (c'est l'article qui référence son fournisseur par `supplierId`).
 
 ## Ce ticket débloque
 

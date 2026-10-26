@@ -22,4 +22,7 @@ public interface SupplierService {
 
     /** Activates or deactivates a supplier (idempotent: no trace if the state is already the requested one). */
     SupplierRDto setActive(UUID supplierId, boolean active);
+
+    /** True if the supplier exists and is active (reference check for the other features, e.g. articles). */
+    boolean isActiveSupplier(UUID supplierId);
 }

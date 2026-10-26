@@ -111,7 +111,18 @@
     @if (isEdit()) {
       <section class="articles" aria-labelledby="articles-title">
         <h2 id="articles-title">{{ 'supplier.articles.title' | translate }}</h2>
-        <p class="muted">{{ 'supplier.articles.empty' | translate }}</p>
+        @if (articles().length) {
+          <ul class="supplied">
+            @for (article of articles(); track article.id) {
+              <li>
+                <a [routerLink]="['/articles', article.id, 'edit']">{{ article.code }}</a>
+                {{ article.name }}
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">{{ 'supplier.articles.empty' | translate }}</p>
+        }
       </section>
     }
 

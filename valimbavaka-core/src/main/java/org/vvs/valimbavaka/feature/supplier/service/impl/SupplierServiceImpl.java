@@ -113,6 +113,11 @@ public class SupplierServiceImpl implements SupplierService {
         return supplierMapper.toRDto(supplier);
     }
 
+    @Override
+    public boolean isActiveSupplier(UUID supplierId) {
+        return supplierRepository.existsByIdAndActiveTrue(supplierId);
+    }
+
     private Supplier findSupplier(UUID supplierId) {
         return supplierRepository
                 .findById(supplierId)

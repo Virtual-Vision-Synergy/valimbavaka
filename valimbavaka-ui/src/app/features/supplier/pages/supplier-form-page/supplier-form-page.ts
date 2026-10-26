@@ -14,8 +14,12 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../../../core/http/problem-detail';
+import { ArticleRDto } from '../../../article/data-access/article-models';
+import { ArticleService } from '../../../article/data-access/article-service';
 import { SupplierRDto, SupplierType } from '../../data-access/supplier-models';
 import { SupplierService } from '../../data-access/supplier-service';
+
+const SUPPLIED_ARTICLES_SIZE = 100;
 
 /** Clé de traduction et paramètres du message d'erreur d'un champ. */
 interface FieldError {
@@ -33,6 +37,7 @@ interface FieldError {
 })
 export class SupplierFormPage implements OnInit {
   private readonly supplierService = inject(SupplierService);
+  private readonly articleService = inject(ArticleService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -43,6 +48,8 @@ export class SupplierFormPage implements OnInit {
   protected readonly types: readonly SupplierType[] = ['LOCAL', 'FOREIGN'];
   protected readonly isSaving = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
+  /** Articles fournis par ce fournisseur (ART-01) : lecture seule, vide si la lecture échoue. */
+  protected readonly articles = signal<ArticleRDto[]>([]);
   /** Version de la fiche ouverte : le serveur refuse (409) si elle a changé entre-temps. */
   private version: number | null = null;
 
@@ -69,6 +76,10 @@ export class SupplierFormPage implements OnInit {
         next: (supplier) => this.fill(supplier),
         error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
       });
+    this.articleService
+      .list({ page: 1, size: SUPPLIED_ARTICLES_SIZE, sortBy: 'name', supplierId: id })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (page) => this.articles.set(page.items), error: () => undefined });
   }
 
   /** Message à afficher sous un champ touché et invalide, ou null : mêmes règles que le serveur. */

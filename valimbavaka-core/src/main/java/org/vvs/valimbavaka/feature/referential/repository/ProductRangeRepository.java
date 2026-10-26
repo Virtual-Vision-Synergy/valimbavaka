@@ -10,4 +10,6 @@ import org.vvs.valimbavaka.feature.referential.domain.ProductRange;
 public interface ProductRangeRepository extends JpaRepository<ProductRange, UUID> {
 
     Page<ProductRange> findByActiveTrue(Pageable pageable);
+
+    boolean existsByIdAndActiveTrue(UUID id);
 }

@@ -210,6 +210,18 @@ class SupplierServiceImplTest {
         verify(journalService, never()).record(any(), anyString(), any(), anyString());
     }
 
+    @Test
+    void isActiveSupplier_activeSupplier_returnsTrueAndUnknownOrInactiveReturnsFalse() {
+        // Arrange
+        var inactiveId = UUID.randomUUID();
+        when(supplierRepository.existsByIdAndActiveTrue(SUPPLIER_ID)).thenReturn(true);
+        when(supplierRepository.existsByIdAndActiveTrue(inactiveId)).thenReturn(false);
+
+        // Act + Assert
+        assertThat(sut.isActiveSupplier(SUPPLIER_ID)).isTrue();
+        assertThat(sut.isActiveSupplier(inactiveId)).isFalse();
+    }
+
     private static Supplier existingSupplier() {
         return Supplier.create(
                 new SupplierDetails("Coopérative Itasy", SupplierType.LOCAL, null, null, null, null, null));
