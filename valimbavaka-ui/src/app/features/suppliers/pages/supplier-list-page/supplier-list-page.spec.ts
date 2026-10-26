@@ -7,7 +7,6 @@ import {
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import axe from 'axe-core';
-import { vi } from 'vitest';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
@@ -40,7 +39,6 @@ describe('SupplierListPage', () => {
 
   afterEach(() => {
     httpMock.verify();
-    vi.useRealTimers();
   });
 
   const nextRequest = (): TestRequest => httpMock.expectOne((req) => req.url === SUPPLIERS_URL);
@@ -68,17 +66,16 @@ describe('SupplierListPage', () => {
     await refresh();
   };
 
+  /** La recherche part 300 ms après la dernière frappe : on attend ce délai en temps réel. */
   const searchFor = async (term: string): Promise<void> => {
-    vi.useFakeTimers();
     const input = element.querySelector<HTMLInputElement>(
       'input[type="search"]',
     ) as HTMLInputElement;
     input.value = term;
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
-    await vi.advanceTimersByTimeAsync(300);
+    await new Promise((resolve) => setTimeout(resolve, 350));
     await refresh();
-    vi.useRealTimers();
   };
 
   const rowNames = (): string[] =>

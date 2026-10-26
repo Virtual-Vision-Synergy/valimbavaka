@@ -93,7 +93,10 @@ export class SupplierListPage {
         type: params.type === 'ALL' ? undefined : params.type,
       }),
   });
-  protected readonly items = computed(() => this.suppliers.value()?.items ?? []);
+  /** `value()` lève une exception tant que la ressource est en erreur : toujours passer par `hasValue()`. */
+  protected readonly items = computed(() =>
+    this.suppliers.hasValue() ? this.suppliers.value().items : [],
+  );
   protected readonly isFiltered = computed(() => this.type() !== 'ALL' || !!this.search().trim());
   /** Fournisseur affiché à droite : conservé après un rechargement tant qu'il est dans la liste. */
   protected readonly selectedId = linkedSignal<readonly SupplierRDto[], string | null>({

@@ -2,8 +2,8 @@
   <vvs-page-header
     [heading]="'suppliers.title' | translate"
     [subtitle]="
-      suppliers.value()
-        ? ('suppliers.subtitle' | translate: { count: suppliers.value()?.totalCount })
+      suppliers.hasValue()
+        ? ('suppliers.subtitle' | translate: { count: suppliers.value().totalCount })
         : ''
     "
     [codes]="['FRS-01', 'FRS-02', 'FRS-03']"

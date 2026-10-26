@@ -1,5 +1,8 @@
 <section class="detail">
-  @if (supplier.value(); as s) {
+  @if (supplier.error()) {
+    <vvs-list-state kind="error" (retry)="supplier.reload()" />
+  } @else if (supplier.hasValue()) {
+    @let s = supplier.value();
     <header class="head">
       <vvs-avatar-initials [name]="s.name" [size]="56" tone="secondary" />
       <div class="identity">
@@ -114,8 +117,6 @@
         }
       }
     </div>
-  } @else if (supplier.error()) {
-    <vvs-list-state kind="error" (retry)="supplier.reload()" />
   } @else {
     <vvs-list-state kind="loading" [rows]="5" />
   }
