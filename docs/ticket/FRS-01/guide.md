@@ -25,8 +25,8 @@ Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 - `SupplierRDto` : `id`, `name`, `type`, `contactName`, `phone`, `email`, `address`, `notes`, `active`, `createdAt`, `updatedAt`.
 - Unicité du nom insensible à la casse (index `uq_suppliers_name` sur `lower(name)`) ; le nom est nettoyé (`strip`) avant comparaison.
 - `PATCH /status` est idempotent : aucune modification ni ligne de journal si l'état est déjà celui demandé.
-- Journal : `CREATE` à la création, `UPDATE` à la modification et au changement d'état, ressource `SUPPLIER`.
-- Verrou optimiste : `SupplierRDto.version` est renvoyée par le formulaire dans `SupplierWDto.version` ; si la fiche a changé entre-temps, 409 « The supplier was modified in the meantime: reload it and try again. ». Un conflit détecté au commit (verrou JPA) ou un doublon refusé par la base donnent aussi 409.
+- Journal : `CREATE` à la création, `UPDATE` à une modification réelle (aucune ligne si rien ne change, FRS-02) et au changement d'état, ressource `SUPPLIER`.
+- Verrou optimiste : `SupplierRDto.version` est renvoyée par le formulaire dans `SupplierWDto.version` ; si la fiche a changé entre-temps, 409 « Le fournisseur a été modifié entre-temps : rechargez la fiche puis réessayez. » (texte en français depuis FRS-02). Un conflit détecté au commit (verrou JPA) ou un doublon refusé par la base donnent aussi 409.
 
 ### Service Java
 
@@ -89,8 +89,8 @@ Le filtre `type` / `active` du backend est disponible pour un appel direct : `GE
 
 ## Points d'attention
 
-- **Chevauchement avec FRS-02 (ouvert)** : la création, la modification et l'activation existent déjà côté serveur et dans l'interface (formulaire, liste). FRS-02, FRS-03 (filtre par type) et le champ `search` doivent partir de cet existant, pas le refaire. Le filtre par type a son paramètre `type` côté API ; l'interface n'est pas vérifiée dans cette note.
+- **FRS-02 (livré le 2026-10-26)** : la création et la modification sont parties de cet existant ; une modification sans changement réel n'écrit plus de ligne `UPDATE` (voir le [guide FRS-02](../FRS-02/guide.md)). FRS-03 (filtre par type) et le champ `search` doivent aussi partir de cet existant : le filtre par type a son paramètre `type` côté API ; l'interface n'est pas vérifiée dans cette note.
 - Le bloc « articles fournis » est vide : il se remplit avec [ART-01](../ART-01/description.md), qui référence le fournisseur depuis l'article. Prévoir un endpoint de lecture des articles par fournisseur dans ART-01.
 - L'écriture n'utilise pas encore `OutboxService` : un fournisseur ne peut pas être saisi hors ligne ([SYS-07](../SYS-07/description.md)).
-- Messages d'erreur serveur en anglais (« A supplier with this name already exists. ») : le journal aussi (« Supplier created: … »), alors que les autres modules écrivent en français.
-- Pas de test d'interface pour les pages liste et formulaire (seul `supplier-service.spec.ts` existe).
+- Messages serveur et libellés du journal passés en français par FRS-02 (« Un fournisseur avec ce nom existe déjà. », « Création du fournisseur … »).
+- Pas de test d'interface pour la page liste ; le formulaire est couvert par `supplier-form-page.spec.ts` (FRS-02).

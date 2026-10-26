@@ -11,26 +11,27 @@ import org.vvs.valimbavaka.feature.supplier.domain.SupplierType;
 
 /** Write DTO for the supplier sheet (create and update); no identifier or status here. */
 public record SupplierWDto(
-        @NotBlank(message = "Name is required") @Size(max = 150, message = "Name must not exceed {max} characters")
+        @NotBlank(message = "Le nom est obligatoire")
+        @Size(max = 150, message = "Le nom ne doit pas dépasser {max} caractères")
         String name,
 
-        @NotNull(message = "Type is required") SupplierType type,
+        @NotNull(message = "Le type est obligatoire") SupplierType type,
 
-        @Size(max = 150, message = "Contact name must not exceed {max} characters") @Nullable
+        @Size(max = 150, message = "Le nom du contact ne doit pas dépasser {max} caractères") @Nullable
         String contactName,
 
-        @Size(max = 50, message = "Phone must not exceed {max} characters") @Nullable
+        @Size(max = 50, message = "Le téléphone ne doit pas dépasser {max} caractères") @Nullable
         String phone,
 
-        @Email(message = "Email must be a valid email address")
-        @Size(max = 255, message = "Email must not exceed {max} characters")
+        @Email(message = "L'email doit être une adresse email valide")
+        @Size(max = 255, message = "L'email ne doit pas dépasser {max} caractères")
         @Nullable
         String email,
 
-        @Size(max = 500, message = "Address must not exceed {max} characters") @Nullable
+        @Size(max = 500, message = "L'adresse ne doit pas dépasser {max} caractères") @Nullable
         String address,
 
-        @Size(max = 2000, message = "Notes must not exceed {max} characters") @Nullable
+        @Size(max = 2000, message = "Les notes ne doivent pas dépasser {max} caractères") @Nullable
         String notes,
 
         // Version read by the client (SupplierRDto.version): a stale value is refused with 409 instead of silently

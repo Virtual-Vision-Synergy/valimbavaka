@@ -1319,6 +1319,7 @@
       "save": "Enregistrer",
       "cancel": "Annuler",
       "nameRequired": "Le nom est obligatoire",
+      "tooLong": "{{max}} caractères maximum",
       "emailInvalid": "L'email n'est pas valide"
     },
     "articles": {

@@ -17,7 +17,13 @@ import { errorMessage } from '../../../../core/http/problem-detail';
 import { SupplierRDto, SupplierType } from '../../data-access/supplier-models';
 import { SupplierService } from '../../data-access/supplier-service';
 
-/** Fiche fournisseur (FRS-01), version simple : tous les champs modifiables. */
+/** Clé de traduction et paramètres du message d'erreur d'un champ. */
+interface FieldError {
+  key: string;
+  params?: { max: number };
+}
+
+/** Fiche fournisseur (FRS-01) : création et modification de tous les champs (FRS-02). */
 @Component({
   selector: 'vvs-supplier-form-page',
   imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
@@ -41,7 +47,8 @@ export class SupplierFormPage implements OnInit {
   private version: number | null = null;
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(150)]],
+    // \S : un nom fait uniquement d'espaces est refusé ici comme par le serveur (@NotBlank).
+    name: ['', [Validators.required, Validators.pattern(/\S/), Validators.maxLength(150)]],
     type: ['LOCAL' as SupplierType, Validators.required],
     contactName: ['', Validators.maxLength(150)],
     phone: ['', Validators.maxLength(50)],
@@ -64,9 +71,19 @@ export class SupplierFormPage implements OnInit {
       });
   }
 
-  protected isInvalid(field: keyof typeof this.form.controls): boolean {
+  /** Message à afficher sous un champ touché et invalide, ou null : mêmes règles que le serveur. */
+  protected fieldError(field: keyof typeof this.form.controls): FieldError | null {
     const control = this.form.controls[field];
-    return control.invalid && control.touched;
+    if (!control.invalid || !control.touched) {
+      return null;
+    }
+    const maxLength = control.getError('maxlength') as { requiredLength: number } | null;
+    if (maxLength) {
+      return { key: 'supplier.form.tooLong', params: { max: maxLength.requiredLength } };
+    }
+    return {
+      key: control.hasError('email') ? 'supplier.form.emailInvalid' : 'supplier.form.nameRequired',
+    };
   }
 
   protected save(): void {
