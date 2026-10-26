@@ -28,6 +28,7 @@ Le guide n'est pas une note pour soi : il dit aux autres comment utiliser ce qu'
 
 ## 3. Lire avant de coder
 
+- Un ticket qui **écrit** (créer, modifier, valider, annuler) dépend de [SYS-07](SYS-07/description.md) : son formulaire enregistre par `OutboxService.submit`, jamais par un `HttpClient` direct. Lire le guide de SYS-07 avant de coder l'écran.
 - Toujours partir du **guide** des dépendances, pas du code : s'il dit « appeler `JournalService.record` dans la même transaction », on le fait.
 - Les points d'attention des guides listent des écarts connus (ex. `DELETE /api/v1/users/{id}`, conflits renvoyés en 500) : ne pas les reproduire dans son ticket.
 - Les tickets encore marqués ⚠ dans l'[index](README.md) ont un guide pré-rempli automatiquement depuis le code : à vérifier, pas à croire sur parole.

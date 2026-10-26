@@ -12,6 +12,7 @@ En tant qu'administrateur, je veux valider les commissions afin de sécuriser le
 
 - Bloqué par `COM-02` (#86)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -34,6 +35,7 @@ En tant qu'administrateur, je veux valider les commissions afin de sécuriser le
 
 - [COM-02](../COM-02/description.md) · Calcul automatique de la commission (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

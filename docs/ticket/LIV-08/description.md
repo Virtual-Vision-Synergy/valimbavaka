@@ -12,6 +12,7 @@ En tant que livreur, je veux que ma tournée fonctionne hors ligne afin de ne pa
 
 - Bloqué par `LIV-03` (#48)
 - Bloqué par `SYS-02` (#16)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -34,6 +35,7 @@ En tant que livreur, je veux que ma tournée fonctionne hors ligne afin de ne pa
 
 - [LIV-03](../LIV-03/description.md) · Marquage rapide d'une livraison (ouvert)
 - [SYS-02](../SYS-02/description.md) · Sauvegarde automatique hors-ligne (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

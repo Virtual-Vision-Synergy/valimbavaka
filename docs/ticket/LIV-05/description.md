@@ -13,6 +13,7 @@ En tant que livreur, je veux annuler une action récente afin de corriger une er
 - Bloqué par `LIV-03` (#48)
 - Bloqué par `LIV-04` (#49)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -36,6 +37,7 @@ En tant que livreur, je veux annuler une action récente afin de corriger une er
 - [LIV-03](../LIV-03/description.md) · Marquage rapide d'une livraison (ouvert)
 - [LIV-04](../LIV-04/description.md) · Signalement d'un échec de livraison (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

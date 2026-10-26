@@ -15,6 +15,7 @@ En tant que vendeuse, je veux créer une commande à livrer (client, adresse, li
 - Bloqué par `STK-01` (#30)
 - Bloqué par `JNL-02` (#15)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -43,6 +44,7 @@ En tant que vendeuse, je veux créer une commande à livrer (client, adresse, li
 - [STK-01](../STK-01/description.md) · Suivi du stock par emplacement (ouvert)
 - [JNL-02](../JNL-02/description.md) · Interdiction de suppression des opérations validées (fermé)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

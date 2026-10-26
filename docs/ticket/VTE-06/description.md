@@ -11,6 +11,7 @@ En tant que vendeuse, je veux mettre un ticket en attente afin de le reprendre p
 ## Dépendances
 
 - Bloqué par `VTE-02` (#63)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -32,6 +33,7 @@ En tant que vendeuse, je veux mettre un ticket en attente afin de le reprendre p
 ## Dépend de
 
 - [VTE-02](../VTE-02/description.md) · Poste de caisse avec calcul automatique (ouvert)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

@@ -14,6 +14,7 @@ En tant qu'administrateur, je veux répartir en un seul écran la sortie du mati
 - Bloqué par `TRF-03` (#36)
 - Bloqué par `JNL-02` (#15)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -40,6 +41,7 @@ En tant qu'administrateur, je veux répartir en un seul écran la sortie du mati
 - [TRF-03](../TRF-03/description.md) · Enregistrement d'un retour de stock (ouvert)
 - [JNL-02](../JNL-02/description.md) · Interdiction de suppression des opérations validées (fermé)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

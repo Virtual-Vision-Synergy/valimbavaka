@@ -12,6 +12,7 @@ En tant qu'administrateur, je veux verrouiller la clôture du jour afin de figer
 
 - Bloqué par `JNL-01` (#14)
 - Bloqué par `JR-05` (#92)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -34,6 +35,7 @@ En tant qu'administrateur, je veux verrouiller la clôture du jour afin de figer
 
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
 - [JR-05](../JR-05/description.md) · Motif obligatoire en cas d'écart (ouvert)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

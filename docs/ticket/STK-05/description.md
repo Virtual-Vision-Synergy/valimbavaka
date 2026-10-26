@@ -13,6 +13,7 @@ En tant qu'administrateur, je veux générer un bon de réapprovisionnement pré
 - Bloqué par `FRS-01` (#17)
 - Bloqué par `STK-04` (#33)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -36,6 +37,7 @@ En tant qu'administrateur, je veux générer un bon de réapprovisionnement pré
 - [FRS-01](../FRS-01/description.md) · Fiche fournisseur complète (fermé)
 - [STK-04](../STK-04/description.md) · Alerte de seuil minimum (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

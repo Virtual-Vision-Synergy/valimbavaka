@@ -11,6 +11,7 @@ En tant qu'administrateur, je veux qualifier un motif d'écart par ligne afin d'
 ## Dépendances
 
 - Bloqué par `INV-02` (#78)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -32,6 +33,7 @@ En tant qu'administrateur, je veux qualifier un motif d'écart par ligne afin d'
 ## Dépend de
 
 - [INV-02](../INV-02/description.md) · Comptage physique avec calcul d'écart (ouvert)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

@@ -16,6 +16,7 @@ En tant qu'administrateur, je veux enregistrer la réception d'une livraison fou
 - Bloqué par `JNL-01` (#14)
 - Bloqué par `SYS-05` (#111)
 - Bloqué par `STK-05` (#34)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -46,6 +47,7 @@ Ajouté lors de la revue du backlog du 07/10 : aucun ticket ne faisait entrer en
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
 - [SYS-05](../SYS-05/description.md) · Rôles métier, référentiels et compte administrateur initial (fermé)
 - [STK-05](../STK-05/description.md) · Génération d'un bon de réapprovisionnement (ouvert)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

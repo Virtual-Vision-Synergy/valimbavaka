@@ -11,6 +11,7 @@ En tant qu'administrateur, je veux reprendre les quantités de la veille afin de
 ## Dépendances
 
 - Bloqué par `JR-01` (#54)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -32,6 +33,7 @@ En tant qu'administrateur, je veux reprendre les quantités de la veille afin de
 ## Dépend de
 
 - [JR-01](../JR-01/description.md) · Répartition matinale du stock (ouvert)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

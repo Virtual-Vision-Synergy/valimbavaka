@@ -12,6 +12,7 @@ En tant qu'administrateur, je veux saisir le comptage physique avec calcul d'éc
 
 - Bloqué par `INV-01` (#77)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -35,6 +36,7 @@ En tant qu'administrateur, je veux saisir le comptage physique avec calcul d'éc
 
 - [INV-01](../INV-01/description.md) · Ouverture d'une session d'inventaire (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

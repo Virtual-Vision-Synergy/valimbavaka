@@ -12,6 +12,7 @@ En tant qu'administrateur, je veux ajouter une nouvelle règle de commission afi
 
 - Bloqué par `COM-01` (#85)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -34,6 +35,7 @@ En tant qu'administrateur, je veux ajouter une nouvelle règle de commission afi
 
 - [COM-01](../COM-01/description.md) · Règles de commission par canal (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

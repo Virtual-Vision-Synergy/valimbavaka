@@ -13,6 +13,7 @@ En tant qu'administrateur, je veux recalculer et exporter les commissions du moi
 - Bloqué par `COM-02` (#86)
 - Bloqué par `SYS-01` (#105)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -36,6 +37,7 @@ En tant qu'administrateur, je veux recalculer et exporter les commissions du moi
 - [COM-02](../COM-02/description.md) · Calcul automatique de la commission (ouvert)
 - [SYS-01](../SYS-01/description.md) · Export PDF/Excel généralisé (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

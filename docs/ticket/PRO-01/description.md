@@ -13,6 +13,7 @@ En tant qu'administrateur, je veux créer une promotion (type, périmètre, cana
 - Bloqué par `ART-01` (#21)
 - Bloqué par `JNL-01` (#14)
 - Bloqué par `SYS-05` (#111)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -39,6 +40,7 @@ En tant qu'administrateur, je veux créer une promotion (type, périmètre, cana
 - [ART-01](../ART-01/description.md) · Fiche article complète (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
 - [SYS-05](../SYS-05/description.md) · Rôles métier, référentiels et compte administrateur initial (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

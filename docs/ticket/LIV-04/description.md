@@ -12,6 +12,7 @@ En tant que livreur, je veux signaler un échec avec motif obligatoire afin de d
 
 - Bloqué par `LIV-02` (#47)
 - Bloqué par `JNL-01` (#14)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -35,6 +36,7 @@ En tant que livreur, je veux signaler un échec avec motif obligatoire afin de d
 
 - [LIV-02](../LIV-02/description.md) · Consultation de la tournée du jour (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 
