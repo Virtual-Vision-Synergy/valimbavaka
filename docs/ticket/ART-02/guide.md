@@ -85,3 +85,5 @@ Pour les tests frontend, `ROLE_PERMISSIONS.ADMIN` (`core/auth/auth-testing.ts`) 
 - Reste dans `fr.json` / `mg.json` l'espace de noms `article.*` (écrit pour le formulaire supprimé) ; seuls `article.form.newTitle` et `article.form.editTitle` servent encore (titres de route). Le reste peut être nettoyé.
 - Hors ligne : l'écriture n'est pas mise en file ([SYS-07](../SYS-07/description.md)) ; une erreur réseau affiche le message et conserve la saisie.
 - Les tests de ce ticket n'ont pas été exécutés par l'auteur : voir le scénario avant de s'appuyer sur ce guide pour un comportement limite.
+
+> **Mise à jour SYS-07** : l'enregistrement de ce formulaire passe maintenant par `OutboxService.submit` (file hors ligne, clé d'idempotence) ; hors connexion la saisie est conservée puis envoyée une seule fois. Voir le [guide SYS-07](../SYS-07/guide.md).

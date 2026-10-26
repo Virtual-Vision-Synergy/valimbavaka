@@ -23,6 +23,7 @@ import { catchError, debounceTime, finalize, of } from 'rxjs';
 import { Check } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { errorMessage } from '../../../../core/http/problem-detail';
+import { SubmitResult } from '../../../../core/offline/outbox-models';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
@@ -200,7 +201,7 @@ export class ArticleFormPage implements OnInit {
         finalize(() => this.isSaving.set(false)),
       )
       .subscribe({
-        next: (article) => this.afterSave(article, another),
+        next: (result) => this.afterSave(result, another),
         error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
       });
   }
@@ -214,10 +215,16 @@ export class ArticleFormPage implements OnInit {
     this.toast.show('common.demoAction', {}, 'info');
   }
 
-  private afterSave(article: ArticleRDto, another: boolean): void {
+  /** Saisie partie : message avec le code attribué ; saisie en file : message de synchronisation à venir. */
+  private afterSave(result: SubmitResult<ArticleRDto>, another: boolean): void {
     this.draftStore.clear();
-    const key = this.isEdit() ? 'articles.form.updated' : 'articles.form.created';
-    this.toast.show(key, { reference: article.code, name: article.name });
+    const article = result.body;
+    if (article) {
+      const key = this.isEdit() ? 'articles.form.updated' : 'articles.form.created';
+      this.toast.show(key, { reference: article.code, name: article.name });
+    } else {
+      this.toast.show('common.queuedSaved', {}, 'info');
+    }
     if (another) {
       this.form.reset();
       this.savedAt.set(null);

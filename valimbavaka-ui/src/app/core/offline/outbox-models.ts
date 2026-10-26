@@ -17,7 +17,13 @@ export interface OutboxEntry {
   readonly errorMessage?: string;
 }
 
-export interface SubmitResult {
+/**
+ * Résultat d'une saisie : `queued` si elle est en file (réseau coupé ou saisies plus anciennes en attente),
+ * sinon elle est partie et `body` porte la réponse du serveur (l'entité créée ou modifiée).
+ */
+export interface SubmitResult<T = unknown> {
   /** true si la saisie est en file d'attente et sera synchronisée au retour du réseau. */
   readonly queued: boolean;
+  /** Réponse du serveur ; absente quand la saisie est en file (l'entité n'existe pas encore). */
+  readonly body?: T;
 }

@@ -1,3 +1,5 @@
+import { AuthStore } from '../../../../core/auth/auth-store';
+import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -45,6 +47,7 @@ describe('SupplierFormPage', () => {
         provideTestTranslations(),
       ],
     }).compileComponents();
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN')); // les écritures passent par la file hors ligne
     httpMock = TestBed.inject(HttpTestingController);
     navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(SupplierFormPage);

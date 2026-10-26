@@ -65,6 +65,8 @@ export class SupplierDetail {
   ];
   protected readonly isToggling = signal(false);
   protected readonly toggleError = signal<string | null>(null);
+  /** Clé de traduction d'un message d'information (saisie en file hors ligne). */
+  protected readonly notice = signal<string | null>(null);
   protected readonly supplier = rxResource({
     params: () => this.supplierId(),
     stream: ({ params }) => this.supplierService.getById(params),
@@ -78,14 +80,19 @@ export class SupplierDetail {
   protected toggleActive(supplier: SupplierRDto): void {
     this.isToggling.set(true);
     this.toggleError.set(null);
+    this.notice.set(null);
     this.supplierService
       .setActive(supplier.id, !supplier.active)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (updated) => {
+        next: (result) => {
           this.isToggling.set(false);
-          this.supplier.set(updated);
-          this.changed.emit(updated);
+          if (result.body) {
+            this.supplier.set(result.body);
+            this.changed.emit(result.body);
+          } else {
+            this.notice.set('common.queuedSaved');
+          }
         },
         error: (error: unknown) => {
           this.isToggling.set(false);

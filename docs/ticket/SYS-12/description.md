@@ -32,7 +32,7 @@ En tant qu'utilisateur, je veux qu'une saisie renvoyée plusieurs fois ne crée 
 
 ## Ce ticket débloque
 
-- _(aucun ticket ne dépend de celui-ci)_
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne
 
 ## Dépend de
 

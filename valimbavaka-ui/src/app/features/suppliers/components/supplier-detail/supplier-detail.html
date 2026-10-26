@@ -40,6 +40,9 @@
     @if (toggleError(); as message) {
       <div class="alert alert-danger" role="alert">{{ message }}</div>
     }
+    @if (notice(); as key) {
+      <div class="alert alert-info" role="status">{{ key | translate }}</div>
+    }
 
     <vvs-tabs
       [label]="'suppliers.tab.label' | translate"

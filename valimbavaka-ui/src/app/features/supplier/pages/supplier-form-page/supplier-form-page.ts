@@ -14,6 +14,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { errorMessage } from '../../../../core/http/problem-detail';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { ArticleRDto } from '../../../article/data-access/article-models';
 import { ArticleService } from '../../../article/data-access/article-service';
 import { SupplierRDto, SupplierType } from '../../data-access/supplier-models';
@@ -39,6 +40,7 @@ export class SupplierFormPage implements OnInit {
   private readonly supplierService = inject(SupplierService);
   private readonly articleService = inject(ArticleService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Identifiant lié depuis la route (:id/edit) ; absent en création. */
@@ -52,6 +54,11 @@ export class SupplierFormPage implements OnInit {
   protected readonly articles = signal<ArticleRDto[]>([]);
   /** Version de la fiche ouverte : le serveur refuse (409) si elle a changé entre-temps. */
   private version: number | null = null;
+  private readonly sheetRead = signal(false);
+  /** En modification, rien ne s'enregistre tant que la fiche n'est pas lue : un envoi l'écraserait. */
+  protected readonly canSave = computed(
+    () => !this.isSaving() && (!this.isEdit() || this.sheetRead()),
+  );
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     // \S : un nom fait uniquement d'espaces est refusé ici comme par le serveur (@NotBlank).
@@ -98,6 +105,9 @@ export class SupplierFormPage implements OnInit {
   }
 
   protected save(): void {
+    if (!this.canSave()) {
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -113,13 +123,19 @@ export class SupplierFormPage implements OnInit {
         finalize(() => this.isSaving.set(false)),
       )
       .subscribe({
-        next: () => void this.router.navigate(['/suppliers']),
+        next: (result) => {
+          if (result.queued) {
+            this.toast.show('common.queuedSaved', {}, 'info');
+          }
+          void this.router.navigate(['/suppliers']);
+        },
         error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
       });
   }
 
   private fill(supplier: SupplierRDto): void {
     this.version = supplier.version;
+    this.sheetRead.set(true);
     this.form.setValue({
       name: supplier.name,
       type: supplier.type,

@@ -57,7 +57,7 @@ describe('OutboxService', () => {
     const request = httpMock.expectOne('/api/v1/items');
     request.flush({});
 
-    expect(await result).toEqual({ queued: false });
+    expect(await result).toEqual({ queued: false, body: {} });
     expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
     expect(sut.pendingCount()).toBe(0);
   });

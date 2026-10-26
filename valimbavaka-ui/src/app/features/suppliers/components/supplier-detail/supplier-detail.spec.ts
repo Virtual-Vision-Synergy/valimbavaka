@@ -1,11 +1,13 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { signal } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
+import { ConnectivityService } from '../../../../core/offline/connectivity-service';
 import { SupplierRDto } from '../../../supplier/data-access/supplier-models';
 import { huilesRavo, pageOf } from '../../pages/supplier-list-page/supplier-list-page.fixtures';
 import { SupplierDetail } from './supplier-detail';
@@ -14,6 +16,7 @@ const SUPPLIER_URL = `/api/v1/suppliers/${huilesRavo.id}`;
 
 /** Fiche latérale d'un fournisseur : coordonnées, articles fournis, activation, modification. */
 describe('SupplierDetail', () => {
+  const online = signal(true);
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<SupplierDetail>;
   let element: HTMLElement;
@@ -30,6 +33,7 @@ describe('SupplierDetail', () => {
         provideHttpClientTesting(),
         provideRouter([]),
         provideTestTranslations(),
+        { provide: ConnectivityService, useValue: { isOnline: online.asReadonly() } },
       ],
     }).compileComponents();
     TestBed.inject(AuthStore).signIn('jeton', buildUser(role));
@@ -37,6 +41,7 @@ describe('SupplierDetail', () => {
     fixture = TestBed.createComponent(SupplierDetail);
     fixture.componentRef.setInput('supplierId', huilesRavo.id);
     changed = [];
+    online.set(true);
     fixture.componentInstance.changed.subscribe((updated) => changed.push(updated));
     element = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
@@ -115,6 +120,19 @@ describe('SupplierDetail', () => {
     expect(changed).toHaveLength(1);
     expect(element.querySelector('.badges')?.textContent).toContain('Inactif');
     expect(button('Activer')).toBeDefined();
+  });
+
+  it('should keep an activation made offline in the queue and tell it without changing the state', async () => {
+    await open('ADMIN');
+    online.set(false);
+
+    button('Désactiver')?.click();
+    await settle();
+
+    httpMock.expectNone(`${SUPPLIER_URL}/status`);
+    expect(element.querySelector('.alert-info')?.textContent).toContain('synchronisée');
+    expect(element.querySelector('.badges')?.textContent).toContain('Actif');
+    expect(changed).toHaveLength(0);
   });
 
   it('should show the server message when the activation is refused', async () => {
