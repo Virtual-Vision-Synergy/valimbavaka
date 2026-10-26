@@ -56,7 +56,7 @@ En tant qu'administrateur, je veux définir une fiche article complète (code, g
 _Confirmée le 2026-10-26 ; liste complète dans [guide.md](guide.md#fichiers-concernés)._
 
 **Frontend (`valimbavaka-ui`)**
-- `valimbavaka-ui/src/app/features/article` (fiche réelle : service, modèles, `article-sheet-page`)
+- `valimbavaka-ui/src/app/features/article` (service et modèles ; le formulaire est celui de la maquette `features/articles/pages/article-form-page`, adapté par ART-02)
 - `valimbavaka-ui/src/app/features/articles` (maquette : seules les routes `new` et `:id/edit` y servent la fiche réelle, depuis ART-02)
 - `valimbavaka-ui/src/app/features/supplier` (bloc « articles fournis », lien avec [FRS-01](../FRS-01/description.md))
 

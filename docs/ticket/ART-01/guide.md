@@ -40,7 +40,7 @@ Aucun `DELETE` (le test `ArticleSecurityIT.deleteArticle_isNotExposed` le vérif
 
 - Routes (sous `/articles`, gardées par `articles.read` puis par la permission d'écriture) : `/articles/new` (création, `articles.create`, depuis [ART-02](../ART-02/guide.md) ; c'était `/articles/sheet/new`) et `/articles/:id/edit` (fiche, `articles.update`). Les routes `''` et `:id` de la maquette sont inchangées.
 - `features/article/data-access/article-service.ts` : `list(query)`, `getById`, `create`, `update`, `setActive`. Types dans `article-models.ts` (`ArticleRDto`, `ArticleWDto`, `ArticleListQuery`, `ArticleStatusWDto`, `ArticleType`, `ArticleUnit`). Attention : `features/articles/` (avec un « s ») contient la **maquette** sur données de démonstration, avec ses propres types ; ne pas les mélanger.
-- `features/article/pages/article-sheet-page` : un seul formulaire pour créer (sans `id`) et modifier (`id` lié en `input()`). Gamme et prix n'apparaissent que pour un produit fini ; la version lue est renvoyée ; le message du `ProblemDetail` s'affiche en cas d'erreur sans perdre la saisie.
+- `features/articles/pages/article-form-page` (le formulaire de la maquette, adapté par [ART-02](../ART-02/guide.md) ; c'était `features/article/pages/article-sheet-page`) : un seul formulaire pour créer (sans `id`) et modifier (`id` lié en `input()`). Gamme et prix n'apparaissent que pour un produit fini ; la version lue est renvoyée ; le message du `ProblemDetail` s'affiche en cas d'erreur sans perdre la saisie.
 - Bloc « articles fournis » de `features/supplier/pages/supplier-form-page` : liste code + nom des articles d'un fournisseur (lien vers la fiche), lue avec `ArticleService.list({ supplierId })`.
 - Traductions : namespace `article.*` dans `public/i18n/fr.json` et `mg.json` ; `supplier.articles.empty` reformulé.
 
@@ -72,14 +72,14 @@ Aucun `DELETE` (le test `ArticleSecurityIT.deleteArticle_isNotExposed` le vérif
 
 **Migration** : `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_26-01-changelog.sql`, déclarée dans `db.changelog-master.yaml`.
 
-**Frontend** (`valimbavaka-ui/src/app/features/article/`) : `data-access/article-models.ts`, `data-access/article-service.ts`, `pages/article-sheet-page/*` ; routes ajoutées dans `features/articles/articles.routes.ts` ; bloc « articles fournis » dans `features/supplier/pages/supplier-form-page/*`.
+**Frontend** (`valimbavaka-ui/src/app/features/article/`) : `data-access/article-models.ts`, `data-access/article-service.ts` ; formulaire dans `features/articles/pages/article-form-page/*` (ART-02) ; routes ajoutées dans `features/articles/articles.routes.ts` ; bloc « articles fournis » dans `features/supplier/pages/supplier-form-page/*`.
 
 **Tests**
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/domain/ArticleTest.java`
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/service/impl/ArticleServiceImplTest.java`, `ArticleReferenceCheckerTest.java`
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/repository/ArticleRepositoryIT.java`
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/controller/ArticleSecurityIT.java`, `ArticleCreationIT.java`, `ArticleUpdateIT.java` (socle `ArticleApiTestSupport.java`)
-- `valimbavaka-ui/src/app/features/article/data-access/article-service.spec.ts`, `pages/article-sheet-page/article-sheet-page.spec.ts`
+- `valimbavaka-ui/src/app/features/article/data-access/article-service.spec.ts`, `features/articles/pages/article-form-page/article-form-page*.spec.ts` (ART-02)
 
 ## Dépendances
 
@@ -105,7 +105,7 @@ Appel direct : `GET /api/v1/articles?supplierId=<uuid>&active=true` pour les art
 
 ## Points d'attention
 
-- **Ce qui reste de la maquette** : la liste `/articles` et le détail `/articles/:id` utilisent encore des données de démonstration (`features/articles/data-access/article-fixtures.ts`). [ART-02](../ART-02/guide.md) a remplacé le formulaire de maquette par `article-sheet-page` ; [ART-05](../ART-05/description.md) branche la liste sur `GET /api/v1/articles` ; [ART-06](../ART-06/description.md) la fiche 360°.
+- **Ce qui reste de la maquette** : la liste `/articles` et le détail `/articles/:id` utilisent encore des données de démonstration (`features/articles/data-access/article-fixtures.ts`). [ART-02](../ART-02/guide.md) a adapté le formulaire de maquette (`article-form-page`) à l'API et supprimé `article-sheet-page` ; [ART-05](../ART-05/description.md) branche la liste sur `GET /api/v1/articles` ; [ART-06](../ART-06/description.md) la fiche 360°.
 - La maquette connaît un type `PACKAGING` (emballage) et des drapeaux `manufactured` / `salonUsable` qui ne font pas partie du contrat d'ART-01 (MP / SF / Fini) ; à trancher avec le métier avant [ART-04](../ART-04/description.md).
 - Pas de stock total, d'état de stock ni de lots dans `ArticleRDto` : ils viendront de [STK-01](../STK-01/description.md).
 - Le coût d'achat (`cost`) est visible de toute personne qui a `articles.read`, donc aussi de la vendeuse ; à masquer si le métier le demande.

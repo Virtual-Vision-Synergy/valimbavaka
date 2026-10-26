@@ -1,4 +1,4 @@
-import { ArticleRDto } from '../../data-access/article-models';
+import { ArticleRDto } from '../../../article/data-access/article-models';
 
 export const ARTICLES_URL = '/api/v1/articles';
 export const ARTICLE_ID = '0195f0a0-0000-7000-8000-0000000000a1';
@@ -10,7 +10,7 @@ export const article: ArticleRDto = {
   id: ARTICLE_ID,
   code: 'ART-0031',
   name: 'Savon noir 100 g',
-  barcode: '3760123456789',
+  barcode: '3760123456784',
   type: 'FINISHED',
   rangeId: RANGE_ID,
   unit: 'PIECE',

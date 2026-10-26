@@ -595,8 +595,10 @@
       "hint": {
         "FINISHED": "Vendu en caisse",
         "RAW_MATERIAL": "Consommée en production",
-        "PACKAGING": "Pots, étiquettes…"
-      }
+        "PACKAGING": "Pots, étiquettes…",
+        "SEMI_FINISHED": "Fabriqué puis consommé en production"
+      },
+      "SEMI_FINISHED": "Semi-fini"
     },
     "unit": {
       "PIECE": "Pièce",
@@ -649,7 +651,7 @@
       "priceStock": "Prix & stock",
       "priceStockHint": "Le seuil minimum déclenche une alerte sur le cockpit.",
       "price": "Prix de vente",
-      "priceError": "Indiquez un prix de vente supérieur à 0 Ar.",
+      "priceError": "Indiquez un prix de vente de 0 Ar ou plus.",
       "unit": "Unité",
       "threshold": "Seuil minimum",
       "thresholdHint": "Par emplacement de vente.",
@@ -659,13 +661,19 @@
       "photoHint": "Affichée dans la grille de la caisse.",
       "saveAndNew": "Enregistrer et créer un autre",
       "save": "Enregistrer l'article",
-      "created": "Article {{reference}} « {{name}} » enregistré (démonstration)",
+      "created": "Article {{reference}} « {{name}} » enregistré.",
       "preview": "Aperçu en caisse",
       "previewName": "Nom de l'article",
       "previewNotSold": "Cet article n'apparaît pas en caisse.",
       "bulkTitle": "Import en masse",
       "bulkText": "Plus de 10 articles ? Importez un fichier Excel à partir du modèle.",
-      "downloadTemplate": "Télécharger le modèle"
+      "downloadTemplate": "Télécharger le modèle",
+      "editTitle": "Modifier l'article",
+      "updated": "Article {{reference}} « {{name}} » modifié.",
+      "cost": "Coût d'achat",
+      "negativeError": "La valeur ne peut pas être négative.",
+      "thresholdError": "Indiquez un seuil minimum de 0 ou plus.",
+      "rangeError": "Choisissez une gamme pour un produit fini."
     },
     "photo": {
       "drop": "Glissez une image ou",
