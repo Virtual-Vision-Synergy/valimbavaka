@@ -51,12 +51,21 @@ describe('SupplierListPage', () => {
     fixture.detectChanges();
   };
 
+  /**
+   * Applique un geste sans attendre `whenStable()` : une requête lancée par la liste (rxResource)
+   * est une tâche en cours tant que le test ne l'a pas fait répondre.
+   */
+  const refresh = async (): Promise<void> => {
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
+  };
+
   const chooseType = async (label: string): Promise<void> => {
     Array.from(element.querySelectorAll<HTMLButtonElement>('.chips button'))
       .find((chip) => chip.textContent?.includes(label))
       ?.click();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await refresh();
   };
 
   const searchFor = async (term: string): Promise<void> => {
@@ -66,9 +75,9 @@ describe('SupplierListPage', () => {
     ) as HTMLInputElement;
     input.value = term;
     input.dispatchEvent(new Event('input'));
-    await vi.advanceTimersByTimeAsync(300);
-    await fixture.whenStable();
     fixture.detectChanges();
+    await vi.advanceTimersByTimeAsync(300);
+    await refresh();
     vi.useRealTimers();
   };
 
@@ -128,7 +137,7 @@ describe('SupplierListPage', () => {
   it('should go back to the first page when a filter changes', async () => {
     await respond(nextRequest(), pageOf([huilesRavo], 1, 20));
     element.querySelector<HTMLButtonElement>('button[aria-label="Page suivante"]')?.click();
-    await fixture.whenStable();
+    await refresh();
     const second = nextRequest();
     expect(second.request.params.get('page')).toBe('2');
     await respond(second, pageOf([provenceEssences], 2, 20));
@@ -197,8 +206,7 @@ describe('SupplierListPage', () => {
     await respond(nextRequest(), pageOf([huilesRavo, provenceEssences]));
 
     element.querySelectorAll<HTMLButtonElement>('.row-link')[1].click();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await refresh();
 
     httpMock.expectOne(`${SUPPLIERS_URL}/${provenceEssences.id}`).flush(provenceEssences);
     await fixture.whenStable();

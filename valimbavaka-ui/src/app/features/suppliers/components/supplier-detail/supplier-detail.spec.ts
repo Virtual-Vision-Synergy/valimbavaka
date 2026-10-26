@@ -56,7 +56,7 @@ describe('SupplierDetail', () => {
 
   const openArticlesTab = async (): Promise<void> => {
     element.querySelector<HTMLButtonElement>('#supplier-tab-articles')?.click();
-    await settle();
+    fixture.detectChanges();
   };
 
   afterEach(() => httpMock.verify());
