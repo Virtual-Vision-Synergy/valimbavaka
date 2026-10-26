@@ -1291,7 +1291,15 @@
       "actions": "Asa",
       "edit": "Ovaina",
       "loading": "Eo am-pakana…",
-      "empty": "Tsy misy mpamatsy"
+      "empty": "Tsy misy mpamatsy",
+      "noMatch": "Tsy misy mpamatsy mifanaraka amin'ny sivana na ny fikarohana"
+    },
+    "filter": {
+      "typeLabel": "Sivanina araka ny karazany",
+      "allTypes": "Karazany rehetra",
+      "searchLabel": "Hitady mpamatsy",
+      "searchPlaceholder": "Anaran'ny mpamatsy na ny olona hifandraisana",
+      "submit": "Hitady"
     },
     "field": {
       "name": "Anarana",
