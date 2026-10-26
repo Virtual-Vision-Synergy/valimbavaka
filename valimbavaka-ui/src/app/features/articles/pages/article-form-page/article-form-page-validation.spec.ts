@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { FormHarness, mountForm } from './article-form-page.harness';
-import { ARTICLES_URL, RANGE_ID } from './article-form-page.fixtures';
+import { ARTICLES_URL } from './article-form-page.fixtures';
 
 /** Règles de saisie du formulaire : mêmes bornes que le serveur (422 évité côté écran). */
 describe('ArticleFormPage validation', () => {
@@ -13,14 +13,17 @@ describe('ArticleFormPage validation', () => {
     await h.fixture.whenStable();
     h.fixture.detectChanges();
     await h.type('article-name', 'Gommage café 200 g');
-    await h.choose('rangeId', RANGE_ID);
+    await h.choose('rangeId', 'Botanika');
     await h.type('article-price', '12500');
   });
 
   afterEach(() => {
-    h.httpMock.verify();
-    vi.restoreAllMocks();
-    TestBed.resetTestingModule();
+    try {
+      h.httpMock.verify();
+    } finally {
+      vi.restoreAllMocks();
+      TestBed.resetTestingModule();
+    }
   });
 
   it('should send nothing and ask for a name when the name is only spaces', async () => {

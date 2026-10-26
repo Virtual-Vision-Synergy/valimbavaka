@@ -16,7 +16,7 @@ interface Gestures {
   field<T extends Control>(id: string): T;
   submit(): HTMLButtonElement;
   type(id: string, value: string): Promise<void>;
-  choose(name: string, value: string): Promise<void>;
+  choose(name: string, label: string): Promise<void>;
   pick(id: string, label: string): Promise<void>;
   press(label: string): Promise<void>;
   save(): Promise<void>;
@@ -49,11 +49,15 @@ function domOf(element: HTMLElement) {
     Array.from(element.querySelectorAll<HTMLButtonElement>('button'))
       .find((button) => button.textContent?.trim() === label)
       ?.click();
-  const clickRadio = (name: string, value: string): void =>
-    Array.from(
-      element.querySelectorAll<HTMLInputElement>(`input[type="radio"][formControlName="${name}"]`),
-    )
-      .find((radio) => radio.value === value)
+  /** Clique la pastille dont le libellé contient `label` : la valeur d'un radio Angular n'est pas dans le DOM. */
+  const clickRadio = (name: string, label: string): void =>
+    Array.from(element.querySelectorAll<HTMLLabelElement>('label.choice'))
+      .find(
+        (choice) =>
+          choice.querySelector(`input[formControlName="${name}"]`) &&
+          choice.textContent?.includes(label),
+      )
+      ?.querySelector<HTMLInputElement>('input')
       ?.click();
   return { field, submit, clickButton, clickRadio };
 }
@@ -78,7 +82,7 @@ function gesturesOn(fixture: ComponentFixture<ArticleFormPage>): Gestures {
       const kind = control instanceof HTMLSelectElement ? 'change' : 'input';
       await act(() => control.dispatchEvent(new Event(kind)))();
     },
-    choose: (name, value) => act(() => dom.clickRadio(name, value))(),
+    choose: (name, label) => act(() => dom.clickRadio(name, label))(),
     pick: async (id, label) => {
       const select = dom.field<HTMLSelectElement>(id);
       const option = Array.from(select.options).find((o) => o.textContent?.trim() === label);

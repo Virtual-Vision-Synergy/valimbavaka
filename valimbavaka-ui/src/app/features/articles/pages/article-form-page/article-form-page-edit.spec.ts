@@ -15,9 +15,12 @@ describe('ArticleFormPage in edit mode', () => {
   let h: FormHarness;
 
   afterEach(() => {
-    h.httpMock.verify();
-    vi.restoreAllMocks();
-    TestBed.resetTestingModule();
+    try {
+      h.httpMock.verify();
+    } finally {
+      vi.restoreAllMocks();
+      TestBed.resetTestingModule();
+    }
   });
 
   const open = async (sheet: object = article): Promise<void> => {
@@ -115,7 +118,7 @@ describe('ArticleFormPage in edit mode', () => {
 
   it('should send the type change and drop range and price when it becomes a raw material', async () => {
     await open();
-    await h.choose('type', 'RAW_MATERIAL');
+    await h.choose('type', 'Matière première');
 
     await h.save();
 

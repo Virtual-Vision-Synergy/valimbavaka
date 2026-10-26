@@ -21,14 +21,17 @@ describe('ArticleFormPage in creation mode', () => {
   });
 
   afterEach(() => {
-    h.httpMock.verify();
-    vi.restoreAllMocks();
-    TestBed.resetTestingModule();
+    try {
+      h.httpMock.verify();
+    } finally {
+      vi.restoreAllMocks();
+      TestBed.resetTestingModule();
+    }
   });
 
   const fillValidFinishedProduct = async (): Promise<void> => {
     await h.type('article-name', '  Gommage café 200 g ');
-    await h.choose('rangeId', RANGE_ID);
+    await h.choose('rangeId', 'Botanika');
     await h.type('article-price', '12500');
   };
 
@@ -96,7 +99,7 @@ describe('ArticleFormPage in creation mode', () => {
 
   it('should create a raw material without range or price', async () => {
     await h.type('article-name', 'Beurre de karité brut');
-    await h.choose('type', 'RAW_MATERIAL');
+    await h.choose('type', 'Matière première');
     await h.type('article-unit', 'KILOGRAM');
 
     await h.save();
@@ -112,7 +115,7 @@ describe('ArticleFormPage in creation mode', () => {
 
   it('should offer the semi-finished type and send it as such', async () => {
     await h.type('article-name', 'Pâte de savon');
-    await h.choose('type', 'SEMI_FINISHED');
+    await h.choose('type', 'Semi-fini');
 
     await h.save();
 
@@ -167,7 +170,7 @@ describe('ArticleFormPage in creation mode', () => {
   });
 
   it('should hide the range and the price for a raw material', async () => {
-    await h.choose('type', 'RAW_MATERIAL');
+    await h.choose('type', 'Matière première');
 
     expect(h.element.querySelector('#article-price')).toBeNull();
     expect(h.element.querySelector('input[formControlName="rangeId"]')).toBeNull();
