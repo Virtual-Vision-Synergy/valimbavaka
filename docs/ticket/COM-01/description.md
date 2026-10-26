@@ -13,6 +13,7 @@ En tant qu'administrateur, je veux définir des règles de commission par canal 
 - Bloqué par `AUTH-03` (#12)
 - Bloqué par `JNL-01` (#14)
 - Bloqué par `SYS-05` (#111)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -39,6 +40,7 @@ En tant qu'administrateur, je veux définir des règles de commission par canal 
 - [AUTH-03](../AUTH-03/description.md) · Création et modification d'un utilisateur (fermé)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
 - [SYS-05](../SYS-05/description.md) · Rôles métier, référentiels et compte administrateur initial (fermé)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

@@ -16,7 +16,6 @@ En tant qu'administrateur, je veux une réconciliation automatique de clôture (
 - Bloqué par `TRF-02` (#55)
 - Bloqué par `VTE-01` (#62)
 - Bloqué par `JNL-01` (#14)
-- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -45,7 +44,6 @@ En tant qu'administrateur, je veux une réconciliation automatique de clôture (
 - [TRF-02](../TRF-02/description.md) · Génération automatique des transferts du matin (ouvert)
 - [VTE-01](../VTE-01/description.md) · Enregistrement d'une vente multicanal (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
-- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

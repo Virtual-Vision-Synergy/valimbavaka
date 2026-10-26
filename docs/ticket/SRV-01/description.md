@@ -11,6 +11,7 @@ En tant qu'administrateur, je veux définir un catalogue de services salon afin 
 ## Dépendances
 
 - Bloqué par `ART-01` (#21)
+- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -36,6 +37,7 @@ En tant qu'administrateur, je veux définir un catalogue de services salon afin 
 ## Dépend de
 
 - [ART-01](../ART-01/description.md) · Fiche article complète (ouvert)
+- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 

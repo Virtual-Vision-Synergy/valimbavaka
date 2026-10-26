@@ -92,7 +92,7 @@ docs/ticket/<ID>/
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
 | [PRD-01](PRD-01/description.md) | Création d'un lot de production | 2 | And-Matia | [#38](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/38) 🟡 | [ART-04](ART-04/description.md), [STK-01](STK-01/description.md), [JNL-02](JNL-02/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](PRD-01/scenario-test.md) | [☐](PRD-01/guide.md) |
-| [PRD-02](PRD-02/description.md) | Cohérence stock lors de la validation d'un lot | 2 | Kei-Shiro | [#39](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/39) 🟡 | [PRD-01](PRD-01/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](PRD-02/scenario-test.md) | [☐](PRD-02/guide.md) |
+| [PRD-02](PRD-02/description.md) | Cohérence stock lors de la validation d'un lot | 2 | Kei-Shiro | [#39](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/39) 🟡 | [PRD-01](PRD-01/description.md), [JNL-01](JNL-01/description.md) | [☐](PRD-02/scenario-test.md) | [☐](PRD-02/guide.md) |
 | [PRD-03](PRD-03/description.md) | Statut d'un lot de production | 1 | ManaJudy | [#40](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/40) 🟡 | [PRD-01](PRD-01/description.md), [SYS-07](SYS-07/description.md) | [☐](PRD-03/scenario-test.md) | [☐](PRD-03/guide.md) |
 | [PRD-04](PRD-04/description.md) | Indicateurs de production | 1 | Njara-Niaina | [#41](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/41) 🟡 | [PRD-02](PRD-02/description.md) | [☐](PRD-04/scenario-test.md) | [☐](PRD-04/guide.md) |
 | [PRD-05](PRD-05/description.md) | Détail et coût de revient d'un lot | 1 | And-Matia | [#42](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/42) 🟡 | [PRD-02](PRD-02/description.md) | [☐](PRD-05/scenario-test.md) | [☐](PRD-05/guide.md) |
@@ -111,7 +111,7 @@ docs/ticket/<ID>/
 
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
-| [SRV-01](SRV-01/description.md) | Catalogue des services salon | 1 | Kei-Shiro | [#29](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/29) 🟡 | [ART-01](ART-01/description.md) | [☐](SRV-01/scenario-test.md) | [☐](SRV-01/guide.md) |
+| [SRV-01](SRV-01/description.md) | Catalogue des services salon | 1 | Kei-Shiro | [#29](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/29) 🟡 | [ART-01](ART-01/description.md), [SYS-07](SYS-07/description.md) | [☐](SRV-01/scenario-test.md) | [☐](SRV-01/guide.md) |
 | [SRV-02](SRV-02/description.md) | Enregistrement d'une prestation | 2 | ManaJudy | [#82](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/82) 🟡 | [SRV-01](SRV-01/description.md), [STK-01](STK-01/description.md), [JNL-02](JNL-02/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](SRV-02/scenario-test.md) | [☐](SRV-02/guide.md) |
 | [SRV-03](SRV-03/description.md) | Historique des prestations du jour | 1 | And-Matia | [#83](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/83) 🟡 | [SRV-02](SRV-02/description.md) | [☐](SRV-03/scenario-test.md) | [☐](SRV-03/guide.md) |
 
@@ -141,8 +141,8 @@ docs/ticket/<ID>/
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
 | [JR-01](JR-01/description.md) | Répartition matinale du stock | 2 | ManaJudy | [#54](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/54) 🟡 | [STK-01](STK-01/description.md), [TRF-03](TRF-03/description.md), [JNL-02](JNL-02/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](JR-01/scenario-test.md) | [☐](JR-01/guide.md) |
-| [TRF-02](TRF-02/description.md) | Génération automatique des transferts du matin | 2 | And-Matia | [#55](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/55) 🟡 | [JR-01](JR-01/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](TRF-02/scenario-test.md) | [☐](TRF-02/guide.md) |
-| [JR-02](JR-02/description.md) | Reprise des quantités de la veille | 1 | Kei-Shiro | [#56](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/56) 🟡 | [JR-01](JR-01/description.md), [SYS-07](SYS-07/description.md) | [☐](JR-02/scenario-test.md) | [☐](JR-02/guide.md) |
+| [TRF-02](TRF-02/description.md) | Génération automatique des transferts du matin | 2 | And-Matia | [#55](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/55) 🟡 | [JR-01](JR-01/description.md), [JNL-01](JNL-01/description.md) | [☐](TRF-02/scenario-test.md) | [☐](TRF-02/guide.md) |
+| [JR-02](JR-02/description.md) | Reprise des quantités de la veille | 1 | Kei-Shiro | [#56](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/56) 🟡 | [JR-01](JR-01/description.md) | [☐](JR-02/scenario-test.md) | [☐](JR-02/guide.md) |
 
 ### 11 · Vente
 
@@ -152,7 +152,7 @@ docs/ticket/<ID>/
 | [VTE-02](VTE-02/description.md) | Poste de caisse avec calcul automatique | 2 | Kei-Shiro | [#63](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/63) 🟡 | [VTE-01](VTE-01/description.md) | [☐](VTE-02/scenario-test.md) | [☐](VTE-02/guide.md) |
 | [VTE-03](VTE-03/description.md) | Raccourcis clavier de caisse | 1 | ManaJudy | [#64](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/64) 🟡 | [VTE-02](VTE-02/description.md) | [☐](VTE-03/scenario-test.md) | [☐](VTE-03/guide.md) |
 | [VTE-05](VTE-05/description.md) | Choix du mode de règlement | 2 | ManaJudy | [#66](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/66) 🟡 | [VTE-02](VTE-02/description.md) | [☐](VTE-05/scenario-test.md) | [☐](VTE-05/guide.md) |
-| [VTE-06](VTE-06/description.md) | Mise en attente d'un ticket | 1 | Kei-Shiro | [#67](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/67) 🟡 | [VTE-02](VTE-02/description.md), [SYS-07](SYS-07/description.md) | [☐](VTE-06/scenario-test.md) | [☐](VTE-06/guide.md) |
+| [VTE-06](VTE-06/description.md) | Mise en attente d'un ticket | 1 | Kei-Shiro | [#67](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/67) 🟡 | [VTE-02](VTE-02/description.md) | [☐](VTE-06/scenario-test.md) | [☐](VTE-06/guide.md) |
 | [VTE-07](VTE-07/description.md) | Consultation des ventes du jour | 1 | Njara-Niaina | [#68](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/68) 🟡 | [VTE-01](VTE-01/description.md) | [☐](VTE-07/scenario-test.md) | [☐](VTE-07/guide.md) |
 | [VTE-08](VTE-08/description.md) | Tableau de bord des ventes par canal | 1 | And-Matia | [#69](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/69) 🟡 | [VTE-01](VTE-01/description.md), [SYS-05](SYS-05/description.md) | [☐](VTE-08/scenario-test.md) | [☐](VTE-08/guide.md) |
 
@@ -170,8 +170,8 @@ docs/ticket/<ID>/
 
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
-| [FAC-01](FAC-01/description.md) | Génération automatique de facture | 2 | ManaJudy | [#71](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/71) 🟡 | [VTE-02](VTE-02/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](FAC-01/scenario-test.md) | [☐](FAC-01/guide.md) |
-| [FAC-02](FAC-02/description.md) | Régénération d'une facture existante | 1 | And-Matia | [#72](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/72) 🟡 | [FAC-01](FAC-01/description.md), [VTE-01](VTE-01/description.md), [JNL-01](JNL-01/description.md), [VTE-02](VTE-02/description.md), [SYS-07](SYS-07/description.md) | [☐](FAC-02/scenario-test.md) | [☐](FAC-02/guide.md) |
+| [FAC-01](FAC-01/description.md) | Génération automatique de facture | 2 | ManaJudy | [#71](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/71) 🟡 | [VTE-02](VTE-02/description.md), [JNL-01](JNL-01/description.md) | [☐](FAC-01/scenario-test.md) | [☐](FAC-01/guide.md) |
+| [FAC-02](FAC-02/description.md) | Régénération d'une facture existante | 1 | And-Matia | [#72](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/72) 🟡 | [FAC-01](FAC-01/description.md), [VTE-01](VTE-01/description.md), [JNL-01](JNL-01/description.md), [VTE-02](VTE-02/description.md) | [☐](FAC-02/scenario-test.md) | [☐](FAC-02/guide.md) |
 | [FAC-03](FAC-03/description.md) | Impression / export / envoi de facture | 2 | Kei-Shiro | [#73](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/73) 🟡 | [FAC-01](FAC-01/description.md), [SYS-01](SYS-01/description.md) | [☐](FAC-03/scenario-test.md) | [☐](FAC-03/guide.md) |
 | [FAC-04](FAC-04/description.md) | Émission d'un avoir motivé | 2 | Kei-Shiro | [#74](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/74) 🟡 | [FAC-01](FAC-01/description.md), [JNL-02](JNL-02/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](FAC-04/scenario-test.md) | [☐](FAC-04/guide.md) |
 | [FAC-05](FAC-05/description.md) | Suivi des statuts de facture | 1 | ManaJudy | [#75](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/75) 🟡 | [FAC-01](FAC-01/description.md) | [☐](FAC-05/scenario-test.md) | [☐](FAC-05/guide.md) |
@@ -182,7 +182,7 @@ docs/ticket/<ID>/
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
 | [VTE-09](VTE-09/description.md) | Détail d'une vente | 1 | Kei-Shiro | [#70](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/70) 🟡 | [COM-02](COM-02/description.md), [VTE-01](VTE-01/description.md) | [☐](VTE-09/scenario-test.md) | [☐](VTE-09/guide.md) |
-| [COM-01](COM-01/description.md) | Règles de commission par canal | 2 | ManaJudy | [#85](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/85) 🟡 | [AUTH-03](AUTH-03/description.md), [JNL-01](JNL-01/description.md), [SYS-05](SYS-05/description.md) | [☐](COM-01/scenario-test.md) | [☐](COM-01/guide.md) |
+| [COM-01](COM-01/description.md) | Règles de commission par canal | 2 | ManaJudy | [#85](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/85) 🟡 | [AUTH-03](AUTH-03/description.md), [JNL-01](JNL-01/description.md), [SYS-05](SYS-05/description.md), [SYS-07](SYS-07/description.md) | [☐](COM-01/scenario-test.md) | [☐](COM-01/guide.md) |
 | [COM-02](COM-02/description.md) | Calcul automatique de la commission | 2 | And-Matia | [#86](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/86) 🟡 | [COM-01](COM-01/description.md), [SRV-02](SRV-02/description.md), [VTE-01](VTE-01/description.md), [SYS-05](SYS-05/description.md) | [☐](COM-02/scenario-test.md) | [☐](COM-02/guide.md) |
 | [COM-03](COM-03/description.md) | Validation des commissions | 1 | Kei-Shiro | [#87](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/87) 🟡 | [COM-02](COM-02/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](COM-03/scenario-test.md) | [☐](COM-03/guide.md) |
 | [COM-04](COM-04/description.md) | Suivi de commission et objectif | 1 | ManaJudy | [#88](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/88) 🟡 | [COM-02](COM-02/description.md) | [☐](COM-04/scenario-test.md) | [☐](COM-04/guide.md) |
@@ -195,7 +195,7 @@ docs/ticket/<ID>/
 |---|---|---|---|---|---|---|---|
 | [JR-03](JR-03/description.md) | Suivi temps réel de la journée | 2 | ManaJudy | [#57](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/57) 🟡 | [LIV-02](LIV-02/description.md), [SRV-02](SRV-02/description.md), [VTE-01](VTE-01/description.md) | [☐](JR-03/scenario-test.md) | [☐](JR-03/guide.md) |
 | [SRV-04](SRV-04/description.md) | Consommation salon dans la clôture | 2 | Kei-Shiro | [#84](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/84) 🟡 | [JR-04](JR-04/description.md), [SRV-02](SRV-02/description.md) | [☐](SRV-04/scenario-test.md) | [☐](SRV-04/guide.md) |
-| [JR-04](JR-04/description.md) | Réconciliation automatique de clôture | 2 | Kei-Shiro | [#91](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/91) 🟡 | [LIV-04](LIV-04/description.md), [SHO-02](SHO-02/description.md), [SRV-02](SRV-02/description.md), [TRF-02](TRF-02/description.md), [VTE-01](VTE-01/description.md), [JNL-01](JNL-01/description.md), [SYS-07](SYS-07/description.md) | [☐](JR-04/scenario-test.md) | [☐](JR-04/guide.md) |
+| [JR-04](JR-04/description.md) | Réconciliation automatique de clôture | 2 | Kei-Shiro | [#91](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/91) 🟡 | [LIV-04](LIV-04/description.md), [SHO-02](SHO-02/description.md), [SRV-02](SRV-02/description.md), [TRF-02](TRF-02/description.md), [VTE-01](VTE-01/description.md), [JNL-01](JNL-01/description.md) | [☐](JR-04/scenario-test.md) | [☐](JR-04/guide.md) |
 | [JR-05](JR-05/description.md) | Motif obligatoire en cas d'écart | 2 | And-Matia | [#92](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/92) 🟡 | [JR-04](JR-04/description.md), [SYS-07](SYS-07/description.md) | [☐](JR-05/scenario-test.md) | [☐](JR-05/guide.md) |
 | [JR-06](JR-06/description.md) | Verrouillage de la clôture du jour | 2 | And-Matia | [#93](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/93) 🟡 | [JNL-01](JNL-01/description.md), [JR-05](JR-05/description.md), [SYS-07](SYS-07/description.md) | [☐](JR-06/scenario-test.md) | [☐](JR-06/guide.md) |
 

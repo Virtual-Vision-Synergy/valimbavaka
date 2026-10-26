@@ -12,7 +12,6 @@ En tant que vendeuse, je veux qu'une facture numérotée soit générée automat
 
 - Bloqué par `VTE-02` (#63)
 - Bloqué par `JNL-01` (#14)
-- Bloqué par `SYS-07` (#133)
 
 ## Critères d'acceptation
 
@@ -39,7 +38,6 @@ En tant que vendeuse, je veux qu'une facture numérotée soit générée automat
 
 - [VTE-02](../VTE-02/description.md) · Poste de caisse avec calcul automatique (ouvert)
 - [JNL-01](../JNL-01/description.md) · Journal append-only des opérations (fermé)
-- [SYS-07](../SYS-07/description.md) · Brancher un premier formulaire sur la file hors ligne (ouvert)
 
 ## Zone du code concernée
 
