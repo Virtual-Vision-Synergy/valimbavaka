@@ -36,7 +36,7 @@ Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 
 - Routes lazy `/suppliers` (garde `suppliers.read`), `/suppliers/new`, `/suppliers/:id/edit`.
 - `data-access/supplier-service.ts` : `list(query)`, `getById`, `create`, `update`, `setActive`. Types dans `supplier-models.ts` (`SupplierRDto`, `SupplierWDto`, `SupplierStatusWDto`).
-- `pages/supplier-list-page` (liste, activation / désactivation) et `pages/supplier-form-page` (création et modification ; bloc « articles fournis » : articles lus par `ArticleService.list({ supplierId })`, ART-01).
+- `pages/supplier-form-page` (création et modification ; bloc « articles fournis » : articles lus par `ArticleService.list({ supplierId })`, ART-01).
 
 ### Données
 
@@ -61,7 +61,7 @@ Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 - `service/SupplierService.java`, `service/impl/SupplierServiceImpl.java`
 
 **Frontend** (`valimbavaka-ui/src/app/features/supplier/`)
-- `supplier.routes.ts`, `data-access/*`, `pages/supplier-list-page/*`, `pages/supplier-form-page/*`
+- `supplier.routes.ts`, `data-access/*`, `pages/supplier-form-page/*` ; liste et fiche latérale dans `features/suppliers/pages/supplier-list-page/*` et `features/suppliers/components/supplier-detail/*`
 - Attention : le dossier `features/suppliers/` (avec un « s ») contient la **maquette** de DSG-01 (fixtures, pas d'appel API) et n'est pas branché sur la route `/suppliers`.
 
 **Tests**
@@ -89,6 +89,7 @@ Le filtre `type` / `active` du backend est disponible pour un appel direct : `GE
 
 ## Points d'attention
 
+- **Liste et fiche latérale (mise à jour)** : la liste `/suppliers` est désormais celle de la **maquette** (`features/suppliers/pages/supplier-list-page`, fiche à droite `features/suppliers/components/supplier-detail`), branchée sur `GET /api/v1/suppliers` ; l'ancienne liste `features/supplier/pages/supplier-list-page` est supprimée. Recherche (nom, contact) et filtre par type sont faits par le serveur (recherche temporisée 300 ms), pagination serveur de 8 par page. La fiche à droite lit `GET /api/v1/suppliers/{id}`, affiche coordonnées et notes, les articles fournis (`ArticleService.list({ supplierId })`, onglet lu à l'ouverture) et porte l'activation / désactivation et le lien « Modifier » (permission `suppliers.update`). Le formulaire de création et de modification (`supplier-form-page`) est inchangé. Retirés de la maquette car sans équivalent serveur : ville, NIF, délai de réapprovisionnement ([FRS-04](../FRS-04/description.md)), dernière réception, onglet « Réceptions », types `RAW_MATERIAL` / `PACKAGING` / `FINISHED` / `IMPORT` (le serveur ne connaît que `LOCAL` et `FOREIGN`).
 - **FRS-02 (livré le 2026-10-26)** : la création et la modification sont parties de cet existant ; une modification sans changement réel n'écrit plus de ligne `UPDATE` (voir le [guide FRS-02](../FRS-02/guide.md)). FRS-03 a branché la liste sur les filtres `type` et `search` existants (voir le [guide FRS-03](../FRS-03/guide.md)).
 - Le bloc « articles fournis » se remplit depuis [ART-01](../ART-01/guide.md) (2026-10-26) : pas d'endpoint dédié, c'est `GET /api/v1/articles?supplierId=…` (100 articles au plus affichés). Un fournisseur désactivé ne peut plus être choisi sur une nouvelle fiche article ; les fiches qui le portent déjà restent modifiables.
 - L'écriture n'utilise pas encore `OutboxService` : un fournisseur ne peut pas être saisi hors ligne ([SYS-07](../SYS-07/description.md)).

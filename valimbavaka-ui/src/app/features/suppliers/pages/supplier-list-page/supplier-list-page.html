@@ -3,16 +3,15 @@
     [heading]="'suppliers.title' | translate"
     [subtitle]="
       suppliers.value()
-        ? ('suppliers.subtitle'
-          | translate: { count: suppliers.value()?.length, days: averageLead() })
+        ? ('suppliers.subtitle' | translate: { count: suppliers.value()?.totalCount })
         : ''
     "
-    [codes]="['FRS-01', 'FRS-02', 'FRS-03', 'FRS-04']"
+    [codes]="['FRS-01', 'FRS-02', 'FRS-03']"
   >
-    <button class="btn btn-primary" type="button" (click)="demoAction()">
+    <a class="btn btn-primary" routerLink="new" *vvsHasPermission="'suppliers.create'">
       <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
       {{ 'suppliers.new' | translate }}
-    </button>
+    </a>
   </vvs-page-header>
 
   <div class="layout">
@@ -26,17 +25,25 @@
         />
         <vvs-filter-chips
           [label]="'suppliers.typeFilter' | translate"
-          [options]="typeOptions()"
+          [options]="typeOptions"
           [(value)]="type"
         />
       </div>
 
       @if (suppliers.error()) {
         <vvs-list-state kind="error" (retry)="suppliers.reload()" />
-      } @else if (!suppliers.value()) {
+      } @else if (!suppliers.hasValue()) {
         <vvs-list-state kind="loading" [rows]="8" />
-      } @else if (!filtered().length) {
-        <vvs-list-state kind="empty" titleKey="suppliers.empty" messageKey="suppliers.emptyHint" />
+      } @else if (!items().length) {
+        @if (isFiltered()) {
+          <vvs-list-state
+            kind="empty"
+            titleKey="suppliers.empty"
+            messageKey="suppliers.emptyHint"
+          />
+        } @else {
+          <vvs-list-state kind="empty" titleKey="supplier.list.empty" />
+        }
       } @else {
         <div class="table-wrap">
           <table class="table">
@@ -44,15 +51,14 @@
               <tr>
                 <th scope="col">{{ 'suppliers.col.supplier' | translate }}</th>
                 <th scope="col">{{ 'suppliers.col.type' | translate }}</th>
-                <th scope="col" class="c-city">{{ 'suppliers.col.city' | translate }}</th>
-                <th scope="col" class="cell-num">{{ 'suppliers.col.lead' | translate }}</th>
-                <th scope="col" class="cell-num c-last">
-                  {{ 'suppliers.col.lastReception' | translate }}
+                <th scope="col" class="c-contact">
+                  {{ 'supplier.field.contactName' | translate }}
                 </th>
+                <th scope="col" class="c-phone">{{ 'supplier.field.phone' | translate }}</th>
               </tr>
             </thead>
             <tbody>
-              @for (supplier of pageRows(); track supplier.id) {
+              @for (supplier of items(); track supplier.id) {
                 <tr
                   class="row"
                   [class.selected]="supplier.id === selectedId()"
@@ -67,32 +73,24 @@
                     >
                       <span class="cell-title">{{ supplier.name }}</span>
                     </button>
-                    <span class="cell-sub mono">{{ supplier.code }}</span>
+                    @if (!supplier.active) {
+                      <span class="cell-sub">{{ 'suppliers.inactive' | translate }}</span>
+                    }
                   </th>
                   <td>
                     <vvs-status-badge
                       [tone]="typeTones[supplier.type]"
-                      [label]="'suppliers.type.' + supplier.type | translate"
+                      [label]="'supplier.type.' + supplier.type | translate"
                     />
                   </td>
-                  <td class="c-city">{{ supplier.city }}</td>
-                  <td class="cell-num">
-                    <strong class="num">{{
-                      'suppliers.daysShort' | translate: { count: supplier.leadTimeDays }
-                    }}</strong>
-                    @if (supplier.type === 'IMPORT') {
-                      <span class="lead-note">· {{ 'suppliers.leadImport' | translate }}</span>
-                    } @else if (supplier.leadTimeDays >= longLead) {
-                      <span class="lead-note">· {{ 'suppliers.leadLong' | translate }}</span>
-                    }
-                  </td>
-                  <td class="cell-num c-last num">{{ supplier.lastReceptionOn | shortDate }}</td>
+                  <td class="c-contact">{{ supplier.contactName ?? '—' }}</td>
+                  <td class="c-phone num">{{ supplier.phone ?? '—' }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="suppliers.value().totalCount" />
       }
     </section>
 
@@ -102,7 +100,7 @@
         [focusKey]="id"
         (closed)="selectedId.set(null)"
       >
-        <vvs-supplier-detail [supplierId]="id" (edit)="demoAction()" />
+        <vvs-supplier-detail [supplierId]="id" (changed)="suppliers.reload()" />
       </vvs-side-panel>
     }
   </div>

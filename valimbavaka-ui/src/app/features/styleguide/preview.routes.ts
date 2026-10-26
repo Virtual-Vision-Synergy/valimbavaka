@@ -49,7 +49,7 @@ export const PREVIEW_ROUTES: Routes = [
       },
       {
         path: 'suppliers',
-        loadChildren: () => import('../suppliers/suppliers.routes').then((m) => m.SUPPLIERS_ROUTES),
+        loadChildren: () => import('../supplier/supplier.routes').then((m) => m.SUPPLIER_ROUTES),
       },
       {
         path: 'production',

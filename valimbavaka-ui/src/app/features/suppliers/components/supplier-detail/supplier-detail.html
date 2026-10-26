@@ -5,10 +5,9 @@
       <div class="identity">
         <h2>{{ s.name }}</h2>
         <p class="badges">
-          <span class="mono code">{{ s.code }}</span>
           <vvs-status-badge
             [tone]="typeTones[s.type]"
-            [label]="'suppliers.type.' + s.type | translate"
+            [label]="'supplier.type.' + s.type | translate"
           />
           <vvs-status-badge
             [tone]="s.active ? 'success' : 'muted'"
@@ -16,15 +15,28 @@
           />
         </p>
       </div>
-      <button
-        class="btn btn-icon btn-ghost edit"
-        type="button"
-        [attr.aria-label]="'suppliers.edit' | translate: { name: s.name }"
-        (click)="edit.emit()"
-      >
-        <svg [vvsIcon]="icons.Pencil" [size]="18"></svg>
-      </button>
+      <div class="actions" *vvsHasPermission="'suppliers.update'">
+        <button
+          class="btn btn-ghost btn-sm"
+          type="button"
+          [disabled]="isToggling()"
+          (click)="toggleActive(s)"
+        >
+          {{ (s.active ? 'supplier.status.deactivate' : 'supplier.status.activate') | translate }}
+        </button>
+        <a
+          class="btn btn-icon btn-ghost"
+          [routerLink]="['/suppliers', s.id, 'edit']"
+          [attr.aria-label]="'suppliers.edit' | translate: { name: s.name }"
+        >
+          <svg [vvsIcon]="icons.Pencil" [size]="18"></svg>
+        </a>
+      </div>
     </header>
+
+    @if (toggleError(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
 
     <vvs-tabs
       [label]="'suppliers.tab.label' | translate"
@@ -44,85 +56,61 @@
           <dl class="facts">
             <div>
               <dt>{{ 'suppliers.contact' | translate }}</dt>
-              <dd>{{ s.contactName }}</dd>
+              <dd>{{ s.contactName ?? '—' }}</dd>
             </div>
             <div>
               <dt>{{ 'suppliers.phone' | translate }}</dt>
               <dd>
-                <a class="num" [href]="'tel:' + s.phone.replaceAll(' ', '')">{{ s.phone }}</a>
+                @if (s.phone; as phone) {
+                  <a class="num" [href]="'tel:' + phone.replaceAll(' ', '')">{{ phone }}</a>
+                } @else {
+                  —
+                }
               </dd>
             </div>
             <div class="wide">
               <dt>{{ 'suppliers.email' | translate }}</dt>
               <dd>
-                <a [href]="'mailto:' + s.email">{{ s.email }}</a>
+                @if (s.email; as email) {
+                  <a [href]="'mailto:' + email">{{ email }}</a>
+                } @else {
+                  —
+                }
               </dd>
-            </div>
-            <div>
-              <dt>{{ 'suppliers.taxId' | translate }}</dt>
-              <dd class="mono">{{ s.taxId }}</dd>
-            </div>
-            <div>
-              <dt>{{ 'suppliers.city' | translate }}</dt>
-              <dd>{{ s.city }}</dd>
             </div>
             <div class="wide">
               <dt>{{ 'suppliers.address' | translate }}</dt>
-              <dd>{{ s.address }}</dd>
+              <dd>{{ s.address ?? '—' }}</dd>
+            </div>
+            <div class="wide">
+              <dt>{{ 'supplier.field.notes' | translate }}</dt>
+              <dd>{{ s.notes ?? '—' }}</dd>
             </div>
           </dl>
-          <section class="lead" aria-labelledby="lead-title">
-            <h3 id="lead-title" class="caption">
-              {{ 'suppliers.leadTitle' | translate }}
-              <span class="code-chip" aria-hidden="true">FRS-04</span>
-            </h3>
-            <p class="lead-value">
-              <strong class="num">{{ s.leadTimeDays }}</strong>
-              <span>{{ 'suppliers.days' | translate }}</span>
-              <span class="lead-why">
-                {{ 'suppliers.type.' + s.type | translate }} ·
-                {{ 'suppliers.transport.' + s.transport | translate }}
-              </span>
-            </p>
-            <p class="muted">{{ 'suppliers.leadHint' | translate }}</p>
-          </section>
-          <h3 class="caption">{{ 'suppliers.lastReceptions' | translate }}</h3>
-          <ul class="receptions">
-            @for (reception of s.receptions; track reception.number) {
-              <li>
-                <span
-                  ><span class="mono">{{ reception.number }}</span> · {{ reception.label }}</span
-                >
-                <span class="muted num">{{ reception.receivedOn | shortDate }}</span>
-              </li>
-            }
-          </ul>
         }
         @case ('articles') {
-          <ul class="receptions">
-            @for (article of s.articles; track article.reference) {
-              <li>
-                <span>
-                  <strong>{{ article.name }}</strong>
-                  <span class="mono muted block">{{ article.reference }}</span>
-                </span>
-                <span class="num">{{ article.lastUnitCost | ariary }}</span>
-              </li>
-            }
-          </ul>
-          <p class="muted">{{ 'suppliers.articlesHint' | translate }}</p>
-        }
-        @case ('receptions') {
-          <ul class="receptions">
-            @for (reception of s.receptions; track reception.number) {
-              <li>
-                <span
-                  ><span class="mono">{{ reception.number }}</span> · {{ reception.label }}</span
-                >
-                <span class="muted num">{{ reception.receivedOn | shortDate }}</span>
-              </li>
-            }
-          </ul>
+          @if (articles.error()) {
+            <vvs-list-state kind="error" (retry)="articles.reload()" />
+          } @else if (!articles.hasValue()) {
+            <vvs-list-state kind="loading" [rows]="3" />
+          } @else {
+            <ul class="receptions">
+              @for (article of articles.value().items; track article.id) {
+                <li>
+                  <span>
+                    <strong>{{ article.name }}</strong>
+                    <span class="mono muted block">{{ article.code }}</span>
+                  </span>
+                  <span class="num">{{
+                    article.cost === null ? '—' : (article.cost | ariary)
+                  }}</span>
+                </li>
+              } @empty {
+                <li class="muted">{{ 'supplier.articles.empty' | translate }}</li>
+              }
+            </ul>
+            <p class="muted">{{ 'suppliers.articlesHint' | translate }}</p>
+          }
         }
       }
     </div>
