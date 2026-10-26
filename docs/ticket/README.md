@@ -48,7 +48,7 @@ docs/ticket/<ID>/
 | [SYS-09](SYS-09/description.md) | Suivi et gestion des saisies en échec | 2 | Kei-Shiro | [#135](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/135) 🟡 | [SYS-02](SYS-02/description.md), [SYS-07](SYS-07/description.md) | [☐](SYS-09/scenario-test.md) | [☐](SYS-09/guide.md) |
 | [SYS-10](SYS-10/description.md) | Règle d'ordre de synchronisation en cas de blocage | 1 | And-Matia, Kei-Shiro | [#136](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/136) 🟡 | [SYS-02](SYS-02/description.md) | [☐](SYS-10/scenario-test.md) | [☐](SYS-10/guide.md) |
 | [SYS-11](SYS-11/description.md) | Session expirée avec des saisies en attente | 1 | Kei-Shiro | [#137](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/137) 🟡 | [SYS-02](SYS-02/description.md), [AUTH-01](AUTH-01/description.md) | [⚠](SYS-11/scenario-test.md) | [⚠](SYS-11/guide.md) |
-| [SYS-12](SYS-12/description.md) | Idempotence côté serveur des saisies renvoyées | 1 | ManaJudy | [#138](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/138) 🟡 | [SYS-02](SYS-02/description.md), [JNL-01](JNL-01/description.md) | [☐](SYS-12/scenario-test.md) | [☐](SYS-12/guide.md) |
+| [SYS-12](SYS-12/description.md) | Idempotence côté serveur des saisies renvoyées | 1 | ManaJudy | [#138](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/138) 🟡 | [SYS-02](SYS-02/description.md), [JNL-01](JNL-01/description.md) | [⚠](SYS-12/scenario-test.md) | [✅](SYS-12/guide.md) |
 
 ### 02 · Fournisseurs
 

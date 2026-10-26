@@ -25,3 +25,5 @@ databaseChangeLog:
       file: db/changelog/changes/2026_10_23-02-changelog.sql
   - include:
       file: db/changelog/changes/2026_10_26-01-changelog.sql
+  - include:
+      file: db/changelog/changes/2026_10_26-02-changelog.sql

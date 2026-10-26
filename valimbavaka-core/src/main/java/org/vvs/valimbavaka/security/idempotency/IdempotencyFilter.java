@@ -66,10 +66,12 @@ public class IdempotencyFilter extends OncePerRequestFilter {
             return;
         }
         var owner = new KeyOwner(userId.get(), key.get());
-        if (store.claim(owner.userId(), owner.key(), request.getMethod(), request.getRequestURI())) {
-            execute(owner, request, response, chain);
+        var cached = CachedBodyRequest.of(request);
+        var fingerprint = new RequestFingerprint(request.getMethod(), request.getRequestURI(), cached.bodyHash());
+        if (store.claim(owner.userId(), owner.key(), fingerprint)) {
+            execute(owner, cached, response, chain);
         } else {
-            replay(owner, request, response);
+            replay(owner, fingerprint, request, response);
         }
     }
 
@@ -93,22 +95,24 @@ public class IdempotencyFilter extends OncePerRequestFilter {
         }
     }
 
-    private void replay(KeyOwner owner, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void replay(
+            KeyOwner owner, RequestFingerprint fingerprint, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         var stored = store.find(owner.userId(), owner.key()).orElse(null);
         if (stored == null || stored.status() == null) { // en cours, ou libérée entre-temps : le client réessaiera
             reject(request, response, problem(HttpStatus.CONFLICT, "CONFLICT", "Requête en cours de traitement."));
-        } else if (!stored.method().equals(request.getMethod())
-                || !stored.path().equals(request.getRequestURI())) {
-            reject(
-                    request,
-                    response,
-                    problem(
-                            HttpStatus.UNPROCESSABLE_CONTENT,
-                            "VALIDATION_FAILED",
-                            KEY_HEADER + " déjà utilisée pour une autre requête."));
+        } else if (!stored.request().sameTarget(fingerprint)) {
+            reject(request, response, reused("pour une autre requête"));
+        } else if (stored.request().differentContent(fingerprint)) {
+            reject(request, response, reused("avec un contenu différent"));
         } else {
             writeStored(response, stored.status(), stored.body());
         }
+    }
+
+    private static ProblemDetail reused(String reason) {
+        return problem(
+                HttpStatus.UNPROCESSABLE_CONTENT, "VALIDATION_FAILED", KEY_HEADER + " déjà utilisée " + reason + ".");
     }
 
     private void writeStored(HttpServletResponse response, int status, @Nullable String body) throws IOException {
