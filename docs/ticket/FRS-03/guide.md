@@ -22,11 +22,11 @@ La liste des fournisseurs (`/suppliers`) a maintenant un sélecteur de type (tou
 
 - Type `SupplierListQuery` (`data-access/supplier-models.ts:37`) : `PageQuery` + `type?`.
 - `SupplierService.list(query: SupplierListQuery)` (`data-access/supplier-service.ts:20`) : ajoute `type` aux paramètres seulement s'il est choisi ; `search` vide n'est pas envoyé (`shared/models/http-params.ts`, `toHttpParams`).
-- Page `pages/supplier-list-page/` :
-  - signaux `type` et `search`, `isFiltered` (`supplier-list-page.ts:41`) ;
-  - `onTypeChange` (ligne 52) et `onSearch` (ligne 57, `trim`) appellent `reload` (ligne 80), qui revient à la page 1 ;
-  - `loadSuppliers` annule la requête précédente (`listRequest`, ligne 86) pour qu'une réponse lente ne remplace pas la plus récente ;
-  - gabarit : `#supplier-type` et `#supplier-search` dans la barre `.toolbar` (`supplier-list-page.html:10-40`), message vide distinct quand un filtre est actif (ligne 100).
+- Page `features/suppliers/pages/supplier-list-page/` (liste de la maquette, branchée sur l'API ; remplace `features/supplier/pages/supplier-list-page`) :
+  - signaux `query` (recherche) et `type` (`'ALL'` ou `LOCAL` / `FOREIGN`) ; la recherche est rognée et temporisée (300 ms) avant d'être envoyée ;
+  - `page` revient à 1 dès que le type ou la recherche change ;
+  - `suppliers` est un `rxResource` : un nouveau filtre ou une nouvelle page annule la requête précédente, donc une réponse lente ne remplace pas la plus récente ;
+  - filtre par type en pastilles (`vvs-filter-chips`), message vide distinct quand un filtre est actif.
 - Traductions `supplier.filter.*` et `supplier.list.noMatch` dans `valimbavaka-ui/public/i18n/fr.json` (lignes 1295-1303) et `mg.json`.
 
 ### Données
@@ -44,13 +44,13 @@ La liste des fournisseurs (`/suppliers`) a maintenant un sélecteur de type (tou
 **Frontend**
 - `valimbavaka-ui/src/app/features/supplier/data-access/supplier-models.ts` (`SupplierListQuery`)
 - `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.ts` (`list`)
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.ts`, `.html`, `.css`
+- `valimbavaka-ui/src/app/features/suppliers/pages/supplier-list-page/supplier-list-page.ts`, `.html`, `.css`
 - `valimbavaka-ui/public/i18n/fr.json`, `valimbavaka-ui/public/i18n/mg.json`
 
 **Backend** : aucun changement de code.
 
 **Tests**
-- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.spec.ts` (nouveau)
+- `valimbavaka-ui/src/app/features/suppliers/pages/supplier-list-page/supplier-list-page.spec.ts` (porté depuis l'ancienne liste)
 - `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.spec.ts`
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java` (`getSuppliers_byTypeAndSearch_returnsOnlyMatchingSuppliers`, `getSuppliers_unknownType_returns400`)
 
@@ -62,7 +62,7 @@ La liste des fournisseurs (`/suppliers`) a maintenant un sélecteur de type (tou
 
 ## Comment l'utiliser depuis un autre ticket
 
-- Injecter `SupplierService` et appeler `list` avec un `SupplierListQuery` contenant `type` : voir l'appel dans `SupplierListPage.loadSuppliers` (`supplier-list-page.ts:85-109`).
+- Injecter `SupplierService` et appeler `list` avec un `SupplierListQuery` contenant `type` : voir le `rxResource` `suppliers` de `SupplierListPage`.
 - Appel direct de l'API : `GET /api/v1/suppliers?type=LOCAL&active=true&search=Rasoa` (exemple de test : `SupplierSecurityIT.getSuppliers_byTypeAndSearch_returnsOnlyMatchingSuppliers`).
 
 ## Points d'attention

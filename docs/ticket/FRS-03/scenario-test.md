@@ -16,9 +16,11 @@ Point de départ : l'API filtrait déjà par `type`, `active` et `search` (FRS-0
 
 ## Scénarios issus des critères d'acceptation
 
+> **Mise à jour** : la liste testée est maintenant la liste de la maquette (`features/suppliers/pages/supplier-list-page`), branchée sur la même API. Les intitulés des tests sont conservés, sauf « should show the server message when the list cannot be loaded » devenu « should offer a retry when the list cannot be loaded » ; ils sont à relancer (aucun exécuté).
+
 | # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | La liste se met à jour selon le filtre et la recherche | À l'ouverture de `/suppliers` | tous les types, sans recherche, page 1, tri par nom | `supplier-list-page.spec.ts` « should load every type, without filter, sorted by name on opening » | ☐ |
+| 1 | La liste se met à jour selon le filtre et la recherche | À l'ouverture de `/suppliers` | tous les types, sans recherche, page 1, tri par nom | `features/suppliers/.../supplier-list-page.spec.ts` « should load every type, without filter, sorted by name on opening » | ☐ |
 | 1b | idem, filtre | Il choisit « Étranger » | nouvelle requête `type=FOREIGN`, seule « Provence Essences » affichée, sans clic supplémentaire | « should reload with the chosen type and show only the returned suppliers » | ☐ |
 | 1c | idem, retour à « Tous les types » | Il revient sur « Tous les types » | requête sans paramètre `type` | « should drop the type when "all types" is chosen again » | ☐ |
 | 1d | idem, recherche + filtre | Type « Local » puis recherche `"  Rasoa "` | requête `type=LOCAL&search=Rasoa` (recherche nettoyée, filtre conservé) | « should combine the trimmed search with the chosen type » | ☐ |
@@ -54,7 +56,7 @@ Aucun nouvel endpoint : FRS-03 utilise `GET /api/v1/suppliers` de FRS-01, sans �
 
 ## Tests existants
 
-- Frontend : `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.spec.ts` (nouveau, 9 tests), `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.spec.ts` (2 tests ajoutés).
+- Frontend : `valimbavaka-ui/src/app/features/suppliers/pages/supplier-list-page/supplier-list-page.spec.ts` (porté sur la liste de la maquette, mêmes cas), `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.spec.ts` (2 tests ajoutés).
 - Backend : `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java` (2 tests ajoutés : `getSuppliers_byTypeAndSearch_returnsOnlyMatchingSuppliers`, `getSuppliers_unknownType_returns400`), `…/repository/SupplierRepositoryIT.java` (FRS-01, inchangé).
 
 ## Recette manuelle (🧪)

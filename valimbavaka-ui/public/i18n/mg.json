@@ -913,31 +913,18 @@
   },
   "suppliers": {
     "title": "Mpamatsy",
-    "subtitle": "Mpamatsy {{count}} · faharetana antonony {{days}} andro.",
+    "subtitle": "Mpamatsy {{count}}.",
     "new": "Mpamatsy vaovao",
     "listLabel": "Lisitry ny mpamatsy",
     "search": "Hitady mpamatsy",
-    "searchPlaceholder": "Anarana, tanàna, NIF…",
+    "searchPlaceholder": "Anaran'ny mpamatsy na ny olona hifandraisana",
     "typeFilter": "Sivanina araka ny karazany",
-    "type": {
-      "ALL": "Rehetra",
-      "RAW_MATERIAL": "Akora",
-      "PACKAGING": "Fonosana",
-      "FINISHED": "Vokatra vita",
-      "IMPORT": "Avy any ivelany"
-    },
     "empty": "Tsy misy mpamatsy hita",
-    "emptyHint": "Andramo anarana na tanàna hafa, na esory ny sivana.",
+    "emptyHint": "Andramo anarana hafa, na esory ny sivana.",
     "col": {
       "supplier": "Mpamatsy",
-      "type": "Karazany",
-      "city": "Tanàna",
-      "lead": "Faharetana",
-      "lastReception": "Fandraisana farany"
+      "type": "Karazany"
     },
-    "daysShort": "{{count}} andro",
-    "leadLong": "ela",
-    "leadImport": "ivelany",
     "detailLabel": "Mombamomba ny mpamatsy {{name}}",
     "edit": "Hanova {{name}}",
     "active": "Mavitrika",
@@ -945,25 +932,13 @@
     "tab": {
       "label": "Fizarana momba ny mpamatsy",
       "info": "Fampahalalana",
-      "articles": "Entana",
-      "receptions": "Fandraisana"
+      "articles": "Entana"
     },
     "contact": "Olona hifandraisana",
     "phone": "Finday",
     "email": "Mailaka",
-    "taxId": "NIF",
-    "city": "Tanàna",
     "address": "Adiresy",
-    "leadTitle": "Faharetan'ny famatsiana",
-    "days": "andro",
-    "transport": {
-      "ROAD": "amin'ny lalana",
-      "SEA": "an-dranomasina",
-      "LOCAL": "eto an-toerana"
-    },
-    "leadHint": "Ampiasaina hanolorana ny daty fanaovana baiko amin'ny baiko famenoana.",
-    "lastReceptions": "Fandraisana farany",
-    "articlesHint": "Vidiny farany isan'iray, tsy misy fandaniana fitaterana."
+    "articlesHint": "Vidin'ny fividianana voasoratra amin'ny kisarisary tsirairay."
   },
   "production": {
     "title": "Famokarana",

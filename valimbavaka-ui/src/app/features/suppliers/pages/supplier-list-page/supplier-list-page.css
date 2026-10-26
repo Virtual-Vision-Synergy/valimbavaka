@@ -62,13 +62,9 @@ tbody th {
 .cell-sub {
   display: block;
 }
-.lead-note {
-  color: var(--gris-moyen);
-  font-size: var(--text-sm);
-}
 @container (max-width: 640px) {
-  .c-city,
-  .c-last {
+  .c-contact,
+  .c-phone {
     display: none;
   }
 }
