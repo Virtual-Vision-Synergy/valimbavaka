@@ -2,12 +2,13 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { vi } from 'vitest';
+import { type MockInstance, vi } from 'vitest';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { SupplierRDto } from '../../data-access/supplier-models';
 import { SupplierFormPage } from './supplier-form-page';
 
+const SUPPLIERS_URL = '/api/v1/suppliers';
 const SUPPLIER_URL = '/api/v1/suppliers/0195f0a0-0000-7000-8000-0000000000f1';
 
 const supplier: SupplierRDto = {
@@ -25,12 +26,15 @@ const supplier: SupplierRDto = {
   version: 3,
 };
 
+const conflict = (detail: string) => ({ title: 'Conflict', status: 409, detail, code: 'CONFLICT' });
+
 describe('SupplierFormPage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<SupplierFormPage>;
   let element: HTMLElement;
+  let navigate: MockInstance<Router['navigate']>;
 
-  beforeEach(async () => {
+  const setup = async (id?: string): Promise<void> => {
     await TestBed.configureTestingModule({
       imports: [SupplierFormPage],
       providers: [
@@ -41,49 +45,225 @@ describe('SupplierFormPage', () => {
       ],
     }).compileComponents();
     httpMock = TestBed.inject(HttpTestingController);
+    navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     fixture = TestBed.createComponent(SupplierFormPage);
-    fixture.componentRef.setInput('id', supplier.id);
+    if (id) {
+      fixture.componentRef.setInput('id', id);
+    }
     element = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
-    httpMock.expectOne(SUPPLIER_URL).flush(supplier);
-    await fixture.whenStable();
-  });
+  };
 
   afterEach(() => {
     httpMock.verify();
     vi.restoreAllMocks();
   });
 
+  const field = <T extends HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
+    id: string,
+  ): T => element.querySelector<T>(`#${id}`) as T;
+
+  const type = async (id: string, value: string): Promise<void> => {
+    const control = field(id);
+    control.value = value;
+    control.dispatchEvent(new Event(control instanceof HTMLSelectElement ? 'change' : 'input'));
+    await fixture.whenStable();
+  };
+
   const save = async (): Promise<void> => {
     element.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
     await fixture.whenStable();
   };
 
-  it('should send back the version read so that a concurrent change is refused', async () => {
-    vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  describe('in edit mode', () => {
+    beforeEach(async () => {
+      await setup(supplier.id);
+      httpMock.expectOne(SUPPLIER_URL).flush(supplier);
+      await fixture.whenStable();
+    });
 
-    await save();
+    it('should fill the form with the sheet read from the server', () => {
+      expect(field<HTMLInputElement>('name').value).toBe('Huiles Ravo');
+      expect(field<HTMLSelectElement>('type').value).toBe('LOCAL');
+      expect(field<HTMLInputElement>('contactName').value).toBe('Rasoa');
+      expect(field<HTMLInputElement>('phone').value).toBe('');
+    });
 
-    const request = httpMock.expectOne(SUPPLIER_URL);
-    expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toMatchObject({ name: 'Huiles Ravo', version: 3 });
-    request.flush({ ...supplier, version: 4 });
+    it('should save every edited field with PUT then go back to the list', async () => {
+      await type('name', 'Import Océan');
+      await type('type', 'FOREIGN');
+      await type('contactName', 'Mr Lee');
+      await type('phone', '+33 1 00 00 00 00');
+      await type('email', 'lee@ocean.com');
+      await type('address', 'Marseille');
+      await type('notes', 'Livraison le mardi');
+
+      await save();
+
+      const request = httpMock.expectOne(SUPPLIER_URL);
+      expect(request.request.method).toBe('PUT');
+      expect(request.request.body).toEqual({
+        name: 'Import Océan',
+        type: 'FOREIGN',
+        contactName: 'Mr Lee',
+        phone: '+33 1 00 00 00 00',
+        email: 'lee@ocean.com',
+        address: 'Marseille',
+        notes: 'Livraison le mardi',
+        version: 3,
+      });
+      request.flush({ ...supplier, name: 'Import Océan', version: 4 });
+      await fixture.whenStable();
+      expect(navigate).toHaveBeenCalledWith(['/suppliers']);
+    });
+
+    it('should send back the version read so that a concurrent change is refused', async () => {
+      await save();
+
+      const request = httpMock.expectOne(SUPPLIER_URL);
+      expect(request.request.method).toBe('PUT');
+      expect(request.request.body).toMatchObject({ name: 'Huiles Ravo', version: 3 });
+      request.flush({ ...supplier, version: 4 });
+    });
+
+    it('should show the server message when the sheet was modified in the meantime', async () => {
+      await save();
+
+      httpMock
+        .expectOne(SUPPLIER_URL)
+        .flush(conflict('The supplier was modified in the meantime: reload it and try again.'), {
+          status: 409,
+          statusText: 'Conflict',
+        });
+      await fixture.whenStable();
+
+      expect(element.textContent).toContain('modified in the meantime');
+      expect(navigate).not.toHaveBeenCalled();
+      expect(field<HTMLInputElement>('name').value).toBe('Huiles Ravo');
+    });
+
+    it('should send nothing and ask for a name when the name is only spaces', async () => {
+      await type('name', '   ');
+
+      await save();
+
+      httpMock.expectNone(SUPPLIER_URL);
+      expect(element.querySelector('#name-error')?.textContent).toContain('Le nom est obligatoire');
+    });
+
+    it('should send nothing and show the length message when the name exceeds 150 characters', async () => {
+      await type('name', 'a'.repeat(151));
+
+      await save();
+
+      httpMock.expectNone(SUPPLIER_URL);
+      expect(element.querySelector('#name-error')?.textContent).toContain('150 caractères');
+    });
+
+    it('should accept a name of exactly 150 characters', async () => {
+      await type('name', 'a'.repeat(150));
+
+      await save();
+
+      expect(httpMock.expectOne(SUPPLIER_URL).request.body).toMatchObject({
+        name: 'a'.repeat(150),
+      });
+    });
+
+    it('should send nothing when the email is invalid', async () => {
+      await type('email', 'abc');
+
+      await save();
+
+      httpMock.expectNone(SUPPLIER_URL);
+      expect(element.querySelector('#email-error')?.textContent).toContain(
+        "L'email n'est pas valide",
+      );
+    });
+
+    it('should disable the save button while saving so that a double click sends one request', async () => {
+      await save();
+      await save();
+
+      const button = element.querySelector<HTMLButtonElement>('button[type="submit"]');
+      expect(button?.disabled).toBe(true);
+      httpMock.expectOne(SUPPLIER_URL).flush(supplier);
+      await fixture.whenStable();
+      expect(button?.disabled).toBe(false);
+    });
   });
 
-  it('should show the server message when the sheet was modified in the meantime', async () => {
-    await save();
+  describe('in creation mode', () => {
+    beforeEach(async () => {
+      await setup();
+      await fixture.whenStable();
+    });
 
-    httpMock.expectOne(SUPPLIER_URL).flush(
-      {
-        title: 'Conflict',
-        status: 409,
-        detail: 'The supplier was modified in the meantime: reload it and try again.',
-        code: 'CONFLICT',
-      },
-      { status: 409, statusText: 'Conflict' },
-    );
-    await fixture.whenStable();
+    it('should create with POST, without version, then go back to the list', async () => {
+      await type('name', '  Coopérative Itasy ');
+      await type('type', 'FOREIGN');
 
-    expect(element.textContent).toContain('modified in the meantime');
+      await save();
+
+      const request = httpMock.expectOne(SUPPLIERS_URL);
+      expect(request.request.method).toBe('POST');
+      expect(request.request.body).toMatchObject({
+        name: '  Coopérative Itasy ',
+        type: 'FOREIGN',
+        contactName: '',
+        version: null,
+      });
+      request.flush(
+        { ...supplier, name: 'Coopérative Itasy' },
+        { status: 201, statusText: 'Created' },
+      );
+      await fixture.whenStable();
+      expect(navigate).toHaveBeenCalledWith(['/suppliers']);
+    });
+
+    it('should show the server message when the name is already used', async () => {
+      await type('name', 'HUILES RAVO');
+
+      await save();
+
+      httpMock
+        .expectOne(SUPPLIERS_URL)
+        .flush(conflict('A supplier with this name already exists.'), {
+          status: 409,
+          statusText: 'Conflict',
+        });
+      await fixture.whenStable();
+
+      expect(element.querySelector('[role="alert"]')?.textContent).toContain('already exists');
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('should send nothing when the name is empty', async () => {
+      await save();
+
+      httpMock.expectNone(SUPPLIERS_URL);
+      expect(element.querySelector('#name-error')).not.toBeNull();
+    });
+  });
+
+  describe('when the sheet does not exist', () => {
+    it('should show the server message', async () => {
+      await setup(supplier.id);
+
+      httpMock
+        .expectOne(SUPPLIER_URL)
+        .flush(
+          {
+            title: 'Not Found',
+            status: 404,
+            detail: `Supplier not found: ${supplier.id}`,
+            code: 'NOT_FOUND',
+          },
+          { status: 404, statusText: 'Not Found' },
+        );
+      await fixture.whenStable();
+
+      expect(element.querySelector('[role="alert"]')?.textContent).toContain('Supplier not found');
+    });
   });
 });

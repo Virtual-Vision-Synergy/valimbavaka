@@ -1319,6 +1319,7 @@
       "save": "Tehirizina",
       "cancel": "Foanana",
       "nameRequired": "Tsy maintsy fenoina ny anarana",
+      "nameTooLong": "Tsy tokony hihoatra ny 150 litera ny anarana",
       "emailInvalid": "Tsy mety ny mailaka"
     },
     "articles": {

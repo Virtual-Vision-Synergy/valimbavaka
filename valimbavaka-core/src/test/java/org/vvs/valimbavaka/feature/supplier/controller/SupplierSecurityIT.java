@@ -32,7 +32,9 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 import org.vvs.valimbavaka.support.IntegrationTest;
 
-/** FRS-01: the supplier sheet is admin-only, editable without deletion and traced in the journal. */
+/**
+ * FRS-01 / FRS-02: the supplier sheet is admin-only, created and updated without deletion and traced in the journal.
+ */
 @IntegrationTest
 @AutoConfigureMockMvc
 class SupplierSecurityIT {
@@ -194,6 +196,135 @@ class SupplierSecurityIT {
     }
 
     @Test
+    void updateSupplier_withoutToken_returns401() throws Exception {
+        mockMvc.perform(putJson(SUPPLIERS + "/" + UUID.randomUUID(), body(uniqueName())))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void updateSupplier_withNonAdminRole_returns403AndKeepsTheSheet() throws Exception {
+        // Arrange
+        var adminToken = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var name = uniqueName();
+        var id = createSupplier(adminToken, name);
+        var token = accessToken(createDeliveryDriver(), PASSWORD);
+
+        // Act + Assert
+        mockMvc.perform(putJson(SUPPLIERS + "/" + id, body(uniqueName()))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        assertThat(supplierRepository.findById(id).orElseThrow().getName()).isEqualTo(name);
+    }
+
+    @Test
+    void updateSupplier_unknownId_returns404() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+        // Act + Assert
+        mockMvc.perform(putJson(SUPPLIERS + "/" + UUID.randomUUID(), body(uniqueName()))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void updateSupplier_tooLongNameAndInvalidEmail_returns422AndKeepsTheSheet() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var name = uniqueName();
+        var id = createSupplier(token, name);
+        var body = """
+                {"name":"%s","type":"LOCAL","email":"abc"}
+                """.formatted("a".repeat(151));
+
+        // Act + Assert
+        mockMvc.perform(putJson(SUPPLIERS + "/" + id, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+        assertThat(supplierRepository.findById(id).orElseThrow().getName()).isEqualTo(name);
+    }
+
+    @Test
+    void updateSupplier_nameOfAnotherSupplierWithOtherCase_returns409() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var taken = uniqueName();
+        createSupplier(token, taken);
+        var id = createSupplier(token, uniqueName());
+
+        // Act + Assert
+        mockMvc.perform(putJson(SUPPLIERS + "/" + id, body(taken.toUpperCase()))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
+    }
+
+    @Test
+    void updateSupplier_massAssignmentOfIdAndStatus_isIgnored() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var id = createSupplier(token, uniqueName());
+        var body = """
+                {"id":"%s","name":"%s","type":"LOCAL","active":false}
+                """.formatted(UUID.randomUUID(), uniqueName());
+
+        // Act
+        mockMvc.perform(putJson(SUPPLIERS + "/" + id, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.active").value(true));
+
+        // Assert
+        assertThat(supplierRepository.findById(id).orElseThrow().isActive()).isTrue();
+    }
+
+    @Test
+    void updateSupplier_withVersionRead_savesAndTracesUpdateInJournal() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var name = uniqueName();
+        var id = createSupplier(token, name);
+        long version = supplierRepository.findById(id).orElseThrow().getVersion();
+        var body = """
+                {"name":"%s","type":"LOCAL","notes":"Livraison le mardi","version":%d}
+                """.formatted(name, version);
+
+        // Act
+        mockMvc.perform(putJson(SUPPLIERS + "/" + id, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notes").value("Livraison le mardi"));
+
+        // Assert
+        mockMvc.perform(get("/api/v1/journal").param("search", name).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.items[0].action").value("UPDATE"))
+                .andExpect(jsonPath("$.items[0].resourceId").value(id.toString()));
+    }
+
+    @Test
+    void updateSupplier_withoutChange_leavesNoNewJournalLine() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var name = uniqueName();
+        var id = createSupplier(token, name);
+        var body = """
+                {"name":"  %s ","type":"LOCAL","contactName":" ","email":""}
+                """.formatted(name);
+
+        // Act
+        mockMvc.perform(putJson(SUPPLIERS + "/" + id, body).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk());
+
+        // Assert
+        mockMvc.perform(get("/api/v1/journal").param("search", name).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].action").value("CREATE"));
+    }
+
+    @Test
     void setActive_byAdmin_deactivatesSupplier() throws Exception {
         // Arrange
         var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
@@ -267,6 +398,10 @@ class SupplierSecurityIT {
 
     private static MockHttpServletRequestBuilder postJson(String url, String body) {
         return post(url).contentType(MediaType.APPLICATION_JSON).content(body);
+    }
+
+    private static MockHttpServletRequestBuilder putJson(String url, String body) {
+        return put(url).contentType(MediaType.APPLICATION_JSON).content(body);
     }
 
     private static String bearer(String token) {

@@ -15,7 +15,7 @@ En tant qu'administrateur, je veux créer/modifier un fournisseur afin de mainte
 
 ## Critères d'acceptation
 
-- [ ] Le formulaire enregistre correctement les modifications.
+- [x] Le formulaire enregistre correctement les modifications. — *✅ vérifié : création et modification des 7 champs, version renvoyée, journal `CREATE` / `UPDATE` seulement si la fiche change (voir [scénario](scenario-test.md))*
 
 ## Détails
 

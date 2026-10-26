@@ -15,7 +15,10 @@
         <input id="name" class="input" formControlName="name" aria-describedby="name-error" />
         @if (isInvalid('name')) {
           <span id="name-error" class="field-error" aria-live="polite">{{
-            'supplier.form.nameRequired' | translate
+            (form.controls.name.hasError('maxlength')
+              ? 'supplier.form.nameTooLong'
+              : 'supplier.form.nameRequired'
+            ) | translate
           }}</span>
         }
       </div>

@@ -55,7 +55,7 @@ docs/ticket/<ID>/
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
 | [FRS-01](FRS-01/description.md) | Fiche fournisseur complète | 1 | And-Matia | [#17](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/17) ✅ | [JNL-01](JNL-01/description.md) | [✅](FRS-01/scenario-test.md) | [✅](FRS-01/guide.md) |
-| [FRS-02](FRS-02/description.md) | Création / modification d'un fournisseur | 1 | And-Matia | [#18](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/18) 🟡 | [FRS-01](FRS-01/description.md), [JNL-01](JNL-01/description.md) | [⚠](FRS-02/scenario-test.md) | [⚠](FRS-02/guide.md) |
+| [FRS-02](FRS-02/description.md) | Création / modification d'un fournisseur | 1 | And-Matia | [#18](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/18) 🟡 | [FRS-01](FRS-01/description.md), [JNL-01](JNL-01/description.md) | [✅](FRS-02/scenario-test.md) | [✅](FRS-02/guide.md) |
 | [FRS-03](FRS-03/description.md) | Filtrage des fournisseurs par type | 1 | Njara-Niaina | [#19](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/19) 🟡 | [FRS-01](FRS-01/description.md) | [☐](FRS-03/scenario-test.md) | [☐](FRS-03/guide.md) |
 
 ### 03 · Articles

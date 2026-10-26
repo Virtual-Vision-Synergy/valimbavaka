@@ -118,6 +118,24 @@ class SupplierServiceImplTest {
     }
 
     @Test
+    void updateSupplier_sameValuesWithOtherSpacing_leavesNoTrace() {
+        // Arrange
+        var supplier = existingSupplier();
+        when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
+        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Coopérative Itasy", SUPPLIER_ID))
+                .thenReturn(false);
+        var request = new SupplierWDto("  Coopérative Itasy ", SupplierType.LOCAL, " ", "", null, null, null, null);
+
+        // Act
+        sut.updateSupplier(SUPPLIER_ID, request);
+
+        // Assert
+        assertThat(supplier.getName()).isEqualTo("Coopérative Itasy");
+        assertThat(supplier.getContactName()).isNull();
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
     void updateSupplier_nameUsedByAnotherSupplier_throwsConflict() {
         // Arrange
         when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(existingSupplier()));

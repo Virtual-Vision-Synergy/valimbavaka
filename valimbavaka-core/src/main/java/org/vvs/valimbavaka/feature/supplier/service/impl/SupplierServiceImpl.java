@@ -84,9 +84,10 @@ public class SupplierServiceImpl implements SupplierService {
         if (supplierRepository.existsByNameIgnoreCaseAndIdNot(request.name().strip(), supplierId)) {
             throw new ConflictException(NAME_ALREADY_USED);
         }
-        supplier.update(toDetails(request));
-        journalService.record(
-                JournalAction.UPDATE, RESOURCE_TYPE, supplierId, "Supplier updated: " + supplier.getName());
+        if (supplier.update(toDetails(request))) {
+            journalService.record(
+                    JournalAction.UPDATE, RESOURCE_TYPE, supplierId, "Supplier updated: " + supplier.getName());
+        }
         return supplierMapper.toRDto(supplier);
     }
 

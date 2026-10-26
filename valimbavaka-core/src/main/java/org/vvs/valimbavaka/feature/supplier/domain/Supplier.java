@@ -55,8 +55,11 @@ public class Supplier extends BaseEntity {
         return supplier;
     }
 
-    public void update(SupplierDetails details) {
+    /** Applies the sheet once normalized and reports whether anything changed (nothing to trace otherwise). */
+    public boolean update(SupplierDetails details) {
+        var before = details();
         apply(details);
+        return !before.equals(details());
     }
 
     public void activate() {
@@ -75,6 +78,10 @@ public class Supplier extends BaseEntity {
         this.email = normalizeEmail(details.email());
         this.address = blankToNull(details.address());
         this.notes = blankToNull(details.notes());
+    }
+
+    private SupplierDetails details() {
+        return new SupplierDetails(name, type, contactName, phone, email, address, notes);
     }
 
     private static @Nullable String normalizeEmail(@Nullable String email) {

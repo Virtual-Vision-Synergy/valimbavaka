@@ -1,44 +1,90 @@
 # Scénarios de test — FRS-02 · Création / modification d'un fournisseur
 
-> **À compléter par le traiteur du ticket**, avant de passer en revue. Le scénario sert de base au QA (Njara) et de référence aux tickets liés.
+Statut : ✅ exécuté le 2026-10-26 — reste la recette manuelle (🧪) · Ticket : [#18](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/18) · [description](description.md) · [guide](guide.md)
 
-Statut : ☐ à compléter · Ticket : [#18](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/18) · [description](description.md) · [guide](guide.md)
+Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ base = vérifié en base après migrations · 🔍 code = vérifié par lecture du code (aucun test) · ❌ écart = comportement différent de l'attendu · ⏭ hors périmètre = renvoyé à un autre ticket · 🧪 recette = à faire à la main. Détail : [CONSIGNE.md](../CONSIGNE.md#4-remplir-le-scénario-de-test).
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
+
+Point de départ : FRS-01 a livré l'API (`POST`, `PUT`, `PATCH /status`) et le formulaire. FRS-02 vérifie que **le formulaire enregistre correctement** et corrige ce qui ne l'était pas : une modification sans changement écrivait une ligne `UPDATE` dans le journal, un nom fait d'espaces partait au serveur, un nom trop long affichait « Le nom est obligatoire ». Les tests de FRS-01 restent valables et ne sont pas recopiés ici, sauf ceux qui portent directement sur le critère.
 
 ## Pré-requis
 
 | Élément | Valeur |
 |---|---|
-| Rôle(s) utilisé(s) | _(à compléter)_ |
-| Données de départ | _(à compléter)_ |
+| Rôle(s) utilisé(s) | `ADMIN` (crée et modifie), `DELIVERY_DRIVER` (refusé) |
+| Données de départ | un administrateur ; fiche « Huiles Ravo » (`LOCAL`, contact « Rasoa », version 3) |
 | Tickets à avoir déployés avant | FRS-01, JNL-01 |
 
 ## Scénarios issus des critères d'acceptation
 
-| # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+| # | Critère | Étant donné / Quand / Alors | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | Le formulaire enregistre correctement les modifications. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+| 1 | Le formulaire enregistre correctement les modifications | Étant donné la fiche « Huiles Ravo » ouverte, quand l'administrateur ouvre `/suppliers/:id/edit` | les champs sont pré-remplis avec la fiche lue (nom, type, contact ; champs vides pour les valeurs `null`) | `supplier-form-page.spec.ts` « should fill the form with the sheet read from the server » | ✅ auto |
+| 1b | idem | Quand il change les 7 champs (« Import Océan », `FOREIGN`, « Mr Lee », `+33 1 00 00 00 00`, `lee@ocean.com`, « Marseille », « Livraison le mardi ») et enregistre | `PUT` avec les 7 valeurs et `version: 3`, puis retour à `/suppliers` | « should save every edited field with PUT then go back to the list » | ✅ auto |
+| 1c | idem, côté serveur | `PUT` avec les 7 champs | 200, les 7 champs renvoyés modifiés | `SupplierSecurityIT.updateSupplier_byAdmin_changesEveryField` ; `SupplierServiceImplTest.updateSupplier_existingSupplier_appliesAllFieldsAndTracesInJournal` | ✅ auto |
+| 1d | idem, traçabilité | `PUT` avec la version lue et `notes` changées | 200 et une ligne `UPDATE` sur ce fournisseur, en plus de la ligne `CREATE` | `SupplierSecurityIT.updateSupplier_withVersionRead_savesAndTracesUpdateInJournal` | ✅ auto |
+| 1e | idem, rien de changé | Il enregistre sans rien modifier (ou en ajoutant seulement des espaces : `"  Huiles Ravo "`, contact `" "`) | 200, fiche inchangée, **aucune** nouvelle ligne de journal (règle JNL-01) | `SupplierSecurityIT.updateSupplier_withoutChange_leavesNoNewJournalLine` ; `SupplierServiceImplTest.updateSupplier_sameValuesWithOtherSpacing_leavesNoTrace` | ✅ auto (corrigé) |
+| 1f | Création | Formulaire vide, nom `"  Coopérative Itasy "`, type `FOREIGN` | `POST` sans version (`version: null`), puis retour à la liste ; le serveur enregistre « Coopérative Itasy » | « should create with POST, without version, then go back to the list » ; `SupplierServiceImplTest.createSupplier_newName_savesNormalizedActiveSupplierAndTracesInJournal` | ✅ auto |
+| 1g | Création tracée | `POST` valide | 201 + `Location`, ligne `CREATE` | `SupplierSecurityIT.createSupplier_byAdmin_returns201AndTracesInJournal` | ✅ auto |
 
 ## Sécurité et erreurs
 
-| Cas | Résultat attendu | Test auto | OK |
-|---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | _(à compléter)_ | ☐ |
-| Appel avec un mauvais rôle | 403 `FORBIDDEN` | _(à compléter)_ | ☐ |
-| Champ interdit dans le corps (`role`, `id`) | ignoré (mass assignment) | _(à compléter)_ | ☐ |
-| Données invalides | 422 `VALIDATION_FAILED` | _(à compléter)_ | ☐ |
-| Ressource introuvable | 404 `NOT_FOUND` | _(à compléter)_ | ☐ |
-| Conflit / doublon | 409 `CONFLICT` | _(à compléter)_ | ☐ |
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Modification sans jeton | `PUT /api/v1/suppliers/{id}` sans `Authorization` | 401 `UNAUTHENTICATED` | `SupplierSecurityIT.updateSupplier_withoutToken_returns401` | ✅ auto |
+| Modification avec un autre rôle | jeton livreur | 403 `FORBIDDEN`, fiche inchangée | `SupplierSecurityIT.updateSupplier_withNonAdminRole_returns403AndKeepsTheSheet` | ✅ auto |
+| Création avec un autre rôle | jeton livreur | 403 `FORBIDDEN` | `SupplierSecurityIT.createSupplier_withNonAdminRole_returns403` | ✅ auto |
+| Mass assignment à la modification | `{"id":"<autre uuid>","active":false,…}` | `id` et `active` ignorés : même identifiant, fiche toujours active | `SupplierSecurityIT.updateSupplier_massAssignmentOfIdAndStatus_isIgnored` | ✅ auto |
+| Mass assignment à la création | idem sur `POST` | ignorés | `SupplierSecurityIT.createSupplier_massAssignmentOfIdAndStatus_isIgnored` | ✅ auto |
+| Données invalides à la modification | nom de 151 caractères, `email: "abc"` | 422 `VALIDATION_FAILED`, fiche inchangée | `SupplierSecurityIT.updateSupplier_tooLongNameAndInvalidEmail_returns422AndKeepsTheSheet` | ✅ auto |
+| Données invalides à la création | `{"email":"not-an-email"}` (ni nom ni type) | 422 `VALIDATION_FAILED` | `SupplierSecurityIT.createSupplier_missingNameAndType_returns422` | ✅ auto |
+| Fiche inconnue | `PUT` sur un UUID aléatoire | 404 `NOT_FOUND` | `SupplierSecurityIT.updateSupplier_unknownId_returns404` | ✅ auto |
+| Fiche inconnue dans le formulaire | `/suppliers/<uuid inconnu>/edit` | message du serveur affiché (« Supplier not found: … ») | « should show the server message » (bloc « when the sheet does not exist ») | ✅ auto |
+| Nom d'un autre fournisseur, autre casse | renommer en « HUILES RAVO » alors que « Huiles Ravo » existe | 409 `CONFLICT` | `SupplierSecurityIT.updateSupplier_nameOfAnotherSupplierWithOtherCase_returns409` ; `SupplierServiceImplTest.updateSupplier_nameUsedByAnotherSupplier_throwsConflict` | ✅ auto |
+| Nom déjà pris à la création, dans le formulaire | « HUILES RAVO » | 409, message du serveur affiché, pas de navigation | « should show the server message when the name is already used » ; `SupplierSecurityIT.createSupplier_nameAlreadyUsedWithOtherCase_returns409` | ✅ auto |
+| Journal | création / modification réelle | `CREATE` / `UPDATE`, ressource `SUPPLIER` | lignes 1d et 1g | ✅ auto |
 
-_Supprimer les lignes qui ne s'appliquent pas (ticket frontend seul, pas d'écriture, etc.)._
+## Cas limites
 
-## Cas limites et hors ligne
+| Cas | Exemple d'entrée | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Nom vide | `""` en création | rien n'est envoyé, message « Le nom est obligatoire » | « should send nothing when the name is empty » | ✅ auto |
+| Nom fait d'espaces | `"   "` | rien n'est envoyé, message « Le nom est obligatoire » (avant : envoyé puis 422 en anglais) | « should send nothing and ask for a name when the name is only spaces » | ✅ auto (corrigé) |
+| Nom à la borne | 150 caractères | envoyé | « should accept a name of exactly 150 characters » | ✅ auto |
+| Nom borne + 1 | 151 caractères | rien n'est envoyé, message « Le nom ne doit pas dépasser 150 caractères » (avant : « Le nom est obligatoire ») ; côté serveur 422 | « should send nothing and show the length message when the name exceeds 150 characters » ; `updateSupplier_tooLongNameAndInvalidEmail_returns422AndKeepsTheSheet` | ✅ auto (corrigé) |
+| Courriel invalide | `abc` | rien n'est envoyé, message « L'email n'est pas valide » | « should send nothing when the email is invalid » | ✅ auto |
+| Autres longueurs | contact 150, téléphone 50, courriel 255, adresse 500, notes 2000 | +1 caractère : 422 serveur ; le formulaire a les mêmes `maxLength` mais n'affiche pas de message propre à ces champs | `SupplierWDto` (`@Size`) et `Validators.maxLength` du formulaire | 🔍 code |
+| Champs facultatifs vidés | contact `""`, courriel `""` | enregistrés `null` (pas de chaîne vide en base) | `SupplierServiceImplTest.createSupplier_newName_savesNormalizedActiveSupplierAndTracesInJournal` (contact `" "` → `null`) | ✅ auto |
+| Espaces autour, casse du courriel | `"  Huiles Ravo  "`, `Contact@Itasy.MG` | « Huiles Ravo », `contact@itasy.mg` | `createSupplier_newName_savesNormalizedActiveSupplierAndTracesInJournal` | ✅ auto |
+| Double clic sur « Enregistrer » | deux clics avant la réponse | une seule requête ; bouton désactivé pendant l'envoi, réactivé ensuite | « should disable the save button while saving so that a double click sends one request » | ✅ auto |
+| Deux administrateurs sur la même fiche | A et B ouvrent la version 3, A enregistre, puis B | B reçoit 409 « modified in the meantime », reste sur le formulaire avec sa saisie | « should send back the version read so that a concurrent change is refused », « should show the server message when the sheet was modified in the meantime » ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` | ✅ auto |
+| Session expirée pendant la saisie | jeton expiré au clic | l'intercepteur d'authentification rafraîchit le jeton puis rejoue (AUTH-02) | intercepteur commun, non spécifique au fournisseur | ⏭ hors périmètre (AUTH-02) |
+| Saisie hors ligne | réseau coupé au clic | non pris en charge : erreur affichée, rien en file | `supplier-service.ts` appelle `HttpClient` directement | ⏭ hors périmètre ([SYS-07](../SYS-07/description.md)) |
 
-- _(à compléter : valeurs extrêmes, listes vides, pagination, perte de connexion, rejeu avec `Idempotency-Key` si la saisie passe par la file hors ligne)_
+## Tests existants
+
+- Backend : `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java` (7 tests ajoutés pour le `PUT`), `…/service/impl/SupplierServiceImplTest.java` (1 test ajouté), `…/repository/SupplierRepositoryIT.java` (inchangé).
+- Frontend : `valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/supplier-form-page.spec.ts` (13 tests, dont 11 nouveaux), `…/data-access/supplier-service.spec.ts` (inchangé).
+
+## Recette manuelle (🧪)
+
+| Étape | Attendu | Statut |
+|---|---|---|
+| Créer « Coopérative Itasy » (local), puis la modifier : changer chaque champ, enregistrer | retour à la liste, valeurs à jour dans la liste et à la réouverture de la fiche | 🧪 recette |
+| Rouvrir la fiche et enregistrer sans rien changer | Journal : aucune nouvelle ligne `UPDATE` | 🧪 recette |
+| Ouvrir la même fiche dans deux onglets, enregistrer dans le premier puis dans le second | le second affiche le message de conflit et garde la saisie | 🧪 recette |
+| Saisir un nom de 151 caractères, puis seulement des espaces | messages « ne doit pas dépasser 150 caractères » puis « obligatoire », bouton sans effet | 🧪 recette |
 
 ## Résultat de l'exécution
 
-- Date : _(à compléter)_
-- Environnement : _(à compléter)_
-- Anomalies ouvertes : _(à compléter)_
+- **Date** : 2026-10-26.
+- **Backend** : `mvn -B -ntp verify` en local (JDK 21, Testcontainers PostgreSQL) : `BUILD SUCCESS`, 110 tests unitaires et 96 tests d'intégration verts (dont 21 dans `SupplierSecurityIT`, 9 dans `SupplierServiceImplTest`), ArchUnit compris, aucun avertissement de compilation.
+- **Frontend** : `npx ng test --watch=false` : 126 tests verts sur 126 (32 fichiers) ; `ng lint` sans erreur.
+- **Anomalies** :
+  1. ✅ Corrigé (moyenne) : enregistrer une fiche sans changement écrivait une ligne `UPDATE` dans le journal, contraire à la règle JNL-01 « ne pas tracer si rien n'a changé ». `Supplier.update` indique désormais si la fiche a changé.
+  2. ✅ Corrigé (faible) : un nom fait d'espaces passait la validation du formulaire et revenait en 422 avec un message anglais.
+  3. ✅ Corrigé (faible) : un nom de plus de 150 caractères affichait « Le nom est obligatoire ».
+  4. ⚠ Ouvert (faible) : les messages d'erreur serveur (« A supplier with this name already exists. », « The supplier was modified in the meantime… ») et les libellés du journal (« Supplier updated: … ») sont en anglais et s'affichent tels quels dans une interface française. Déjà relevé dans FRS-01 ; à traiter dans une issue `fix/` dédiée pour l'ensemble des modules.
+  5. ⚠ Ouvert (faible) : le formulaire n'affiche de message que pour le nom et le courriel ; les dépassements des autres champs bloquent l'envoi sans explication. À reprendre avec la maquette DSG-01 du formulaire.
+- **Recette manuelle** : 4 étapes 🧪.
