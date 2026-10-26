@@ -4,7 +4,7 @@ Statut : ✅ écrit le 2026-10-26 — **tests non exécutés** (voir « Résulta
 
 ## En bref
 
-La création et la modification d'un article passent par un seul écran réel : la fiche `ArticleSheetPage`, livrée avec [ART-01](../ART-01/guide.md). ART-02 la branche sur le catalogue : le bouton « Nouvel article » ouvre `/articles/new`, le bouton « Modifier » du détail ouvre `/articles/:id/edit` (formulaire pré-rempli avec la fiche lue). Les deux boutons n'apparaissent qu'avec la permission `articles.create` / `articles.update`. **Aucun endpoint n'a été ajouté** : l'API est celle d'ART-01. Autre apport : en modification, la fiche ne s'enregistre plus tant qu'elle n'a pas été lue.
+La création et la modification d'un article utilisent **un seul formulaire : la maquette `ArticleFormPage`** (sections guidées, aperçu en caisse, brouillon, photo), adaptée à l'API d'[ART-01](../ART-01/guide.md). Sans `id` elle crée (`POST`), avec `id` elle pré-remplit la fiche lue et la modifie (`PUT`). Le bouton « Nouvel article » ouvre `/articles/new`, le bouton « Modifier » du détail ouvre `/articles/:id/edit`, chacun réservé à `articles.create` / `articles.update`. **Aucun endpoint n'a été ajouté.** Le formulaire d'écran qu'ART-01 avait écrit (`article-sheet-page`) a été supprimé au profit de la maquette.
 
 ## Contrat exposé
 
@@ -14,14 +14,20 @@ Aucun nouvel endpoint. Voir le [guide ART-01](../ART-01/guide.md#endpoints-backe
 
 ### Frontend
 
-- Routes (`features/articles/articles.routes.ts`, sous `/articles` déjà gardé par `articles.read`) :
-  - `/articles/new` : fiche vide, garde `articles.create` ; remplace le formulaire de démonstration et l'ancienne route provisoire `/articles/sheet/new` (supprimée) ;
-  - `/articles/:id/edit` : fiche pré-remplie, garde `articles.update`.
-- Boutons : « Nouvel article » dans `article-list-page.html` et « Modifier » dans `article-detail-page.html`, tous deux sous `*vvsHasPermission`. Le serveur décide de toute façon (403 sans permission).
-- Pour lier vers la modification depuis une autre page : `[routerLink]="['/articles', article.id, 'edit']"` avec `*vvsHasPermission="'articles.update'"`.
-- `ArticleSheetPage` (`features/article/pages/article-sheet-page`) : `input()` `id` lié à la route. Sans `id` : création (`POST`, sans `version`). Avec `id` : lecture à l'ouverture, pré-remplissage, puis `PUT` avec la `version` lue. Retour à `/articles` après enregistrement.
-- Nouveau garde-fou : en modification, le bouton « Enregistrer » est désactivé et `save()` ne fait rien tant que la fiche n'a pas été lue (réponse en attente, 404, 500, réseau coupé). Sans cela, une lecture échouée laissait un formulaire vide que l'on pouvait envoyer : `PUT` étant un remplacement complet, la fiche était écrasée.
-- Retirés (étaient la maquette de création) : `features/articles/pages/article-form-page/*`, `data-access/article-draft-store.ts`, et dans le service de démonstration `ArticleService` (`features/articles/data-access`) les méthodes `nextReference`, `suppliers`, `create` ainsi que les types `ArticleWDto`, `SupplierOptionRDto`, `ArticleFormValue`. Ne pas les réintroduire : la création réelle est `features/article/data-access/article-service.ts`.
+- Routes (`features/articles/articles.routes.ts`, sous `/articles` déjà gardé par `articles.read`) : `/articles/new` (garde `articles.create`) et `/articles/:id/edit` (garde `articles.update`), toutes deux sur `ArticleFormPage`. L'ancienne route provisoire `/articles/sheet/new` n'existe plus.
+- Boutons : « Nouvel article » (`article-list-page.html`) et « Modifier » (`article-detail-page.html`), sous `*vvsHasPermission`. Le serveur décide de toute façon (403).
+- `ArticleFormPage` (`features/articles/pages/article-form-page`) : `input()` `id` lié à la route. Elle appelle les services réels de `features/article/data-access` (`ArticleService.create / update / getById`), `ReferentialService.listProductRanges()` (choix de gamme) et `SupplierService.list()` (fournisseurs actifs, plus celui déjà lié).
+- Ce que le formulaire fait désormais :
+  - **gamme** : choix par `rangeId` (UUID du référentiel), la couleur et le libellé viennent du référentiel ; **types** : produit fini, matière première, semi-fini (`SEMI_FINISHED`) ; **coût d'achat** ajouté (facultatif) ;
+  - **prix** : 0 Ar ou plus (règle du serveur) ; gamme et prix absents pour un type qui n'est pas produit fini ;
+  - **code-barres** : clé de contrôle EAN-13 vérifiée (maquette), sauf pour le code-barres déjà enregistré sur la fiche ouverte ;
+  - **brouillon** (`ArticleDraftStore`) : seulement en création ; effacé après enregistrement ;
+  - **message** de réussite en notification (`articles.form.created` / `articles.form.updated`) ; message du `ProblemDetail` sous le titre en cas d'erreur, saisie conservée ;
+  - **« Enregistrer et créer un autre »** : création seulement.
+- Garde-fou : en modification, « Enregistrer » est désactivé et `save()` ne fait rien tant que la fiche n'a pas été lue (réponse en attente, 404, 500, réseau coupé). Sans cela, une lecture échouée laissait un formulaire vide que l'on pouvait envoyer ; `PUT` étant un remplacement complet, la fiche était écrasée.
+- Retirés de la maquette car le serveur ne les connaît pas : le type `PACKAGING`, les cases « fabriqué à l'atelier » et « utilisable au salon ». Le dépôt de photo reste affiché mais **n'enregistre rien** (aucun stockage serveur).
+- Retirés (code de démonstration du formulaire) : méthodes `nextReference`, `suppliers`, `create` et types `ArticleWDto`, `SupplierOptionRDto`, `ArticleFormValue` du service de démonstration `features/articles/data-access/article-service.ts`. La création réelle est `features/article/data-access/article-service.ts`.
+- Traductions : clés ajoutées dans `articles.form.*` (`editTitle`, `updated`, `cost`, `negativeError`, `thresholdError`, `rangeError`, `created` sans « démonstration ») et `articles.type.SEMI_FINISHED` dans `fr.json` et `mg.json` (**à relire par un locuteur malgache** : traductions mg écrites sans validation).
 
 ### Données
 
@@ -39,18 +45,18 @@ Pour les tests frontend, `ROLE_PERMISSIONS.ADMIN` (`core/auth/auth-testing.ts`) 
 ## Fichiers concernés
 
 **Frontend** (`valimbavaka-ui/src/app/`)
-- `features/articles/articles.routes.ts` (route `new` pointe sur la fiche réelle, `sheet/new` retirée)
-- `features/articles/pages/article-list-page/article-list-page.{html,ts}` (bouton sous permission)
-- `features/articles/pages/article-detail-page/article-detail-page.{html,ts}` (lien « Modifier », `demoAction` retiré)
-- `features/article/pages/article-sheet-page/article-sheet-page.{html,ts}` (`canSave`, `sheetRead`)
+- `features/articles/pages/article-form-page/article-form-page.{ts,html,css}` (maquette adaptée)
+- `features/articles/data-access/article-draft-store.ts` (valeur du brouillon alignée sur l'API)
+- `features/articles/articles.routes.ts` (`new` et `:id/edit` sur le formulaire, `sheet/new` retirée)
+- `features/articles/pages/article-list-page/*`, `article-detail-page/*` (boutons sous permission)
 - `features/articles/data-access/article-service.ts`, `article-models.ts`, `article-fixtures.ts` (code de démonstration retiré)
 - `core/auth/auth-testing.ts` (permissions d'écriture de l'administrateur)
+- `public/i18n/fr.json`, `mg.json`
+- Supprimé : `features/article/pages/article-sheet-page/*` (formulaire d'ART-01)
 
 **Tests** (`valimbavaka-ui/src/app/features/`)
-- `articles/articles.routes.spec.ts`
-- `articles/pages/article-list-page/article-list-page.spec.ts`
-- `articles/pages/article-detail-page/article-detail-page.spec.ts`
-- `article/pages/article-sheet-page/article-sheet-page-edit.spec.ts` (le reste : `article-sheet-page.spec.ts`, ART-01)
+- `articles/pages/article-form-page/article-form-page.spec.ts` (création), `article-form-page-validation.spec.ts` (règles de saisie), `article-form-page-edit.spec.ts` (modification), `article-form-page.harness.ts`, `article-form-page.fixtures.ts`
+- `articles/articles.routes.spec.ts`, `articles/pages/article-list-page/article-list-page.spec.ts`, `articles/pages/article-detail-page/article-detail-page.spec.ts`
 
 **Backend** : inchangé (voir ART-01).
 
@@ -71,8 +77,11 @@ Pour les tests frontend, `ROLE_PERMISSIONS.ADMIN` (`core/auth/auth-testing.ts`) 
 
 ## Points d'attention
 
-- **Liste et détail encore sur données de démonstration** : leurs identifiants (`art-art-0031`) ne sont pas des UUID du serveur. Le bouton « Modifier » du détail d'un article de démonstration ouvre donc une fiche qui répond « introuvable ». Cela se résout quand [ART-05](../ART-05/description.md) (liste) et [ART-06](../ART-06/description.md) (détail 360°) lisent `GET /api/v1/articles`. Avec un article réel, ouvrir `/articles/<uuid>/edit` fonctionne dès maintenant.
-- La fiche lit l'article **à l'ouverture seulement** : passer de `/articles/A/edit` à `/articles/B/edit` sans quitter l'écran garderait la fiche de A. L'interface actuelle n'offre pas ce chemin ; si elle l'offre un jour, remplacer `ngOnInit` par une lecture réactive à l'`id`.
-- Restent orphelins, sans appelant, depuis la suppression du formulaire de démonstration : `features/articles/components/photo-drop`, `components/article-preview` et `data-access/ean13.ts` (photo, aperçu, clé de contrôle EAN-13). Le stockage de la photo n'a aucun ticket ; à rebrancher ou supprimer par le ticket qui le prendra. Les clés de traduction `articles.form.*` correspondantes restent dans `fr.json` et `mg.json`.
+- **Liste et détail encore sur données de démonstration** : leurs identifiants (`art-art-0031`) ne sont pas des UUID du serveur. Le bouton « Modifier » du détail d'un article de démonstration ouvre donc une fiche qui répond « introuvable ». Cela se résout quand [ART-05](../ART-05/description.md) (liste) et [ART-06](../ART-06/description.md) (détail 360°) lisent `GET /api/v1/articles`. Avec un article réel, `/articles/<uuid>/edit` fonctionne dès maintenant.
+- **À trancher avec le métier** : `PACKAGING` (emballage), « fabriqué » et « utilisable au salon » figuraient dans la maquette, pas dans le contrat d'ART-01 ; ils ont été retirés du formulaire (voir ART-04). La liste de démonstration filtre encore sur `PACKAGING`.
+- **Photo** : `PhotoDrop` fait un aperçu local seulement ; aucun ticket ne prévoit le stockage.
+- **Code-barres** : le formulaire exige la clé EAN-13, le serveur seulement 13 chiffres. Un code-barres saisi par une autre voie (import [ART-07](../ART-07/description.md)) peut donc avoir une clé fausse : il reste modifiable car la clé n'est contrôlée que pour un code-barres changé.
+- La fiche lit l'article **à l'ouverture seulement** : passer de `/articles/A/edit` à `/articles/B/edit` sans quitter l'écran garderait la fiche de A. L'interface actuelle n'offre pas ce chemin.
+- Reste dans `fr.json` / `mg.json` l'espace de noms `article.*` (écrit pour le formulaire supprimé) ; seuls `article.form.newTitle` et `article.form.editTitle` servent encore (titres de route). Le reste peut être nettoyé.
 - Hors ligne : l'écriture n'est pas mise en file ([SYS-07](../SYS-07/description.md)) ; une erreur réseau affiche le message et conserve la saisie.
 - Les tests de ce ticket n'ont pas été exécutés par l'auteur : voir le scénario avant de s'appuyer sur ce guide pour un comportement limite.

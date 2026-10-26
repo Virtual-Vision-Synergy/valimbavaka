@@ -3,8 +3,8 @@ import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
  * Catalogue d'articles : la liste et le détail restent sur des données de démonstration (ART-05, ART-06).
- * La création et la modification (ART-01, ART-02, API `/api/v1/articles`) sont servies par la fiche réelle
- * de `features/article`.
+ * La création et la modification (ART-01, ART-02) utilisent le même formulaire, branché sur
+ * `/api/v1/articles` (`features/article/data-access`).
  */
 export const ARTICLES_ROUTES: Routes = [
   {
@@ -19,18 +19,14 @@ export const ARTICLES_ROUTES: Routes = [
     title: 'article.form.newTitle',
     canActivate: [permissionGuard('articles.create')],
     loadComponent: () =>
-      import('../article/pages/article-sheet-page/article-sheet-page').then(
-        (m) => m.ArticleSheetPage,
-      ),
+      import('./pages/article-form-page/article-form-page').then((m) => m.ArticleFormPage),
   },
   {
     path: ':id/edit',
     title: 'article.form.editTitle',
     canActivate: [permissionGuard('articles.update')],
     loadComponent: () =>
-      import('../article/pages/article-sheet-page/article-sheet-page').then(
-        (m) => m.ArticleSheetPage,
-      ),
+      import('./pages/article-form-page/article-form-page').then((m) => m.ArticleFormPage),
   },
   {
     path: ':id',

@@ -595,8 +595,10 @@
       "hint": {
         "FINISHED": "Amidy amin'ny kesy",
         "RAW_MATERIAL": "Lany amin'ny famokarana",
-        "PACKAGING": "Vilia, marika…"
-      }
+        "PACKAGING": "Vilia, marika…",
+        "SEMI_FINISHED": "Vita, avy eo lany amin'ny famokarana"
+      },
+      "SEMI_FINISHED": "Antsasaky ny vita"
     },
     "unit": {
       "PIECE": "Iray",
@@ -649,7 +651,7 @@
       "priceStock": "Vidiny & tahiry",
       "priceStockHint": "Mampandre eo amin'ny cockpit ny fetra ambany indrindra.",
       "price": "Vidin'ny varotra",
-      "priceError": "Asio vidiny mihoatra ny 0 Ar.",
+      "priceError": "Asio vidin'ny varotra 0 Ar na mihoatra.",
       "unit": "Refy",
       "threshold": "Fetra ambany indrindra",
       "thresholdHint": "Isaky ny toeram-pivarotana.",
@@ -659,13 +661,19 @@
       "photoHint": "Aseho ao amin'ny tsipiky ny kesy.",
       "saveAndNew": "Hitahiry ary hamorona hafa",
       "save": "Hitahiry ny entana",
-      "created": "Voatahiry ny entana {{reference}} « {{name}} » (fanandramana)",
+      "created": "Voatahiry ny entana {{reference}} « {{name}} »",
       "preview": "Topy maso amin'ny kesy",
       "previewName": "Anaran'ny entana",
       "previewNotSold": "Tsy hita amin'ny kesy ity entana ity.",
       "bulkTitle": "Fampidirana betsaka",
       "bulkText": "Entana mihoatra ny 10 ? Ampidiro rakitra Excel avy amin'ny modely.",
-      "downloadTemplate": "Haka ny modely"
+      "downloadTemplate": "Haka ny modely",
+      "editTitle": "Fanovana ny entana",
+      "updated": "Voaova ny entana {{reference}} « {{name}} »",
+      "cost": "Vidin'ny fividianana",
+      "negativeError": "Tsy azo ambanin'ny 0 ny sanda.",
+      "thresholdError": "Asio fetra ambany indrindra 0 na mihoatra.",
+      "rangeError": "Misafidiana karazany ho an'ny entana vita."
     },
     "photo": {
       "drop": "Atsofohy eto ny sary na",
