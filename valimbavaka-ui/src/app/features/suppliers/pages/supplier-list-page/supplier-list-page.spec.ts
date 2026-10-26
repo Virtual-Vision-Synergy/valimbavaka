@@ -6,37 +6,15 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import axe from 'axe-core';
+import { AuthStore } from '../../../../core/auth/auth-store';
+import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
-import { SupplierRDto } from '../../data-access/supplier-models';
 import { SupplierListPage } from './supplier-list-page';
+import { SUPPLIERS_URL, huilesRavo, pageOf, provenceEssences } from './supplier-list-page.fixtures';
 
-const supplier = (name: string, type: SupplierRDto['type']): SupplierRDto => ({
-  id: `id-${name}`,
-  name,
-  type,
-  contactName: null,
-  phone: null,
-  email: null,
-  address: null,
-  notes: null,
-  active: true,
-  createdAt: '2026-10-21T08:30:00Z',
-  updatedAt: '2026-10-21T08:30:00Z',
-  version: 0,
-});
-
-const huilesRavo = supplier('Huiles Ravo', 'LOCAL');
-const provenceEssences = supplier('Provence Essences', 'FOREIGN');
-
-const pageOf = (items: SupplierRDto[], page = 1, totalPages = 1) => ({
-  items,
-  page,
-  pageSize: 20,
-  totalCount: items.length,
-  totalPages,
-});
-
+/** Liste des fournisseurs de la maquette, branchée sur `/api/v1/suppliers` (FRS-01, FRS-03). */
 describe('SupplierListPage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<SupplierListPage>;
@@ -52,37 +30,56 @@ describe('SupplierListPage', () => {
         provideTestTranslations(),
       ],
     }).compileComponents();
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(SupplierListPage);
     element = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
   });
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    httpMock.verify();
+  });
 
-  const nextRequest = (): TestRequest =>
-    httpMock.expectOne((req) => req.url === '/api/v1/suppliers');
+  const nextRequest = (): TestRequest => httpMock.expectOne((req) => req.url === SUPPLIERS_URL);
 
   const respond = async (request: TestRequest, body: object): Promise<void> => {
     request.flush(body);
     await fixture.whenStable();
+    fixture.detectChanges();
   };
 
-  const chooseType = async (value: string): Promise<void> => {
-    const select = element.querySelector('#supplier-type') as HTMLSelectElement;
-    select.value = value;
-    select.dispatchEvent(new Event('change'));
-    await fixture.whenStable();
+  /**
+   * Applique un geste sans attendre `whenStable()` : une requête lancée par la liste (rxResource)
+   * est une tâche en cours tant que le test ne l'a pas fait répondre.
+   */
+  const refresh = async (): Promise<void> => {
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
   };
 
+  const chooseType = async (label: string): Promise<void> => {
+    Array.from(element.querySelectorAll<HTMLButtonElement>('.chips button'))
+      .find((chip) => chip.textContent?.includes(label))
+      ?.click();
+    await refresh();
+  };
+
+  /** La recherche part 300 ms après la dernière frappe : on attend ce délai en temps réel. */
   const searchFor = async (term: string): Promise<void> => {
-    (element.querySelector('#supplier-search') as HTMLInputElement).value = term;
-    (element.querySelector('.toolbar button[type="submit"]') as HTMLButtonElement).click();
-    await fixture.whenStable();
+    const input = element.querySelector<HTMLInputElement>(
+      'input[type="search"]',
+    ) as HTMLInputElement;
+    input.value = term;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 350));
+    await refresh();
   };
 
   const rowNames = (): string[] =>
-    Array.from(element.querySelectorAll('tbody tr td:first-child')).map((cell) =>
+    Array.from(element.querySelectorAll('tbody tr .cell-title')).map((cell) =>
       (cell.textContent ?? '').trim(),
     );
 
@@ -90,6 +87,7 @@ describe('SupplierListPage', () => {
     const request = nextRequest();
 
     expect(request.request.params.get('page')).toBe('1');
+    expect(request.request.params.get('size')).toBe('8');
     expect(request.request.params.get('sortBy')).toBe('name');
     expect(request.request.params.has('type')).toBe(false);
     expect(request.request.params.has('search')).toBe(false);
@@ -100,7 +98,7 @@ describe('SupplierListPage', () => {
   it('should reload with the chosen type and show only the returned suppliers', async () => {
     await respond(nextRequest(), pageOf([huilesRavo, provenceEssences]));
 
-    await chooseType('FOREIGN');
+    await chooseType('Étranger');
 
     const request = nextRequest();
     expect(request.request.params.get('type')).toBe('FOREIGN');
@@ -110,10 +108,10 @@ describe('SupplierListPage', () => {
 
   it('should drop the type when "all types" is chosen again', async () => {
     await respond(nextRequest(), pageOf([huilesRavo]));
-    await chooseType('LOCAL');
+    await chooseType('Local');
     await respond(nextRequest(), pageOf([huilesRavo]));
 
-    await chooseType('');
+    await chooseType('Tous les types');
 
     const request = nextRequest();
     expect(request.request.params.has('type')).toBe(false);
@@ -122,7 +120,7 @@ describe('SupplierListPage', () => {
 
   it('should combine the trimmed search with the chosen type', async () => {
     await respond(nextRequest(), pageOf([huilesRavo]));
-    await chooseType('LOCAL');
+    await chooseType('Local');
     await respond(nextRequest(), pageOf([huilesRavo]));
 
     await searchFor('  Rasoa ');
@@ -134,11 +132,14 @@ describe('SupplierListPage', () => {
   });
 
   it('should go back to the first page when a filter changes', async () => {
-    await respond(nextRequest(), pageOf([huilesRavo], 1, 3));
-    (element.querySelector('.pagination button:last-of-type') as HTMLButtonElement).click();
-    await respond(nextRequest(), pageOf([provenceEssences], 2, 3));
+    await respond(nextRequest(), pageOf([huilesRavo], 1, 20));
+    element.querySelector<HTMLButtonElement>('button[aria-label="Page suivante"]')?.click();
+    await refresh();
+    const second = nextRequest();
+    expect(second.request.params.get('page')).toBe('2');
+    await respond(second, pageOf([provenceEssences], 2, 20));
 
-    await chooseType('FOREIGN');
+    await chooseType('Étranger');
 
     const request = nextRequest();
     expect(request.request.params.get('page')).toBe('1');
@@ -151,34 +152,79 @@ describe('SupplierListPage', () => {
     await searchFor('Introuvable');
     await respond(nextRequest(), pageOf([]));
 
-    expect(element.querySelector('.empty')?.textContent).toContain('ne correspond');
+    expect(element.querySelector('.state')?.textContent).toContain('Aucun fournisseur trouvé');
   });
 
   it('should say that there is no supplier yet when the unfiltered list is empty', async () => {
     await respond(nextRequest(), pageOf([]));
 
-    expect(element.querySelector('.empty')?.textContent?.trim()).toBe('Aucun fournisseur');
+    expect(element.querySelector('.state .title')?.textContent?.trim()).toBe('Aucun fournisseur');
   });
 
   it('should ignore the answer of a request overtaken by a newer filter', async () => {
     await respond(nextRequest(), pageOf([huilesRavo, provenceEssences]));
-    await chooseType('LOCAL');
+    await chooseType('Local');
     const overtaken = nextRequest();
 
-    await chooseType('FOREIGN');
+    await chooseType('Étranger');
 
     expect(overtaken.cancelled).toBe(true);
     await respond(nextRequest(), pageOf([provenceEssences]));
     expect(rowNames()).toEqual(['Provence Essences']);
   });
 
-  it('should show the server message when the list cannot be loaded', async () => {
+  it('should offer a retry when the list cannot be loaded', async () => {
     nextRequest().flush(
       { title: 'Forbidden', status: 403, detail: 'Accès refusé', code: 'FORBIDDEN' },
       { status: 403, statusText: 'Forbidden' },
     );
     await fixture.whenStable();
+    fixture.detectChanges();
 
-    expect(element.querySelector('[role="alert"]')?.textContent).toContain('Accès refusé');
+    expect(element.querySelector('.state[role="alert"]')).not.toBeNull();
+  });
+
+  it('should show the new supplier button only with the create permission', async () => {
+    await respond(nextRequest(), pageOf([huilesRavo]));
+    const button = (): HTMLAnchorElement | undefined =>
+      Array.from(element.querySelectorAll<HTMLAnchorElement>('a')).find((link) =>
+        link.textContent?.includes('Nouveau fournisseur'),
+      );
+    expect(button()).toBeDefined();
+
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('SELLER'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(button()).toBeUndefined();
+  });
+
+  it('should open the supplier sheet of the clicked row', async () => {
+    await respond(nextRequest(), pageOf([huilesRavo, provenceEssences]));
+
+    element.querySelectorAll<HTMLButtonElement>('.row-link')[1].click();
+    await refresh();
+
+    httpMock.expectOne(`${SUPPLIERS_URL}/${provenceEssences.id}`).flush(provenceEssences);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(element.querySelector('vvs-supplier-detail h2')?.textContent).toContain(
+      'Provence Essences',
+    );
+  });
+
+  it('should have no detectable accessibility violation once the list is loaded', async () => {
+    await respond(nextRequest(), pageOf([huilesRavo, provenceEssences]));
+    document.body.appendChild(element);
+
+    const results = await axe.run(element, {
+      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+      rules: { 'color-contrast': { enabled: false }, region: { enabled: false } },
+    });
+
+    expect(
+      results.violations.map((violation) => `${violation.id}: ${violation.nodes[0]?.html}`),
+    ).toEqual([]);
+    element.remove();
   });
 });

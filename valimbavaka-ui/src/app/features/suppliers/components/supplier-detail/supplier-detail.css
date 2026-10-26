@@ -25,14 +25,16 @@
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
-.code {
-  color: var(--gris-moyen);
-  font-size: var(--text-sm);
-}
-.edit {
+.actions {
   position: absolute;
   top: var(--space-4);
   right: calc(var(--space-4) + 44px);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.alert {
+  margin-inline: var(--space-6);
 }
 :host {
   position: relative;
@@ -70,41 +72,6 @@ vvs-tabs {
   color: var(--secondary-strong);
   font-weight: 600;
 }
-.lead {
-  padding: var(--space-4) var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--gris-fond);
-}
-.caption {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--gris-moyen);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.lead-value {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: var(--space-2);
-  margin: var(--space-2) 0;
-}
-.lead-value strong {
-  font-size: 32px;
-  line-height: 1;
-}
-.lead-value > span:nth-child(2) {
-  font-size: var(--text-lg);
-  font-weight: 600;
-}
-.lead-why {
-  margin-left: auto;
-  color: var(--gris-moyen);
-  font-size: var(--text-sm);
-}
 .muted {
   color: var(--gris-moyen);
   font-size: var(--text-sm);
@@ -129,7 +96,7 @@ vvs-tabs {
   border-top: 1px solid var(--border-subtle);
 }
 @media (min-width: 1600px) {
-  .edit {
+  .actions {
     right: var(--space-4);
   }
   .identity {

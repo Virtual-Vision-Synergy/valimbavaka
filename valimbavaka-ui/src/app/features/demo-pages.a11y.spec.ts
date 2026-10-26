@@ -24,13 +24,6 @@ const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
   ],
   ['reports', () => import('./reports/pages/reports-page/reports-page').then((m) => m.ReportsPage)],
   [
-    'suppliers',
-    () =>
-      import('./suppliers/pages/supplier-list-page/supplier-list-page').then(
-        (m) => m.SupplierListPage,
-      ),
-  ],
-  [
     'production',
     () =>
       import('./production/pages/production-page/production-page').then((m) => m.ProductionPage),

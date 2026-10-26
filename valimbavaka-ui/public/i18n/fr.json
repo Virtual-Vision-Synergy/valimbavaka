@@ -921,31 +921,18 @@
   },
   "suppliers": {
     "title": "Fournisseurs",
-    "subtitle": "{{count}} fournisseurs · délai moyen de réapprovisionnement {{days}} jours.",
+    "subtitle": "{{count}} fournisseurs.",
     "new": "Nouveau fournisseur",
     "listLabel": "Liste des fournisseurs",
     "search": "Rechercher un fournisseur",
-    "searchPlaceholder": "Nom, ville, NIF…",
+    "searchPlaceholder": "Nom du fournisseur ou du contact",
     "typeFilter": "Filtrer par type",
-    "type": {
-      "ALL": "Tous",
-      "RAW_MATERIAL": "Matières premières",
-      "PACKAGING": "Emballages",
-      "FINISHED": "Produits finis",
-      "IMPORT": "Import"
-    },
     "empty": "Aucun fournisseur trouvé",
-    "emptyHint": "Essayez un autre nom, une autre ville ou retirez le filtre.",
+    "emptyHint": "Essayez un autre nom ou retirez le filtre.",
     "col": {
       "supplier": "Fournisseur",
-      "type": "Type",
-      "city": "Ville",
-      "lead": "Délai réappro.",
-      "lastReception": "Dernière réception"
+      "type": "Type"
     },
-    "daysShort": "{{count}} j",
-    "leadLong": "long",
-    "leadImport": "import",
     "detailLabel": "Fiche fournisseur {{name}}",
     "edit": "Modifier {{name}}",
     "active": "Actif",
@@ -953,25 +940,13 @@
     "tab": {
       "label": "Sections de la fiche fournisseur",
       "info": "Informations",
-      "articles": "Articles",
-      "receptions": "Réceptions"
+      "articles": "Articles"
     },
     "contact": "Contact",
     "phone": "Téléphone",
     "email": "E-mail",
-    "taxId": "NIF",
-    "city": "Ville",
     "address": "Adresse",
-    "leadTitle": "Délai de réapprovisionnement",
-    "days": "jours",
-    "transport": {
-      "ROAD": "transport par route",
-      "SEA": "fret maritime",
-      "LOCAL": "livraison locale"
-    },
-    "leadHint": "Utilisé pour proposer la date de commande dans les bons de réapprovisionnement.",
-    "lastReceptions": "Dernières réceptions",
-    "articlesHint": "Dernier coût unitaire payé, hors frais d'approche."
+    "articlesHint": "Coût d'achat enregistré sur la fiche de chaque article."
   },
   "production": {
     "title": "Production",

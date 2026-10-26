@@ -6,9 +6,12 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { Plus } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -17,21 +20,29 @@ import { Pagination } from '../../../../shared/components/pagination/pagination'
 import { SearchField } from '../../../../shared/components/search-field/search-field';
 import { SidePanel, isPanelDocked } from '../../../../shared/components/side-panel/side-panel';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
-import { ToastService } from '../../../../shared/components/toast/toast-service';
+import { SupplierRDto, SupplierType } from '../../../supplier/data-access/supplier-models';
+import { SupplierService } from '../../../supplier/data-access/supplier-service';
 import { SupplierDetail } from '../../components/supplier-detail/supplier-detail';
-import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
-import { SUPPLIER_TYPES, SupplierType } from '../../data-access/supplier-models';
-import { SupplierService } from '../../data-access/supplier-service';
-import { LONG_LEAD_TIME_DAYS, SUPPLIER_TYPE_TONES } from '../../data-access/supplier-tones';
+import { SUPPLIER_TYPE_TONES } from '../../data-access/supplier-tones';
 
 export const SUPPLIER_PAGE_SIZE = 8;
+const SEARCH_DEBOUNCE_MS = 300;
+const TYPE_OPTIONS: readonly ChipOption<SupplierType | 'ALL'>[] = [
+  { value: 'ALL', labelKey: 'supplier.filter.allTypes' },
+  { value: 'LOCAL', labelKey: 'supplier.type.LOCAL' },
+  { value: 'FOREIGN', labelKey: 'supplier.type.FOREIGN' },
+];
 
-/** Liste des fournisseurs (FRS-01) : recherche, filtre par type, fiche à droite. */
+/**
+ * Liste des fournisseurs (FRS-01, FRS-03) : recherche et filtre par type faits par le serveur,
+ * pagination serveur, fiche à droite (informations, articles fournis, activation).
+ */
 @Component({
   selector: 'vvs-supplier-list-page',
   imports: [
+    RouterLink,
+    HasPermissionDirective,
     TranslatePipe,
-    ShortDatePipe,
     Icon,
     PageHeader,
     ListState,
@@ -48,57 +59,57 @@ export const SUPPLIER_PAGE_SIZE = 8;
 })
 export class SupplierListPage {
   private readonly supplierService = inject(SupplierService);
-  private readonly toast = inject(ToastService);
   private readonly docked = isPanelDocked();
 
   protected readonly icons = { Plus };
   protected readonly pageSize = SUPPLIER_PAGE_SIZE;
-  protected readonly longLead = LONG_LEAD_TIME_DAYS;
   protected readonly typeTones = SUPPLIER_TYPE_TONES;
-  protected readonly suppliers = rxResource({ stream: () => this.supplierService.list() });
+  protected readonly typeOptions = TYPE_OPTIONS;
   protected readonly query = signal('');
   protected readonly type = signal<SupplierType | 'ALL'>('ALL');
+  /** Recherche envoyée au serveur : rognée et temporisée pour ne pas interroger à chaque frappe. */
+  private readonly search = toSignal(
+    toObservable(this.query).pipe(
+      debounceTime(SEARCH_DEBOUNCE_MS),
+      distinctUntilChanged((a, b) => a.trim() === b.trim()),
+    ),
+    { initialValue: '' },
+  );
+  protected readonly page = linkedSignal({
+    source: () => ({ type: this.type(), search: this.search().trim() }),
+    computation: () => 1,
+  });
 
-  protected readonly typeOptions = computed<readonly ChipOption<SupplierType | 'ALL'>[]>(() => {
-    const all = this.suppliers.value() ?? [];
-    return [
-      { value: 'ALL', labelKey: 'suppliers.type.ALL', count: all.length },
-      ...SUPPLIER_TYPES.map((value) => ({
-        value,
-        labelKey: `suppliers.type.${value}`,
-        count: all.filter((supplier) => supplier.type === value).length,
-      })),
-    ];
+  /** Une nouvelle page ou un nouveau filtre annule la requête précédente. */
+  protected readonly suppliers = rxResource({
+    params: () => ({ page: this.page(), type: this.type(), search: this.search().trim() }),
+    stream: ({ params }) =>
+      this.supplierService.list({
+        page: params.page,
+        size: SUPPLIER_PAGE_SIZE,
+        sortBy: 'name',
+        sortDirection: 'ASC',
+        search: params.search,
+        type: params.type === 'ALL' ? undefined : params.type,
+      }),
   });
-  protected readonly filtered = computed(() => {
-    const needle = this.query().trim().toLowerCase();
-    const type = this.type();
-    return (this.suppliers.value() ?? []).filter(
-      (supplier) =>
-        (type === 'ALL' || supplier.type === type) &&
-        [supplier.name, supplier.city, supplier.taxId, supplier.code].some((field) =>
-          field.toLowerCase().includes(needle),
-        ),
-    );
-  });
-  protected readonly page = linkedSignal({ source: this.filtered, computation: () => 1 });
-  protected readonly pageRows = computed(() =>
-    this.filtered().slice((this.page() - 1) * SUPPLIER_PAGE_SIZE, this.page() * SUPPLIER_PAGE_SIZE),
+  /** `value()` lève une exception tant que la ressource est en erreur : toujours passer par `hasValue()`. */
+  protected readonly items = computed(() =>
+    this.suppliers.hasValue() ? this.suppliers.value().items : [],
   );
-  protected readonly averageLead = computed(() => {
-    const all = this.suppliers.value() ?? [];
-    return all.length
-      ? Math.round(all.reduce((sum, item) => sum + item.leadTimeDays, 0) / all.length)
-      : 0;
+  protected readonly isFiltered = computed(() => this.type() !== 'ALL' || !!this.search().trim());
+  /** Fournisseur affiché à droite : conservé après un rechargement tant qu'il est dans la liste. */
+  protected readonly selectedId = linkedSignal<readonly SupplierRDto[], string | null>({
+    source: this.items,
+    computation: (items, previous) => {
+      const kept = previous?.value ?? null;
+      if (kept && items.some((supplier) => supplier.id === kept)) {
+        return kept;
+      }
+      return this.docked ? (items[0]?.id ?? null) : null;
+    },
   });
-  protected readonly selectedId = linkedSignal(() =>
-    this.docked ? (this.suppliers.value()?.[0]?.id ?? null) : null,
-  );
   protected readonly selectedName = computed(
-    () => this.suppliers.value()?.find((supplier) => supplier.id === this.selectedId())?.name ?? '',
+    () => this.items().find((supplier) => supplier.id === this.selectedId())?.name ?? '',
   );
-
-  protected demoAction(): void {
-    this.toast.show('common.demoAction', {}, 'info');
-  }
 }
