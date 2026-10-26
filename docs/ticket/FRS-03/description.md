@@ -14,7 +14,7 @@ En tant qu'administrateur, je veux filtrer les fournisseurs par type (local/étr
 
 ## Critères d'acceptation
 
-- [ ] La liste se met à jour selon le filtre et la recherche.
+- [ ] La liste se met à jour selon le filtre et la recherche. — *⚠ implémenté, tests écrits : à cocher quand la CI est verte (voir [scénario](scenario-test.md))*
 
 ## Détails
 
