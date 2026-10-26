@@ -4,7 +4,7 @@ Statut : ✅ complet au 2026-10-23 — vérifié sur le code, les tests (CI + ex
 
 ## En bref
 
-L'administrateur consulte et modifie la fiche d'un fournisseur : nom, type (local ou étranger), contact, téléphone, courriel, adresse, notes, état actif. Un fournisseur ne se supprime pas, il se désactive. Chaque écriture est tracée dans le journal. Le bloc « articles fournis » est prévu dans l'interface mais reste vide tant que [ART-01](../ART-01/description.md) n'est pas livré.
+L'administrateur consulte et modifie la fiche d'un fournisseur : nom, type (local ou étranger), contact, téléphone, courriel, adresse, notes, état actif. Un fournisseur ne se supprime pas, il se désactive. Chaque écriture est tracée dans le journal. Le bloc « articles fournis » liste les articles du fournisseur depuis [ART-01](../ART-01/guide.md).
 
 ## Contrat exposé
 
@@ -30,13 +30,13 @@ Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 
 ### Service Java
 
-`feature.supplier.service.SupplierService` : `getSuppliers(query, type, active)`, `getSupplierById`, `createSupplier`, `updateSupplier`, `setActive`. Les autres features ne doivent pas lire `SupplierRepository` : pas d'association JPA entre features, un article référence son fournisseur par `supplierId` (UUID).
+`feature.supplier.service.SupplierService` : `getSuppliers(query, type, active)`, `getSupplierById`, `createSupplier`, `updateSupplier`, `setActive`, et `isActiveSupplier(UUID)` (ajouté par ART-01 : vrai si le fournisseur existe et est actif, pour les contrôles de référence des autres features). Les autres features ne doivent pas lire `SupplierRepository` : pas d'association JPA entre features, un article référence son fournisseur par `supplierId` (UUID).
 
 ### Frontend (`features/supplier`)
 
 - Routes lazy `/suppliers` (garde `suppliers.read`), `/suppliers/new`, `/suppliers/:id/edit`.
 - `data-access/supplier-service.ts` : `list(query)`, `getById`, `create`, `update`, `setActive`. Types dans `supplier-models.ts` (`SupplierRDto`, `SupplierWDto`, `SupplierStatusWDto`).
-- `pages/supplier-list-page` (liste, activation / désactivation) et `pages/supplier-form-page` (création et modification ; bloc « articles fournis » vide en attendant ART-01).
+- `pages/supplier-list-page` (liste, activation / désactivation) et `pages/supplier-form-page` (création et modification ; bloc « articles fournis » : articles lus par `ArticleService.list({ supplierId })`, ART-01).
 
 ### Données
 
@@ -74,7 +74,7 @@ Aucun `DELETE` (le test `deleteSupplier_isNotExposed` le vérifie).
 
 **Ce ticket s'appuie sur** : [JNL-01](../JNL-01/guide.md) (journal), [JNL-02](../JNL-02/guide.md) (pas de suppression), [AUTH-01](../AUTH-01/guide.md) (permissions).
 
-**Ces tickets s'appuient sur lui** : [FRS-02](../FRS-02/description.md), [FRS-03](../FRS-03/description.md), [FRS-04](../FRS-04/description.md), [ART-01](../ART-01/description.md), [STK-05](../STK-05/description.md), [STK-06](../STK-06/description.md).
+**Ces tickets s'appuient sur lui** : [FRS-02](../FRS-02/description.md), [FRS-03](../FRS-03/description.md), [FRS-04](../FRS-04/description.md), [ART-01](../ART-01/guide.md), [STK-05](../STK-05/description.md), [STK-06](../STK-06/description.md).
 
 ## Comment l'utiliser depuis un autre ticket
 
@@ -90,7 +90,7 @@ Le filtre `type` / `active` du backend est disponible pour un appel direct : `GE
 ## Points d'attention
 
 - **FRS-02 (livré le 2026-10-26)** : la création et la modification sont parties de cet existant ; une modification sans changement réel n'écrit plus de ligne `UPDATE` (voir le [guide FRS-02](../FRS-02/guide.md)). FRS-03 a branché la liste sur les filtres `type` et `search` existants (voir le [guide FRS-03](../FRS-03/guide.md)).
-- Le bloc « articles fournis » est vide : il se remplit avec [ART-01](../ART-01/description.md), qui référence le fournisseur depuis l'article. Prévoir un endpoint de lecture des articles par fournisseur dans ART-01.
+- Le bloc « articles fournis » se remplit depuis [ART-01](../ART-01/guide.md) (2026-10-26) : pas d'endpoint dédié, c'est `GET /api/v1/articles?supplierId=…` (100 articles au plus affichés). Un fournisseur désactivé ne peut plus être choisi sur une nouvelle fiche article ; les fiches qui le portent déjà restent modifiables.
 - L'écriture n'utilise pas encore `OutboxService` : un fournisseur ne peut pas être saisi hors ligne ([SYS-07](../SYS-07/description.md)).
 - Messages serveur et libellés du journal passés en français par FRS-02 (« Un fournisseur avec ce nom existe déjà. », « Création du fournisseur … »).
 - Pas de test d'interface pour la page liste ; le formulaire est couvert par `supplier-form-page.spec.ts` (FRS-02).

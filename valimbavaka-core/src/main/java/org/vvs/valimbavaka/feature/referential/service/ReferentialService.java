@@ -19,4 +19,7 @@ public interface ReferentialService {
 
     /** Vrai si le canal de vente existe et est actif (contrôle de référence pour les autres features). */
     boolean isActiveSalesChannel(UUID salesChannelId);
+
+    /** Vrai si la gamme existe et est active (contrôle de référence pour les articles). */
+    boolean isActiveProductRange(UUID productRangeId);
 }

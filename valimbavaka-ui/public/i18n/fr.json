@@ -1283,6 +1283,43 @@
       "all": "Top 20 →"
     }
   },
+  "article": {
+    "field": {
+      "name": "Nom",
+      "type": "Type",
+      "unit": "Unité",
+      "range": "Gamme",
+      "price": "Prix de vente (Ar)",
+      "cost": "Coût (Ar)",
+      "threshold": "Seuil minimum",
+      "barcode": "Code-barres (13 chiffres)",
+      "supplier": "Fournisseur"
+    },
+    "type": {
+      "RAW_MATERIAL": "Matière première",
+      "SEMI_FINISHED": "Semi-fini",
+      "FINISHED": "Produit fini"
+    },
+    "unit": {
+      "PIECE": "Pièce",
+      "KILOGRAM": "Kilogramme",
+      "LITER": "Litre"
+    },
+    "form": {
+      "newTitle": "Nouvelle fiche article",
+      "editTitle": "Fiche article",
+      "back": "← Retour aux articles",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "required": "Ce champ est obligatoire",
+      "tooLong": "{{max}} caractères maximum",
+      "negative": "La valeur ne peut pas être négative",
+      "barcodeInvalid": "Le code-barres doit contenir 13 chiffres",
+      "chooseRange": "Choisir une gamme",
+      "noSupplier": "Aucun fournisseur",
+      "notSoldHint": "La gamme et le prix de vente ne concernent que les produits finis."
+    }
+  },
   "supplier": {
     "title": "Fournisseurs",
     "list": {
@@ -1332,7 +1369,7 @@
     },
     "articles": {
       "title": "Articles fournis",
-      "empty": "Disponible dès la livraison du module Articles."
+      "empty": "Aucun article fourni par ce fournisseur."
     }
   }
 }

@@ -62,7 +62,7 @@ docs/ticket/<ID>/
 
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
-| [ART-01](ART-01/description.md) | Fiche article complète | 2 | Kei-Shiro | [#21](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/21) 🟡 | [FRS-01](FRS-01/description.md), [JNL-01](JNL-01/description.md), [SYS-05](SYS-05/description.md) | [☐](ART-01/scenario-test.md) | [☐](ART-01/guide.md) |
+| [ART-01](ART-01/description.md) | Fiche article complète | 2 | Kei-Shiro | [#21](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/21) 🟡 | [FRS-01](FRS-01/description.md), [JNL-01](JNL-01/description.md), [SYS-05](SYS-05/description.md) | [⚠](ART-01/scenario-test.md) | [✅](ART-01/guide.md) |
 | [ART-02](ART-02/description.md) | Création / modification d'un article | 2 | ManaJudy | [#22](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/22) 🟡 | [ART-01](ART-01/description.md), [JNL-01](JNL-01/description.md) | [☐](ART-02/scenario-test.md) | [☐](ART-02/guide.md) |
 | [ART-03](ART-03/description.md) | Identification visuelle de la gamme | 1 | ManaJudy | [#23](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/23) 🟡 | [ART-01](ART-01/description.md), [SYS-05](SYS-05/description.md) | [☐](ART-03/scenario-test.md) | [☐](ART-03/guide.md) |
 | [ART-04](ART-04/description.md) | Type d'article et usage en production | 2 | Kei-Shiro | [#24](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/24) 🟡 | [ART-01](ART-01/description.md) | [☐](ART-04/scenario-test.md) | [☐](ART-04/guide.md) |

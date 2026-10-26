@@ -16,8 +16,10 @@ En tant qu'administrateur, je veux définir une fiche article complète (code, g
 
 ## Critères d'acceptation
 
-- [ ] Tous les champs sont visibles et modifiables sur la fiche.
-- [ ] Le type d'article (MP/SF/Fini) est correctement enregistré.
+> Implémentés le 2026-10-26 ; **tests écrits mais pas encore exécutés** : les cases se cochent quand la CI est verte. Détail : [scenario-test.md](scenario-test.md).
+
+- [ ] Tous les champs sont visibles et modifiables sur la fiche. — *⚠ implémenté (`GET`/`PUT /api/v1/articles`, écran `/articles/:id/edit`), tests à lancer : scénarios 1 à 1m.*
+- [ ] Le type d'article (MP/SF/Fini) est correctement enregistré. — *⚠ implémenté (`ArticleType`, colonne `type` + contrainte `ck_articles_type`), tests à lancer : scénarios 2 à 2h.*
 
 ## Détails
 
@@ -51,10 +53,13 @@ En tant qu'administrateur, je veux définir une fiche article complète (code, g
 
 ## Zone du code concernée
 
-_Repérée dans l'arborescence au 2026-10-23 ; le traiteur confirme dans `guide.md`._
+_Confirmée le 2026-10-26 ; liste complète dans [guide.md](guide.md#fichiers-concernés)._
 
 **Frontend (`valimbavaka-ui`)**
-- `valimbavaka-ui/src/app/features/articles`
+- `valimbavaka-ui/src/app/features/article` (fiche réelle : service, modèles, `article-sheet-page`)
+- `valimbavaka-ui/src/app/features/articles` (maquette : seules les routes `sheet/new` et `:id/edit` y sont ajoutées)
+- `valimbavaka-ui/src/app/features/supplier` (bloc « articles fournis », lien avec [FRS-01](../FRS-01/description.md))
 
 **Backend (`valimbavaka-core`)**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/article (à créer)`
+- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/article`
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_26-01-changelog.sql`

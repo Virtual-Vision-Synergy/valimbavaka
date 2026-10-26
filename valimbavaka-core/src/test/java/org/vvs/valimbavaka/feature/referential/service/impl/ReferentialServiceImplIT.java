@@ -2,8 +2,11 @@ package org.vvs.valimbavaka.feature.referential.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
 import org.vvs.valimbavaka.feature.referential.dto.SalesChannelRDto;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
@@ -25,7 +28,8 @@ class ReferentialServiceImplIT {
         // when
         var page = sut.getSalesChannels(FIRST_PAGE);
         // then
-        assertThat(page.items()).extracting(SalesChannelRDto::code)
+        assertThat(page.items())
+                .extracting(SalesChannelRDto::code)
                 .containsExactlyInAnyOrder("STORE", "FACEBOOK", "PHONE", "DELIVERY");
     }
 
@@ -34,8 +38,7 @@ class ReferentialServiceImplIT {
         // when
         var page = sut.getProductRanges(FIRST_PAGE);
         // then
-        assertThat(page.items()).extracting(ProductRangeRDto::label)
-                .containsExactly("Botanika", "Solika", "Zezika");
+        assertThat(page.items()).extracting(ProductRangeRDto::label).containsExactly("Botanika", "Solika", "Zezika");
     }
 
     @Test
@@ -43,8 +46,18 @@ class ReferentialServiceImplIT {
         // when
         var page = sut.getStockLocations(FIRST_PAGE);
         // then
-        assertThat(page.items()).extracting(StockLocationRDto::code)
+        assertThat(page.items())
+                .extracting(StockLocationRDto::code)
                 .containsExactlyInAnyOrder("WAREHOUSE", "STORE", "DELIVERY", "TRADE_SHOW");
         assertThat(page.page()).isEqualTo(1);
+    }
+
+    @Test
+    void isActiveProductRange_seededRangeIsActiveAndUnknownIdIsNot() {
+        // given
+        var seeded = sut.getProductRanges(FIRST_PAGE).items().getFirst().id();
+        // then
+        assertThat(sut.isActiveProductRange(seeded)).isTrue();
+        assertThat(sut.isActiveProductRange(UUID.randomUUID())).isFalse();
     }
 }

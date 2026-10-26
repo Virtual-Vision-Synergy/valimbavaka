@@ -23,6 +23,8 @@ public interface SupplierRepository extends Repository<Supplier, UUID> {
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 
+    boolean existsByIdAndActiveTrue(UUID id);
+
     /** Case-insensitive search on name and contact; empty {@code search} = all, null filters = all. */
     @Query(value = """
             select s from Supplier s

@@ -62,6 +62,13 @@ qu'il est à lancer.
 - Branches `feature/<TICKET>-<description-kebab>`, `fix/...`, `chore/...`. Conventional Commits (`feat(auth): ...`).
 - PR : titre `ID · SPx · Titre court`, corps avec `Refs #<numéro>` (pas `Closes`), ≤ 400 lignes modifiées si possible. Pas de commit direct sur `main`, pas de force-push.
 
+## Token discipline
+- Never cat large files: use Read with offset/limit.
+- Pipe long command output through head, tail or grep.
+- Redirect build/test/docker logs to a file, then tail -30 it.
+- Use git diff --stat first, then diff one file at a time.
+- Don't rewrite whole files for small changes: use Edit.
+
 ## Attribution (règle permanente)
 
 Ne jamais mentionner Claude ni un outil d'IA dans l'historique Git ou les PR : pas de trailer

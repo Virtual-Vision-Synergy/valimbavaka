@@ -44,3 +44,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+.supplied {
+  margin: 0;
+  padding-left: var(--space-4);
+}

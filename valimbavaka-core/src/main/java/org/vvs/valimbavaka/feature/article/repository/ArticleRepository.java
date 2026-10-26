@@ -1,0 +1,57 @@
+package org.vvs.valimbavaka.feature.article.repository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import org.jspecify.annotations.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.Repository;
+
+import org.vvs.valimbavaka.feature.article.domain.Article;
+import org.vvs.valimbavaka.feature.article.domain.ArticleType;
+
+/** Extends {@link Repository}, not JpaRepository: no delete exposed, an article is deactivated. */
+public interface ArticleRepository extends Repository<Article, UUID> {
+
+    Article save(Article article);
+
+    Optional<Article> findById(UUID id);
+
+    boolean existsByBarcode(String barcode);
+
+    boolean existsByBarcodeAndIdNot(String barcode, UUID id);
+
+    /** Next number of the article code sequence (gaps are possible, a code is never reused). */
+    @Query(value = "select nextval('article_code_seq')", nativeQuery = true)
+    long nextCodeNumber();
+
+    /** Case-insensitive search on code, name and barcode; empty {@code search} = all, null filters = all. */
+    @Query(value = """
+            select a from Article a
+            where (lower(a.name) like lower(concat('%', :search, '%'))
+                   or lower(a.code) like lower(concat('%', :search, '%'))
+                   or a.barcode like concat('%', :search, '%'))
+              and (:type is null or a.type = :type)
+              and (:rangeId is null or a.rangeId = :rangeId)
+              and (:supplierId is null or a.supplierId = :supplierId)
+              and (:active is null or a.active = :active)
+            """, countQuery = """
+            select count(a) from Article a
+            where (lower(a.name) like lower(concat('%', :search, '%'))
+                   or lower(a.code) like lower(concat('%', :search, '%'))
+                   or a.barcode like concat('%', :search, '%'))
+              and (:type is null or a.type = :type)
+              and (:rangeId is null or a.rangeId = :rangeId)
+              and (:supplierId is null or a.supplierId = :supplierId)
+              and (:active is null or a.active = :active)
+            """)
+    Page<Article> search(
+            String search,
+            @Nullable ArticleType type,
+            @Nullable UUID rangeId,
+            @Nullable UUID supplierId,
+            @Nullable Boolean active,
+            Pageable pageable);
+}

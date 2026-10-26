@@ -1283,6 +1283,43 @@
       "all": "Top 20 →"
     }
   },
+  "article": {
+    "field": {
+      "name": "Anarana",
+      "type": "Karazana",
+      "unit": "Singa",
+      "range": "Andiany",
+      "price": "Vidiny amidy (Ar)",
+      "cost": "Fandaniana (Ar)",
+      "threshold": "Fetra farafaharetsany",
+      "barcode": "Kaody barika (isa 13)",
+      "supplier": "Mpamatsy"
+    },
+    "type": {
+      "RAW_MATERIAL": "Akora fototra",
+      "SEMI_FINISHED": "Antsasaky ny vita",
+      "FINISHED": "Entana vita"
+    },
+    "unit": {
+      "PIECE": "Singany",
+      "KILOGRAM": "Kilao",
+      "LITER": "Litatra"
+    },
+    "form": {
+      "newTitle": "Taratasy entana vaovao",
+      "editTitle": "Taratasy entana",
+      "back": "← Hiverina any amin'ny entana",
+      "save": "Tehirizina",
+      "cancel": "Foanana",
+      "required": "Tsy maintsy fenoina ity saha ity",
+      "tooLong": "{{max}} litera farafahabetsany",
+      "negative": "Tsy mety ho ambany noho ny aotra",
+      "barcodeInvalid": "Tsy maintsy misy isa 13 ny kaody barika",
+      "chooseRange": "Misafidiana andiany",
+      "noSupplier": "Tsy misy mpamatsy",
+      "notSoldHint": "Ny andiany sy ny vidiny amidy dia ho an'ny entana vita ihany."
+    }
+  },
   "supplier": {
     "title": "Mpamatsy",
     "list": {
@@ -1332,7 +1369,7 @@
     },
     "articles": {
       "title": "Entana omena",
-      "empty": "Ho hita rehefa vita ny mody Entana."
+      "empty": "Tsy misy entana omen'ity mpamatsy ity."
     }
   }
 }
