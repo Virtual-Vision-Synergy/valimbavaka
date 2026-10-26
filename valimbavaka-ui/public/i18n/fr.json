@@ -1291,7 +1291,15 @@
       "actions": "Actions",
       "edit": "Modifier",
       "loading": "Chargement…",
-      "empty": "Aucun fournisseur"
+      "empty": "Aucun fournisseur",
+      "noMatch": "Aucun fournisseur ne correspond au filtre ou à la recherche"
+    },
+    "filter": {
+      "typeLabel": "Filtrer par type",
+      "allTypes": "Tous les types",
+      "searchLabel": "Rechercher un fournisseur",
+      "searchPlaceholder": "Nom du fournisseur ou du contact",
+      "submit": "Rechercher"
     },
     "field": {
       "name": "Nom",

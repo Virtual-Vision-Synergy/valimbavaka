@@ -1,67 +1,74 @@
 # Guide d'intégration — FRS-03 · Filtrage des fournisseurs par type
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ☐ à compléter · Ticket : [#19](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/19) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé au 2026-10-26 — tests écrits, exécution à confirmer par la CI · Ticket : [#19](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/19) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+La liste des fournisseurs (`/suppliers`) a maintenant un sélecteur de type (tous, local, étranger), appliqué dès le choix, et une recherche sur le nom du fournisseur ou du contact. Les deux se combinent. Côté serveur, rien de nouveau : FRS-03 branche l'écran sur les filtres que l'API de [FRS-01](../FRS-01/guide.md) acceptait déjà. Le service Angular sait désormais envoyer `type`, ce que d'autres écrans peuvent réutiliser (sélecteur de fournisseur local pour un réapprovisionnement, par exemple).
 
 ## Contrat exposé
 
-### Endpoints backend
+### Endpoint backend (inchangé, FRS-01)
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
+| Méthode | URL | Permission | Entrée | Sortie | Erreurs |
 |---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+| GET | `/api/v1/suppliers` | `suppliers.read` | `PageQuery` (`page`, `size` ≤ 100, `search`, `sortBy`, `sortDirection`) + `type` (`LOCAL` / `FOREIGN`) + `active` (booléen) | 200 `PageResponse<SupplierRDto>` | 401, 403, 400 `MALFORMED_REQUEST` (type inconnu), 422 (`size` > 100) |
 
-### Services et ports Java réutilisables
+- Paramètres lus dans `SupplierController.getSuppliers` (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierController.java:57`).
+- Requête dans `SupplierRepository.search` (`…/feature/supplier/repository/SupplierRepository.java:27-40`) : `search` insensible à la casse sur `name` **ou** `contactName` ; `type` / `active` absents = pas de filtre.
+- Tri en liste blanche : `SupplierServiceImpl.SORT_FIELDS` (`…/service/impl/SupplierServiceImpl.java:38`) = `createdAt`, `name`, `type`.
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+### Frontend (`valimbavaka-ui/src/app/features/supplier/`)
 
-### Frontend
-
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+- Type `SupplierListQuery` (`data-access/supplier-models.ts:37`) : `PageQuery` + `type?`.
+- `SupplierService.list(query: SupplierListQuery)` (`data-access/supplier-service.ts:20`) : ajoute `type` aux paramètres seulement s'il est choisi ; `search` vide n'est pas envoyé (`shared/models/http-params.ts`, `toHttpParams`).
+- Page `pages/supplier-list-page/` :
+  - signaux `type` et `search`, `isFiltered` (`supplier-list-page.ts:41`) ;
+  - `onTypeChange` (ligne 52) et `onSearch` (ligne 57, `trim`) appellent `reload` (ligne 80), qui revient à la page 1 ;
+  - `loadSuppliers` annule la requête précédente (`listRequest`, ligne 86) pour qu'une réponse lente ne remplace pas la plus récente ;
+  - gabarit : `#supplier-type` et `#supplier-search` dans la barre `.toolbar` (`supplier-list-page.html:10-40`), message vide distinct quand un filtre est actif (ligne 100).
+- Traductions `supplier.filter.*` et `supplier.list.noMatch` dans `valimbavaka-ui/public/i18n/fr.json` (lignes 1295-1303) et `mg.json`.
 
 ### Données
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+- Aucune table, migration, permission ni ligne de journal : lecture seule.
 
-## Règles métier à respecter par les autres tickets
+## Règles métier pour les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- Pour proposer des fournisseurs d'un type, appeler `SupplierService.list` avec `type` plutôt que filtrer côté client : la pagination reste juste.
+- La liste d'administration montre aussi les fournisseurs désactivés ; un écran de **sélection** doit ajouter `active=true` (paramètre accepté par l'API ; `SupplierListQuery` ne l'a pas encore, à ajouter dans le ticket qui en a besoin, par exemple [FRS-04](../FRS-04/description.md) ou [STK-05](../STK-05/description.md)).
+- Le type pilote le délai de réapprovisionnement ([FRS-04](../FRS-04/description.md)) : réutiliser les valeurs `LOCAL` / `FOREIGN` de `SupplierType` (`supplier-models.ts`), sans liste en dur.
 
 ## Fichiers concernés
 
-**À exposer / créer (liste du traiteur)** : _(à compléter)_
+**Frontend**
+- `valimbavaka-ui/src/app/features/supplier/data-access/supplier-models.ts` (`SupplierListQuery`)
+- `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.ts` (`list`)
+- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.ts`, `.html`, `.css`
+- `valimbavaka-ui/public/i18n/fr.json`, `valimbavaka-ui/public/i18n/mg.json`
 
-Zone de départ (voir `description.md`) :
+**Backend** : aucun changement de code.
 
-- Frontend :
-  - `valimbavaka-ui/src/app/features/suppliers`
-  - `valimbavaka-ui/src/app/features/supplier`
-- Backend :
-  - `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier`
+**Tests**
+- `valimbavaka-ui/src/app/features/supplier/pages/supplier-list-page/supplier-list-page.spec.ts` (nouveau)
+- `valimbavaka-ui/src/app/features/supplier/data-access/supplier-service.spec.ts`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java` (`getSuppliers_byTypeAndSearch_returnsOnlyMatchingSuppliers`, `getSuppliers_unknownType_returns400`)
 
 ## Dépendances
 
-**Ce ticket s'appuie sur** :
-- [FRS-01](../FRS-01/description.md) · [guide](../FRS-01/guide.md)
+**Ce ticket s'appuie sur** : [FRS-01](../FRS-01/guide.md) (API de liste, filtres `type` / `active` / `search`).
 
-**Ces tickets s'appuient sur lui** :
-- _(rien)_
+**Ces tickets s'appuient sur lui** : aucun directement ; [FRS-04](../FRS-04/description.md) et [STK-05](../STK-05/description.md) peuvent réutiliser `SupplierService.list` avec `type`.
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
-```
+- Injecter `SupplierService` et appeler `list` avec un `SupplierListQuery` contenant `type` : voir l'appel dans `SupplierListPage.loadSuppliers` (`supplier-list-page.ts:85-109`).
+- Appel direct de l'API : `GET /api/v1/suppliers?type=LOCAL&active=true&search=Rasoa` (exemple de test : `SupplierSecurityIT.getSuppliers_byTypeAndSearch_returnsOnlyMatchingSuppliers`).
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- `%` et `_` dans la recherche agissent comme jokers SQL (`SupplierRepository.search` n'échappe pas) ; même chose pour le journal.
+- Filtre et recherche ne sont pas dans l'URL : ils se perdent au retour depuis une fiche ou au rechargement.
+- La recherche part au clic sur « Rechercher » ou à la touche Entrée (pas de recherche à la frappe) ; le type, lui, s'applique dès le choix.
+- Pas de filtre actif / désactivé dans l'écran (l'API l'accepte) : à ajouter si un ticket le demande.
+- Tests écrits mais non exécutés au moment de la rédaction : se fier au statut de la CI de la PR.

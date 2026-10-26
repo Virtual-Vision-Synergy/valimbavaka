@@ -7,6 +7,38 @@
   </header>
 
   <div class="card">
+    <form class="toolbar" (submit)="$event.preventDefault(); onSearch(searchInput.value)">
+      <label class="visually-hidden" for="supplier-type">{{
+        'supplier.filter.typeLabel' | translate
+      }}</label>
+      <select
+        #typeSelect
+        id="supplier-type"
+        class="input"
+        [value]="type()"
+        (change)="onTypeChange(typeSelect.value)"
+      >
+        <option value="">{{ 'supplier.filter.allTypes' | translate }}</option>
+        @for (option of types; track option) {
+          <option [value]="option">{{ 'supplier.type.' + option | translate }}</option>
+        }
+      </select>
+      <label class="visually-hidden" for="supplier-search">{{
+        'supplier.filter.searchLabel' | translate
+      }}</label>
+      <input
+        #searchInput
+        id="supplier-search"
+        class="input"
+        type="search"
+        [placeholder]="'supplier.filter.searchPlaceholder' | translate"
+        [value]="search()"
+      />
+      <button class="btn btn-ghost" type="submit">
+        {{ 'supplier.filter.submit' | translate }}
+      </button>
+    </form>
+
     @if (errorMessage(); as message) {
       <div class="alert alert-danger" role="alert">{{ message }}</div>
     }
@@ -61,7 +93,14 @@
           } @empty {
             <tr>
               <td class="empty" colspan="6">
-                {{ (isLoading() ? 'supplier.list.loading' : 'supplier.list.empty') | translate }}
+                {{
+                  (isLoading()
+                    ? 'supplier.list.loading'
+                    : isFiltered()
+                      ? 'supplier.list.noMatch'
+                      : 'supplier.list.empty'
+                  ) | translate
+                }}
               </td>
             </tr>
           }

@@ -89,7 +89,7 @@ Le filtre `type` / `active` du backend est disponible pour un appel direct : `GE
 
 ## Points d'attention
 
-- **FRS-02 (livré le 2026-10-26)** : la création et la modification sont parties de cet existant ; une modification sans changement réel n'écrit plus de ligne `UPDATE` (voir le [guide FRS-02](../FRS-02/guide.md)). FRS-03 (filtre par type) et le champ `search` doivent aussi partir de cet existant : le filtre par type a son paramètre `type` côté API ; l'interface n'est pas vérifiée dans cette note.
+- **FRS-02 (livré le 2026-10-26)** : la création et la modification sont parties de cet existant ; une modification sans changement réel n'écrit plus de ligne `UPDATE` (voir le [guide FRS-02](../FRS-02/guide.md)). FRS-03 a branché la liste sur les filtres `type` et `search` existants (voir le [guide FRS-03](../FRS-03/guide.md)).
 - Le bloc « articles fournis » est vide : il se remplit avec [ART-01](../ART-01/description.md), qui référence le fournisseur depuis l'article. Prévoir un endpoint de lecture des articles par fournisseur dans ART-01.
 - L'écriture n'utilise pas encore `OutboxService` : un fournisseur ne peut pas être saisi hors ligne ([SYS-07](../SYS-07/description.md)).
 - Messages serveur et libellés du journal passés en français par FRS-02 (« Un fournisseur avec ce nom existe déjà. », « Création du fournisseur … »).

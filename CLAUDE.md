@@ -23,6 +23,14 @@ Lire **`docs/ticket/CONSIGNE.md`** avant de prendre un ticket. En résumé :
 - **Avant la PR** : lancer les tests, mettre les statuts (✅ seulement si exécuté), remplir le résultat, puis
   écrire `guide.md` pour les autres. Le dossier fait partie de la PR : pas de dossier rempli, pas d'approbation.
 - **Après le merge** : Njara passe la recette 🧪 et met à jour le scénario.
+- **Dans les dossiers** : ne pas recopier de code ; citer des références (`chemin/Fichier.java:ligne`, nom de
+  classe, méthode ou test).
+
+## Règle n°3 : ne pas lancer les tests
+
+Ne lancer ni `mvn verify` ni `ng test` (coûteux en jetons) : écrire les tests, puis laisser l'utilisateur ou la CI
+les exécuter. Dans le scénario, un test non exécuté reste à ☐ (jamais ✅) et « Résultat de l'exécution » indique
+qu'il est à lancer.
 
 ## Rappels clés de la convention (non exhaustif)
 

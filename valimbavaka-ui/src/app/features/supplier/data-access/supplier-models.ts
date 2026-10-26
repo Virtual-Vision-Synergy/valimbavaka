@@ -1,3 +1,5 @@
+import { PageQuery } from '../../../shared/models/page-response';
+
 /** Miroir de SupplierType côté backend. */
 export type SupplierType = 'LOCAL' | 'FOREIGN';
 
@@ -29,6 +31,11 @@ export interface SupplierWDto {
   notes: string | null;
   /** Version lue lors de l'ouverture de la fiche ; absente en création. */
   version?: number | null;
+}
+
+/** Filtres de GET /api/v1/suppliers : pagination, recherche (nom, contact) et type. */
+export interface SupplierListQuery extends PageQuery {
+  type?: SupplierType;
 }
 
 /** Miroir de SupplierStatusWDto. */

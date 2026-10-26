@@ -26,6 +26,24 @@ describe('SupplierService', () => {
     request.flush({ items: [], page: 2, pageSize: 20, totalCount: 0, totalPages: 0 });
   });
 
+  it('envoie le type et la recherche choisis', () => {
+    service.list({ page: 1, size: 20, type: 'FOREIGN', search: 'Rasoa' }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === '/api/v1/suppliers');
+    expect(request.request.params.get('type')).toBe('FOREIGN');
+    expect(request.request.params.get('search')).toBe('Rasoa');
+    request.flush({ items: [], page: 1, pageSize: 20, totalCount: 0, totalPages: 0 });
+  });
+
+  it("n'envoie ni type ni recherche quand ils sont vides", () => {
+    service.list({ page: 1, size: 20, search: '' }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === '/api/v1/suppliers');
+    expect(request.request.params.has('type')).toBe(false);
+    expect(request.request.params.has('search')).toBe(false);
+    request.flush({ items: [], page: 1, pageSize: 20, totalCount: 0, totalPages: 0 });
+  });
+
   it('désactive un fournisseur via PATCH /status, sans suppression', () => {
     service.setActive('42', false).subscribe();
 

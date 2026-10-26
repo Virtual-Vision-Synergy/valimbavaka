@@ -86,6 +86,40 @@ class SupplierSecurityIT {
     }
 
     @Test
+    void getSuppliers_byTypeAndSearch_returnsOnlyMatchingSuppliers() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var prefix = uniqueName();
+        createSupplier(token, prefix + " Huiles");
+        var foreign = """
+                {"name":"%s Essences","type":"FOREIGN"}
+                """.formatted(prefix);
+        mockMvc.perform(postJson(SUPPLIERS, foreign).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isCreated());
+
+        // Act + Assert
+        mockMvc.perform(get(SUPPLIERS)
+                        .param("type", "FOREIGN")
+                        .param("search", prefix.toUpperCase())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCount").value(1))
+                .andExpect(jsonPath("$.items[0].name").value(prefix + " Essences"))
+                .andExpect(jsonPath("$.items[0].type").value("FOREIGN"));
+    }
+
+    @Test
+    void getSuppliers_unknownType_returns400() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+        // Act + Assert
+        mockMvc.perform(get(SUPPLIERS).param("type", "IMPORT").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    }
+
+    @Test
     void createSupplier_byAdmin_returns201AndTracesInJournal() throws Exception {
         // Arrange
         var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
