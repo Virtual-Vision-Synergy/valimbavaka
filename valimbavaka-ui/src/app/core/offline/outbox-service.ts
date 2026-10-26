@@ -66,7 +66,11 @@ export class OutboxService {
   }
 
   /** Envoie la saisie, ou la met en file si le réseau est coupé ou si des saisies plus anciennes attendent. */
-  submit(method: OutboxMethod, url: string, body?: unknown): Observable<SubmitResult> {
+  submit<T = unknown>(
+    method: OutboxMethod,
+    url: string,
+    body?: unknown,
+  ): Observable<SubmitResult<T>> {
     const ownerId = this.authStore.currentUser()?.id;
     if (!ownerId || !this.authStore.isAuthenticated()) {
       return throwError(
@@ -76,15 +80,15 @@ export class OutboxService {
     const clearGeneration = this.clearGeneration;
     const entry = this.newEntry(method, url, body, ownerId);
     if (!this.connectivity.isOnline() || this.pendingCount() > 0) {
-      return this.enqueue(entry, true);
+      return this.enqueue<T>(entry, true);
     }
     return this.send(entry).pipe(
-      map(() => ({ queued: false })),
+      map((response) => ({ queued: false, body: response as T })),
       catchError((error: unknown) =>
         error instanceof ApiError &&
         this.isTransient(error) &&
         clearGeneration === this.clearGeneration
-          ? this.enqueue({ ...entry, attempts: 1, errorMessage: errorMessage(error) }, true)
+          ? this.enqueue<T>({ ...entry, attempts: 1, errorMessage: errorMessage(error) }, true)
           : throwError(() => error),
       ),
     );
@@ -133,13 +137,13 @@ export class OutboxService {
     this.entries.set([]);
   }
 
-  private enqueue(entry: OutboxEntry, flushAfter: boolean): Observable<SubmitResult> {
+  private enqueue<T>(entry: OutboxEntry, flushAfter: boolean): Observable<SubmitResult<T>> {
     const stored = this.storage.put(entry).then(async () => {
       await this.reload();
       if (flushAfter && this.connectivity.isOnline()) {
         void this.flush();
       }
-      return { queued: true };
+      return { queued: true } as SubmitResult<T>;
     });
     return from(stored);
   }

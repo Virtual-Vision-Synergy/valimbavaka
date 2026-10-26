@@ -1,15 +1,22 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { signal } from '@angular/core';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { type MockInstance, vi } from 'vitest';
+import { AuthStore } from '../../../../core/auth/auth-store';
+import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
+import { ConnectivityService } from '../../../../core/offline/connectivity-service';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { ArticleFormPage } from './article-form-page';
 import { RANGE_ID, SUPPLIER_ID } from './article-form-page.fixtures';
 
 type Control = HTMLInputElement | HTMLSelectElement;
+
+/** Connexion simulée : `online.set(false)` coupe le réseau, la saisie part alors en file hors ligne. */
+export const online = signal(true);
 
 /** Gestes de saisie sur le formulaire monté. */
 interface Gestures {
@@ -110,6 +117,7 @@ function flushChoicesOn(httpMock: HttpTestingController): void {
 
 /** Monte la page ; `id` donné = modification, absent = création. */
 export async function mountForm(id?: string): Promise<FormHarness> {
+  online.set(true);
   await TestBed.configureTestingModule({
     imports: [ArticleFormPage],
     providers: [
@@ -117,8 +125,10 @@ export async function mountForm(id?: string): Promise<FormHarness> {
       provideHttpClientTesting(),
       provideRouter([]),
       provideTestTranslations(),
+      { provide: ConnectivityService, useValue: { isOnline: online.asReadonly() } },
     ],
   }).compileComponents();
+  TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN')); // les écritures passent par la file hors ligne
   const httpMock = TestBed.inject(HttpTestingController);
   const fixture = TestBed.createComponent(ArticleFormPage);
   if (id) {

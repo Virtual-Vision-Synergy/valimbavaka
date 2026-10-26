@@ -198,7 +198,8 @@
     "seeAll": "Tout voir",
     "demoAction": "Action de démonstration : disponible avec le module backend",
     "cancel": "Annuler",
-    "optional": "(facultatif)"
+    "optional": "(facultatif)",
+    "queuedSaved": "Saisie enregistrée hors connexion : elle sera synchronisée automatiquement."
   },
   "listState": {
     "loading": "Chargement en cours",

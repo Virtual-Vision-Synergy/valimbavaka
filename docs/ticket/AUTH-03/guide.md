@@ -109,3 +109,5 @@ Aujourd'hui `GET /api/v1/users` n'a ni filtre `role` ni filtre `active` : un tic
 - Aucun compte ne se supprime : il n'existe aucun `DELETE` (règle ArchUnit `no_delete_endpoints`).
 - Question client en attente (voir le ticket) : propriétaire de la commission, et connexion par email ou identifiant.
 - Le mot de passe saisi par l'administrateur à la création n'est pas marqué provisoire ; le titulaire peut le changer lui-même (`POST /api/v1/auth/password`, AUTH-01). Pas de réinitialisation par email.
+
+> **Mise à jour SYS-07** : la modification d'un compte et son activation passent par la file hors ligne (`OutboxService`) ; la **création** reste un appel direct, car elle porte un mot de passe qui ne doit jamais être conservé dans IndexedDB. Voir le [guide SYS-07](../SYS-07/guide.md).

@@ -198,7 +198,8 @@
     "seeAll": "Jereo daholo",
     "demoAction": "Asa fanandramana : ho azo ampiasaina rehefa vita ny backend",
     "cancel": "Hanafoana",
-    "optional": "(tsy voatery)"
+    "optional": "(tsy voatery)",
+    "queuedSaved": "Voatahiry tsy tamin'ny aterineto ny fanoratana : hampitaina ho azy izy rehefa miverina ny tamba-jotra."
   },
   "listState": {
     "loading": "Eo am-pakana",

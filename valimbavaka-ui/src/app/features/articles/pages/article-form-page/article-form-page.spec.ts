@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
-import { FormHarness, mountForm } from './article-form-page.harness';
+import { FormHarness, mountForm, online } from './article-form-page.harness';
 import {
   ARTICLES_URL,
   RANGE_ID,
@@ -85,6 +85,27 @@ describe('ArticleFormPage in creation mode', () => {
     expect(h.navigate).not.toHaveBeenCalled();
     expect(h.field<HTMLInputElement>('article-name').value).toBe('');
     expect(h.toast.toasts().at(-1)?.messageKey).toBe('articles.form.created');
+  });
+
+  it('should keep a creation made offline in the queue, say so and go back to the list', async () => {
+    await fillValidFinishedProduct();
+    online.set(false);
+
+    await h.save();
+
+    h.httpMock.expectNone(ARTICLES_URL);
+    expect(h.toast.toasts().at(-1)?.messageKey).toBe('common.queuedSaved');
+    expect(h.navigate).toHaveBeenCalledWith(['/articles']);
+  });
+
+  it('should send the creation with an idempotency key when online', async () => {
+    await fillValidFinishedProduct();
+
+    await h.save();
+
+    const request = h.httpMock.expectOne(ARTICLES_URL);
+    expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
+    request.flush(article, { status: 201, statusText: 'Created' });
   });
 
   it('should send nothing when a finished product has no range or no price', async () => {

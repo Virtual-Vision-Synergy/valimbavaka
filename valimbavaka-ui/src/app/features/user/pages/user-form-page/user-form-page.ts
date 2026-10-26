@@ -12,8 +12,10 @@ import {
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Observable, finalize } from 'rxjs';
+import { Observable, finalize, map } from 'rxjs';
 import { ApiError, errorMessage } from '../../../../core/http/problem-detail';
+import { SubmitResult } from '../../../../core/offline/outbox-models';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { RoleService } from '../../data-access/role-service';
 import { SalesChannelService } from '../../data-access/sales-channel-service';
 import { UserService } from '../../data-access/user-service';
@@ -35,6 +37,7 @@ const MAX_COMMISSION_RATE = 100;
 export class UserFormPage implements OnInit {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Renseigné par le paramètre de route `:id` (absent en création). */
@@ -118,12 +121,17 @@ export class UserFormPage implements OnInit {
         finalize(() => this.isSaving.set(false)),
       )
       .subscribe({
-        next: () => this.router.navigate(['/users']),
+        next: (result) => {
+          if (result.queued) {
+            this.toast.show('common.queuedSaved', {}, 'info');
+          }
+          void this.router.navigate(['/users']);
+        },
         error: (error: unknown) => this.showError(error),
       });
   }
 
-  private saveRequest(): Observable<UserRDto> {
+  private saveRequest(): Observable<SubmitResult<UserRDto>> {
     const { email, password, firstName, lastName, roleId, active, ...terms } =
       this.form.getRawValue();
     const salesChannelId = this.isSeller() ? terms.salesChannelId || null : null;
@@ -139,15 +147,9 @@ export class UserFormPage implements OnInit {
           commissionRate,
           active,
         })
-      : this.userService.create({
-          email,
-          password,
-          firstName,
-          lastName,
-          roleId,
-          salesChannelId,
-          commissionRate,
-        });
+      : this.userService
+          .create({ email, password, firstName, lastName, roleId, salesChannelId, commissionRate })
+          .pipe(map((user): SubmitResult<UserRDto> => ({ queued: false, body: user })));
   }
 
   /** Les champs vendeuse ne sont validés ni envoyés pour un autre rôle. */

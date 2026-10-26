@@ -14,6 +14,7 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { SearchField } from '../../../../shared/components/search-field/search-field';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { Tone } from '../../../../shared/models/tone';
 import { UserService } from '../../data-access/user-service';
 import { RoleName, UserRDto, roleLabel } from '../../data-access/user-models';
@@ -51,6 +52,7 @@ const ROLE_TONES: Readonly<Record<RoleName, Tone>> = {
 })
 export class UserListPage {
   private readonly userService = inject(UserService);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
 
@@ -124,7 +126,12 @@ export class UserListPage {
       .setActive(user.id, !user.active)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.loadUsers(),
+        next: (result) => {
+          if (result.queued) {
+            this.toast.show('common.queuedSaved', {}, 'info');
+          }
+          this.loadUsers();
+        },
         error: (error: unknown) => this.errorMessage.set(errorMessage(error)),
       });
   }

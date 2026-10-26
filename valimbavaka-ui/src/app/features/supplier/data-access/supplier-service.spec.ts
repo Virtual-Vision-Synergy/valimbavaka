@@ -1,6 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { buildUser } from '../../../core/auth/auth-testing';
 import { SupplierService } from './supplier-service';
 
 describe('SupplierService', () => {
@@ -11,6 +13,7 @@ describe('SupplierService', () => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN')); // les écritures passent par la file hors ligne
     service = TestBed.inject(SupplierService);
     httpMock = TestBed.inject(HttpTestingController);
   });

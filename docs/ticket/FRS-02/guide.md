@@ -107,3 +107,5 @@ this.supplierService.update(supplier.id, body).subscribe({
 - Les lignes du journal écrites avant FRS-02 restent en anglais (« Supplier created: … ») : le journal est append-only.
 - Pas encore de saisie hors ligne : `supplier-service.ts` appelle `HttpClient` directement ([SYS-07](../SYS-07/description.md)).
 - Après un 409 de version, le formulaire garde la saisie mais ne recharge pas la fiche : l'utilisateur doit revenir à la liste et rouvrir.
+
+> **Mise à jour SYS-07** : l'enregistrement de ce formulaire passe maintenant par `OutboxService.submit` (file hors ligne, clé d'idempotence) ; hors connexion la saisie est conservée puis envoyée une seule fois. Voir le [guide SYS-07](../SYS-07/guide.md).
