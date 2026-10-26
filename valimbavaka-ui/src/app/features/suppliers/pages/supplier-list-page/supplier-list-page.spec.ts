@@ -6,6 +6,7 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import axe from 'axe-core';
 import { vi } from 'vitest';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
@@ -205,5 +206,20 @@ describe('SupplierListPage', () => {
     expect(element.querySelector('vvs-supplier-detail h2')?.textContent).toContain(
       'Provence Essences',
     );
+  });
+
+  it('should have no detectable accessibility violation once the list is loaded', async () => {
+    await respond(nextRequest(), pageOf([huilesRavo, provenceEssences]));
+    document.body.appendChild(element);
+
+    const results = await axe.run(element, {
+      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'],
+      rules: { 'color-contrast': { enabled: false }, region: { enabled: false } },
+    });
+
+    expect(
+      results.violations.map((violation) => `${violation.id}: ${violation.nodes[0]?.html}`),
+    ).toEqual([]);
+    element.remove();
   });
 });
