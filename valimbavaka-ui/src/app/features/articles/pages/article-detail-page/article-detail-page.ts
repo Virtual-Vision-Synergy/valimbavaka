@@ -3,12 +3,12 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ChevronLeft, Pencil, Plus } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { ArticleThumb } from '../../../../shared/components/article-thumb/article-thumb';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { RangeTag } from '../../../../shared/components/range-tag/range-tag';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
-import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { UnderConstruction } from '../../../../shared/components/under-construction/under-construction';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ArticleService } from '../../data-access/article-service';
@@ -21,6 +21,7 @@ const SALES_WINDOW_DAYS = 30;
 @Component({
   selector: 'vvs-article-detail-page',
   imports: [
+    HasPermissionDirective,
     RouterLink,
     TranslatePipe,
     AriaryPipe,
@@ -37,7 +38,6 @@ const SALES_WINDOW_DAYS = 30;
 })
 export class ArticleDetailPage {
   private readonly articleService = inject(ArticleService);
-  private readonly toast = inject(ToastService);
 
   /** Paramètre de route `:id`. */
   readonly id = input.required<string>();
@@ -65,8 +65,4 @@ export class ArticleDetailPage {
       maxLocation: Math.max(1, ...article.stockByLocation.map((item) => item.quantity)),
     };
   });
-
-  protected demoAction(): void {
-    this.toast.show('common.demoAction', {}, 'info');
-  }
 }

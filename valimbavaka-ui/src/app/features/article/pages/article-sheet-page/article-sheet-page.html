@@ -155,7 +155,7 @@
 
     <div class="form-actions">
       <a class="btn btn-ghost" routerLink="/articles">{{ 'article.form.cancel' | translate }}</a>
-      <button class="btn btn-primary" type="submit" [disabled]="isSaving()">
+      <button class="btn btn-primary" type="submit" [disabled]="!canSave()">
         {{ 'article.form.save' | translate }}
       </button>
     </div>

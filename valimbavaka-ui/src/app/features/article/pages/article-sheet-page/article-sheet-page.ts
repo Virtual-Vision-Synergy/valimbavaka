@@ -57,6 +57,11 @@ export class ArticleSheetPage implements OnInit {
   readonly id = input<string>();
 
   protected readonly isEdit = computed(() => !!this.id());
+  private readonly sheetRead = signal(false);
+  /** En modification, rien ne s'enregistre tant que la fiche n'est pas lue : un envoi l'écraserait. */
+  protected readonly canSave = computed(
+    () => !this.isSaving() && (!this.isEdit() || this.sheetRead()),
+  );
   protected readonly types: readonly ArticleType[] = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED'];
   protected readonly units: readonly ArticleUnit[] = ['PIECE', 'KILOGRAM', 'LITER'];
   protected readonly maxNameLength = MAX_NAME_LENGTH;
@@ -145,6 +150,9 @@ export class ArticleSheetPage implements OnInit {
   }
 
   protected save(): void {
+    if (!this.canSave()) {
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -198,6 +206,7 @@ export class ArticleSheetPage implements OnInit {
 
   private fill(article: ArticleRDto): void {
     this.version = article.version;
+    this.sheetRead.set(true);
     this.code.set(article.code);
     this.linkedSupplierId.set(article.supplierId);
     this.applyType(article.type);

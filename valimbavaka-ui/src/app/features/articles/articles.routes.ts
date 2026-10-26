@@ -2,8 +2,9 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Catalogue d'articles : liste, formulaire de création et détail restent sur des données de démonstration.
- * La fiche réelle (ART-01, API `/api/v1/articles`) est servie par `features/article`.
+ * Catalogue d'articles : la liste et le détail restent sur des données de démonstration (ART-05, ART-06).
+ * La création et la modification (ART-01, ART-02, API `/api/v1/articles`) sont servies par la fiche réelle
+ * de `features/article`.
  */
 export const ARTICLES_ROUTES: Routes = [
   {
@@ -15,13 +16,6 @@ export const ARTICLES_ROUTES: Routes = [
   },
   {
     path: 'new',
-    title: 'articles.form.title',
-    data: { underConstruction: true },
-    loadComponent: () =>
-      import('./pages/article-form-page/article-form-page').then((m) => m.ArticleFormPage),
-  },
-  {
-    path: 'sheet/new',
     title: 'article.form.newTitle',
     canActivate: [permissionGuard('articles.create')],
     loadComponent: () =>

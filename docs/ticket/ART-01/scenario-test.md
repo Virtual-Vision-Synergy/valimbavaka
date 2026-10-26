@@ -126,7 +126,7 @@ Point de départ : aucun module article n'existait côté serveur (le dossier `f
 
 | Étape | Attendu | Statut |
 |---|---|---|
-| Ouvrir `/articles/sheet/new`, créer une matière première « Beurre de karité brut » (kg, seuil 5, fournisseur « Huiles Ravo ») | retour à la liste ; l'article apparaît dans le bloc « articles fournis » de « Huiles Ravo » | 🧪 recette |
+| Ouvrir `/articles/new`, créer une matière première « Beurre de karité brut » (kg, seuil 5, fournisseur « Huiles Ravo ») | retour à la liste ; l'article apparaît dans le bloc « articles fournis » de « Huiles Ravo » | 🧪 recette |
 | Créer un produit fini « Savon noir 100 g » (gamme Botanika, prix 8500) puis rouvrir sa fiche par `/articles/<id>/edit` | code `ART-nnnn` affiché, tous les champs identiques | 🧪 recette |
 | Changer le type du produit fini en « Semi-fini » | gamme et prix disparaissent de l'écran ; après enregistrement ils sont vides | 🧪 recette |
 | Deux onglets sur la même fiche, enregistrer dans les deux | le second affiche « modifié entre-temps » et garde la saisie | 🧪 recette |
@@ -141,6 +141,6 @@ Point de départ : aucun module article n'existait côté serveur (le dossier `f
 - **Anomalies / écarts connus** :
   1. Moyenne — le coût d'achat est visible de toute personne ayant `articles.read`, donc de la vendeuse ; à trancher avec le métier (masquer `cost` pour `SELLER`).
   2. Faible — `ArticleRepository.search` a 6 paramètres (limite de 4 de la convention) : liaison de requête JPQL sans logique ; exception à justifier dans la PR.
-  3. Faible — la clé de la fiche réelle est `/articles/sheet/new` et `/articles/:id/edit` tant que la maquette garde `/articles/new` ; [ART-02](../ART-02/description.md) remplacera la maquette.
+  3. Faible — *corrigée par [ART-02](../ART-02/scenario-test.md)* : la fiche réelle est servie par `/articles/new` et `/articles/:id/edit`, le formulaire de maquette est retiré.
   4. Faible — le type `PACKAGING` de la maquette n'existe pas dans le contrat du ticket (MP / SF / Fini) ; à confirmer avec le métier avant [ART-04](../ART-04/description.md).
 - **Recette manuelle** : 6 étapes 🧪.

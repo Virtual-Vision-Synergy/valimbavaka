@@ -21,7 +21,7 @@
       <svg [vvsIcon]="icons.Download" [size]="18"></svg>
       {{ 'articles.export' | translate }}
     </button>
-    <a class="btn btn-primary" routerLink="new">
+    <a class="btn btn-primary" routerLink="new" *vvsHasPermission="'articles.create'">
       <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
       {{ 'articles.new' | translate }}
     </a>
