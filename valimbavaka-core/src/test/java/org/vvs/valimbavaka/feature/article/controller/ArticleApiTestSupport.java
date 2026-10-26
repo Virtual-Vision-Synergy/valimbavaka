@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -20,6 +22,7 @@ import com.jayway.jsonpath.JsonPath;
 import org.vvs.valimbavaka.feature.article.repository.ArticleRepository;
 import org.vvs.valimbavaka.feature.referential.repository.ProductRangeRepository;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
+import org.vvs.valimbavaka.feature.user.domain.SellerTerms;
 import org.vvs.valimbavaka.feature.user.domain.User;
 import org.vvs.valimbavaka.feature.user.domain.UserProfile;
 import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
@@ -40,27 +43,24 @@ abstract class ArticleApiTestSupport {
     protected static final String PASSWORD = "mot-de-passe-livreur-long";
 
     @Autowired
-
     protected MockMvc mockMvc;
 
     @Autowired
-
     protected ArticleRepository articleRepository;
 
     @Autowired
-
     protected ProductRangeRepository productRangeRepository;
 
     @Autowired
-
     protected UserRepository userRepository;
 
     @Autowired
+    protected JdbcTemplate jdbcTemplate;
 
+    @Autowired
     protected RoleRepository roleRepository;
 
     @Autowired
-
     protected PasswordEncoder passwordEncoder;
 
     protected UUID createArticle(String token, String body) throws Exception {
@@ -133,8 +133,15 @@ abstract class ArticleApiTestSupport {
     protected String createUser(RoleName roleName) {
         var email = "user-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = roleRepository.findByName(roleName).orElseThrow();
-        userRepository.save(
-                User.create(new UserProfile(email, "Tiana", "Ranaivoson"), passwordEncoder.encode(PASSWORD), role));
+        var profile = new UserProfile(email, "Tiana", "Ranaivoson");
+        var encoded = passwordEncoder.encode(PASSWORD);
+        if (roleName == RoleName.SELLER) {
+            var channelId = jdbcTemplate.queryForObject("select id from sales_channels limit 1", UUID.class);
+            var terms = new SellerTerms(channelId, new BigDecimal("5.00"));
+            userRepository.save(User.create(profile, encoded, role, terms));
+        } else {
+            userRepository.save(User.create(profile, encoded, role));
+        }
         return email;
     }
 }
