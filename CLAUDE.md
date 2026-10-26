@@ -12,6 +12,18 @@ Pour lire le PDF : `pdftotext -enc UTF-8 -layout resources/convention-dev-VVS-V2
 - `valimbavaka-ui/` : frontend Angular 22 (standalone, zoneless, signals, Vitest, ESLint, Prettier).
 - Rôles métier : `ADMIN`, `SELLER`, `DELIVERY_DRIVER` (3 rôles, contrainte CHECK en base).
 
+## Règle n°2 : chaque ticket a son dossier `docs/ticket/<ID>/`
+
+Lire **`docs/ticket/CONSIGNE.md`** avant de prendre un ticket. En résumé :
+
+- **Avant de coder** : lire `description.md` et le `guide.md` des tickets dont on dépend, puis écrire
+  `scenario-test.md` à partir des critères.
+- **Pendant** : mettre le nom exact de chaque test dans le scénario, avec des exemples concrets et les cas
+  limites (bornes, vide, doublon, concurrence, hors ligne, 401/403/404/409/422).
+- **Avant la PR** : lancer les tests, mettre les statuts (✅ seulement si exécuté), remplir le résultat, puis
+  écrire `guide.md` pour les autres. Le dossier fait partie de la PR : pas de dossier rempli, pas d'approbation.
+- **Après le merge** : Njara passe la recette 🧪 et met à jour le scénario.
+
 ## Rappels clés de la convention (non exhaustif)
 
 ### Backend
