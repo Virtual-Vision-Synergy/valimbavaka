@@ -18,7 +18,7 @@ Le catalogue a maintenant une vraie fiche article côté serveur : code (attribu
 | PUT | `/api/v1/articles/{id}` | `articles.update` (admin) | `ArticleWDto` | 200 `ArticleRDto` | 400, 401, 403, 404, 409 (code-barres ou version périmée), 422 |
 | PATCH | `/api/v1/articles/{id}/status` | `articles.update` | `ArticleStatusWDto` (`active`) | 200 `ArticleRDto` | 401, 403, 404, 422 |
 
-Aucun `DELETE` (le test `deleteArticle_isNotExposed` le vérifie).
+Aucun `DELETE` (le test `ArticleSecurityIT.deleteArticle_isNotExposed` le vérifie).
 
 - Tri autorisé : `createdAt` (défaut, décroissant), `code`, `name`, `type`, `price`. `search` porte sur le nom, le code (`ART-0031`) et le code-barres, sans tenir compte de la casse.
 - `ArticleWDto` : `name` (obligatoire, ≤ 120), `barcode` (13 chiffres ou absent), `type` (`RAW_MATERIAL` / `SEMI_FINISHED` / `FINISHED`), `rangeId`, `unit` (`PIECE` / `KILOGRAM` / `LITER`), `cost` (≥ 0, 2 décimales), `price` (≥ 0, 2 décimales), `threshold` (obligatoire, ≥ 0, 3 décimales), `supplierId`, `version` (facultatif). **Ni `id`, ni `code`, ni `active`** : envoyés, ils sont ignorés.
@@ -78,7 +78,7 @@ Aucun `DELETE` (le test `deleteArticle_isNotExposed` le vérifie).
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/domain/ArticleTest.java`
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/service/impl/ArticleServiceImplTest.java`, `ArticleReferenceCheckerTest.java`
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/repository/ArticleRepositoryIT.java`
-- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/controller/ArticleSecurityIT.java`
+- `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/article/controller/ArticleSecurityIT.java`, `ArticleCreationIT.java`, `ArticleUpdateIT.java` (socle `ArticleApiTestSupport.java`)
 - `valimbavaka-ui/src/app/features/article/data-access/article-service.spec.ts`, `pages/article-sheet-page/article-sheet-page.spec.ts`
 
 ## Dépendances

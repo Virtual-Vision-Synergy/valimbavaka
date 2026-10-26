@@ -5,39 +5,16 @@ import { Router, provideRouter } from '@angular/router';
 import { type MockInstance, vi } from 'vitest';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
-import { ArticleRDto } from '../../data-access/article-models';
 import { ArticleSheetPage } from './article-sheet-page';
-
-const ARTICLES_URL = '/api/v1/articles';
-const ARTICLE_ID = '0195f0a0-0000-7000-8000-0000000000a1';
-const ARTICLE_URL = `${ARTICLES_URL}/${ARTICLE_ID}`;
-const RANGE_ID = '0195f0a0-0000-7000-8000-0000000000b1';
-const SUPPLIER_ID = '0195f0a0-0000-7000-8000-0000000000c1';
-
-const article: ArticleRDto = {
-  id: ARTICLE_ID,
-  code: 'ART-0031',
-  name: 'Savon noir 100 g',
-  barcode: '3760123456789',
-  type: 'FINISHED',
-  rangeId: RANGE_ID,
-  unit: 'PIECE',
-  cost: 3120.5,
-  price: 8500,
-  threshold: 40,
-  supplierId: SUPPLIER_ID,
-  active: true,
-  createdAt: '2026-10-26T08:30:00Z',
-  updatedAt: '2026-10-26T08:30:00Z',
-  version: 3,
-};
-
-const problem = (status: number, code: string, detail: string) => ({
-  title: code,
-  status,
-  detail,
-  code,
-});
+import {
+  ARTICLES_URL,
+  ARTICLE_ID,
+  ARTICLE_URL,
+  RANGE_ID,
+  SUPPLIER_ID,
+  article,
+  problem,
+} from './article-sheet-page.fixtures';
 
 describe('ArticleSheetPage', () => {
   let httpMock: HttpTestingController;

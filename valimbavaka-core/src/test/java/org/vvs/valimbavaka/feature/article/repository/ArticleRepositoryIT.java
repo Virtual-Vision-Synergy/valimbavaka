@@ -137,8 +137,9 @@ class ArticleRepositoryIT {
     @Test
     void search_bySupplier_returnsOnlyTheArticlesOfThatSupplier() {
         // Arrange
-        var supplier = supplierRepository.save(Supplier.create(
-                new SupplierDetails("Fournisseur-" + UUID.randomUUID(), SupplierType.LOCAL, null, null, null, null, null)));
+        var supplierName = "Fournisseur-" + UUID.randomUUID();
+        var supplier = supplierRepository.save(
+                Supplier.create(new SupplierDetails(supplierName, SupplierType.LOCAL, null, null, null, null, null)));
         var supplied = sut.save(Article.create(nextCode(), new ArticleDetails(
                 uniqueName(), null, ArticleType.RAW_MATERIAL, null, ArticleUnit.KILOGRAM,
                 new BigDecimal("12000"), null, new BigDecimal("5"), supplier.getId())));

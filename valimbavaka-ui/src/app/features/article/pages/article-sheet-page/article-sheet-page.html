@@ -50,7 +50,12 @@
       @if (isSold()) {
         <div class="field">
           <label for="rangeId">{{ 'article.field.range' | translate }} *</label>
-          <select id="rangeId" class="input" formControlName="rangeId" aria-describedby="rangeId-error">
+          <select
+            id="rangeId"
+            class="input"
+            formControlName="rangeId"
+            aria-describedby="rangeId-error"
+          >
             <option value="">{{ 'article.form.chooseRange' | translate }}</option>
             @for (range of ranges(); track range.id) {
               <option [value]="range.id">{{ range.label }}</option>
