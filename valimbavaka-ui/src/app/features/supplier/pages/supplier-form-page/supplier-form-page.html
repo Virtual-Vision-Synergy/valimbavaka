@@ -13,12 +13,9 @@
       <div class="field">
         <label for="name">{{ 'supplier.field.name' | translate }} *</label>
         <input id="name" class="input" formControlName="name" aria-describedby="name-error" />
-        @if (isInvalid('name')) {
+        @if (fieldError('name'); as error) {
           <span id="name-error" class="field-error" aria-live="polite">{{
-            (form.controls.name.hasError('maxlength')
-              ? 'supplier.form.nameTooLong'
-              : 'supplier.form.nameRequired'
-            ) | translate
+            error.key | translate: error.params
           }}</span>
         }
       </div>
@@ -34,12 +31,33 @@
 
       <div class="field">
         <label for="contactName">{{ 'supplier.field.contactName' | translate }}</label>
-        <input id="contactName" class="input" formControlName="contactName" />
+        <input
+          id="contactName"
+          class="input"
+          formControlName="contactName"
+          aria-describedby="contactName-error"
+        />
+        @if (fieldError('contactName'); as error) {
+          <span id="contactName-error" class="field-error" aria-live="polite">{{
+            error.key | translate: error.params
+          }}</span>
+        }
       </div>
 
       <div class="field">
         <label for="phone">{{ 'supplier.field.phone' | translate }}</label>
-        <input id="phone" class="input" type="tel" formControlName="phone" />
+        <input
+          id="phone"
+          class="input"
+          type="tel"
+          formControlName="phone"
+          aria-describedby="phone-error"
+        />
+        @if (fieldError('phone'); as error) {
+          <span id="phone-error" class="field-error" aria-live="polite">{{
+            error.key | translate: error.params
+          }}</span>
+        }
       </div>
 
       <div class="field full">
@@ -51,21 +69,42 @@
           formControlName="email"
           aria-describedby="email-error"
         />
-        @if (isInvalid('email')) {
+        @if (fieldError('email'); as error) {
           <span id="email-error" class="field-error" aria-live="polite">{{
-            'supplier.form.emailInvalid' | translate
+            error.key | translate: error.params
           }}</span>
         }
       </div>
 
       <div class="field full">
         <label for="address">{{ 'supplier.field.address' | translate }}</label>
-        <input id="address" class="input" formControlName="address" />
+        <input
+          id="address"
+          class="input"
+          formControlName="address"
+          aria-describedby="address-error"
+        />
+        @if (fieldError('address'); as error) {
+          <span id="address-error" class="field-error" aria-live="polite">{{
+            error.key | translate: error.params
+          }}</span>
+        }
       </div>
 
       <div class="field full">
         <label for="notes">{{ 'supplier.field.notes' | translate }}</label>
-        <textarea id="notes" class="input" rows="3" formControlName="notes"></textarea>
+        <textarea
+          id="notes"
+          class="input"
+          rows="3"
+          formControlName="notes"
+          aria-describedby="notes-error"
+        ></textarea>
+        @if (fieldError('notes'); as error) {
+          <span id="notes-error" class="field-error" aria-live="polite">{{
+            error.key | translate: error.params
+          }}</span>
+        }
       </div>
     </div>
 

@@ -48,7 +48,7 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 | Espaces autour du nom | `"  Huiles Ravo  "` | enregistré « Huiles Ravo », doublon détecté | `Supplier` applique `strip` ; le service compare le nom nettoyé. La base seule accepterait « ␣Huiles Ravo␣ » (index sur `lower(name)` sans `trim`) | 🔍 code · ✅ base |
 | Limites de longueur | nom 150, téléphone 50, courriel 255, adresse 500, notes 2000 | acceptés ; +1 caractère → 422 | `SupplierWDto` + colonnes de la table | 🔍 code · ✅ base |
 | Champs facultatifs vides | seulement nom + type | accepté, autres champs `null` | colonnes nullables | ✅ base |
-| Deux administrateurs modifient la même fiche | A et B ouvrent la fiche (version 3), A enregistre, puis B | B reçoit 409 « The supplier was modified in the meantime… » et recharge | `SupplierServiceImplTest.updateSupplier_staleVersion_throwsConflictAndChangesNothing` ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` ; `supplier-form-page.spec.ts` « should send back the version read so that a concurrent change is refused », « should show the server message when the sheet was modified in the meantime » | ✅ auto (corrigé le 2026-10-23) |
+| Deux administrateurs modifient la même fiche | A et B ouvrent la fiche (version 3), A enregistre, puis B | B reçoit 409 « Le fournisseur a été modifié entre-temps… » et recharge | `SupplierServiceImplTest.updateSupplier_staleVersion_throwsConflictAndChangesNothing` ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` ; `supplier-form-page.spec.ts` « should send back the version read so that a concurrent change is refused », « should show the server message when the sheet was modified in the meantime » | ✅ auto (corrigé le 2026-10-23) |
 | Deux créations simultanées du même nom | course entre 2 requêtes | le second reçoit 409 `CONFLICT` | l'index `uq_suppliers_name` refuse le second ; `GlobalExceptionHandler` traduit le SQLSTATE `23505` en 409 : `GlobalExceptionHandlerTest.handleDataIntegrity_uniqueViolation_returns409` | ✅ auto (corrigé le 2026-10-23) |
 | Pagination | `size=101` | 422 | `PageQuery` (`@MaxPageSize`) | 🔍 code |
 | Tri hors liste blanche | `sortBy=email` | ignoré, retour au tri par défaut `createdAt` décroissant (pas d'erreur) | `PageQuery.toPageable` ; `SORT_FIELDS` = `createdAt`, `name`, `type` | 🔍 code |
@@ -75,6 +75,6 @@ Légende de la colonne « Statut » : ✅ auto = test automatique vert · ✅ ba
 - **Anomalies** :
   1. ✅ Corrigé le 2026-10-23 (branche `fix/FRS-01-conflits-409`) : verrou optimiste et doublon en base renvoyés en 409 ; `SupplierRDto` expose `version`, que le formulaire renvoie, et une version périmée est refusée.
   2. ✅ La réponse « 409 version » documentée sur le `PUT` est désormais réellement produite.
-  3. ⚠ Messages serveur et libellés du journal en anglais (« Supplier created: … ») contrairement aux autres modules.
-  4. ⚠ Aucun test des pages fournisseur.
+  3. ✅ Corrigé le 2026-10-26 par FRS-02 : messages serveur et libellés du journal en français (« Création du fournisseur … »), comme les autres modules.
+  4. ⚠ Aucun test de la page liste ; le formulaire est couvert depuis FRS-02 (`supplier-form-page.spec.ts`).
 - **Recette manuelle** : 4 étapes 🧪.

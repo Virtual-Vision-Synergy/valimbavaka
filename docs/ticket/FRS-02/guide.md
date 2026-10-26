@@ -35,7 +35,7 @@ Exemple de corps (`PUT`) :
 - `SupplierWDto` : `name` (obligatoire, non blanc, ≤ 150), `type` (`LOCAL` / `FOREIGN`), `contactName` (≤ 150), `phone` (≤ 50), `email` (format courriel, ≤ 255), `address` (≤ 500), `notes` (≤ 2000), `version` (facultatif). `id` et `active` envoyés dans le corps sont ignorés.
 - Normalisation serveur (`Supplier.apply`) : `strip` sur tous les textes, chaîne vide ou blanche → `null`, courriel en minuscules. Le client peut donc envoyer `""` pour un champ vidé.
 - `PUT` est un remplacement complet de la fiche : un champ facultatif absent ou `null` est **effacé**. Toujours renvoyer tous les champs.
-- `version` : envoyer `SupplierRDto.version` lue à l'ouverture ; une valeur différente donne 409 « The supplier was modified in the meantime: reload it and try again. ». Sans `version`, la modification passe sans contrôle de la version lue (à éviter depuis un écran).
+- `version` : envoyer `SupplierRDto.version` lue à l'ouverture ; une valeur différente donne 409 « Le fournisseur a été modifié entre-temps : rechargez la fiche puis réessayez. ». Sans `version`, la modification passe sans contrôle de la version lue (à éviter depuis un écran).
 
 ### Service Java
 
@@ -53,12 +53,12 @@ SupplierRDto updateSupplier(UUID supplierId, SupplierWDto request);
 - Routes : `/suppliers/new` (création), `/suppliers/:id/edit` (modification, `id` lié en `input()`).
 - `data-access/supplier-service.ts` : `create(body: SupplierWDto)`, `update(id, body: SupplierWDto)`.
 - `pages/supplier-form-page` : formulaire réactif, validations alignées sur le serveur (nom obligatoire et non blanc, ≤ 150 ; courriel valide ; longueurs max), bouton désactivé pendant l'envoi, message du `ProblemDetail` affiché en cas d'erreur (la saisie est conservée), retour à `/suppliers` après succès.
-- Traductions : `supplier.form.nameRequired`, `supplier.form.nameTooLong` (nouvelle), `supplier.form.emailInvalid` dans `public/i18n/fr.json` et `mg.json`.
+- Messages sous chaque champ (`fieldError`) : `supplier.form.nameRequired`, `supplier.form.emailInvalid`, `supplier.form.tooLong` (nouvelle, paramètre `{{max}}` : « 150 caractères maximum ») dans `public/i18n/fr.json` et `mg.json`. Le courriel est plafonné à 254 caractères par `Validators.email` d'Angular (le serveur en accepte 255).
 
 ### Données
 
 - Aucune migration : table `suppliers` de FRS-01 (`2026_10_21-01-changelog.sql`).
-- Journal : `CREATE` « Supplier created: <nom> » à la création, `UPDATE` « Supplier updated: <nom> » à une modification réelle, ressource `SUPPLIER`, identifiant = UUID du fournisseur.
+- Journal : `CREATE` « Création du fournisseur <nom> » à la création, `UPDATE` « Modification du fournisseur <nom> » à une modification réelle (« Activation / Désactivation du fournisseur <nom> » pour le statut), ressource `SUPPLIER`, identifiant = UUID du fournisseur.
 
 ## Règles métier pour les autres tickets
 
@@ -71,12 +71,13 @@ SupplierRDto updateSupplier(UUID supplierId, SupplierWDto request);
 
 **Backend** (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/supplier/`)
 - `domain/Supplier.java` : `update` renvoie `boolean`, méthode privée `details()`.
-- `service/impl/SupplierServiceImpl.java` : `updateSupplier` ne trace que si la fiche a changé.
+- `service/impl/SupplierServiceImpl.java` : `updateSupplier` ne trace que si la fiche a changé ; messages et libellés du journal en français.
+- `dto/SupplierWDto.java`, `dto/SupplierStatusWDto.java` : messages de validation en français.
 
 **Frontend** (`valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/`)
-- `supplier-form-page.ts` : `Validators.pattern(/\S/)` sur le nom.
-- `supplier-form-page.html` : message « trop long » distinct de « obligatoire ».
-- `valimbavaka-ui/public/i18n/fr.json`, `mg.json` : clé `supplier.form.nameTooLong`.
+- `supplier-form-page.ts` : `Validators.pattern(/\S/)` sur le nom, `fieldError()` pour le message de chaque champ.
+- `supplier-form-page.html` : un message d'erreur sous chacun des 7 champs (`aria-describedby`).
+- `valimbavaka-ui/public/i18n/fr.json`, `mg.json` : clé `supplier.form.tooLong`.
 
 **Tests**
 - `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java`
@@ -102,7 +103,7 @@ this.supplierService.update(supplier.id, body).subscribe({
 
 ## Points d'attention
 
-- Messages serveur et libellés du journal en anglais, affichés tels quels dans l'interface française (déjà relevé dans FRS-01) : à traiter dans une issue `fix/` commune à tous les modules.
-- Le formulaire n'affiche un message que pour le nom et le courriel ; un dépassement de longueur sur le contact, le téléphone, l'adresse ou les notes bloque l'envoi sans explication.
+- Les messages d'erreur du serveur (`detail` du `ProblemDetail`) sont en français et affichés tels quels : ils ne suivent pas la langue choisie (malgache). Même limite pour tous les modules.
+- Les lignes du journal écrites avant FRS-02 restent en anglais (« Supplier created: … ») : le journal est append-only.
 - Pas encore de saisie hors ligne : `supplier-service.ts` appelle `HttpClient` directement ([SYS-07](../SYS-07/description.md)).
 - Après un 409 de version, le formulaire garde la saisie mais ne recharge pas la fiche : l'utilisateur doit revenir à la liste et rouvrir.

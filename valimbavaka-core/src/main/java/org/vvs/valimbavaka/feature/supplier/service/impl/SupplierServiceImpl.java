@@ -32,8 +32,9 @@ public class SupplierServiceImpl implements SupplierService {
     private static final Logger log = LoggerFactory.getLogger(SupplierServiceImpl.class);
 
     private static final String RESOURCE_TYPE = "SUPPLIER";
-    private static final String NAME_ALREADY_USED = "A supplier with this name already exists.";
-    private static final String STALE_VERSION = "The supplier was modified in the meantime: reload it and try again.";
+    private static final String NAME_ALREADY_USED = "Un fournisseur avec ce nom existe déjà.";
+    private static final String STALE_VERSION =
+            "Le fournisseur a été modifié entre-temps : rechargez la fiche puis réessayez.";
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "name", "type");
 
     private final SupplierRepository supplierRepository;
@@ -69,8 +70,8 @@ public class SupplierServiceImpl implements SupplierService {
         }
         Supplier saved = supplierRepository.save(Supplier.create(toDetails(request)));
         journalService.record(
-                JournalAction.CREATE, RESOURCE_TYPE, saved.getId(), "Supplier created: " + saved.getName());
-        log.info("Supplier {} created", saved.getId());
+                JournalAction.CREATE, RESOURCE_TYPE, saved.getId(), "Création du fournisseur " + saved.getName());
+        log.info("Fournisseur {} créé", saved.getId());
         return supplierMapper.toRDto(saved);
     }
 
@@ -86,7 +87,10 @@ public class SupplierServiceImpl implements SupplierService {
         }
         if (supplier.update(toDetails(request))) {
             journalService.record(
-                    JournalAction.UPDATE, RESOURCE_TYPE, supplierId, "Supplier updated: " + supplier.getName());
+                    JournalAction.UPDATE,
+                    RESOURCE_TYPE,
+                    supplierId,
+                    "Modification du fournisseur " + supplier.getName());
         }
         return supplierMapper.toRDto(supplier);
     }
@@ -103,16 +107,16 @@ public class SupplierServiceImpl implements SupplierService {
         } else {
             supplier.deactivate();
         }
-        String action = active ? "Supplier activated: " : "Supplier deactivated: ";
+        String action = active ? "Activation du fournisseur " : "Désactivation du fournisseur ";
         journalService.record(JournalAction.UPDATE, RESOURCE_TYPE, supplierId, action + supplier.getName());
-        log.info("Supplier {} {}", supplierId, active ? "activated" : "deactivated");
+        log.info("Fournisseur {} {}", supplierId, active ? "activé" : "désactivé");
         return supplierMapper.toRDto(supplier);
     }
 
     private Supplier findSupplier(UUID supplierId) {
         return supplierRepository
                 .findById(supplierId)
-                .orElseThrow(() -> new NotFoundException("Supplier not found: " + supplierId));
+                .orElseThrow(() -> new NotFoundException("Fournisseur introuvable : " + supplierId));
     }
 
     private static SupplierDetails toDetails(SupplierWDto request) {

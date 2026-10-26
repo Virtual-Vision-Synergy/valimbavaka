@@ -17,6 +17,12 @@ import { errorMessage } from '../../../../core/http/problem-detail';
 import { SupplierRDto, SupplierType } from '../../data-access/supplier-models';
 import { SupplierService } from '../../data-access/supplier-service';
 
+/** Clé de traduction et paramètres du message d'erreur d'un champ. */
+interface FieldError {
+  key: string;
+  params?: { max: number };
+}
+
 /** Fiche fournisseur (FRS-01) : création et modification de tous les champs (FRS-02). */
 @Component({
   selector: 'vvs-supplier-form-page',
@@ -65,9 +71,19 @@ export class SupplierFormPage implements OnInit {
       });
   }
 
-  protected isInvalid(field: keyof typeof this.form.controls): boolean {
+  /** Message à afficher sous un champ touché et invalide, ou null : mêmes règles que le serveur. */
+  protected fieldError(field: keyof typeof this.form.controls): FieldError | null {
     const control = this.form.controls[field];
-    return control.invalid && control.touched;
+    if (!control.invalid || !control.touched) {
+      return null;
+    }
+    const maxLength = control.getError('maxlength') as { requiredLength: number } | null;
+    if (maxLength) {
+      return { key: 'supplier.form.tooLong', params: { max: maxLength.requiredLength } };
+    }
+    return {
+      key: control.hasError('email') ? 'supplier.form.emailInvalid' : 'supplier.form.nameRequired',
+    };
   }
 
   protected save(): void {

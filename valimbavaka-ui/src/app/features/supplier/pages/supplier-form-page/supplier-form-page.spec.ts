@@ -131,13 +131,16 @@ describe('SupplierFormPage', () => {
 
       httpMock
         .expectOne(SUPPLIER_URL)
-        .flush(conflict('The supplier was modified in the meantime: reload it and try again.'), {
-          status: 409,
-          statusText: 'Conflict',
-        });
+        .flush(
+          conflict('Le fournisseur a été modifié entre-temps : rechargez la fiche puis réessayez.'),
+          {
+            status: 409,
+            statusText: 'Conflict',
+          },
+        );
       await fixture.whenStable();
 
-      expect(element.textContent).toContain('modified in the meantime');
+      expect(element.textContent).toContain('modifié entre-temps');
       expect(navigate).not.toHaveBeenCalled();
       expect(field<HTMLInputElement>('name').value).toBe('Huiles Ravo');
     });
@@ -168,6 +171,45 @@ describe('SupplierFormPage', () => {
       expect(httpMock.expectOne(SUPPLIER_URL).request.body).toMatchObject({
         name: 'a'.repeat(150),
       });
+    });
+
+    it.each([
+      ['contactName', 150],
+      ['phone', 50],
+      ['email', 255],
+      ['address', 500],
+      ['notes', 2000],
+    ])(
+      'should send nothing and explain the limit when %s exceeds %i characters',
+      async (id, max) => {
+        await type(id, 'a'.repeat(max + 1));
+
+        await save();
+
+        httpMock.expectNone(SUPPLIER_URL);
+        expect(element.querySelector(`#${id}-error`)?.textContent).toContain(
+          `${max} caractères maximum`,
+        );
+      },
+    );
+
+    it('should accept every field at its maximum length (email 254, the Angular cap)', async () => {
+      const values = {
+        contactName: 'c'.repeat(150),
+        phone: '0'.repeat(50),
+        email: `${'e'.repeat(64)}@${'d'.repeat(63)}.${'d'.repeat(63)}.${'d'.repeat(58)}.mg`,
+        address: 'a'.repeat(500),
+        notes: 'n'.repeat(2000),
+      };
+      for (const [id, value] of Object.entries(values)) {
+        await type(id, value);
+      }
+
+      await save();
+
+      // 254 : plafond d'Angular (RFC 5321) ; le serveur accepte 255.
+      expect(values.email).toHaveLength(254);
+      expect(httpMock.expectOne(SUPPLIER_URL).request.body).toMatchObject(values);
     });
 
     it('should send nothing when the email is invalid', async () => {
@@ -226,15 +268,13 @@ describe('SupplierFormPage', () => {
 
       await save();
 
-      httpMock
-        .expectOne(SUPPLIERS_URL)
-        .flush(conflict('A supplier with this name already exists.'), {
-          status: 409,
-          statusText: 'Conflict',
-        });
+      httpMock.expectOne(SUPPLIERS_URL).flush(conflict('Un fournisseur avec ce nom existe déjà.'), {
+        status: 409,
+        statusText: 'Conflict',
+      });
       await fixture.whenStable();
 
-      expect(element.querySelector('[role="alert"]')?.textContent).toContain('already exists');
+      expect(element.querySelector('[role="alert"]')?.textContent).toContain('existe déjà');
       expect(navigate).not.toHaveBeenCalled();
     });
 
@@ -250,20 +290,20 @@ describe('SupplierFormPage', () => {
     it('should show the server message', async () => {
       await setup(supplier.id);
 
-      httpMock
-        .expectOne(SUPPLIER_URL)
-        .flush(
-          {
-            title: 'Not Found',
-            status: 404,
-            detail: `Supplier not found: ${supplier.id}`,
-            code: 'NOT_FOUND',
-          },
-          { status: 404, statusText: 'Not Found' },
-        );
+      httpMock.expectOne(SUPPLIER_URL).flush(
+        {
+          title: 'Not Found',
+          status: 404,
+          detail: `Fournisseur introuvable : ${supplier.id}`,
+          code: 'NOT_FOUND',
+        },
+        { status: 404, statusText: 'Not Found' },
+      );
       await fixture.whenStable();
 
-      expect(element.querySelector('[role="alert"]')?.textContent).toContain('Supplier not found');
+      expect(element.querySelector('[role="alert"]')?.textContent).toContain(
+        'Fournisseur introuvable',
+      );
     });
   });
 });

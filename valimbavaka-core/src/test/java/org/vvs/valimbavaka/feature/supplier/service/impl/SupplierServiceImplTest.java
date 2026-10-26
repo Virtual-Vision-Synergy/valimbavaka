@@ -71,7 +71,11 @@ class SupplierServiceImplTest {
         assertThat(saved.getValue().getEmail()).isEqualTo("contact@itasy.mg");
         assertThat(saved.getValue().isActive()).isTrue();
         verify(journalService)
-                .record(eq(JournalAction.CREATE), eq("SUPPLIER"), any(), eq("Supplier created: Coopérative Itasy"));
+                .record(
+                        eq(JournalAction.CREATE),
+                        eq("SUPPLIER"),
+                        any(),
+                        eq("Création du fournisseur Coopérative Itasy"));
     }
 
     @Test
@@ -114,7 +118,8 @@ class SupplierServiceImplTest {
         assertThat(supplier.getEmail()).isEqualTo("lee@ocean.com");
         assertThat(supplier.getAddress()).isEqualTo("Marseille");
         assertThat(supplier.getNotes()).isEqualTo("Raw materials");
-        verify(journalService).record(JournalAction.UPDATE, "SUPPLIER", SUPPLIER_ID, "Supplier updated: Import Océan");
+        verify(journalService)
+                .record(JournalAction.UPDATE, "SUPPLIER", SUPPLIER_ID, "Modification du fournisseur Import Océan");
     }
 
     @Test
@@ -158,7 +163,7 @@ class SupplierServiceImplTest {
         // Act + Assert
         assertThatThrownBy(() -> sut.updateSupplier(SUPPLIER_ID, staleRequest))
                 .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("modified in the meantime");
+                .hasMessageContaining("modifié entre-temps");
         assertThat(supplier.getName()).isNotEqualTo("Import Océan");
         verifyNoInteractions(journalService);
     }
@@ -186,7 +191,11 @@ class SupplierServiceImplTest {
         // Assert
         assertThat(supplier.isActive()).isFalse();
         verify(journalService)
-                .record(JournalAction.UPDATE, "SUPPLIER", SUPPLIER_ID, "Supplier deactivated: Coopérative Itasy");
+                .record(
+                        JournalAction.UPDATE,
+                        "SUPPLIER",
+                        SUPPLIER_ID,
+                        "Désactivation du fournisseur Coopérative Itasy");
     }
 
     @Test

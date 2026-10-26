@@ -40,7 +40,7 @@ Point de départ : FRS-01 a livré l'API (`POST`, `PUT`, `PATCH /status`) et le 
 | Données invalides à la modification | nom de 151 caractères, `email: "abc"` | 422 `VALIDATION_FAILED`, fiche inchangée | `SupplierSecurityIT.updateSupplier_tooLongNameAndInvalidEmail_returns422AndKeepsTheSheet` | ✅ auto |
 | Données invalides à la création | `{"email":"not-an-email"}` (ni nom ni type) | 422 `VALIDATION_FAILED` | `SupplierSecurityIT.createSupplier_missingNameAndType_returns422` | ✅ auto |
 | Fiche inconnue | `PUT` sur un UUID aléatoire | 404 `NOT_FOUND` | `SupplierSecurityIT.updateSupplier_unknownId_returns404` | ✅ auto |
-| Fiche inconnue dans le formulaire | `/suppliers/<uuid inconnu>/edit` | message du serveur affiché (« Supplier not found: … ») | « should show the server message » (bloc « when the sheet does not exist ») | ✅ auto |
+| Fiche inconnue dans le formulaire | `/suppliers/<uuid inconnu>/edit` | message du serveur affiché (« Fournisseur introuvable : … ») | « should show the server message » (bloc « when the sheet does not exist ») | ✅ auto |
 | Nom d'un autre fournisseur, autre casse | renommer en « HUILES RAVO » alors que « Huiles Ravo » existe | 409 `CONFLICT` | `SupplierSecurityIT.updateSupplier_nameOfAnotherSupplierWithOtherCase_returns409` ; `SupplierServiceImplTest.updateSupplier_nameUsedByAnotherSupplier_throwsConflict` | ✅ auto |
 | Nom déjà pris à la création, dans le formulaire | « HUILES RAVO » | 409, message du serveur affiché, pas de navigation | « should show the server message when the name is already used » ; `SupplierSecurityIT.createSupplier_nameAlreadyUsedWithOtherCase_returns409` | ✅ auto |
 | Journal | création / modification réelle | `CREATE` / `UPDATE`, ressource `SUPPLIER` | lignes 1d et 1g | ✅ auto |
@@ -52,20 +52,22 @@ Point de départ : FRS-01 a livré l'API (`POST`, `PUT`, `PATCH /status`) et le 
 | Nom vide | `""` en création | rien n'est envoyé, message « Le nom est obligatoire » | « should send nothing when the name is empty » | ✅ auto |
 | Nom fait d'espaces | `"   "` | rien n'est envoyé, message « Le nom est obligatoire » (avant : envoyé puis 422 en anglais) | « should send nothing and ask for a name when the name is only spaces » | ✅ auto (corrigé) |
 | Nom à la borne | 150 caractères | envoyé | « should accept a name of exactly 150 characters » | ✅ auto |
-| Nom borne + 1 | 151 caractères | rien n'est envoyé, message « Le nom ne doit pas dépasser 150 caractères » (avant : « Le nom est obligatoire ») ; côté serveur 422 | « should send nothing and show the length message when the name exceeds 150 characters » ; `updateSupplier_tooLongNameAndInvalidEmail_returns422AndKeepsTheSheet` | ✅ auto (corrigé) |
+| Nom borne + 1 | 151 caractères | rien n'est envoyé, message « 150 caractères maximum » (avant : « Le nom est obligatoire ») ; côté serveur 422 | « should send nothing and show the length message when the name exceeds 150 characters » ; `updateSupplier_tooLongNameAndInvalidEmail_returns422AndKeepsTheSheet` | ✅ auto (corrigé) |
 | Courriel invalide | `abc` | rien n'est envoyé, message « L'email n'est pas valide » | « should send nothing when the email is invalid » | ✅ auto |
-| Autres longueurs | contact 150, téléphone 50, courriel 255, adresse 500, notes 2000 | +1 caractère : 422 serveur ; le formulaire a les mêmes `maxLength` mais n'affiche pas de message propre à ces champs | `SupplierWDto` (`@Size`) et `Validators.maxLength` du formulaire | 🔍 code |
+| Autres longueurs, borne + 1 | contact 151, téléphone 51, courriel 256, adresse 501, notes 2001 | rien n'est envoyé, message « N caractères maximum » sous le champ (avant : blocage sans message) ; côté serveur 422 | « should send nothing and explain the limit when %s exceeds %i characters » (5 cas) | ✅ auto (corrigé) |
+| Autres longueurs, borne | contact 150, téléphone 50, adresse 500, notes 2000, courriel 254 | envoyés. Le courriel est plafonné à 254 par Angular (RFC 5321) alors que le serveur accepte 255 : écart sans conséquence pratique | « should accept every field at its maximum length (email 254, the Angular cap) » | ✅ auto |
+| Messages du serveur en français | renommer en « HUILES RAVO » ; modification tracée | `detail` = « Un fournisseur avec ce nom existe déjà. » ; journal « Modification du fournisseur … » (avant : anglais) | `SupplierSecurityIT.updateSupplier_nameOfAnotherSupplierWithOtherCase_returns409` ; `SupplierSecurityIT.updateSupplier_withVersionRead_savesAndTracesUpdateInJournal` ; libellés vérifiés dans `SupplierServiceImplTest` | ✅ auto (corrigé) |
 | Champs facultatifs vidés | contact `""`, courriel `""` | enregistrés `null` (pas de chaîne vide en base) | `SupplierServiceImplTest.createSupplier_newName_savesNormalizedActiveSupplierAndTracesInJournal` (contact `" "` → `null`) | ✅ auto |
 | Espaces autour, casse du courriel | `"  Huiles Ravo  "`, `Contact@Itasy.MG` | « Huiles Ravo », `contact@itasy.mg` | `createSupplier_newName_savesNormalizedActiveSupplierAndTracesInJournal` | ✅ auto |
 | Double clic sur « Enregistrer » | deux clics avant la réponse | une seule requête ; bouton désactivé pendant l'envoi, réactivé ensuite | « should disable the save button while saving so that a double click sends one request » | ✅ auto |
-| Deux administrateurs sur la même fiche | A et B ouvrent la version 3, A enregistre, puis B | B reçoit 409 « modified in the meantime », reste sur le formulaire avec sa saisie | « should send back the version read so that a concurrent change is refused », « should show the server message when the sheet was modified in the meantime » ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` | ✅ auto |
+| Deux administrateurs sur la même fiche | A et B ouvrent la version 3, A enregistre, puis B | B reçoit 409 « Le fournisseur a été modifié entre-temps… », reste sur le formulaire avec sa saisie | « should send back the version read so that a concurrent change is refused », « should show the server message when the sheet was modified in the meantime » ; `SupplierSecurityIT.updateSupplier_staleVersion_returns409AndKeepsTheSheet` | ✅ auto |
 | Session expirée pendant la saisie | jeton expiré au clic | l'intercepteur d'authentification rafraîchit le jeton puis rejoue (AUTH-02) | intercepteur commun, non spécifique au fournisseur | ⏭ hors périmètre (AUTH-02) |
 | Saisie hors ligne | réseau coupé au clic | non pris en charge : erreur affichée, rien en file | `supplier-service.ts` appelle `HttpClient` directement | ⏭ hors périmètre ([SYS-07](../SYS-07/description.md)) |
 
 ## Tests existants
 
 - Backend : `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/supplier/controller/SupplierSecurityIT.java` (7 tests ajoutés pour le `PUT`), `…/service/impl/SupplierServiceImplTest.java` (1 test ajouté), `…/repository/SupplierRepositoryIT.java` (inchangé).
-- Frontend : `valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/supplier-form-page.spec.ts` (13 tests, dont 11 nouveaux), `…/data-access/supplier-service.spec.ts` (inchangé).
+- Frontend : `valimbavaka-ui/src/app/features/supplier/pages/supplier-form-page/supplier-form-page.spec.ts` (19 tests, dont 17 nouveaux), `…/data-access/supplier-service.spec.ts` (inchangé).
 
 ## Recette manuelle (🧪)
 
@@ -74,17 +76,19 @@ Point de départ : FRS-01 a livré l'API (`POST`, `PUT`, `PATCH /status`) et le 
 | Créer « Coopérative Itasy » (local), puis la modifier : changer chaque champ, enregistrer | retour à la liste, valeurs à jour dans la liste et à la réouverture de la fiche | 🧪 recette |
 | Rouvrir la fiche et enregistrer sans rien changer | Journal : aucune nouvelle ligne `UPDATE` | 🧪 recette |
 | Ouvrir la même fiche dans deux onglets, enregistrer dans le premier puis dans le second | le second affiche le message de conflit et garde la saisie | 🧪 recette |
-| Saisir un nom de 151 caractères, puis seulement des espaces | messages « ne doit pas dépasser 150 caractères » puis « obligatoire », bouton sans effet | 🧪 recette |
+| Saisir 51 caractères dans le téléphone | message « 50 caractères maximum » sous le champ | 🧪 recette |
+| Saisir un nom de 151 caractères, puis seulement des espaces | messages « 150 caractères maximum » puis « obligatoire », bouton sans effet | 🧪 recette |
 
 ## Résultat de l'exécution
 
 - **Date** : 2026-10-26.
-- **Backend** : `mvn -B -ntp verify` en local (JDK 21, Testcontainers PostgreSQL) : `BUILD SUCCESS`, 110 tests unitaires et 96 tests d'intégration verts (dont 21 dans `SupplierSecurityIT`, 9 dans `SupplierServiceImplTest`), ArchUnit compris, aucun avertissement de compilation.
-- **Frontend** : `npx ng test --watch=false` : 126 tests verts sur 126 (32 fichiers) ; `ng lint` sans erreur.
+- **Backend** : `mvn -B -ntp verify` en local (JDK 21, Testcontainers PostgreSQL) : `BUILD SUCCESS`, 110 tests unitaires et 96 tests d'intégration verts (dont 21 dans `SupplierSecurityIT`, 9 dans `SupplierServiceImplTest`), ArchUnit compris, aucun avertissement de compilation (relancé après les corrections 4 et 5).
+- **Frontend** : `npx ng test --watch=false` : 132 tests verts sur 132 (32 fichiers), relancé après les corrections 4 et 5 ; `ng lint` sans erreur.
 - **Anomalies** :
   1. ✅ Corrigé (moyenne) : enregistrer une fiche sans changement écrivait une ligne `UPDATE` dans le journal, contraire à la règle JNL-01 « ne pas tracer si rien n'a changé ». `Supplier.update` indique désormais si la fiche a changé.
   2. ✅ Corrigé (faible) : un nom fait d'espaces passait la validation du formulaire et revenait en 422 avec un message anglais.
   3. ✅ Corrigé (faible) : un nom de plus de 150 caractères affichait « Le nom est obligatoire ».
-  4. ⚠ Ouvert (faible) : les messages d'erreur serveur (« A supplier with this name already exists. », « The supplier was modified in the meantime… ») et les libellés du journal (« Supplier updated: … ») sont en anglais et s'affichent tels quels dans une interface française. Déjà relevé dans FRS-01 ; à traiter dans une issue `fix/` dédiée pour l'ensemble des modules.
-  5. ⚠ Ouvert (faible) : le formulaire n'affiche de message que pour le nom et le courriel ; les dépassements des autres champs bloquent l'envoi sans explication. À reprendre avec la maquette DSG-01 du formulaire.
-- **Recette manuelle** : 4 étapes 🧪.
+  4. ✅ Corrigé (faible) : messages serveur, messages de validation et libellés du journal du module fournisseur en anglais, affichés tels quels dans l'interface française (relevé dans FRS-01, anomalie 3). Passés en français comme les autres modules ; les lignes de journal déjà écrites restent en anglais (append-only).
+  5. ✅ Corrigé (faible) : le formulaire n'affichait de message que pour le nom et le courriel ; chaque champ a maintenant son message (« N caractères maximum »).
+  6. ℹ Écart accepté : courriel limité à 254 caractères dans le formulaire (Angular) contre 255 côté serveur.
+- **Recette manuelle** : 5 étapes 🧪.

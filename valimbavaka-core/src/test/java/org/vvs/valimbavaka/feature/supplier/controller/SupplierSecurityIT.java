@@ -259,7 +259,8 @@ class SupplierSecurityIT {
         mockMvc.perform(putJson(SUPPLIERS + "/" + id, body(taken.toUpperCase()))
                         .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.code").value("CONFLICT"));
+                .andExpect(jsonPath("$.code").value("CONFLICT"))
+                .andExpect(jsonPath("$.detail").value("Un fournisseur avec ce nom existe déjà."));
     }
 
     @Test
@@ -301,7 +302,8 @@ class SupplierSecurityIT {
         mockMvc.perform(get("/api/v1/journal").param("search", name).header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.items[0].action").value("UPDATE"))
-                .andExpect(jsonPath("$.items[0].resourceId").value(id.toString()));
+                .andExpect(jsonPath("$.items[0].resourceId").value(id.toString()))
+                .andExpect(jsonPath("$.items[0].description").value("Modification du fournisseur " + name));
     }
 
     @Test
