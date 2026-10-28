@@ -100,18 +100,24 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return validationFailed(errors);
     }
 
-    /** Ajoute le code machine aux ProblemDetail produits par Spring MVC (400 requête mal formée, 405…). */
+    /**
+     * Ajoute le code machine aux ProblemDetail produits par Spring MVC (400 requête mal formée, 405…). Le corps est lu
+     * après l'appel parent : certains handlers (paramètre manquant…) passent {@code body = null} et Spring le construit.
+     */
     @Override
     protected @Nullable ResponseEntity<Object> handleExceptionInternal(
             Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
-        if (body instanceof ProblemDetail problem && problem.getProperties() == null) {
+        ResponseEntity<Object> response = super.handleExceptionInternal(ex, body, headers, statusCode, request);
+        if (response != null
+                && response.getBody() instanceof ProblemDetail problem
+                && (problem.getProperties() == null || !problem.getProperties().containsKey(CODE))) {
             problem.setProperty(
                     CODE,
                     statusCode.value() == HttpStatus.BAD_REQUEST.value()
                             ? "MALFORMED_REQUEST"
                             : HttpStatus.valueOf(statusCode.value()).name());
         }
-        return super.handleExceptionInternal(ex, body, headers, statusCode, request);
+        return response;
     }
 
     private static boolean isUniqueViolation(Throwable ex) {
