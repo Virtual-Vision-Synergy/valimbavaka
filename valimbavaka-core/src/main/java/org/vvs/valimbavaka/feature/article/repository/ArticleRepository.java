@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.article.repository;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,4 +55,22 @@ public interface ArticleRepository extends Repository<Article, UUID> {
             @Nullable UUID supplierId,
             @Nullable Boolean active,
             Pageable pageable);
+
+    /** Active articles of the given types, with the same search as {@link #search} (ART-04: production selectors). */
+    @Query(value = """
+            select a from Article a
+            where a.active = true
+              and a.type in :types
+              and (lower(a.name) like lower(concat('%', :search, '%'))
+                   or lower(a.code) like lower(concat('%', :search, '%'))
+                   or a.barcode like concat('%', :search, '%'))
+            """, countQuery = """
+            select count(a) from Article a
+            where a.active = true
+              and a.type in :types
+              and (lower(a.name) like lower(concat('%', :search, '%'))
+                   or lower(a.code) like lower(concat('%', :search, '%'))
+                   or a.barcode like concat('%', :search, '%'))
+            """)
+    Page<Article> searchActiveByTypes(String search, Collection<ArticleType> types, Pageable pageable);
 }

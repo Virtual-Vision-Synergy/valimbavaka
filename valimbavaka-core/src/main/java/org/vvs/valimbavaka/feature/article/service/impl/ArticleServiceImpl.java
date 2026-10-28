@@ -8,11 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.article.domain.Article;
 import org.vvs.valimbavaka.feature.article.domain.ArticleDetails;
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
+import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
 import org.vvs.valimbavaka.feature.article.mapper.ArticleMapper;
@@ -34,6 +36,9 @@ public class ArticleServiceImpl implements ArticleService {
     private static final String BARCODE_ALREADY_USED = "Un article avec ce code-barres existe déjà.";
     private static final String STALE_VERSION =
             "L'article a été modifié entre-temps : rechargez la fiche puis réessayez.";
+    private static final String NOT_AN_INPUT =
+            "Seules les matières premières et les semi-finis peuvent entrer en production.";
+    private static final String NOT_AN_OUTPUT = "Seuls les produits finis peuvent sortir de production.";
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "code", "name", "type", "price");
 
     private final ArticleRepository articleRepository;
@@ -63,6 +68,25 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public ArticleRDto getArticleById(UUID articleId) {
         return articleMapper.toRDto(findArticle(articleId));
+    }
+
+    @Override
+    public PageResponse<ArticleRDto> getProductionArticles(PageQuery query, ProductionUsage usage) {
+        var pageable = query.toPageable(SORT_FIELDS, "name", SortDirection.ASC);
+        var page = articleRepository.searchActiveByTypes(query.searchTerm(), usage.types(), pageable);
+        return PageResponse.from(page.map(articleMapper::toRDto));
+    }
+
+    @Override
+    public ArticleRDto requireProductionArticle(UUID articleId, ProductionUsage usage) {
+        var article = findArticle(articleId);
+        if (!article.isActive()) {
+            throw new BusinessException("Article désactivé, inutilisable en production : " + article.getCode());
+        }
+        if (!usage.accepts(article.getType())) {
+            throw new BusinessException(usage == ProductionUsage.INPUT ? NOT_AN_INPUT : NOT_AN_OUTPUT);
+        }
+        return articleMapper.toRDto(article);
     }
 
     @Override

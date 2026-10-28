@@ -3,6 +3,7 @@ package org.vvs.valimbavaka.feature.article.service;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
+import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -13,6 +14,15 @@ public interface ArticleService {
     PageResponse<ArticleRDto> getArticles(PageQuery query, ArticleFilter filter);
 
     ArticleRDto getArticleById(UUID articleId);
+
+    /** Active articles usable in production with this usage (ART-04): MP/SF as inputs, finished products as outputs. */
+    PageResponse<ArticleRDto> getProductionArticles(PageQuery query, ProductionUsage usage);
+
+    /**
+     * Server-side check for the production batches (PRD-01): 404 if the article is unknown, 422 if it is inactive
+     * or if its type does not allow this usage.
+     */
+    ArticleRDto requireProductionArticle(UUID articleId, ProductionUsage usage);
 
     ArticleRDto createArticle(ArticleWDto request);
 
