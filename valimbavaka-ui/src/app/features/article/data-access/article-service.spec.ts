@@ -36,6 +36,27 @@ describe('ArticleService', () => {
 
   afterEach(() => httpMock.verify());
 
+  it('demande au serveur les entrants de production (MP et SF) avec la recherche', () => {
+    service.listForProduction('INPUT', { page: 1, size: 20, search: 'huile' }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${ARTICLES_URL}/production`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('usage')).toBe('INPUT');
+    expect(request.request.params.get('search')).toBe('huile');
+    expect(request.request.params.has('type')).toBe(false);
+    request.flush(EMPTY_PAGE);
+  });
+
+  it('demande au serveur les sortants de production (produits finis)', () => {
+    let totalCount = -1;
+    service.listForProduction('OUTPUT', { page: 1, size: 20 }).subscribe((page) => (totalCount = page.totalCount));
+
+    const request = httpMock.expectOne((req) => req.url === `${ARTICLES_URL}/production`);
+    expect(request.request.params.get('usage')).toBe('OUTPUT');
+    request.flush(EMPTY_PAGE);
+    expect(totalCount).toBe(0);
+  });
+
   it('envoie la pagination de la liste, sans critère vide', () => {
     service.list({ page: 2, size: 20, search: '' }).subscribe();
 

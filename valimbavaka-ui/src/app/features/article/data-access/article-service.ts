@@ -4,8 +4,14 @@ import { Observable } from 'rxjs';
 import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
 import { toHttpParams } from '../../../shared/models/http-params';
-import { PageResponse } from '../../../shared/models/page-response';
-import { ArticleListQuery, ArticleRDto, ArticleStatusWDto, ArticleWDto } from './article-models';
+import { PageQuery, PageResponse } from '../../../shared/models/page-response';
+import {
+  ArticleListQuery,
+  ArticleRDto,
+  ArticleStatusWDto,
+  ArticleWDto,
+  ProductionUsage,
+} from './article-models';
 
 /**
  * Pas de suppression : un article se désactive (JNL-02). Lectures par `HttpClient`, écritures par la file
@@ -30,6 +36,12 @@ export class ArticleService {
       params = params.set('active', query.active);
     }
     return this.http.get<PageResponse<ArticleRDto>>(this.baseUrl, { params });
+  }
+
+  /** Articles actifs utilisables en production (ART-04) : le serveur filtre par type, le client n'en décide pas. */
+  listForProduction(usage: ProductionUsage, query: PageQuery): Observable<PageResponse<ArticleRDto>> {
+    const params = toHttpParams(query).set('usage', usage);
+    return this.http.get<PageResponse<ArticleRDto>>(`${this.baseUrl}/production`, { params });
   }
 
   getById(id: string): Observable<ArticleRDto> {
