@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
 import org.vvs.valimbavaka.feature.article.domain.ArticleType;
+import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleStatusWDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
@@ -62,6 +63,16 @@ public class ArticleController {
             @RequestParam(required = false) @Nullable UUID supplierId,
             @RequestParam(required = false) @Nullable Boolean active) {
         return articleService.getArticles(query, new ArticleFilter(type, rangeId, supplierId, active));
+    }
+
+    @GetMapping("/production")
+    @Operation(summary = "Active articles usable in production: INPUT = MP/SF, OUTPUT = finished products (ART-04)")
+    @ApiResponse(responseCode = "200", description = "Page of articles")
+    @ApiResponse(responseCode = "400", description = "Missing or unknown usage (MALFORMED_REQUEST)")
+    @HasPermission("articles.read")
+    public PageResponse<ArticleRDto> getProductionArticles(
+            @Valid PageQuery query, @RequestParam ProductionUsage usage) {
+        return articleService.getProductionArticles(query, usage);
     }
 
     @GetMapping("/{id}")

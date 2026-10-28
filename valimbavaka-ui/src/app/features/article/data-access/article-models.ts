@@ -3,6 +3,9 @@ import { PageQuery } from '../../../shared/models/page-response';
 /** Miroir de ArticleType côté backend : matière première (MP), semi-fini (SF) ou produit fini. */
 export type ArticleType = 'RAW_MATERIAL' | 'SEMI_FINISHED' | 'FINISHED';
 
+/** Miroir de ProductionUsage (ART-04) : INPUT = MP et SF entrants, OUTPUT = produits finis sortants. */
+export type ProductionUsage = 'INPUT' | 'OUTPUT';
+
 /** Miroir de ArticleUnit côté backend. */
 export type ArticleUnit = 'PIECE' | 'KILOGRAM' | 'LITER';
 
