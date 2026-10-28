@@ -86,8 +86,7 @@ class ArticleProductionServiceTest {
         sut.getProductionArticles(new PageQuery(1, 20, null, null, null), ProductionUsage.OUTPUT);
 
         // Assert
-        verify(articleRepository)
-                .searchActiveByTypes(eq(""), eq(Set.of(ArticleType.FINISHED)), any(Pageable.class));
+        verify(articleRepository).searchActiveByTypes(eq(""), eq(Set.of(ArticleType.FINISHED)), any(Pageable.class));
     }
 
     @Test
