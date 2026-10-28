@@ -49,7 +49,9 @@ describe('ArticleService', () => {
 
   it('demande au serveur les sortants de production (produits finis)', () => {
     let totalCount = -1;
-    service.listForProduction('OUTPUT', { page: 1, size: 20 }).subscribe((page) => (totalCount = page.totalCount));
+    service
+      .listForProduction('OUTPUT', { page: 1, size: 20 })
+      .subscribe((page) => (totalCount = page.totalCount));
 
     const request = httpMock.expectOne((req) => req.url === `${ARTICLES_URL}/production`);
     expect(request.request.params.get('usage')).toBe('OUTPUT');

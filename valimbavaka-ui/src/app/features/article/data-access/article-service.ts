@@ -39,7 +39,10 @@ export class ArticleService {
   }
 
   /** Articles actifs utilisables en production (ART-04) : le serveur filtre par type, le client n'en décide pas. */
-  listForProduction(usage: ProductionUsage, query: PageQuery): Observable<PageResponse<ArticleRDto>> {
+  listForProduction(
+    usage: ProductionUsage,
+    query: PageQuery,
+  ): Observable<PageResponse<ArticleRDto>> {
     const params = toHttpParams(query).set('usage', usage);
     return this.http.get<PageResponse<ArticleRDto>>(`${this.baseUrl}/production`, { params });
   }
