@@ -22,14 +22,8 @@ circle {
 .track {
   stroke: var(--gris-fond);
 }
-.slice[data-range='BOTANIKA'] {
-  stroke: var(--range-botanika);
-}
-.slice[data-range='ZEZIKA'] {
-  stroke: var(--range-zezika);
-}
-.slice[data-range='SOLIKA'] {
-  stroke: var(--range-solika);
+.slice {
+  stroke: var(--range-color);
 }
 .center {
   position: absolute;

@@ -53,19 +53,11 @@
   display: grid;
   place-items: center;
   height: 96px;
-  background: var(--range-botanika-bg);
-  color: var(--range-botanika-fg);
+  background: var(--range-bg);
+  color: var(--range-fg);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: 0.02em;
-}
-[data-range='ZEZIKA'] .visual {
-  background: var(--range-zezika-bg);
-  color: var(--range-zezika-fg);
-}
-[data-range='SOLIKA'] .visual {
-  background: var(--range-solika-bg);
-  color: var(--range-solika-fg);
 }
 .stock {
   position: absolute;
