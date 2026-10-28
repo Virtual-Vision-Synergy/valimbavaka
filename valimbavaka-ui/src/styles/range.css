@@ -1,0 +1,21 @@
+/*
+ * Code couleur des gammes : source unique (ART-03).
+ * Tout élément portant data-range="<code gamme>" expose --range-color (aplat, trait),
+ * --range-bg et --range-fg (fond teinté et texte lisible). Les composants consomment
+ * ces variables et ne redéfinissent jamais la couleur d'une gamme.
+ */
+[data-range='BOTANIKA'] {
+  --range-color: var(--range-botanika);
+  --range-bg: var(--range-botanika-bg);
+  --range-fg: var(--range-botanika-fg);
+}
+[data-range='ZEZIKA'] {
+  --range-color: var(--range-zezika);
+  --range-bg: var(--range-zezika-bg);
+  --range-fg: var(--range-zezika-fg);
+}
+[data-range='SOLIKA'] {
+  --range-color: var(--range-solika);
+  --range-bg: var(--range-solika-bg);
+  --range-fg: var(--range-solika-fg);
+}

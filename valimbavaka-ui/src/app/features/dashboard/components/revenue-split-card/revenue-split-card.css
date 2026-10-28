@@ -41,14 +41,8 @@ h2 {
   height: 100%;
   border-radius: inherit;
 }
-[data-range='BOTANIKA'] {
-  background: var(--range-botanika);
-}
-[data-range='ZEZIKA'] {
-  background: var(--range-zezika);
-}
-[data-range='SOLIKA'] {
-  background: var(--range-solika);
+.bar span {
+  background: var(--range-color);
 }
 .channels-title {
   margin: var(--space-6) 0 var(--space-3);

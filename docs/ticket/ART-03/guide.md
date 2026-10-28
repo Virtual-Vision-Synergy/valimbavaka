@@ -1,68 +1,61 @@
 # Guide d'intégration — ART-03 · Identification visuelle de la gamme
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ☐ à compléter · Ticket : [#23](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/23) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit depuis le code, tests non exécutés · [description](description.md) · [scénario](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+Le code couleur d'une gamme est défini une seule fois, dans `valimbavaka-ui/src/styles/range.css`. Tout élément qui
+porte `data-range="<code de la gamme>"` reçoit trois variables CSS que les composants consomment. Aucun changement
+côté backend ni base.
 
 ## Contrat exposé
 
 ### Endpoints backend
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
-|---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+Aucun. La couleur ne passe pas par l'API : `ProductRangeRDto` (SYS-05) reste `id`, `code`, `label`.
 
 ### Services et ports Java réutilisables
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+Aucun.
 
 ### Frontend
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+- `src/styles/range.css` : pour `BOTANIKA`, `ZEZIKA` et `SOLIKA`, définit `--range-color` (aplat, trait),
+  `--range-bg` (fond teinté) et `--range-fg` (texte). Importé dans `src/styles.css` après `dark-theme.css`.
+- Les teintes elles-mêmes restent dans `src/styles/tokens.css` (clair) et `src/styles/dark-theme.css` (sombre).
+- Composant `vvs-range-tag` (`shared/components/range-tag/range-tag.ts`) : étiquette gamme avec libellé.
 
 ### Données
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+Aucune. Le `code` de la gamme vient de `GET /api/v1/product-ranges` (SYS-05) ou de l'article.
 
 ## Règles métier à respecter par les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- Ne jamais écrire une couleur de gamme en dur dans un composant : poser `[attr.data-range]="code"` sur l'élément
+  et lire `--range-color`, `--range-bg` ou `--range-fg`.
+- La couleur ne remplace pas le texte : afficher aussi le libellé de la gamme.
+- Une gamme n'existe que pour les articles `FINISHED` : pas de `data-range` sinon.
 
 ## Fichiers concernés
 
-**À exposer / créer (liste du traiteur)** : _(à compléter)_
-
-Zone de départ (voir `description.md`) :
-
-- Frontend :
-  - `valimbavaka-ui/src/app/features/articles`
-- Backend :
-  - `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/article (à créer)`
+- `valimbavaka-ui/src/styles/range.css` (nouveau) et `valimbavaka-ui/src/styles.css`.
+- Consommateurs migrés : `range-tag.css`, `article-thumb.css`, `article-preview.css`, `article-form-page.css`,
+  `pos-catalog.css`, `revenue-split-card.css` (`.bar span`), `range-donut.css` (`.slice`).
+- Test : `shared/components/range-tag/range-tag.spec.ts`.
 
 ## Dépendances
 
-**Ce ticket s'appuie sur** :
-- [ART-01](../ART-01/description.md) · [guide](../ART-01/guide.md)
-- [SYS-05](../SYS-05/description.md) · [guide](../SYS-05/guide.md)
-
-**Ces tickets s'appuient sur lui** :
-- [DSH-04](../DSH-04/description.md) · [guide](../DSH-04/guide.md)
-- [RPT-04](../RPT-04/description.md) · [guide](../RPT-04/guide.md)
+- ART-01 (ouvert au moment de la rédaction) : fournit `rangeId` et la fiche article.
+- SYS-05 : fournit les codes de gamme via `GET /api/v1/product-ranges`.
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
-```
+Poser `data-range` avec le code de la gamme sur l'élément, puis utiliser `background: var(--range-bg)` et
+`color: var(--range-fg)` (ou `var(--range-color)` pour un aplat). C'est le cas de DSH-04 et RPT-04.
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- Nouvelle gamme en base : ajouter ses trois tokens (clair et sombre) et une règle dans `range.css`, sinon elle
+  s'affiche sans teinte (le libellé reste visible).
+- Les variables sont héritées : un enfant d'un élément `data-range` les reçoit (cas de `.visual` dans la tuile).
+- Aucun test automatique ne vérifie le rendu des couleurs : passer par la recette 🧪.

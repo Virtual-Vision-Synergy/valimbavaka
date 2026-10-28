@@ -137,17 +137,9 @@
   font-weight: 700;
   letter-spacing: 0.06em;
 }
-.range-tag[data-range='BOTANIKA'] {
-  background: var(--range-botanika-bg);
-  color: var(--range-botanika-fg);
-}
-.range-tag[data-range='ZEZIKA'] {
-  background: var(--range-zezika-bg);
-  color: var(--range-zezika-fg);
-}
-.range-tag[data-range='SOLIKA'] {
-  background: var(--range-solika-bg);
-  color: var(--range-solika-fg);
+.range-tag {
+  background: var(--range-bg);
+  color: var(--range-fg);
 }
 .input[readonly] {
   background: var(--gris-fond);

@@ -19,15 +19,7 @@
   border-radius: var(--radius-xl);
   font-size: 34px;
 }
-.thumb[data-range='BOTANIKA'] {
-  background: var(--range-botanika-bg);
-  color: var(--range-botanika-fg);
-}
-.thumb[data-range='ZEZIKA'] {
-  background: var(--range-zezika-bg);
-  color: var(--range-zezika-fg);
-}
-.thumb[data-range='SOLIKA'] {
-  background: var(--range-solika-bg);
-  color: var(--range-solika-fg);
+.thumb {
+  background: var(--range-bg);
+  color: var(--range-fg);
 }
