@@ -1,0 +1,58 @@
+<section
+  class="card report"
+  role="status"
+  [attr.aria-label]="'articles.importReport.title' | translate"
+>
+  <header class="head">
+    <h2>{{ 'articles.importReport.title' | translate }}</h2>
+    <button class="btn btn-secondary" type="button" (click)="dismiss.emit()">
+      {{ 'common.close' | translate }}
+    </button>
+  </header>
+
+  <p class="summary">
+    {{
+      'articles.importReport.summary'
+        | translate
+          : {
+              created: report().created,
+              updated: report().updated,
+              unchanged: report().unchanged,
+              conflicts: report().conflicts,
+              invalid: report().invalid,
+            }
+    }}
+  </p>
+
+  @if (rejected().length > 0) {
+    <table class="rows">
+      <thead>
+        <tr>
+          <th scope="col">{{ 'articles.importReport.row' | translate }}</th>
+          <th scope="col">{{ 'articles.importReport.status' | translate }}</th>
+          <th scope="col">{{ 'articles.importReport.code' | translate }}</th>
+          <th scope="col">{{ 'articles.importReport.message' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rejected(); track row.row) {
+          <tr>
+            <td>{{ row.row }}</td>
+            <td>{{ 'articles.importReport.statuses.' + row.status | translate }}</td>
+            <td>{{ row.code ?? '—' }}</td>
+            <td>{{ row.message }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+
+  @if (report().conflicts > 0) {
+    <div class="choice">
+      <p>{{ 'articles.importReport.overwriteHint' | translate }}</p>
+      <button class="btn btn-primary" type="button" [disabled]="busy()" (click)="overwrite.emit()">
+        {{ 'articles.importReport.overwrite' | translate: { count: report().conflicts } }}
+      </button>
+    </div>
+  }
+</section>

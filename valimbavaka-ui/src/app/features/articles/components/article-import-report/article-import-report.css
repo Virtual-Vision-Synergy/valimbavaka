@@ -1,0 +1,29 @@
+.report {
+  display: grid;
+  gap: var(--space-4);
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-md);
+}
+.rows th,
+.rows td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: top;
+}
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}

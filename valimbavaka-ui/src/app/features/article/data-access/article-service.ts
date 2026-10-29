@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SubmitResult } from '../../../core/offline/outbox-models';
@@ -6,10 +6,12 @@ import { OutboxService } from '../../../core/offline/outbox-service';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import {
+  ArticleImportRDto,
   ArticleListQuery,
   ArticleRDto,
   ArticleStatusWDto,
   ArticleWDto,
+  ImportConflictMode,
   ProductionUsage,
 } from './article-models';
 
@@ -62,5 +64,23 @@ export class ArticleService {
   setActive(id: string, active: boolean): Observable<SubmitResult<ArticleRDto>> {
     const body: ArticleStatusWDto = { active };
     return this.outbox.submit<ArticleRDto>('PATCH', `${this.baseUrl}/${id}/status`, body);
+  }
+
+  /**
+   * Import CSV en masse (ART-07), en ligne uniquement : un fichier ne passe pas par la file hors ligne.
+   * `onlyRows` (numéros de ligne dès 1) limite l'envoi aux lignes en conflit que l'on veut écraser.
+   */
+  importFile(
+    file: File,
+    mode: ImportConflictMode,
+    onlyRows: readonly number[] = [],
+  ): Observable<ArticleImportRDto> {
+    const form = new FormData();
+    form.append('file', file);
+    let params = new HttpParams().set('onConflict', mode);
+    if (onlyRows.length > 0) {
+      params = params.set('onlyRows', onlyRows.join(','));
+    }
+    return this.http.post<ArticleImportRDto>(`${this.baseUrl}/import`, form, { params });
   }
 }
