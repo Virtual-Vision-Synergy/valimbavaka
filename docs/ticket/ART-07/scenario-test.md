@@ -66,6 +66,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 | 5c | Type `EMBALLAGE` | `INVALID` « Valeur inconnue pour type : « EMBALLAGE ». » | `ArticleImportRowProcessorTest.process_unknownType_returnsInvalid` | ✅ auto |
 | 5d | Prix `-1` et code-barres `123` | `INVALID` avec les deux motifs | `ArticleImportRowProcessorTest.process_negativePriceAndShortBarcode_returnsInvalidWithBothMessages` | ✅ auto |
 | 5e | Seuil `dix` | `INVALID` « Nombre invalide pour threshold : « dix ». » | `ArticleImportRowProcessorTest.process_notANumber_returnsInvalid` | ✅ auto |
+| 5e2 | Seuil vide | `INVALID` « Le seuil est obligatoire », rien écrit | `ArticleImportRowProcessorTest.process_missingThreshold_returnsInvalid` | ☐ |
 | 5f | Produit fini sans gamme | `INVALID` (règle d'ART-01), rien écrit | `ArticleImportRowProcessorTest.process_finishedWithoutRange_returnsInvalidFromReferenceChecker` | ✅ auto |
 | 5g | Ligne avec 3 colonnes au lieu de 4 | `INVALID` « Nombre de colonnes incorrect : 4 attendues, 3 trouvées. » | `ArticleCsvParserTest.parse_rowWithWrongColumnCount_returnsRecordWithError`, `ArticleImportRowProcessorTest.process_recordWithReadError_returnsInvalid` | ✅ auto |
 | 5h | La base refuse une ligne (écriture simultanée, unicité) | `CONFLICT`, les autres lignes continuent | `ArticleImportServiceImplTest.importArticles_databaseRefusesRow_reportsConflictAndGoesOn` | ✅ auto |

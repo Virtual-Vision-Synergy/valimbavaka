@@ -242,6 +242,17 @@ class ArticleImportRowProcessorTest {
     }
 
     @Test
+    void process_missingThreshold_returnsInvalid() {
+        // Act
+        var result = sut.process(row("threshold", ""), ImportConflictMode.SKIP);
+
+        // Assert
+        assertThat(result.status()).isEqualTo(ImportRowStatus.INVALID);
+        assertThat(result.message()).isEqualTo("Le seuil est obligatoire");
+        verifyNoInteractions(articleRepository);
+    }
+
+    @Test
     void process_finishedWithoutRange_returnsInvalidFromReferenceChecker() {
         // Arrange
         doThrow(new BusinessException("La gamme est obligatoire pour un produit fini."))

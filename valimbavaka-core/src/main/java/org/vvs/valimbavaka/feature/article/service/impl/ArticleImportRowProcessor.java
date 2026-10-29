@@ -162,18 +162,26 @@ public class ArticleImportRowProcessor {
         return article.getCode() + " · " + article.getName();
     }
 
+    /** Required columns are checked here, so that no null reaches the non-null components of {@link ArticleWDto}. */
     private static ArticleWDto toDto(ArticleCsvRecord record) {
         return new ArticleWDto(
-                orEmpty(record.get("name")),
+                required(record.get("name"), "Le nom est obligatoire"),
                 record.get("barcode"),
-                enumValue(ArticleType.class, record, "type"),
+                required(enumValue(ArticleType.class, record, "type"), "Le type est obligatoire"),
                 uuid(record, "rangeId"),
-                enumValue(ArticleUnit.class, record, "unit"),
+                required(enumValue(ArticleUnit.class, record, "unit"), "L'unité est obligatoire"),
                 decimal(record, "cost"),
                 decimal(record, "price"),
-                decimal(record, "threshold"),
+                required(decimal(record, "threshold"), "Le seuil est obligatoire"),
                 uuid(record, "supplierId"),
                 null);
+    }
+
+    private static <T> T required(@Nullable T value, String message) {
+        if (value == null) {
+            throw new BusinessException(message);
+        }
+        return value;
     }
 
     private static ArticleDetails toDetails(ArticleWDto dto) {
@@ -187,10 +195,6 @@ public class ArticleImportRowProcessor {
                 dto.price(),
                 dto.threshold(),
                 dto.supplierId());
-    }
-
-    private static String orEmpty(@Nullable String value) {
-        return value == null ? "" : value;
     }
 
     private static <E extends Enum<E>> @Nullable E enumValue(Class<E> type, ArticleCsvRecord record, String column) {
