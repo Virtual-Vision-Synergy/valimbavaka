@@ -10,4 +10,6 @@ import org.vvs.valimbavaka.feature.referential.domain.StockLocation;
 public interface StockLocationRepository extends JpaRepository<StockLocation, UUID> {
 
     Page<StockLocation> findByActiveTrue(Pageable pageable);
+
+    boolean existsByIdAndActiveTrue(UUID id);
 }

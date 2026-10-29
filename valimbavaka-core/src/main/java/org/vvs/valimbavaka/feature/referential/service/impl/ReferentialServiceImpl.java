@@ -69,6 +69,11 @@ public class ReferentialServiceImpl implements ReferentialService {
         return productRangeRepository.existsByIdAndActiveTrue(productRangeId);
     }
 
+    @Override
+    public boolean isActiveStockLocation(UUID stockLocationId) {
+        return stockLocationRepository.existsByIdAndActiveTrue(stockLocationId);
+    }
+
     private static Pageable pageable(PageQuery query) {
         return query.toPageable(SORT_FIELDS, "label", SortDirection.ASC);
     }
