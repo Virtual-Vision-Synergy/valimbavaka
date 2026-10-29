@@ -1,7 +1,10 @@
 package org.vvs.valimbavaka.feature.journal.service;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
+
+import org.jspecify.annotations.Nullable;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.dto.JournalEntryRDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -20,5 +23,8 @@ public interface JournalService {
      */
     void record(JournalAction action, String resourceType, UUID resourceId, String description);
 
-    PageResponse<JournalEntryRDto> getEntries(PageQuery query);
+    /**
+     * @param date jour UTC à lister ; null = tout le journal. Avec un jour, l'ordre par défaut est chronologique.
+     */
+    PageResponse<JournalEntryRDto> getEntries(PageQuery query, @Nullable LocalDate date);
 }

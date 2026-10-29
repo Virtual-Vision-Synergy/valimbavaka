@@ -1,9 +1,12 @@
 package org.vvs.valimbavaka.feature.journal.service.impl;
 
 import java.time.Clock;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,10 +61,18 @@ public class JournalServiceImpl implements JournalService {
     }
 
     @Override
-    public PageResponse<JournalEntryRDto> getEntries(PageQuery query) {
-        var pageable = query.toPageable(SORT_FIELDS, "occurredAt", SortDirection.DESC);
-        return PageResponse.from(
-                journalEntryRepository.search(query.searchTerm(), pageable).map(journalMapper::toRDto));
+    public PageResponse<JournalEntryRDto> getEntries(PageQuery query, @Nullable LocalDate date) {
+        if (date == null) {
+            var pageable = query.toPageable(SORT_FIELDS, "occurredAt", SortDirection.DESC);
+            return PageResponse.from(
+                    journalEntryRepository.search(query.searchTerm(), pageable).map(journalMapper::toRDto));
+        }
+        var pageable = query.toPageable(SORT_FIELDS, "occurredAt", SortDirection.ASC);
+        var from = date.atStartOfDay(ZoneOffset.UTC).toInstant();
+        var to = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
+        return PageResponse.from(journalEntryRepository
+                .searchBetween(query.searchTerm(), from, to, pageable)
+                .map(journalMapper::toRDto));
     }
 
     private Actor currentActor() {

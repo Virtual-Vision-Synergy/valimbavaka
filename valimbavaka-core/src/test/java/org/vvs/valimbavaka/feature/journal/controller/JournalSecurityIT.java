@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -62,6 +64,52 @@ class JournalSecurityIT {
         mockMvc.perform(get("/api/v1/journal").header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    void getEntries_withTodayUtcDate_listsTodaysOperationsOldestFirst() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+        var today = LocalDate.now(ZoneOffset.UTC).toString();
+
+        // Act + Assert
+        mockMvc.perform(get("/api/v1/journal").param("date", today).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isArray());
+    }
+
+    @Test
+    void getEntries_withDateInThePast_returnsNoTodayEntry() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+        // Act + Assert
+        mockMvc.perform(get("/api/v1/journal")
+                        .param("date", "2000-01-01")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty());
+    }
+
+    @Test
+    void getEntries_withMalformedDate_returns400() throws Exception {
+        // Arrange
+        var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+        // Act + Assert
+        mockMvc.perform(get("/api/v1/journal").param("date", "29/10/2026").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    }
+
+    @Test
+    void getEntries_withDateAndNonAdminRole_returns403() throws Exception {
+        // Arrange
+        var token = accessToken(createDeliveryDriver(), PASSWORD);
+
+        // Act + Assert
+        mockMvc.perform(get("/api/v1/journal").param("date", "2026-10-29").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
