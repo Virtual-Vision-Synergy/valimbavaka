@@ -572,6 +572,25 @@
     "inactive": "Inactif",
     "stockPending": "Stock disponible avec le suivi du stock",
     "import": "Importer",
+    "importReport": {
+      "title": "Compte rendu de l'import",
+      "summary": "{{created}} créé(s), {{updated}} remplacé(s), {{unchanged}} inchangé(s), {{conflicts}} en conflit, {{invalid}} invalide(s).",
+      "fileLabel": "Fichier CSV des articles à importer",
+      "row": "Ligne",
+      "status": "État",
+      "code": "Article",
+      "message": "Motif",
+      "statuses": {
+        "CREATED": "Créé",
+        "UPDATED": "Remplacé",
+        "UNCHANGED": "Inchangé",
+        "CONFLICT": "Conflit",
+        "INVALID": "Invalide"
+      },
+      "overwriteHint": "Les lignes en conflit n'ont rien modifié. Vous pouvez remplacer les articles existants par ces lignes.",
+      "overwrite": "Écraser les {{count}} article(s) en conflit",
+      "failed": "Import impossible : {{reason}}"
+    },
     "export": "Exporter",
     "new": "Nouvel article",
     "listLabel": "Liste des articles",
