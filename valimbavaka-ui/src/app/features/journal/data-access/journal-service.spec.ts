@@ -25,4 +25,20 @@ describe('JournalService', () => {
     expect(request.request.params.get('search')).toBe('Rakoto');
     request.flush({ items: [], page: 3, pageSize: 20, totalCount: 0, totalPages: 0 });
   });
+
+  it('should send the UTC day when a date is given', () => {
+    TestBed.inject(JournalService).list({ page: 1, size: 20 }, '2026-10-29').subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === '/api/v1/journal');
+    expect(request.request.params.get('date')).toBe('2026-10-29');
+    request.flush({ items: [], page: 1, pageSize: 20, totalCount: 0, totalPages: 0 });
+  });
+
+  it('should not send any date parameter when none is given', () => {
+    TestBed.inject(JournalService).list({ page: 1, size: 20 }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === '/api/v1/journal');
+    expect(request.request.params.has('date')).toBe(false);
+    request.flush({ items: [], page: 1, pageSize: 20, totalCount: 0, totalPages: 0 });
+  });
 });

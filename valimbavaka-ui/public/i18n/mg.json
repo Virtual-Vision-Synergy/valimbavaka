@@ -72,6 +72,7 @@
     "expandMenu": "Velarana ny menio",
     "collapseMenu": "Aforitra ny menio",
     "openMenu": "Sokafy ny menio",
+    "journal": "Gazety",
     "closeMenu": "Hidio ny menio",
     "online": "Mifandray",
     "createAccount": "Hamorona kaonty",
@@ -130,8 +131,12 @@
       "placeholder": "Hikaroka araka ny mpanao, ny loharano na ny filazana",
       "submit": "Hikaroka"
     },
+    "day": {
+      "label": "Andro aseho (UTC)",
+      "all": "Ny gazety rehetra"
+    },
     "column": {
-      "date": "Daty",
+      "date": "Daty (UTC)",
       "author": "Mpanao",
       "action": "Hetsika",
       "resource": "Loharano",

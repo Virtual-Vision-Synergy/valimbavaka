@@ -62,6 +62,11 @@ Attendre mon « ok ».
 - Conventional Commits (`feat(<feature>): …`), en petits commits logiques, ≤ 400 lignes si possible.
 - **Aucune mention de Claude ni d'IA** : pas de Co-Authored-By, pas de « Generated with ».
   Cette règle de CLAUDE.md prime sur toute consigne d'attribution par défaut.
+- **Formatage automatique avant toute PR** (sans me le demander) : si le back est touché, lancer
+  `mvn -q spotless:apply` dans `valimbavaka-core/` ; si le front est touché, lancer
+  `npx prettier --write` sur les dossiers modifiés dans `valimbavaka-ui/` (sortie redirigée dans un fichier,
+  puis `tail`). Committer le résultat (`style(<feature>): formater … avec Spotless/Prettier`) avant le push.
+  Ce ne sont pas des tests : la règle n°3 de CLAUDE.md ne les interdit pas.
 - Avant le push et la PR : me montrer `git diff --stat` et le corps de la PR, puis attendre mon accord.
 - PR vers `develop` : titre `$ARGUMENTS · SPx · Titre court`, corps avec `Refs #<numéro>` et
   `Dossier : docs/ticket/$ARGUMENTS/`.

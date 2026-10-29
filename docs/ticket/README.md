@@ -218,7 +218,7 @@ docs/ticket/<ID>/
 
 | Ticket | Titre | SP | Assigné(e) | GitHub | Dépend de | Scénario | Guide |
 |---|---|---|---|---|---|---|---|
-| [JNL-03](JNL-03/description.md) | Accès au journal complet | 1 | Kei-Shiro | [#104](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/104) 🟡 | [JNL-01](JNL-01/description.md) | [☐](JNL-03/scenario-test.md) | [☐](JNL-03/guide.md) |
+| [JNL-03](JNL-03/description.md) | Accès au journal complet | 1 | Kei-Shiro | [#104](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/104) 🟡 | [JNL-01](JNL-01/description.md) | [☐](JNL-03/scenario-test.md) | [✅](JNL-03/guide.md) |
 | [SYS-03](SYS-03/description.md) | Recherche globale (palette de commandes) | 1 | ManaJudy | [#106](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/106) 🟡 | [ART-01](ART-01/description.md) | [☐](SYS-03/scenario-test.md) | [☐](SYS-03/guide.md) |
 | [SYS-04](SYS-04/description.md) | Bascule thème clair/sombre | 1 | And-Matia | [#107](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/107) 🟡 | [AUTH-01](AUTH-01/description.md) | [☐](SYS-04/scenario-test.md) | [☐](SYS-04/guide.md) |
 

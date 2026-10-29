@@ -1,12 +1,17 @@
 package org.vvs.valimbavaka.feature.journal.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,6 +22,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.domain.JournalEntry;
@@ -24,6 +33,8 @@ import org.vvs.valimbavaka.feature.journal.mapper.JournalMapper;
 import org.vvs.valimbavaka.feature.journal.repository.JournalEntryRepository;
 import org.vvs.valimbavaka.security.AuthenticatedUser;
 import org.vvs.valimbavaka.security.AuthenticatedUserLoader;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.SortDirection;
 
 @ExtendWith(MockitoExtension.class)
 class JournalServiceImplTest {
@@ -115,6 +126,56 @@ class JournalServiceImplTest {
         var saved = savedEntry();
         assertThat(saved.getActorId()).isEqualTo(authorId);
         assertThat(saved.getActorName()).isEqualTo(JournalServiceImpl.UNKNOWN_ACTOR);
+    }
+
+    @Test
+    void getEntries_withDate_queriesTheUtcDayOldestFirst() {
+        // given
+        var query = new PageQuery(null, null, null, null, null);
+        when(journalEntryRepository.searchBetween(eq(""), any(), any(), any(Pageable.class)))
+                .thenReturn(Page.empty());
+        // when
+        sut.getEntries(query, LocalDate.of(2026, 10, 29));
+        // then
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(journalEntryRepository)
+                .searchBetween(
+                        eq(""),
+                        eq(Instant.parse("2026-10-29T00:00:00Z")),
+                        eq(Instant.parse("2026-10-30T00:00:00Z")),
+                        pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("occurredAt").getDirection())
+                .isEqualTo(Sort.Direction.ASC);
+        verify(journalEntryRepository, never()).search(any(), any());
+    }
+
+    @Test
+    void getEntries_withoutDate_listsEverythingNewestFirst() {
+        // given
+        var query = new PageQuery(null, null, "  rasoa ", null, null);
+        when(journalEntryRepository.search(eq("rasoa"), any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+        // when
+        sut.getEntries(query, null);
+        // then
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(journalEntryRepository).search(eq("rasoa"), pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("occurredAt").getDirection())
+                .isEqualTo(Sort.Direction.DESC);
+    }
+
+    @Test
+    void getEntries_withDateAndExplicitDirection_keepsTheRequestedDirection() {
+        // given
+        var query = new PageQuery(null, null, null, "occurredAt", SortDirection.DESC);
+        when(journalEntryRepository.searchBetween(any(), any(), any(), any(Pageable.class)))
+                .thenReturn(Page.empty());
+        // when
+        sut.getEntries(query, LocalDate.of(2026, 10, 29));
+        // then
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(journalEntryRepository).searchBetween(any(), any(), any(), pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("occurredAt").getDirection())
+                .isEqualTo(Sort.Direction.DESC);
     }
 
     private JournalEntry savedEntry() {

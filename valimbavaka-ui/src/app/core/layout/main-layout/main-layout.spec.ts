@@ -74,4 +74,18 @@ describe('MainLayout', () => {
     expect(element.querySelector('button.logout')?.textContent).toContain('Déconnexion');
     TestBed.inject(HttpTestingController).verify();
   });
+
+  it('should link the administrator to the full journal from the top bar', async () => {
+    const element = await render('ADMIN');
+
+    const link = element.querySelector<HTMLAnchorElement>('header.bar a.journal-link');
+    expect(link?.getAttribute('href')).toBe('/journal');
+    expect(link?.getAttribute('aria-label')).toBe('Journal');
+  });
+
+  it('should not offer the journal link in the top bar to a seller', async () => {
+    const element = await render('SELLER');
+
+    expect(element.querySelector('header.bar a.journal-link')).toBeNull();
+  });
 });

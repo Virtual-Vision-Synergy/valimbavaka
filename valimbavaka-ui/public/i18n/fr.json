@@ -72,6 +72,7 @@
     "expandMenu": "Déplier le menu",
     "collapseMenu": "Replier le menu",
     "openMenu": "Ouvrir le menu",
+    "journal": "Journal",
     "closeMenu": "Fermer le menu",
     "online": "En ligne",
     "createAccount": "Créer un compte",
@@ -130,8 +131,12 @@
       "placeholder": "Rechercher par auteur, ressource ou description",
       "submit": "Rechercher"
     },
+    "day": {
+      "label": "Jour affiché (UTC)",
+      "all": "Tout le journal"
+    },
     "column": {
-      "date": "Date",
+      "date": "Date (UTC)",
       "author": "Auteur",
       "action": "Action",
       "resource": "Ressource",

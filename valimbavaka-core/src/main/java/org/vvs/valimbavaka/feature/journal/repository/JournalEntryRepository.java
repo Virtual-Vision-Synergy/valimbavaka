@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.journal.repository;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -22,4 +23,14 @@ public interface JournalEntryRepository extends Repository<JournalEntry, UUID> {
                or lower(e.description) like lower(concat('%', :search, '%'))
             """)
     Page<JournalEntry> search(String search, Pageable pageable);
+
+    /** Même recherche, limitée aux entrées dont occurredAt est dans [from, to[ (un jour UTC). */
+    @Query("""
+            select e from JournalEntry e
+            where e.occurredAt >= :from and e.occurredAt < :to
+              and (lower(e.actorName) like lower(concat('%', :search, '%'))
+               or lower(e.resourceType) like lower(concat('%', :search, '%'))
+               or lower(e.description) like lower(concat('%', :search, '%')))
+            """)
+    Page<JournalEntry> searchBetween(String search, Instant from, Instant to, Pageable pageable);
 }
