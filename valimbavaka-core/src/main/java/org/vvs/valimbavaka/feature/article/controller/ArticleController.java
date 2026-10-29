@@ -30,6 +30,7 @@ import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
 import org.vvs.valimbavaka.feature.article.domain.ArticleType;
 import org.vvs.valimbavaka.feature.article.domain.ImportConflictMode;
 import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
+import org.vvs.valimbavaka.feature.article.dto.ArticleExportRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleImportRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleStatusWDto;
@@ -39,8 +40,12 @@ import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
+import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
 
-/** Reading needs {@code articles.read}; writing is administrator only ({@code articles.create} / {@code .update} / {@code .import}). */
+/**
+ * Reading needs {@code articles.read}; writing is administrator only ({@code articles.create} / {@code .update} /
+ * {@code .import}), as is the export ({@code articles.export}).
+ */
 @Tag(name = "Articles")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -71,6 +76,20 @@ public class ArticleController {
             @RequestParam(required = false) @Nullable UUID supplierId,
             @RequestParam(required = false) @Nullable Boolean active) {
         return articleService.getArticles(query, new ArticleFilter(type, rangeId, supplierId, active));
+    }
+
+    @GetMapping("/exportable")
+    @Operation(summary = "Rows of the article export, same filters as the list; /exportable/export downloads the xlsx")
+    @ApiResponse(responseCode = "200", description = "Page of export rows")
+    @HasPermission("articles.export")
+    @ExcelExport(target = "articles", filename = "articles", sheet = "Articles")
+    public PageResponse<ArticleExportRDto> getExportableArticles(
+            @Valid PageQuery query,
+            @RequestParam(required = false) @Nullable ArticleType type,
+            @RequestParam(required = false) @Nullable UUID rangeId,
+            @RequestParam(required = false) @Nullable UUID supplierId,
+            @RequestParam(required = false) @Nullable Boolean active) {
+        return articleService.getExportableArticles(query, new ArticleFilter(type, rangeId, supplierId, active));
     }
 
     @GetMapping("/production")

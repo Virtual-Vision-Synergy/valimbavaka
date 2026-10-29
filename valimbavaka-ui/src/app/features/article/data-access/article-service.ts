@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SubmitResult } from '../../../core/offline/outbox-models';
@@ -6,6 +6,7 @@ import { OutboxService } from '../../../core/offline/outbox-service';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import {
+  ArticleExportQuery,
   ArticleImportRDto,
   ArticleListQuery,
   ArticleRDto,
@@ -27,17 +28,21 @@ export class ArticleService {
 
   /** Les critères ne sont envoyés que s'ils sont choisis : sans critère, tous les articles. */
   list(query: ArticleListQuery): Observable<PageResponse<ArticleRDto>> {
-    let params = toHttpParams(query);
-    for (const key of ['type', 'rangeId', 'supplierId'] as const) {
-      const value = query[key];
-      if (value) {
-        params = params.set(key, value);
-      }
-    }
-    if (query.active !== undefined) {
-      params = params.set('active', query.active);
-    }
+    const params = withCriteria(toHttpParams(query), query);
     return this.http.get<PageResponse<ArticleRDto>>(this.baseUrl, { params });
+  }
+
+  /** Fichier xlsx de la liste (ART-08, administrateur) : mêmes critères que la liste, jamais le coût d'achat. */
+  exportList(query: ArticleExportQuery): Observable<HttpResponse<Blob>> {
+    let params = new HttpParams();
+    if (query.search) {
+      params = params.set('search', query.search);
+    }
+    return this.http.get(`${this.baseUrl}/exportable/export`, {
+      params: withCriteria(params, query),
+      observe: 'response',
+      responseType: 'blob',
+    });
   }
 
   /** Articles actifs utilisables en production (ART-04) : le serveur filtre par type, le client n'en décide pas. */
@@ -83,4 +88,15 @@ export class ArticleService {
     }
     return this.http.post<ArticleImportRDto>(`${this.baseUrl}/import`, form, { params });
   }
+}
+
+function withCriteria(params: HttpParams, query: ArticleExportQuery): HttpParams {
+  let result = params;
+  for (const key of ['type', 'rangeId', 'supplierId'] as const) {
+    const value = query[key];
+    if (value) {
+      result = result.set(key, value);
+    }
+  }
+  return query.active === undefined ? result : result.set('active', query.active);
 }

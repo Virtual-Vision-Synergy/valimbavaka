@@ -592,6 +592,7 @@
       "failed": "Import impossible : {{reason}}"
     },
     "export": "Exporter",
+    "exportFailed": "Export impossible : réessayez.",
     "new": "Nouvel article",
     "listLabel": "Liste des articles",
     "backToList": "Retour aux articles",

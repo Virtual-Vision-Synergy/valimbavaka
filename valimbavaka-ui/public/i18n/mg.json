@@ -592,6 +592,7 @@
       "failed": "Tsy afaka ny hampiditra: {{reason}}"
     },
     "export": "Hamoaka",
+    "exportFailed": "Tsy tafita ny famoahana : andramo indray.",
     "new": "Entana vaovao",
     "listLabel": "Lisitry ny entana",
     "backToList": "Hiverina amin'ny entana",

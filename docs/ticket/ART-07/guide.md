@@ -39,7 +39,7 @@ Il n'y a ni 404 ni 409 : un conflit est une ligne `CONFLICT` du rapport, la rép
 
 ### Données
 
-- Migration `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-01-changelog.sql`, déclarée dans `db.changelog-master.yaml` : permission `articles.import`, donnée à `ADMIN` seulement (rollback fourni). Aucune table nouvelle.
+- Migration `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-02-changelog.sql`, déclarée dans `db.changelog-master.yaml` : permission `articles.import`, donnée à `ADMIN` seulement (rollback fourni). Aucune table nouvelle.
 
 ## Règles métier à respecter par les autres tickets
 
@@ -51,13 +51,13 @@ Il n'y a ni 404 ni 409 : un conflit est une ligne `CONFLICT` du rapport, la rép
 ## Fichiers concernés
 
 **Backend** (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/article/`)
-- `controller/ArticleController.java` (action `importArticles`, ligne 117)
+- `controller/ArticleController.java` (action `importArticles`, ligne 136)
 - `domain/ImportConflictMode.java`, `domain/ImportRowStatus.java`
 - `dto/ArticleImportRDto.java`, `dto/ArticleImportRowRDto.java`
 - `service/ArticleImportService.java`, `service/impl/ArticleImportServiceImpl.java`, `ArticleImportRowProcessor.java`, `ArticleCsvParser.java`, `ArticleCsvRecord.java`, `CsvTokenizer.java`
 - `repository/ArticleRepository.java` (`findByCode`, `findByBarcode`, `advanceCodeSequence`)
 
-**Migration** : `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-01-changelog.sql`.
+**Migration** : `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-02-changelog.sql`.
 
 **Frontend** (`valimbavaka-ui/src/app/features/`) : `article/data-access/article-models.ts`, `article/data-access/article-service.ts`, `articles/pages/article-list-page/article-list-page.{ts,html}`, `articles/components/article-import-report/*`.
 

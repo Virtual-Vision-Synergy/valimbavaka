@@ -22,7 +22,13 @@
       [attr.aria-label]="'articles.importReport.fileLabel' | translate"
       (change)="chooseFile($event)"
     />
-    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+    <button
+      class="btn btn-secondary"
+      type="button"
+      *vvsHasPermission="'articles.export'"
+      [disabled]="exporting()"
+      (click)="exportList()"
+    >
       <svg [vvsIcon]="icons.Download" [size]="18"></svg>
       {{ 'articles.export' | translate }}
     </button>

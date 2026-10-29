@@ -15,7 +15,8 @@ En tant qu'administrateur, je veux exporter la liste des articles afin de la par
 
 ## Critères d'acceptation
 
-- [ ] Format d'export à préciser avant développement.
+- [ ] Format d'export précisé : XLSX, colonnes Code, Nom, Code-barres, Type, Unité, Prix de vente, Seuil minimum, Actif ; le coût d'achat n'est pas exporté.
+- [ ] L'administrateur télécharge la liste avec les filtres affichés (recherche, type, gamme) ; la vendeuse n'a pas accès à l'export.
 
 ## Détails
 
@@ -40,7 +41,10 @@ En tant qu'administrateur, je veux exporter la liste des articles afin de la par
 _Repérée dans l'arborescence au 2026-10-23 ; le traiteur confirme dans `guide.md`._
 
 **Frontend (`valimbavaka-ui`)**
-- `valimbavaka-ui/src/app/features/articles`
+- `valimbavaka-ui/src/app/features/articles` (bouton de `article-list-page`)
+- `valimbavaka-ui/src/app/features/article/data-access` (`exportList`)
+- `valimbavaka-ui/src/app/shared/data-access/download-file.ts`
 
 **Backend (`valimbavaka-core`)**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/article (à créer)`
+- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/article` (étendu : `ArticleController`, `ArticleExportRDto`, service, mapper)
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-01-changelog.sql` (permission `articles.export`)
