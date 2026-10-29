@@ -79,6 +79,16 @@
         }
       }
     </div>
+    @if (canReadJournal()) {
+      <a
+        class="icon-btn journal-link"
+        routerLink="/journal"
+        [attr.aria-label]="'layout.journal' | translate"
+        [title]="'layout.journal' | translate"
+      >
+        <svg [vvsIcon]="icons.ScrollText" [size]="20"></svg>
+      </a>
+    }
     <button
       class="icon-btn logout"
       type="button"

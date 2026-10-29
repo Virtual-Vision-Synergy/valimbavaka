@@ -14,6 +14,9 @@ import { JournalService } from '../../data-access/journal-service';
 
 const PAGE_SIZE = 20;
 
+/** Jour UTC courant au format yyyy-MM-dd, comme le contrat de l'API. */
+const todayUtc = (): string => new Date().toISOString().slice(0, 10);
+
 const ACTION_TONES: Readonly<Record<JournalAction, Tone>> = {
   CREATE: 'success',
   UPDATE: 'info',
@@ -22,7 +25,7 @@ const ACTION_TONES: Readonly<Record<JournalAction, Tone>> = {
   REVERSE: 'danger',
 };
 
-/** Consultation du journal des opérations, du plus récent au plus ancien (JNL-01). */
+/** Consultation du journal des opérations (JNL-01) : par défaut les opérations du jour UTC en ordre chronologique (JNL-03). */
 @Component({
   selector: 'vvs-journal-list-page',
   imports: [DatePipe, TranslatePipe, Icon, PageHeader, StatusBadge],
@@ -42,6 +45,8 @@ export class JournalListPage {
   protected readonly totalPages = signal(0);
   protected readonly totalCount = signal(0);
   protected readonly search = signal('');
+  /** Jour affiché (yyyy-MM-dd, UTC) ; vide = tout le journal, du plus récent au plus ancien. */
+  protected readonly day = signal(todayUtc());
   protected readonly isLoading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
 
@@ -55,6 +60,12 @@ export class JournalListPage {
     this.loadEntries();
   }
 
+  protected onDayChange(day: string): void {
+    this.day.set(day);
+    this.page.set(1);
+    this.loadEntries();
+  }
+
   protected goToPage(page: number): void {
     this.page.set(page);
     this.loadEntries();
@@ -64,7 +75,7 @@ export class JournalListPage {
     this.isLoading.set(true);
     this.errorMessage.set(null);
     this.journalService
-      .list({ search: this.search(), page: this.page(), size: PAGE_SIZE })
+      .list({ search: this.search(), page: this.page(), size: PAGE_SIZE }, this.day())
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isLoading.set(false)),

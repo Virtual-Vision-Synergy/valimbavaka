@@ -92,6 +92,38 @@ describe('JournalListPage', () => {
     request.flush(pageOf([]));
   });
 
+  it("should list today's UTC operations by default", async () => {
+    const request = httpMock.expectOne(isJournalRequest);
+    expect(request.request.params.get('date')).toBe(new Date().toISOString().slice(0, 10));
+    request.flush(pageOf([]));
+    await fixture.whenStable();
+  });
+
+  it('should reload from the first page when another day is picked', async () => {
+    httpMock.expectOne(isJournalRequest).flush(pageOf([entry()], 3));
+    await fixture.whenStable();
+
+    const input = element.querySelector<HTMLInputElement>('#journal-day') as HTMLInputElement;
+    input.value = '2026-10-19';
+    input.dispatchEvent(new Event('change'));
+
+    const request = httpMock.expectOne(isJournalRequest);
+    expect(request.request.params.get('date')).toBe('2026-10-19');
+    expect(request.request.params.get('page')).toBe('1');
+    request.flush(pageOf([]));
+  });
+
+  it('should show the whole journal without a date when asked', async () => {
+    httpMock.expectOne(isJournalRequest).flush(pageOf([entry()]));
+    await fixture.whenStable();
+
+    element.querySelector<HTMLButtonElement>('button[type="button"]')?.click();
+
+    const request = httpMock.expectOne(isJournalRequest);
+    expect(request.request.params.has('date')).toBe(false);
+    request.flush(pageOf([]));
+  });
+
   it('should request the next page', async () => {
     httpMock.expectOne(isJournalRequest).flush(pageOf([entry()], 2));
     await fixture.whenStable();

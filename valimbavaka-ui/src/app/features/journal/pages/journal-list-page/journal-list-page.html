@@ -27,6 +27,19 @@
         [value]="search()"
       />
       <button class="btn btn-ghost" type="submit">{{ 'journal.search.submit' | translate }}</button>
+      <label class="visually-hidden" for="journal-day">{{ 'journal.day.label' | translate }}</label>
+      <input
+        id="journal-day"
+        class="input"
+        type="date"
+        [value]="day()"
+        (change)="onDayChange($any($event.target).value)"
+      />
+      @if (day()) {
+        <button class="btn btn-ghost" type="button" (click)="onDayChange('')">
+          {{ 'journal.day.all' | translate }}
+        </button>
+      }
       <p class="count" role="status">{{ 'journal.count' | translate: { count: totalCount() } }}</p>
     </form>
 
@@ -50,7 +63,7 @@
             <tr>
               <td>
                 <time class="time" [attr.datetime]="entry.occurredAt">{{
-                  entry.occurredAt | date: 'dd/MM/yyyy HH:mm:ss'
+                  entry.occurredAt | date: 'dd/MM/yyyy HH:mm:ss' : 'UTC'
                 }}</time>
               </td>
               <td class="name">{{ entry.actorName }}</td>
