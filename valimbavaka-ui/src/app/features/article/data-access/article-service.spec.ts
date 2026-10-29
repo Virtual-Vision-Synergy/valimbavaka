@@ -36,6 +36,30 @@ describe('ArticleService', () => {
 
   afterEach(() => httpMock.verify());
 
+  it("télécharge l'export en xlsx avec les critères de la liste et sans pagination", () => {
+    service
+      .exportList({ search: 'savon', type: 'FINISHED', rangeId: 'g1', active: false })
+      .subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${ARTICLES_URL}/exportable/export`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.responseType).toBe('blob');
+    expect(request.request.params.get('search')).toBe('savon');
+    expect(request.request.params.get('type')).toBe('FINISHED');
+    expect(request.request.params.get('rangeId')).toBe('g1');
+    expect(request.request.params.get('active')).toBe('false');
+    expect(request.request.params.has('page')).toBe(false);
+    request.flush(new Blob());
+  });
+
+  it("n'envoie à l'export que les critères choisis", () => {
+    service.exportList({ search: '' }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${ARTICLES_URL}/exportable/export`);
+    expect(request.request.params.keys()).toEqual([]);
+    request.flush(new Blob());
+  });
+
   it('demande au serveur les entrants de production (MP et SF) avec la recherche', () => {
     service.listForProduction('INPUT', { page: 1, size: 20, search: 'huile' }).subscribe();
 

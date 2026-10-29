@@ -47,7 +47,7 @@ Ajouts à d'autres features : `ReferentialService.isActiveStockLocation(UUID)` (
 - Append-only garanti **en base** par les triggers `trg_stock_movements_append_only` (UPDATE / DELETE) et `trg_stock_movements_no_truncate` : une correction est un mouvement inverse.
 - Pas de table de solde : le stock est toujours recalculé par `sum(quantity)`.
 - Journal : ressource `STOCK_MOVEMENT`, action `CREATE`, libellé `Mouvement RECEIPT de l'article ART-0031 · Savon noir 100 g : 12`.
-- Migration : `2026_10_29-01-changelog.sql` (2 changesets, rollback fourni). La permission `stocks.read` existait déjà (AUTH-01).
+- Migration : `2026_10_29-02-changelog.sql` (2 changesets, rollback fourni). La permission `stocks.read` existait déjà (AUTH-01).
 
 ## Règles métier pour les autres tickets
 
@@ -71,7 +71,7 @@ Ajouts à d'autres features : `ReferentialService.isActiveStockLocation(UUID)` (
 - Autres features modifiées : `feature/referential/service/ReferentialService.java` (+ `impl`), `feature/referential/repository/StockLocationRepository.java` (`existsByIdAndActiveTrue`)
 
 **Migrations Liquibase**
-- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-01-changelog.sql`, déclarée dans `db.changelog-master.yaml`
+- `valimbavaka-core/src/main/resources/db/changelog/changes/2026_10_29-02-changelog.sql`, déclarée dans `db.changelog-master.yaml`
 
 **Frontend** (`valimbavaka-ui/src/app/features/stocks/`)
 - `data-access/stock-service.ts`, `stock-mapping.ts`, `stock-models.ts` ; `stocks.routes.ts` (commentaire)

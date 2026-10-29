@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
 import { Download, Plus, Upload } from 'lucide';
 import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { TranslatePipe } from '@ngx-translate/core';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { ArticleThumb } from '../../../../shared/components/article-thumb/article-thumb';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -22,6 +22,7 @@ import { RangeTag } from '../../../../shared/components/range-tag/range-tag';
 import { SearchField } from '../../../../shared/components/search-field/search-field';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
+import { downloadFile } from '../../../../shared/data-access/download-file';
 import { ProductRange } from '../../../../shared/models/tone';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ReferentialService } from '../../../referential/data-access/referential-service';
@@ -33,6 +34,7 @@ type TypeFilter = 'ALL' | ArticleType;
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
+const EXPORT_FILENAME = 'articles.xlsx';
 const ALL_RANGES: ChipOption<RangeFilter> = { value: 'ALL', labelKey: 'articles.filter.allRanges' };
 const TYPES: readonly TypeFilter[] = ['ALL', 'FINISHED', 'SEMI_FINISHED', 'RAW_MATERIAL'];
 const RANGE_CODES: readonly string[] = ['BOTANIKA', 'ZEZIKA', 'SOLIKA'];
@@ -83,6 +85,7 @@ export class ArticleListPage {
     () => new Map(this.rangeItems().map((range) => [range.id, range.code])),
   );
 
+  protected readonly exporting = signal(false);
   protected readonly query = signal('');
   protected readonly range = signal<RangeFilter>('ALL');
   protected readonly type = signal<TypeFilter>('ALL');
@@ -166,6 +169,24 @@ export class ArticleListPage {
 
   protected selectType(value: string): void {
     this.type.set(TYPES.find((type) => type === value) ?? 'ALL');
+  }
+
+  /** Télécharge le xlsx avec les critères affichés (ART-08) ; le serveur réserve l'export à l'administrateur. */
+  protected exportList(): void {
+    const type = this.type();
+    const range = this.range();
+    this.exporting.set(true);
+    this.articleService
+      .exportList({
+        search: this.search().trim(),
+        type: type === 'ALL' ? undefined : type,
+        rangeId: range === 'ALL' ? undefined : range,
+      })
+      .pipe(finalize(() => this.exporting.set(false)))
+      .subscribe({
+        next: (response) => downloadFile(response, EXPORT_FILENAME),
+        error: () => this.toast.show('articles.exportFailed', {}, 'danger'),
+      });
   }
 
   protected demoAction(): void {

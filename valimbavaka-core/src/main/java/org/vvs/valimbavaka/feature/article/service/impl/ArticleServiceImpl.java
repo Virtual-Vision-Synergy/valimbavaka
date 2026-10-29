@@ -15,6 +15,7 @@ import org.vvs.valimbavaka.feature.article.domain.Article;
 import org.vvs.valimbavaka.feature.article.domain.ArticleDetails;
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
 import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
+import org.vvs.valimbavaka.feature.article.dto.ArticleExportRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
 import org.vvs.valimbavaka.feature.article.mapper.ArticleMapper;
@@ -63,6 +64,14 @@ public class ArticleServiceImpl implements ArticleService {
         var page = articleRepository.search(
                 query.searchTerm(), filter.type(), filter.rangeId(), filter.supplierId(), filter.active(), pageable);
         return PageResponse.from(page.map(articleMapper::toRDto));
+    }
+
+    @Override
+    public PageResponse<ArticleExportRDto> getExportableArticles(PageQuery query, ArticleFilter filter) {
+        var pageable = query.toPageable(SORT_FIELDS, "code", SortDirection.ASC);
+        var page = articleRepository.search(
+                query.searchTerm(), filter.type(), filter.rangeId(), filter.supplierId(), filter.active(), pageable);
+        return PageResponse.from(page.map(articleMapper::toExportRDto));
     }
 
     @Override

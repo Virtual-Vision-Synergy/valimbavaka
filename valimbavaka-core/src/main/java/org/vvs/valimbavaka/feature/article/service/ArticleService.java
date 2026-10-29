@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
 import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
+import org.vvs.valimbavaka.feature.article.dto.ArticleExportRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -12,6 +13,12 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 public interface ArticleService {
 
     PageResponse<ArticleRDto> getArticles(PageQuery query, ArticleFilter filter);
+
+    /**
+     * Rows of the article export (ART-08): same filters and search as the list, sorted by code by default, without
+     * the purchase cost.
+     */
+    PageResponse<ArticleExportRDto> getExportableArticles(PageQuery query, ArticleFilter filter);
 
     ArticleRDto getArticleById(UUID articleId);
 
