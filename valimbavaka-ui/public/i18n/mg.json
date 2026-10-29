@@ -567,7 +567,10 @@
   },
   "articles": {
     "title": "Entana",
-    "subtitle": "Entana {{total}} : vokatra vita {{finished}}, akora {{raw}}, fonosana {{packaging}}.",
+    "subtitle": "Entana {{total}}.",
+    "active": "Miasa",
+    "inactive": "Tsy miasa",
+    "stockPending": "Hita rehefa misy ny fanaraha-maso tahiry",
     "import": "Hampiditra",
     "export": "Hamoaka",
     "new": "Entana vaovao",
@@ -581,7 +584,8 @@
       "rangeLabel": "Karazany",
       "allRanges": "Karazany rehetra",
       "typeLabel": "Sokajin'entana",
-      "lowOnly": "Tahiry ambany"
+      "lowOnly": "Tahiry ambany",
+      "lowOnlyPending": "Hita rehefa misy ny fanaraha-maso tahiry"
     },
     "range": {
       "BOTANIKA": "Botanika",
