@@ -1,16 +1,7 @@
 <div class="page">
   <vvs-page-header
     [heading]="'articles.title' | translate"
-    [subtitle]="
-      'articles.subtitle'
-        | translate
-          : {
-              total: counts().total,
-              finished: counts().finished,
-              raw: counts().raw,
-              packaging: counts().packaging,
-            }
-    "
+    [subtitle]="'articles.subtitle' | translate: { total: total() }"
     [codes]="['ART-03', 'ART-05', 'ART-07', 'ART-08']"
   >
     <button class="btn btn-secondary" type="button" (click)="demoAction()">
@@ -53,8 +44,9 @@
       <button
         class="toggle"
         type="button"
-        [attr.aria-pressed]="lowOnly()"
-        (click)="lowOnly.set(!lowOnly())"
+        disabled
+        [attr.aria-pressed]="false"
+        [attr.title]="'articles.filter.lowOnlyPending' | translate"
       >
         {{ 'articles.filter.lowOnly' | translate }}
       </button>
@@ -83,7 +75,7 @@
       <vvs-list-state kind="error" (retry)="articles.reload()" />
     } @else if (articles.isLoading()) {
       <vvs-list-state kind="loading" [rows]="8" />
-    } @else if (!filtered().length) {
+    } @else if (!rows().length) {
       <vvs-list-state kind="empty" />
     } @else {
       <div class="table-wrap">
@@ -125,16 +117,16 @@
                 </td>
                 <td>
                   <span class="article">
-                    <vvs-article-thumb [name]="article.name" [range]="article.range" />
+                    <vvs-article-thumb [name]="article.name" [range]="rangeOf(article.rangeId)" />
                     <span>
                       <a class="cell-title name" [routerLink]="article.id">{{ article.name }}</a>
-                      <span class="cell-sub mono">{{ article.reference }}</span>
+                      <span class="cell-sub mono">{{ article.code }}</span>
                     </span>
                   </span>
                 </td>
                 <td class="c-range">
-                  @if (article.range) {
-                    <vvs-range-tag [range]="article.range" />
+                  @if (rangeOf(article.rangeId); as articleRange) {
+                    <vvs-range-tag [range]="articleRange" />
                   } @else {
                     <span class="none" [attr.aria-label]="'articles.noRange' | translate">—</span>
                   }
@@ -148,19 +140,12 @@
                   }
                 </td>
                 <td class="c-stock">
-                  <span class="stock">
-                    <vvs-stock-gauge
-                      [value]="article.totalStock"
-                      [threshold]="article.threshold"
-                      [max]="article.threshold * 4"
-                    />
-                    <span class="num">{{ article.totalStock }}</span>
-                  </span>
+                  <span [attr.aria-label]="'articles.stockPending' | translate">—</span>
                 </td>
                 <td>
                   <vvs-status-badge
-                    [tone]="tones[article.status]"
-                    [label]="'articles.status.' + article.status | translate"
+                    [tone]="article.active ? 'success' : 'muted'"
+                    [label]="(article.active ? 'articles.active' : 'articles.inactive') | translate"
                   />
                 </td>
               </tr>
@@ -168,7 +153,7 @@
           </tbody>
         </table>
       </div>
-      <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+      <vvs-pagination [(page)]="page" [size]="pageSize" [total]="total()" />
     }
   </section>
 </div>

@@ -6,11 +6,12 @@ import {
   linkedSignal,
   signal,
 } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Download, Plus, Upload } from 'lucide';
 import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { TranslatePipe } from '@ngx-translate/core';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ArticleThumb } from '../../../../shared/components/article-thumb/article-thumb';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -20,45 +21,21 @@ import { Pagination } from '../../../../shared/components/pagination/pagination'
 import { RangeTag } from '../../../../shared/components/range-tag/range-tag';
 import { SearchField } from '../../../../shared/components/search-field/search-field';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
-import { StockGauge } from '../../../../shared/components/stock-gauge/stock-gauge';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { ProductRange } from '../../../../shared/models/tone';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
-import { ArticleRDto, ArticleType } from '../../data-access/article-models';
-import { ArticleService } from '../../data-access/article-service';
-import { STOCK_STATUS_TONES } from '../../data-access/article-tones';
+import { ReferentialService } from '../../../referential/data-access/referential-service';
+import { ArticleType } from '../../../article/data-access/article-models';
+import { ArticleService } from '../../../article/data-access/article-service';
 
-type RangeFilter = 'ALL' | ProductRange;
+type RangeFilter = string;
 type TypeFilter = 'ALL' | ArticleType;
 
 const PAGE_SIZE = 10;
-const RANGES: readonly ChipOption<RangeFilter>[] = [
-  { value: 'ALL', labelKey: 'articles.filter.allRanges' },
-  { value: 'BOTANIKA', labelKey: 'articles.range.BOTANIKA' },
-  { value: 'ZEZIKA', labelKey: 'articles.range.ZEZIKA' },
-  { value: 'SOLIKA', labelKey: 'articles.range.SOLIKA' },
-];
-const TYPES: readonly TypeFilter[] = ['ALL', 'FINISHED', 'RAW_MATERIAL', 'PACKAGING'];
-
-interface ArticleFilters {
-  readonly query: string;
-  readonly range: RangeFilter;
-  readonly type: TypeFilter;
-  readonly lowOnly: boolean;
-}
-
-function matches(article: ArticleRDto, filters: ArticleFilters): boolean {
-  const query = filters.query.trim().toLowerCase();
-  return (
-    (filters.range === 'ALL' || article.range === filters.range) &&
-    (filters.type === 'ALL' || article.type === filters.type) &&
-    (!filters.lowOnly || article.status !== 'AVAILABLE') &&
-    (!query ||
-      article.name.toLowerCase().includes(query) ||
-      article.reference.toLowerCase().includes(query) ||
-      article.barcode.includes(query))
-  );
-}
+const SEARCH_DEBOUNCE_MS = 300;
+const ALL_RANGES: ChipOption<RangeFilter> = { value: 'ALL', labelKey: 'articles.filter.allRanges' };
+const TYPES: readonly TypeFilter[] = ['ALL', 'FINISHED', 'SEMI_FINISHED', 'RAW_MATERIAL'];
+const RANGE_CODES: readonly string[] = ['BOTANIKA', 'ZEZIKA', 'SOLIKA'];
 
 /** Liste des articles (ART-03, ART-05, ART-07, ART-08) : filtres, sélection groupée, pagination. */
 @Component({
@@ -76,7 +53,6 @@ function matches(article: ArticleRDto, filters: ArticleFilters): boolean {
     FilterChips,
     RangeTag,
     StatusBadge,
-    StockGauge,
     ArticleThumb,
   ],
   templateUrl: './article-list-page.html',
@@ -85,41 +61,76 @@ function matches(article: ArticleRDto, filters: ArticleFilters): boolean {
 })
 export class ArticleListPage {
   private readonly articleService = inject(ArticleService);
+  private readonly referentialService = inject(ReferentialService);
   private readonly toast = inject(ToastService);
 
   protected readonly icons = { Download, Plus, Upload };
-  protected readonly ranges = RANGES;
   protected readonly types = TYPES;
-  protected readonly tones = STOCK_STATUS_TONES;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly articles = rxResource({ stream: () => this.articleService.list() });
+
+  /** Gammes du référentiel (SYS-05) : un échec laisse la liste utilisable, sans le filtre de gamme. */
+  private readonly rangeList = rxResource({
+    stream: () => this.referentialService.listProductRanges(),
+  });
+  private readonly rangeItems = computed(() =>
+    this.rangeList.hasValue() ? this.rangeList.value() : [],
+  );
+  protected readonly ranges = computed<readonly ChipOption<RangeFilter>[]>(() => [
+    ALL_RANGES,
+    ...this.rangeItems().map((range) => ({ value: range.id, label: range.label })),
+  ]);
+  private readonly rangeCodes = computed(
+    () => new Map(this.rangeItems().map((range) => [range.id, range.code])),
+  );
 
   protected readonly query = signal('');
   protected readonly range = signal<RangeFilter>('ALL');
   protected readonly type = signal<TypeFilter>('ALL');
-  protected readonly lowOnly = signal(false);
-  private readonly filters = computed<ArticleFilters>(() => ({
-    query: this.query(),
-    range: this.range(),
-    type: this.type(),
-    lowOnly: this.lowOnly(),
-  }));
-  protected readonly filtered = computed(() =>
-    (this.articles.value() ?? []).filter((article) => matches(article, this.filters())),
+  /** Recherche envoyée au serveur : rognée et temporisée pour ne pas interroger à chaque frappe. */
+  private readonly search = toSignal(
+    toObservable(this.query).pipe(
+      debounceTime(SEARCH_DEBOUNCE_MS),
+      distinctUntilChanged((a, b) => a.trim() === b.trim()),
+    ),
+    { initialValue: '' },
   );
-  protected readonly page = linkedSignal({ source: this.filters, computation: () => 1 });
-  protected readonly rows = computed(() =>
-    this.filtered().slice((this.page() - 1) * PAGE_SIZE, this.page() * PAGE_SIZE),
-  );
-  protected readonly counts = computed(() => {
-    const all = this.articles.value() ?? [];
-    return {
-      total: all.length,
-      finished: all.filter((article) => article.type === 'FINISHED').length,
-      raw: all.filter((article) => article.type === 'RAW_MATERIAL').length,
-      packaging: all.filter((article) => article.type === 'PACKAGING').length,
-    };
+  protected readonly page = linkedSignal({
+    source: () => ({ range: this.range(), type: this.type(), search: this.search().trim() }),
+    computation: () => 1,
   });
+
+  /** Une nouvelle page ou un nouveau critère annule la requête précédente. */
+  protected readonly articles = rxResource({
+    params: () => ({
+      page: this.page(),
+      range: this.range(),
+      type: this.type(),
+      search: this.search().trim(),
+    }),
+    stream: ({ params }) =>
+      this.articleService.list({
+        page: params.page,
+        size: PAGE_SIZE,
+        sortBy: 'name',
+        sortDirection: 'ASC',
+        search: params.search,
+        type: params.type === 'ALL' ? undefined : params.type,
+        rangeId: params.range === 'ALL' ? undefined : params.range,
+      }),
+  });
+  /** `value()` lève une exception tant que la ressource est en erreur : toujours passer par `hasValue()`. */
+  protected readonly rows = computed(() =>
+    this.articles.hasValue() ? this.articles.value().items : [],
+  );
+  protected readonly total = computed(() =>
+    this.articles.hasValue() ? this.articles.value().totalCount : 0,
+  );
+
+  /** Code de la gamme si c'est l'une des trois gammes à couleur, sinon null (étiquette neutre). */
+  protected rangeOf(rangeId: string | null): ProductRange | null {
+    const code = rangeId ? this.rangeCodes().get(rangeId) : undefined;
+    return code && RANGE_CODES.includes(code) ? (code as ProductRange) : null;
+  }
 
   protected readonly selection = signal<ReadonlySet<string>>(new Set());
   protected readonly allRowsSelected = computed(

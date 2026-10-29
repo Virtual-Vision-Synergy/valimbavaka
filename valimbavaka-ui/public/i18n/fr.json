@@ -562,7 +562,10 @@
   },
   "articles": {
     "title": "Articles",
-    "subtitle": "{{total}} articles : {{finished}} produits finis, {{raw}} matières premières, {{packaging}} emballages.",
+    "subtitle": "{{total}} articles.",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "stockPending": "Stock disponible avec le suivi du stock",
     "import": "Importer",
     "export": "Exporter",
     "new": "Nouvel article",
@@ -576,7 +579,8 @@
       "rangeLabel": "Gamme",
       "allRanges": "Toutes gammes",
       "typeLabel": "Type d'article",
-      "lowOnly": "Stock faible"
+      "lowOnly": "Stock faible",
+      "lowOnlyPending": "Disponible avec le suivi du stock"
     },
     "range": {
       "BOTANIKA": "Botanika",
