@@ -1,7 +1,6 @@
 package org.vvs.valimbavaka.feature.stock.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -73,9 +72,10 @@ class StockServiceImplTest {
         var stock = result.items().getFirst();
         assertThat(stock.total()).isEqualByComparingTo("42.5");
         assertThat(stock.locations())
-                .extracting(StockLocationQuantityRDto::code, StockLocationQuantityRDto::quantity)
-                .usingComparatorForType(BigDecimal::compareTo, BigDecimal.class)
-                .containsExactly(tuple("WAREHOUSE", new BigDecimal("30")), tuple("STORE", new BigDecimal("12.5")));
+                .extracting(StockLocationQuantityRDto::code)
+                .containsExactly("WAREHOUSE", "STORE");
+        assertThat(stock.locations().get(0).quantity()).isEqualByComparingTo("30");
+        assertThat(stock.locations().get(1).quantity()).isEqualByComparingTo("12.5");
     }
 
     @Test
