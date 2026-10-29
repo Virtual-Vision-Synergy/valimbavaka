@@ -23,7 +23,7 @@ public class StockMovementServiceImpl implements StockMovementService {
     private final JournalService journalService;
     private final StockMovementPolicy policy;
 
-    public StockMovementServiceImpl(
+    StockMovementServiceImpl(
             StockMovementRepository stockMovementRepository,
             StockMovementMapper stockMovementMapper,
             JournalService journalService,
