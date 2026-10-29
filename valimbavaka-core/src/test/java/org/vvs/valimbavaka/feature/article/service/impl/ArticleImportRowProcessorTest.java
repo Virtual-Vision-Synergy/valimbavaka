@@ -272,7 +272,7 @@ class ArticleImportRowProcessorTest {
     private static ArticleCsvRecord row(String... overrides) {
         Map<String, String> values = new HashMap<>(
                 Map.of("name", "Savon noir 100 g", "type", "RAW_MATERIAL", "unit", "PIECE", "threshold", "10"));
-        for (int i = 0; i < overrides.length; i += 2) {
+        for (int i = 0; i + 1 < overrides.length; i += 2) {
             values.put(overrides[i], overrides[i + 1]);
         }
         return new ArticleCsvRecord(1, values, null);

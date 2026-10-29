@@ -20,7 +20,7 @@ import org.vvs.valimbavaka.core.exception.BusinessException;
  * {@link #COLUMNS} are accepted (so an {@code id} or {@code active} column is refused, never silently applied).
  */
 @Component
-class ArticleCsvParser {
+public class ArticleCsvParser {
 
     static final int MAX_ROWS = 1000;
 

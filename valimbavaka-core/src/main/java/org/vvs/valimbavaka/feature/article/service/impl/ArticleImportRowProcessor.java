@@ -33,7 +33,7 @@ import org.vvs.valimbavaka.feature.journal.service.JournalService;
  */
 @Component
 @Transactional
-class ArticleImportRowProcessor {
+public class ArticleImportRowProcessor {
 
     private static final Pattern CODE_FORMAT = Pattern.compile("^ART-(\\d{4,9})$");
     private static final String RESOURCE_TYPE = "ARTICLE";
@@ -85,30 +85,30 @@ class ArticleImportRowProcessor {
         var barcode = dto.barcode();
         Optional<Article> byCode = code == null ? Optional.empty() : articleRepository.findByCode(code);
         Optional<Article> byBarcode = barcode == null ? Optional.empty() : articleRepository.findByBarcode(barcode);
-        if (code != null
-                && byBarcode.isPresent()
-                && byCode.map(a -> !a.getCode().equals(byBarcode.get().getCode()))
-                        .orElse(true)) {
-            var owner = byBarcode.get().getCode();
-            return rejected(
-                    row,
-                    ImportRowStatus.CONFLICT,
-                    owner,
-                    "Le code-barres %s appartient déjà à %s, qui n'est pas l'article du code %s."
-                            .formatted(barcode, owner, code));
-        }
-        var existing = byCode.or(() -> byBarcode);
-        if (existing.isEmpty()) {
-            return create(row, code, dto);
-        }
-        return replace(row, existing.get(), dto, mode);
+        return byBarcode
+                .filter(owner -> code != null && isOtherArticle(byCode, owner))
+                .map(owner -> rejected(
+                        row,
+                        ImportRowStatus.CONFLICT,
+                        owner.getCode(),
+                        "Le code-barres %s appartient déjà à %s, qui n'est pas l'article du code %s."
+                                .formatted(barcode, owner.getCode(), code)))
+                .orElseGet(() -> byCode.or(() -> byBarcode)
+                        .map(existing -> replace(row, existing, dto, mode))
+                        .orElseGet(() -> create(row, code, dto)));
+    }
+
+    /** True when the file names a code that is unknown or belongs to another article than the barcode owner. */
+    private static boolean isOtherArticle(Optional<Article> byCode, Article barcodeOwner) {
+        return byCode.map(article -> !article.getCode().equals(barcodeOwner.getCode()))
+                .orElse(true);
     }
 
     private ArticleImportRowRDto create(int row, @Nullable String code, ArticleWDto dto) {
         referenceChecker.check(dto, null);
         var finalCode = code != null ? code : "ART-%04d".formatted(articleRepository.nextCodeNumber());
         if (code != null) {
-            articleRepository.advanceCodeSequence(Long.parseLong(finalCode.substring("ART-".length())));
+            articleRepository.advanceCodeSequence(codeNumber(finalCode));
         }
         var saved = articleRepository.save(Article.create(finalCode, toDetails(dto)));
         journalService.record(
@@ -117,6 +117,19 @@ class ArticleImportRowProcessor {
                 saved.getId(),
                 "Création de l'article " + label(saved) + " (import)");
         return new ArticleImportRowRDto(row, ImportRowStatus.CREATED, finalCode, null);
+    }
+
+    /** Number of a code already matched against {@link #CODE_FORMAT} (4 to 9 digits, so it always fits a long). */
+    private static long codeNumber(String code) {
+        var matcher = CODE_FORMAT.matcher(code);
+        try {
+            if (matcher.matches()) {
+                return Long.parseLong(matcher.group(1));
+            }
+        } catch (NumberFormatException e) {
+            // falls through to the business error below
+        }
+        throw new BusinessException("Code invalide : « %s » (format attendu ART-0001).".formatted(code));
     }
 
     private ArticleImportRowRDto replace(int row, Article existing, ArticleWDto dto, ImportConflictMode mode) {
