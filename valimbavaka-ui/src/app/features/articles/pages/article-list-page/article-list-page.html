@@ -4,10 +4,24 @@
     [subtitle]="'articles.subtitle' | translate: { total: total() }"
     [codes]="['ART-03', 'ART-05', 'ART-07', 'ART-08']"
   >
-    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+    <button
+      *vvsHasPermission="'articles.import'"
+      class="btn btn-secondary"
+      type="button"
+      [disabled]="importing()"
+      (click)="csvInput.click()"
+    >
       <svg [vvsIcon]="icons.Upload" [size]="18"></svg>
       {{ 'articles.import' | translate }}
     </button>
+    <input
+      #csvInput
+      hidden
+      type="file"
+      accept=".csv,text/csv"
+      [attr.aria-label]="'articles.importReport.fileLabel' | translate"
+      (change)="chooseFile($event)"
+    />
     <button
       class="btn btn-secondary"
       type="button"
@@ -23,6 +37,15 @@
       {{ 'articles.new' | translate }}
     </a>
   </vvs-page-header>
+
+  @if (importReport(); as report) {
+    <vvs-article-import-report
+      [report]="report"
+      [busy]="importing()"
+      (overwrite)="overwriteConflicts()"
+      (dismiss)="closeImportReport()"
+    />
+  }
 
   <section class="card flush" [attr.aria-label]="'articles.listLabel' | translate">
     <div class="filters">

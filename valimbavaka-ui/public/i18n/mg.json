@@ -572,6 +572,25 @@
     "inactive": "Tsy miasa",
     "stockPending": "Hita rehefa misy ny fanaraha-maso tahiry",
     "import": "Hampiditra",
+    "importReport": {
+      "title": "Tatitra momba ny fampidirana",
+      "summary": "{{created}} noforonina, {{updated}} nosoloina, {{unchanged}} tsy niova, {{conflicts}} mifanditra, {{invalid}} tsy mety.",
+      "fileLabel": "Rakitra CSV misy ny entana hampidirina",
+      "row": "Andalana",
+      "status": "Toe-javatra",
+      "code": "Entana",
+      "message": "Antony",
+      "statuses": {
+        "CREATED": "Noforonina",
+        "UPDATED": "Nosoloina",
+        "UNCHANGED": "Tsy niova",
+        "CONFLICT": "Mifanditra",
+        "INVALID": "Tsy mety"
+      },
+      "overwriteHint": "Tsy nanova na inona na inona ireo andalana mifanditra. Azonao soloina ireo entana efa misy.",
+      "overwrite": "Soloina ny entana {{count}} mifanditra",
+      "failed": "Tsy afaka ny hampiditra: {{reason}}"
+    },
     "export": "Hamoaka",
     "exportFailed": "Tsy tafita ny famoahana : andramo indray.",
     "new": "Entana vaovao",

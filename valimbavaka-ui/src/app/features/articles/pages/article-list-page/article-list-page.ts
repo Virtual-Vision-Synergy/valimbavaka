@@ -26,7 +26,13 @@ import { downloadFile } from '../../../../shared/data-access/download-file';
 import { ProductRange } from '../../../../shared/models/tone';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ReferentialService } from '../../../referential/data-access/referential-service';
-import { ArticleType } from '../../../article/data-access/article-models';
+import { errorMessage } from '../../../../core/http/problem-detail';
+import {
+  ArticleImportRDto,
+  ArticleType,
+  ImportConflictMode,
+} from '../../../article/data-access/article-models';
+import { ArticleImportReport } from '../../components/article-import-report/article-import-report';
 import { ArticleService } from '../../../article/data-access/article-service';
 
 type RangeFilter = string;
@@ -56,6 +62,7 @@ const RANGE_CODES: readonly string[] = ['BOTANIKA', 'ZEZIKA', 'SOLIKA'];
     RangeTag,
     StatusBadge,
     ArticleThumb,
+    ArticleImportReport,
   ],
   templateUrl: './article-list-page.html',
   styleUrl: './article-list-page.css',
@@ -169,6 +176,51 @@ export class ArticleListPage {
 
   protected selectType(value: string): void {
     this.type.set(TYPES.find((type) => type === value) ?? 'ALL');
+  }
+
+  /** Dernier fichier envoyé et son compte rendu (ART-07) : gardés pour rejouer les conflits en mode écrasement. */
+  private importedFile: File | null = null;
+  protected readonly importing = signal(false);
+  protected readonly importReport = signal<ArticleImportRDto | null>(null);
+
+  protected chooseFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.item(0);
+    input.value = '';
+    if (file) {
+      this.importedFile = file;
+      this.runImport(file, 'SKIP', []);
+    }
+  }
+
+  /** Rejoue uniquement les lignes en conflit, en remplaçant les articles existants. */
+  protected overwriteConflicts(): void {
+    const report = this.importReport();
+    if (!this.importedFile || !report) {
+      return;
+    }
+    const rows = report.rows.filter((row) => row.status === 'CONFLICT').map((row) => row.row);
+    this.runImport(this.importedFile, 'OVERWRITE', rows);
+  }
+
+  protected closeImportReport(): void {
+    this.importReport.set(null);
+    this.importedFile = null;
+  }
+
+  private runImport(file: File, mode: ImportConflictMode, onlyRows: readonly number[]): void {
+    this.importing.set(true);
+    this.articleService.importFile(file, mode, onlyRows).subscribe({
+      next: (report) => {
+        this.importing.set(false);
+        this.importReport.set(report);
+        this.articles.reload();
+      },
+      error: (error: unknown) => {
+        this.importing.set(false);
+        this.toast.show('articles.importReport.failed', { reason: errorMessage(error) }, 'danger');
+      },
+    });
   }
 
   /** Télécharge le xlsx avec les critères affichés (ART-08) ; le serveur réserve l'export à l'administrateur. */

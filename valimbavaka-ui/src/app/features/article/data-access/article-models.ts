@@ -63,3 +63,27 @@ export interface ArticleListQuery extends PageQuery, ArticleExportQuery {}
 export interface ArticleStatusWDto {
   active: boolean;
 }
+
+/** Miroir de ImportConflictMode (ART-07) : SKIP rejette la ligne en conflit, OVERWRITE remplace l'article existant. */
+export type ImportConflictMode = 'SKIP' | 'OVERWRITE';
+
+/** Miroir de ImportRowStatus (ART-07). */
+export type ImportRowStatus = 'CREATED' | 'UPDATED' | 'UNCHANGED' | 'CONFLICT' | 'INVALID';
+
+/** Miroir de ArticleImportRowRDto : résultat d'une ligne du fichier (`row` : numéro après l'en-tête, dès 1). */
+export interface ArticleImportRowRDto {
+  row: number;
+  status: ImportRowStatus;
+  code: string | null;
+  message: string | null;
+}
+
+/** Miroir de ArticleImportRDto : compte rendu d'un import de fichier CSV. */
+export interface ArticleImportRDto {
+  created: number;
+  updated: number;
+  unchanged: number;
+  conflicts: number;
+  invalid: number;
+  rows: ArticleImportRowRDto[];
+}

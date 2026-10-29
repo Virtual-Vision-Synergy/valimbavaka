@@ -151,4 +151,26 @@ describe('ArticleService', () => {
     expect(request.request.body).toEqual({ active: false });
     request.flush({});
   });
+
+  it("envoie le fichier d'import en multipart avec le mode de conflit, sans passer par la file", () => {
+    const file = new File(['name;type;unit;threshold\n'], 'articles.csv', { type: 'text/csv' });
+
+    service.importFile(file, 'SKIP').subscribe();
+
+    const request = httpMock.expectOne(`${ARTICLES_URL}/import?onConflict=SKIP`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeInstanceOf(FormData);
+    expect((request.request.body as FormData).get('file')).toBeInstanceOf(File);
+    request.flush({});
+  });
+
+  it('limite le rejeu en mode écrasement aux lignes en conflit demandées', () => {
+    const file = new File(['x'], 'articles.csv', { type: 'text/csv' });
+
+    service.importFile(file, 'OVERWRITE', [2, 5]).subscribe();
+
+    const request = httpMock.expectOne(`${ARTICLES_URL}/import?onConflict=OVERWRITE&onlyRows=2,5`);
+    expect(request.request.method).toBe('POST');
+    request.flush({});
+  });
 });

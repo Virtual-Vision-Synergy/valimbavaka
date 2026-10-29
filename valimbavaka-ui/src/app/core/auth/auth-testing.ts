@@ -10,6 +10,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     'articles.read',
     'articles.create',
     'articles.update',
+    'articles.import',
     'articles.export',
     'stocks.read',
     'production.read',

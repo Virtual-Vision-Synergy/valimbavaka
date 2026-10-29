@@ -1,11 +1,13 @@
 package org.vvs.valimbavaka.feature.article.controller;
 
 import java.net.URI;
+import java.util.Set;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -25,18 +28,24 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
 import org.vvs.valimbavaka.feature.article.domain.ArticleType;
+import org.vvs.valimbavaka.feature.article.domain.ImportConflictMode;
 import org.vvs.valimbavaka.feature.article.domain.ProductionUsage;
 import org.vvs.valimbavaka.feature.article.dto.ArticleExportRDto;
+import org.vvs.valimbavaka.feature.article.dto.ArticleImportRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleStatusWDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
+import org.vvs.valimbavaka.feature.article.service.ArticleImportService;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
 
-/** Reading needs {@code articles.read}; writing is administrator only ({@code articles.create} / {@code .update}), as is the export ({@code articles.export}). */
+/**
+ * Reading needs {@code articles.read}; writing is administrator only ({@code articles.create} / {@code .update} /
+ * {@code .import}), as is the export ({@code articles.export}).
+ */
 @Tag(name = "Articles")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -49,9 +58,11 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final ArticleImportService articleImportService;
 
-    public ArticleController(ArticleService articleService) {
+    public ArticleController(ArticleService articleService, ArticleImportService articleImportService) {
         this.articleService = articleService;
+        this.articleImportService = articleImportService;
     }
 
     @GetMapping
@@ -110,6 +121,23 @@ public class ArticleController {
         var created = articleService.createArticle(request);
         return ResponseEntity.created(URI.create("/api/v1/articles/" + created.id()))
                 .body(created);
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "Bulk import from a CSV file (UTF-8, ';' separator, 1000 rows max); partial: valid rows are kept")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Report with one line per row (created, updated, conflict, invalid)")
+    @ApiResponse(
+            responseCode = "422",
+            description = "Unreadable, empty, too large or badly headed file (VALIDATION_FAILED)")
+    @HasPermission("articles.import")
+    public ArticleImportRDto importArticles(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "SKIP") ImportConflictMode onConflict,
+            @RequestParam(defaultValue = "") Set<Integer> onlyRows) {
+        return articleImportService.importArticles(file, onConflict, onlyRows);
     }
 
     @PutMapping("/{id}")
