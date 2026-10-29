@@ -31,10 +31,10 @@ import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.domain.JournalEntry;
 import org.vvs.valimbavaka.feature.journal.mapper.JournalMapper;
 import org.vvs.valimbavaka.feature.journal.repository.JournalEntryRepository;
-import org.vvs.valimbavaka.shared.dto.PageQuery;
-import org.vvs.valimbavaka.shared.dto.SortDirection;
 import org.vvs.valimbavaka.security.AuthenticatedUser;
 import org.vvs.valimbavaka.security.AuthenticatedUserLoader;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.SortDirection;
 
 @ExtendWith(MockitoExtension.class)
 class JournalServiceImplTest {
@@ -153,8 +153,7 @@ class JournalServiceImplTest {
     void getEntries_withoutDate_listsEverythingNewestFirst() {
         // given
         var query = new PageQuery(null, null, "  rasoa ", null, null);
-        when(journalEntryRepository.search(eq("rasoa"), any(Pageable.class)))
-                .thenReturn(new PageImpl<>(List.of()));
+        when(journalEntryRepository.search(eq("rasoa"), any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
         // when
         sut.getEntries(query, null);
         // then

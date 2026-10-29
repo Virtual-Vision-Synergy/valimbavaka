@@ -97,7 +97,9 @@ class JournalSecurityIT {
         var token = accessToken(ADMIN_EMAIL, ADMIN_PASSWORD);
 
         // Act + Assert
-        mockMvc.perform(get("/api/v1/journal").param("date", "29/10/2026").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+        mockMvc.perform(get("/api/v1/journal")
+                        .param("date", "29/10/2026")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
     }
@@ -108,7 +110,9 @@ class JournalSecurityIT {
         var token = accessToken(createDeliveryDriver(), PASSWORD);
 
         // Act + Assert
-        mockMvc.perform(get("/api/v1/journal").param("date", "2026-10-29").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+        mockMvc.perform(get("/api/v1/journal")
+                        .param("date", "2026-10-29")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isForbidden());
     }
 

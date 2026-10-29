@@ -53,7 +53,8 @@ public class JournalController {
             @Parameter(description = "Jour UTC au format yyyy-MM-dd")
                     @RequestParam(required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    @Nullable LocalDate date) {
+                    @Nullable
+                    LocalDate date) {
         return journalService.getEntries(query, date);
     }
 }

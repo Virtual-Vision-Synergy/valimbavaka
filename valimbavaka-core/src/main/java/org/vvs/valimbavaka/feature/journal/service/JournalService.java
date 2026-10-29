@@ -3,8 +3,8 @@ package org.vvs.valimbavaka.feature.journal.service;
 import java.time.LocalDate;
 import java.util.UUID;
 
-
 import org.jspecify.annotations.Nullable;
+
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.dto.JournalEntryRDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
