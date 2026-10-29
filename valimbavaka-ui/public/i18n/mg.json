@@ -573,6 +573,7 @@
     "stockPending": "Hita rehefa misy ny fanaraha-maso tahiry",
     "import": "Hampiditra",
     "export": "Hamoaka",
+    "exportFailed": "Tsy tafita ny famoahana : andramo indray.",
     "new": "Entana vaovao",
     "listLabel": "Lisitry ny entana",
     "backToList": "Hiverina amin'ny entana",
