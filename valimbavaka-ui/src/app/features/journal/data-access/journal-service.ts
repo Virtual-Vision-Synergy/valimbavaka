@@ -11,9 +11,11 @@ export class JournalService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/v1/journal';
 
-  list(query: PageQuery): Observable<PageResponse<JournalEntryRDto>> {
+  /** `date` (yyyy-MM-dd, jour UTC) limite la liste à ce jour, en ordre chronologique ; absent = tout le journal. */
+  list(query: PageQuery, date?: string): Observable<PageResponse<JournalEntryRDto>> {
+    const params = toHttpParams(query);
     return this.http.get<PageResponse<JournalEntryRDto>>(this.baseUrl, {
-      params: toHttpParams(query),
+      params: date ? params.set('date', date) : params,
     });
   }
 }
