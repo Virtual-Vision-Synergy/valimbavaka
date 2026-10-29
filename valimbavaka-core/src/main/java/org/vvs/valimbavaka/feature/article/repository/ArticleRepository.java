@@ -20,6 +20,10 @@ public interface ArticleRepository extends Repository<Article, UUID> {
 
     Optional<Article> findById(UUID id);
 
+    Optional<Article> findByCode(String code);
+
+    Optional<Article> findByBarcode(String barcode);
+
     boolean existsByBarcode(String barcode);
 
     boolean existsByBarcodeAndIdNot(String barcode, UUID id);
@@ -27,6 +31,15 @@ public interface ArticleRepository extends Repository<Article, UUID> {
     /** Next number of the article code sequence (gaps are possible, a code is never reused). */
     @Query(value = "select nextval('article_code_seq')", nativeQuery = true)
     long nextCodeNumber();
+
+    /**
+     * Moves the code sequence up to {@code number} (never down) after an import used a code of the file, so that the
+     * next generated code cannot collide with it.
+     */
+    @Query(
+            value = "select setval('article_code_seq', greatest(:number, (select last_value from article_code_seq)))",
+            nativeQuery = true)
+    long advanceCodeSequence(long number);
 
     /** Case-insensitive search on code, name and barcode; empty {@code search} = all, null filters = all. */
     @Query(value = """
