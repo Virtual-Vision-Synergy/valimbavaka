@@ -55,8 +55,9 @@ public class ArticleImportRowProcessor {
     }
 
     ArticleImportRowRDto process(ArticleCsvRecord record, ImportConflictMode mode) {
-        if (record.error() != null) {
-            return rejected(record.row(), ImportRowStatus.INVALID, null, record.error());
+        var readError = record.error();
+        if (readError != null) {
+            return rejected(record.row(), ImportRowStatus.INVALID, null, readError);
         }
         var code = record.get("code");
         try {
@@ -86,7 +87,7 @@ public class ArticleImportRowProcessor {
         Optional<Article> byCode = code == null ? Optional.empty() : articleRepository.findByCode(code);
         Optional<Article> byBarcode = barcode == null ? Optional.empty() : articleRepository.findByBarcode(barcode);
         return byBarcode
-                .filter(owner -> code != null && isOtherArticle(byCode, owner))
+                .filter(owner -> code != null && isOtherArticle(byCode.orElse(null), owner))
                 .map(owner -> rejected(
                         row,
                         ImportRowStatus.CONFLICT,
@@ -99,9 +100,8 @@ public class ArticleImportRowProcessor {
     }
 
     /** True when the file names a code that is unknown or belongs to another article than the barcode owner. */
-    private static boolean isOtherArticle(Optional<Article> byCode, Article barcodeOwner) {
-        return byCode.map(article -> !article.getCode().equals(barcodeOwner.getCode()))
-                .orElse(true);
+    private static boolean isOtherArticle(@Nullable Article codeOwner, Article barcodeOwner) {
+        return codeOwner == null || !codeOwner.getCode().equals(barcodeOwner.getCode());
     }
 
     private ArticleImportRowRDto create(int row, @Nullable String code, ArticleWDto dto) {
