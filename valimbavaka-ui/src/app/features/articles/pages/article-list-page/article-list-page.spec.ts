@@ -51,6 +51,8 @@ describe('ArticleListPage', () => {
 
   const nextRequest = (): TestRequest => httpMock.expectOne((req) => req.url === ARTICLES_URL);
 
+  const rangesRequest = (): TestRequest => httpMock.expectOne((req) => req.url === RANGES_URL);
+
   const respond = async (request: TestRequest, body: object): Promise<void> => {
     request.flush(body);
     await fixture.whenStable();
@@ -60,7 +62,7 @@ describe('ArticleListPage', () => {
   /** Ouvre la page puis sert les gammes et la première page d'articles. */
   const openLoaded = async (items = [savonNoir, huileRicin], totalCount = items.length) => {
     await open();
-    httpMock.expectOne(RANGES_URL).flush({ items: [botanika, zezika] });
+    rangesRequest().flush({ items: [botanika, zezika] });
     await respond(nextRequest(), pageOf(items, 1, totalCount));
   };
 
@@ -109,7 +111,7 @@ describe('ArticleListPage', () => {
 
   it('should load the first page sorted by name, without criteria, on opening', async () => {
     await open();
-    httpMock.expectOne(RANGES_URL).flush({ items: [botanika, zezika] });
+    rangesRequest().flush({ items: [botanika, zezika] });
     const request = nextRequest();
 
     expect(request.request.params.get('page')).toBe('1');
@@ -233,8 +235,7 @@ describe('ArticleListPage', () => {
 
   it('should keep the list usable when the ranges cannot be loaded', async () => {
     await open();
-    httpMock
-      .expectOne(RANGES_URL)
+    rangesRequest()
       .flush(
         { title: 'Forbidden', status: 403, code: 'FORBIDDEN' },
         { status: 403, statusText: 'Forbidden' },
@@ -246,7 +247,7 @@ describe('ArticleListPage', () => {
 
   it('should offer a retry when the list cannot be loaded', async () => {
     await open();
-    httpMock.expectOne(RANGES_URL).flush({ items: [botanika] });
+    rangesRequest().flush({ items: [botanika] });
     nextRequest().flush(
       { title: 'Forbidden', status: 403, detail: 'Accès refusé', code: 'FORBIDDEN' },
       { status: 403, statusText: 'Forbidden' },
@@ -265,7 +266,7 @@ describe('ArticleListPage', () => {
 
   it('should hide the new article button without the create permission', async () => {
     await open('SELLER');
-    httpMock.expectOne(RANGES_URL).flush({ items: [] });
+    rangesRequest().flush({ items: [] });
     await respond(nextRequest(), pageOf([]));
 
     expect(newArticleLink()).toBeUndefined();
