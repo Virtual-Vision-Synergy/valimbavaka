@@ -47,13 +47,17 @@ export interface ArticleWDto {
   version?: number | null;
 }
 
-/** Filtres de GET /api/v1/articles : pagination, recherche (nom, code, code-barres) et critères. */
-export interface ArticleListQuery extends PageQuery {
+/** Critères communs à la liste et à l'export : recherche (nom, code, code-barres) et filtres. */
+export interface ArticleExportQuery {
+  search?: string;
   type?: ArticleType;
   rangeId?: string;
   supplierId?: string;
   active?: boolean;
 }
+
+/** Filtres de GET /api/v1/articles : pagination et critères. */
+export interface ArticleListQuery extends PageQuery, ArticleExportQuery {}
 
 /** Miroir de ArticleStatusWDto. */
 export interface ArticleStatusWDto {

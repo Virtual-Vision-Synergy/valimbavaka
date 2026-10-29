@@ -573,6 +573,7 @@
     "stockPending": "Stock disponible avec le suivi du stock",
     "import": "Importer",
     "export": "Exporter",
+    "exportFailed": "Export impossible : réessayez.",
     "new": "Nouvel article",
     "listLabel": "Liste des articles",
     "backToList": "Retour aux articles",
