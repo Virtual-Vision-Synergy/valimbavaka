@@ -235,11 +235,10 @@ describe('ArticleListPage', () => {
 
   it('should keep the list usable when the ranges cannot be loaded', async () => {
     await open();
-    rangesRequest()
-      .flush(
-        { title: 'Forbidden', status: 403, code: 'FORBIDDEN' },
-        { status: 403, statusText: 'Forbidden' },
-      );
+    rangesRequest().flush(
+      { title: 'Forbidden', status: 403, code: 'FORBIDDEN' },
+      { status: 403, statusText: 'Forbidden' },
+    );
     await respond(nextRequest(), pageOf([savonNoir]));
 
     expect(rowNames()).toEqual(['Savon noir 100 g']);
