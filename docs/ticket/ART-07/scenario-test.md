@@ -12,7 +12,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 | Données de départ | Un article existant `ART-0007 · Savon noir 100 g` de code-barres `3760001230014` ; une gamme du référentiel (SYS-05) ; un fournisseur actif |
 | Fichier type | `code;name;barcode;type;unit;threshold` puis `;Huile de ricin;;RAW_MATERIAL;LITER;2,5` (séparateur `;`, UTF-8, virgule ou point décimal) |
 | Tickets à avoir déployés avant | ART-01 (fiche article, séquence de code), JNL-01 (journal) |
-| Migration | `2026_10_29-02-changelog.sql` : permission `articles.import` donnée à `ADMIN` |
+| Migration | `2026_10_29-03-changelog.sql` : permission `articles.import` donnée à `ADMIN` |
 
 ## Scénarios issus des critères d'acceptation
 

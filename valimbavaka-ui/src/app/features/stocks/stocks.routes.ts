@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Stocks par emplacement : données de démonstration tant que le module backend n'existe pas. */
+/** Stocks par emplacement (STK-01). Réapprovisionnement : fournisseur, délai et ventes encore provisoires (STK-05). */
 export const STOCKS_ROUTES: Routes = [
   {
     path: '',

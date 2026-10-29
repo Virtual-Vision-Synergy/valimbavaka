@@ -22,4 +22,7 @@ public interface ReferentialService {
 
     /** Vrai si la gamme existe et est active (contrôle de référence pour les articles). */
     boolean isActiveProductRange(UUID productRangeId);
+
+    /** Vrai si l'emplacement de stock existe et est actif (contrôle de référence pour les mouvements de stock). */
+    boolean isActiveStockLocation(UUID stockLocationId);
 }
