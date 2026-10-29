@@ -66,7 +66,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 | 5c | Type `EMBALLAGE` | `INVALID` « Valeur inconnue pour type : « EMBALLAGE ». » | `ArticleImportRowProcessorTest.process_unknownType_returnsInvalid` | ✅ auto |
 | 5d | Prix `-1` et code-barres `123` | `INVALID` avec les deux motifs | `ArticleImportRowProcessorTest.process_negativePriceAndShortBarcode_returnsInvalidWithBothMessages` | ✅ auto |
 | 5e | Seuil `dix` | `INVALID` « Nombre invalide pour threshold : « dix ». » | `ArticleImportRowProcessorTest.process_notANumber_returnsInvalid` | ✅ auto |
-| 5e2 | Seuil vide | `INVALID` « Le seuil est obligatoire », rien écrit | `ArticleImportRowProcessorTest.process_missingThreshold_returnsInvalid` | ☐ |
+| 5e2 | Seuil vide | `INVALID` « Le seuil est obligatoire », rien écrit | `ArticleImportRowProcessorTest.process_missingThreshold_returnsInvalid` | ✅ auto |
 | 5f | Produit fini sans gamme | `INVALID` (règle d'ART-01), rien écrit | `ArticleImportRowProcessorTest.process_finishedWithoutRange_returnsInvalidFromReferenceChecker` | ✅ auto |
 | 5g | Ligne avec 3 colonnes au lieu de 4 | `INVALID` « Nombre de colonnes incorrect : 4 attendues, 3 trouvées. » | `ArticleCsvParserTest.parse_rowWithWrongColumnCount_returnsRecordWithError`, `ArticleImportRowProcessorTest.process_recordWithReadError_returnsInvalid` | ✅ auto |
 | 5h | La base refuse une ligne (écriture simultanée, unicité) | `CONFLICT`, les autres lignes continuent | `ArticleImportServiceImplTest.importArticles_databaseRefusesRow_reportsConflictAndGoesOn` | ✅ auto |
@@ -143,7 +143,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 ## Résultat de l'exécution
 
 - Date : 2026-10-29
-- Environnement : CI GitHub de la PR #167, commit `ef7fe4e` (fusion de `develop` comprise) : `Backend (Spring Boot)` = `mvn verify`, BUILD SUCCESS, 197 tests d'intégration sans échec (tests unitaires compris dans la même exécution) ; `Frontend (Angular)` vert ; Spotless, Checkstyle, Prettier, ESLint, gitleaks, CodeQL et Qodana verts. Le détail par test n'a pas été relu : « ✅ auto » vaut pour un job vert avec le test présent dans le code.
+- Environnement : CI GitHub de la PR #167, commit `6a04c63` (après fusion de `develop` et correctifs de qualité) : `Backend (Spring Boot)` = `mvn verify`, BUILD SUCCESS (tests unitaires et d'intégration) ; `Frontend (Angular)` vert ; Spotless, Checkstyle, Prettier, ESLint, gitleaks, CodeQL et Qodana (sans nouveau problème) verts. Le détail par test n'a pas été relu : « ✅ auto » vaut pour un job vert avec le test présent dans le code.
 - Anomalies ouvertes : aucune.
 - Écarts à suivre : les colonnes `rangeId` et `supplierId` attendent des UUID (pas de recherche par libellé de gamme ou nom de fournisseur) ; les traductions malgaches de `articles.importReport.*` sont à faire relire.
 - Étapes 🧪 restantes : 7 (R1 à R5, hors ligne, fichier > 1 Mo), pour Njara.
