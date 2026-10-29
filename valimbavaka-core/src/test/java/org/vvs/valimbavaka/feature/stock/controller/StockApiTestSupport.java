@@ -109,7 +109,8 @@ abstract class StockApiTestSupport {
         var encoded = passwordEncoder.encode(PASSWORD);
         if (roleName == RoleName.SELLER) {
             var channelId = jdbcTemplate.queryForObject("select id from sales_channels limit 1", UUID.class);
-            userRepository.save(User.create(profile, encoded, role, new SellerTerms(channelId, new BigDecimal("5.00"))));
+            userRepository.save(
+                    User.create(profile, encoded, role, new SellerTerms(channelId, new BigDecimal("5.00"))));
         } else {
             userRepository.save(User.create(profile, encoded, role));
         }

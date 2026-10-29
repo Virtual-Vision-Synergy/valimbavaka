@@ -49,7 +49,8 @@ public class StockServiceImpl implements StockService {
     @Override
     public PageResponse<StockRDto> getStocks(PageQuery query) {
         var articles = articleService.getArticles(query, ACTIVE_ARTICLES);
-        var balances = balancesByArticle(articles.items().stream().map(ArticleRDto::id).toList());
+        var balances =
+                balancesByArticle(articles.items().stream().map(ArticleRDto::id).toList());
         var locations = referentialService.getStockLocations(ALL_LOCATIONS).items();
         var items = articles.items().stream()
                 .map(article -> toStock(article, locations, balances))
@@ -67,9 +68,7 @@ public class StockServiceImpl implements StockService {
     }
 
     private StockRDto toStock(
-            ArticleRDto article,
-            List<StockLocationRDto> locations,
-            Map<UUID, Map<UUID, BigDecimal>> balances) {
+            ArticleRDto article, List<StockLocationRDto> locations, Map<UUID, Map<UUID, BigDecimal>> balances) {
         return stockMapper.toRDto(article, locations, balances.getOrDefault(article.id(), Map.of()));
     }
 

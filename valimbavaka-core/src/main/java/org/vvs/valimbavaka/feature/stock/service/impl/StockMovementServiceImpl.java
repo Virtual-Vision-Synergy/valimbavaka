@@ -44,7 +44,11 @@ public class StockMovementServiceImpl implements StockMovementService {
                 RESOURCE_TYPE,
                 movement.getId(),
                 "Mouvement %s de l'article %s · %s : %s"
-                        .formatted(command.type(), article.code(), article.name(), command.quantity().toPlainString()));
+                        .formatted(
+                                command.type(),
+                                article.code(),
+                                article.name(),
+                                command.quantity().toPlainString()));
         return stockMovementMapper.toRDto(movement);
     }
 }

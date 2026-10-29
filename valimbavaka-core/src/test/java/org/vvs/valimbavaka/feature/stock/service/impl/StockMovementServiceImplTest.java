@@ -79,16 +79,15 @@ class StockMovementServiceImplTest {
         // Assert
         assertThat(result).isSameAs(expected);
         var description = ArgumentCaptor.forClass(String.class);
-        verify(journalService)
-                .record(eq(JournalAction.CREATE), eq("STOCK_MOVEMENT"), any(), description.capture());
+        verify(journalService).record(eq(JournalAction.CREATE), eq("STOCK_MOVEMENT"), any(), description.capture());
         assertThat(description.getValue()).isEqualTo("Mouvement RECEIPT de l'article ART-0031 · Savon noir 100 g : 12");
     }
 
     @Test
     void record_rejectedByThePolicy_savesNothingAndTracesNothing() {
         // Arrange
-        var command = new StockMovementCommand(
-                ARTICLE_ID, LOCATION_ID, StockMovementType.SALE, new BigDecimal("-5"), null);
+        var command =
+                new StockMovementCommand(ARTICLE_ID, LOCATION_ID, StockMovementType.SALE, new BigDecimal("-5"), null);
         when(policy.check(command)).thenThrow(new ConflictException("Stock insuffisant"));
 
         // Act + Assert

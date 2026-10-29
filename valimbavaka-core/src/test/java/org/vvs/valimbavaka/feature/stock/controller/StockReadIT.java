@@ -38,7 +38,8 @@ class StockReadIT extends StockApiTestSupport {
         mockMvc.perform(get(STOCKS + "/" + articleId).header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(27.0))
-                .andExpect(jsonPath("$.locations[?(@.code=='WAREHOUSE')].quantity").value(20.0))
+                .andExpect(
+                        jsonPath("$.locations[?(@.code=='WAREHOUSE')].quantity").value(20.0))
                 .andExpect(jsonPath("$.locations[?(@.code=='STORE')].quantity").value(7.0));
     }
 

@@ -34,7 +34,8 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 class StockServiceImplTest {
 
     private static final UUID ARTICLE_ID = UUID.randomUUID();
-    private static final StockLocationRDto WAREHOUSE = new StockLocationRDto(UUID.randomUUID(), "WAREHOUSE", "Entrepôt");
+    private static final StockLocationRDto WAREHOUSE =
+            new StockLocationRDto(UUID.randomUUID(), "WAREHOUSE", "Entrepôt");
     private static final StockLocationRDto STORE = new StockLocationRDto(UUID.randomUUID(), "STORE", "Boutique");
     private static final PageQuery QUERY = new PageQuery(1, 20, null, null, null);
 
@@ -74,9 +75,7 @@ class StockServiceImplTest {
         assertThat(stock.locations())
                 .extracting(StockLocationQuantityRDto::code, StockLocationQuantityRDto::quantity)
                 .usingComparatorForType(BigDecimal::compareTo, BigDecimal.class)
-                .containsExactly(
-                        tuple("WAREHOUSE", new BigDecimal("30")),
-                        tuple("STORE", new BigDecimal("12.5")));
+                .containsExactly(tuple("WAREHOUSE", new BigDecimal("30")), tuple("STORE", new BigDecimal("12.5")));
     }
 
     @Test

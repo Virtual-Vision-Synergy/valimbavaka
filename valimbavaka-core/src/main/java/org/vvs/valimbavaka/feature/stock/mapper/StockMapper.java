@@ -25,9 +25,8 @@ public class StockMapper {
                         location.label(),
                         balances.getOrDefault(location.id(), BigDecimal.ZERO)))
                 .toList();
-        var total = quantities.stream()
-                .map(StockLocationQuantityRDto::quantity)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        var total =
+                quantities.stream().map(StockLocationQuantityRDto::quantity).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new StockRDto(
                 article.id(),
                 article.code(),
@@ -35,6 +34,7 @@ public class StockMapper {
                 article.rangeId(),
                 article.unit(),
                 article.threshold(),
+                article.cost(),
                 total,
                 quantities);
     }

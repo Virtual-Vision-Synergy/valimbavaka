@@ -16,5 +16,6 @@ public record StockRDto(
         @Nullable UUID rangeId,
         ArticleUnit unit,
         BigDecimal threshold,
+        @Nullable BigDecimal cost,
         BigDecimal total,
         List<StockLocationQuantityRDto> locations) {}
