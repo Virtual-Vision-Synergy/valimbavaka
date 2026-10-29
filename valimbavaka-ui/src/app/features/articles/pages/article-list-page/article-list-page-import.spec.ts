@@ -72,6 +72,17 @@ describe('ArticleListPage — import CSV', () => {
     fixture.detectChanges();
   };
 
+  /**
+   * Un import réussi recharge la liste : cette requête reste une tâche en cours tant que le test n'y répond pas,
+   * donc on n'attend pas la stabilité ici (`whenStable` ne reviendrait pas).
+   */
+  const answerImport = async (request: TestRequest, body: object): Promise<void> => {
+    request.flush(body);
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
+  };
+
   const pickFile = (): void => {
     const input = element.querySelector<HTMLInputElement>('input[type="file"]') as HTMLInputElement;
     const file = new File(['name;type;unit;threshold\n'], 'articles.csv', { type: 'text/csv' });
@@ -101,7 +112,7 @@ describe('ArticleListPage — import CSV', () => {
     await open('ADMIN');
 
     pickFile();
-    await settle(importRequest('SKIP'), withConflict);
+    await answerImport(importRequest('SKIP'), withConflict);
     await settle(httpMock.expectOne((req) => req.url === ARTICLES_URL));
 
     expect(element.querySelector('vvs-article-import-report')).not.toBeNull();
@@ -113,7 +124,7 @@ describe('ArticleListPage — import CSV', () => {
   it("rejoue uniquement les lignes en conflit quand l'administrateur choisit d'écraser", async () => {
     await open('ADMIN');
     pickFile();
-    await settle(importRequest('SKIP'), withConflict);
+    await answerImport(importRequest('SKIP'), withConflict);
     await settle(httpMock.expectOne((req) => req.url === ARTICLES_URL));
 
     const overwrite = Array.from(element.querySelectorAll<HTMLButtonElement>('button')).find(
@@ -123,7 +134,7 @@ describe('ArticleListPage — import CSV', () => {
 
     const replay = importRequest('OVERWRITE');
     expect(replay.request.params.get('onlyRows')).toBe('2');
-    await settle(replay, { ...withConflict, conflicts: 0, updated: 1, rows: [] });
+    await answerImport(replay, { ...withConflict, conflicts: 0, updated: 1, rows: [] });
     await settle(httpMock.expectOne((req) => req.url === ARTICLES_URL));
     expect(element.textContent).not.toContain('Écraser les');
   });
@@ -132,7 +143,7 @@ describe('ArticleListPage — import CSV', () => {
     await open('ADMIN');
 
     pickFile();
-    await settle(importRequest('SKIP'), withConflict);
+    await answerImport(importRequest('SKIP'), withConflict);
     await settle(httpMock.expectOne((req) => req.url === ARTICLES_URL));
 
     httpMock.expectNone((req) => req.url === IMPORT_URL);
