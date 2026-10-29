@@ -1,67 +1,64 @@
 # Guide d'intégration — JNL-03 · Accès au journal complet
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ☐ à compléter · Ticket : [#104](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/104) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ implémenté, tests écrits mais non exécutés (à lancer en CI) · Ticket : [#104](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/104) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+L'administrateur ouvre le journal depuis une icône de la barre supérieure. La page affiche par défaut les opérations du jour UTC en ordre chronologique ; un sélecteur de jour et un bouton « Tout le journal » permettent de remonter plus loin. Aucune migration : seul un filtre `date` optionnel s'ajoute à l'API de JNL-01.
 
 ## Contrat exposé
 
 ### Endpoints backend
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
+| Méthode | URL | Permission | Entrée | Sortie | Erreurs |
 |---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+| GET | `/api/v1/journal` | `journal.read` (ADMIN) | `PageQuery` + `date` optionnel (`yyyy-MM-dd`, jour UTC) | 200 `PageResponse<JournalEntryRDto>` | 400 `MALFORMED_REQUEST` (date illisible), 401, 403 |
+
+Avec `date` : entrées dont `occurredAt` est dans `[date 00:00Z ; date+1 00:00Z[`, tri par défaut `occurredAt` croissant. Sans `date` : comportement JNL-01 inchangé (tout le journal, décroissant). `sortBy` / `sortDirection` explicites priment dans les deux cas.
 
 ### Services et ports Java réutilisables
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+- `JournalService.getEntries(PageQuery, LocalDate)` : la signature a changé (second paramètre nullable) ; `JournalService.record(...)` est inchangé.
+- `JournalEntryRepository.searchBetween` : même recherche texte que `search`, bornée en temps.
 
 ### Frontend
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+- Routes : `/journal` (inchangée, `journal.routes.ts`).
+- `JournalService.list(query, date?)` (`journal-service.ts`) : n'ajoute `date` que s'il est renseigné.
+- `JournalListPage` : signal `day` initialisé au jour UTC courant, méthode `onDayChange` ; les heures sont affichées en UTC.
+- `TopBar` : signal `canReadJournal` (permission `journal.read`) et lien `a.journal-link` vers `/journal`.
 
 ### Données
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+- Aucune table ni migration Liquibase.
+- Aucune écriture dans le journal (consultation seule).
 
 ## Règles métier à respecter par les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- Le « jour » du journal est le jour UTC, pas le jour local. Un ticket qui affiche des dates du journal doit le préciser.
+- Le journal reste en lecture seule : aucune route d'écriture (`JournalSecurityIT.journal_writeVerbs_areNotExposed`).
+- Le lien de la barre supérieure améliore l'UX ; le serveur décide via `@HasPermission("journal.read")`.
 
 ## Fichiers concernés
 
-**À exposer / créer (liste du traiteur)** : _(à compléter)_
-
-Zone de départ (voir `description.md`) :
-
-- Frontend :
-  - `valimbavaka-ui/src/app/features/journal`
-- Backend :
-  - `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/journal`
-  - `valimbavaka-core/src/main/java/org/vvs/valimbavaka/shared/operation`
+- Back : `JournalController` (paramètre `date`), `JournalService` / `JournalServiceImpl.getEntries`, `JournalEntryRepository.searchBetween`.
+- Front : `journal-service.ts`, `journal-list-page.{ts,html}`, `top-bar.{ts,html}`, `public/i18n/{fr,mg}.json` (`journal.day.*`, `layout.journal`).
+- Tests : `JournalServiceImplTest`, `JournalSecurityIT`, `journal-service.spec.ts`, `journal-list-page.spec.ts`, `main-layout.spec.ts`.
 
 ## Dépendances
 
-**Ce ticket s'appuie sur** :
-- [JNL-01](../JNL-01/description.md) · [guide](../JNL-01/guide.md)
+**Ce ticket s'appuie sur** : [JNL-01](../JNL-01/description.md) · [guide](../JNL-01/guide.md)
 
-**Ces tickets s'appuient sur lui** :
-- _(rien)_
+**Ces tickets s'appuient sur lui** : _(rien)_
 
 ## Comment l'utiliser depuis un autre ticket
 
 ```text
-(exemple d'appel ou d'injection à compléter)
+GET /api/v1/journal?date=2026-10-29&page=1&size=20
 ```
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- Les entrées proches de minuit local (Madagascar = UTC+3) tombent dans le jour UTC voisin : décision validée avec le demandeur pour éviter les bugs de fuseau.
+- Changer la signature de `getEntries` impose de mettre à jour tout futur appelant.
+- `searchBetween` n'est pas couvert par un test d'intégration avec données (seul un jour vide et le jour courant sont testés) : une recette manuelle R1 est prévue.
