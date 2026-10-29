@@ -17,13 +17,13 @@ En tant qu'administrateur, je veux importer des articles en masse afin de gagner
 
 _Format et comportement précisés avec le porteur de projet le 2026-10-29 (le label `needs-info` peut être retiré)._
 
-- [ ] 1. L'administrateur importe un fichier CSV (UTF-8, séparateur `;`, 1 000 lignes au maximum) ; les colonnes sont `code;name;barcode;type;rangeId;unit;cost;price;threshold;supplierId`.
-- [ ] 2. Le code de l'article vient du serveur (colonne `code` vide) ou du fichier (`ART-0500`) ; un code du fichier ne fait jamais entrer la séquence en collision.
-- [ ] 3. Une ligne dont le code ou le code-barres existe déjà (ou est répété dans le fichier) est rejetée et signalée en conflit, sans rien modifier.
-- [ ] 4. L'administrateur choisit ensuite d'écraser les articles en conflit : seules les lignes en conflit sont rejouées en mode `OVERWRITE`.
-- [ ] 5. L'import est partiel : les lignes valides sont créées, les autres sont listées avec leur motif (numéro de ligne, article en conflit).
-- [ ] 6. Chaque article créé ou remplacé est tracé dans le journal (une ligne `CREATE` ou `UPDATE` par article).
-- [ ] 7. L'import n'est possible qu'en ligne et seul l'administrateur peut le lancer (`articles.import`).
+- [x] 1. L'administrateur importe un fichier CSV (UTF-8, séparateur `;`, 1 000 lignes au maximum) ; les colonnes sont `code;name;barcode;type;rangeId;unit;cost;price;threshold;supplierId`. — *✅ vérifié par les tests automatiques (voir le scénario)*
+- [x] 2. Le code de l'article vient du serveur (colonne `code` vide) ou du fichier (`ART-0500`) ; un code du fichier ne fait jamais entrer la séquence en collision. — *✅ vérifié par les tests automatiques (voir le scénario)*
+- [x] 3. Une ligne dont le code ou le code-barres existe déjà (ou est répété dans le fichier) est rejetée et signalée en conflit, sans rien modifier. — *✅ vérifié par les tests automatiques (voir le scénario)*
+- [x] 4. L'administrateur choisit ensuite d'écraser les articles en conflit : seules les lignes en conflit sont rejouées en mode `OVERWRITE`. — *✅ vérifié par les tests automatiques (voir le scénario)*
+- [x] 5. L'import est partiel : les lignes valides sont créées, les autres sont listées avec leur motif (numéro de ligne, article en conflit). — *✅ vérifié par les tests automatiques (voir le scénario)*
+- [x] 6. Chaque article créé ou remplacé est tracé dans le journal (une ligne `CREATE` ou `UPDATE` par article). — *✅ vérifié par les tests automatiques (voir le scénario)*
+- [x] 7. L'import n'est possible qu'en ligne et seul l'administrateur peut le lancer (`articles.import`). — *✅ vérifié par les tests automatiques (voir le scénario)*
 
 ## Détails
 

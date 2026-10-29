@@ -1,6 +1,6 @@
 # Guide d'intégration — ART-07 · Import d'articles en masse
 
-Statut : ✅ écrit le 2026-10-29 — **tests non exécutés** (voir « Résultat de l'exécution » du scénario) · Ticket : [#27](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/27) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-10-29 — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#27](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/27) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -89,4 +89,3 @@ Ne jamais rejouer le fichier entier en `OVERWRITE` : une ligne sans code ni code
 - Le numéro de ligne est celui de l'enregistrement après l'en-tête, pas celui de la ligne physique du fichier (différent si un champ entre guillemets contient un retour à la ligne). Les lignes vides sont ignorées sans être comptées.
 - `advanceCodeSequence` lit puis écrit la séquence sans verrou : deux imports simultanés avec des codes de fichier pourraient la faire reculer ; la contrainte `uq_articles_code` empêche tout doublon (la ligne concernée devient un conflit).
 - Les traductions malgaches de `articles.importReport.*` sont à faire relire.
-- Les tests n'ont pas été exécutés : voir le scénario.
