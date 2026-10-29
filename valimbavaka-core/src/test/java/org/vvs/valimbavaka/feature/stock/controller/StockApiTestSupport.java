@@ -57,7 +57,11 @@ abstract class StockApiTestSupport {
     private PasswordEncoder passwordEncoder;
 
     protected UUID createArticle(String name) throws Exception {
-        var body = "{\"name\":\"%s\",\"type\":\"FINISHED\",\"unit\":\"PIECE\",\"threshold\":40}".formatted(name);
+        var rangeId = jdbcTemplate.queryForObject("select id from product_ranges limit 1", UUID.class);
+        var body = """
+                {"name":"%s","type":"FINISHED","unit":"PIECE","rangeId":"%s","cost":3120.5,"price":8500,
+                 "threshold":40}
+                """.formatted(name, rangeId);
         MvcResult result = mockMvc.perform(post("/api/v1/articles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
