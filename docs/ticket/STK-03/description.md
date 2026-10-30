@@ -15,7 +15,7 @@ En tant qu'administrateur, je veux voir la quantité et la valeur du stock par e
 
 ## Critères d'acceptation
 
-- [ ] Chaque emplacement affiche sa quantité totale et sa valorisation en Ariary.
+- [x] Chaque emplacement affiche sa quantité totale et sa valorisation en Ariary. — *✅ vérifié : `GET /api/v1/stocks/valuation` (administrateur) et cartes de `/stocks`, voir le [scénario](scenario-test.md)*
 
 ## Détails
 
@@ -32,7 +32,7 @@ En tant qu'administrateur, je veux voir la quantité et la valeur du stock par e
 
 ## Dépend de
 
-- [STK-01](../STK-01/description.md) · Suivi du stock par emplacement (ouvert)
+- [STK-01](../STK-01/description.md) · Suivi du stock par emplacement (livré dans `develop`)
 - [SYS-05](../SYS-05/description.md) · Rôles métier, référentiels et compte administrateur initial (fermé)
 
 ## Zone du code concernée
@@ -43,4 +43,4 @@ _Repérée dans l'arborescence au 2026-10-23 ; le traiteur confirme dans `guide.
 - `valimbavaka-ui/src/app/features/stocks`
 
 **Backend (`valimbavaka-core`)**
-- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/stock (à créer)`
+- `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/stock` (détail dans le [guide](guide.md))

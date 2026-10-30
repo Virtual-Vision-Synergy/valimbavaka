@@ -4,8 +4,8 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import { ReferentialService } from '../../referential/data-access/referential-service';
-import { toStockRow } from './stock-mapping';
-import { StockRDto, StockRowRDto } from './stock-models';
+import { LocationTotals, toLocationTotals, toStockRow } from './stock-mapping';
+import { StockRDto, StockRowRDto, StockValuationRDto } from './stock-models';
 
 /** Une page de 100 articles actifs, triés par nom (taille maximale du serveur). */
 const ALL_ARTICLES: PageQuery = { page: 1, size: 100, sortBy: 'name', sortDirection: 'ASC' };
@@ -27,5 +27,12 @@ export class StockService {
       }),
       ranges: this.referential.listProductRanges(),
     }).pipe(map(({ stocks, ranges }) => stocks.items.map((stock) => toStockRow(stock, ranges))));
+  }
+
+  /** Quantité et valeur au coût de tout le stock, par emplacement (STK-03) ; réservé à `stocks.value`. */
+  valuation(): Observable<LocationTotals> {
+    return this.http
+      .get<StockValuationRDto>(`${this.baseUrl}/valuation`)
+      .pipe(map(toLocationTotals));
   }
 }

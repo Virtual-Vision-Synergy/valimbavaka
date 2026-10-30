@@ -1,6 +1,6 @@
 import { ProductRangeRDto } from '../../referential/data-access/referential-models';
-import { toStockRow } from './stock-mapping';
-import { StockRDto } from './stock-models';
+import { toLocationTotals, toStockRow } from './stock-mapping';
+import { StockRDto, StockValuationRDto } from './stock-models';
 
 const RANGES: ProductRangeRDto[] = [
   { id: 'range-1', code: 'ZEZIKA', label: 'Zezika' },
@@ -55,5 +55,53 @@ describe('toStockRow', () => {
     );
 
     expect(row.quantities).toEqual({ WAREHOUSE: 0, SHOP: 0, DELIVERY: 0, SALON: 0 });
+  });
+});
+
+const valuation: StockValuationRDto = {
+  quantity: 12.5,
+  value: 31205,
+  unvaluedQuantity: 2.5,
+  locations: [
+    {
+      locationId: 'l1',
+      code: 'WAREHOUSE',
+      label: 'Entrepôt',
+      quantity: 6,
+      value: 18723,
+      unvaluedQuantity: 0,
+    },
+    {
+      locationId: 'l2',
+      code: 'STORE',
+      label: 'Boutique',
+      quantity: 6.5,
+      value: 12482,
+      unvaluedQuantity: 2.5,
+    },
+  ],
+};
+
+describe('toLocationTotals', () => {
+  it('range quantité et valeur du serveur sous les emplacements de l’interface', () => {
+    const totals = toLocationTotals(valuation);
+
+    expect(totals.WAREHOUSE).toEqual({ units: 6, value: 18723, unvaluedUnits: 0 });
+    expect(totals.SHOP).toEqual({ units: 6.5, value: 12482, unvaluedUnits: 2.5 });
+  });
+
+  it('reprend les totaux du serveur pour « Tous »', () => {
+    expect(toLocationTotals(valuation).ALL).toEqual({
+      units: 12.5,
+      value: 31205,
+      unvaluedUnits: 2.5,
+    });
+  });
+
+  it('met zéro aux emplacements absents de la réponse', () => {
+    const totals = toLocationTotals(valuation);
+
+    expect(totals.DELIVERY).toEqual({ units: 0, value: 0, unvaluedUnits: 0 });
+    expect(totals.SALON).toEqual({ units: 0, value: 0, unvaluedUnits: 0 });
   });
 });

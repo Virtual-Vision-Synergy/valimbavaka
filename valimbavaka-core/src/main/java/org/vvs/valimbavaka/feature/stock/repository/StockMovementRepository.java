@@ -32,6 +32,16 @@ public interface StockMovementRepository extends Repository<StockMovement, UUID>
             """)
     List<StockBalance> balances(Collection<UUID> articleIds);
 
+    /** Non-zero balances of every article (inactive ones included) in every location (STK-03: valuation). */
+    @Query("""
+            select new org.vvs.valimbavaka.feature.stock.repository.StockBalance(
+                m.articleId, m.locationId, sum(m.quantity))
+            from StockMovement m
+            group by m.articleId, m.locationId
+            having sum(m.quantity) <> 0
+            """)
+    List<StockBalance> nonZeroBalances();
+
     /** Serialises concurrent movements on the same article and location until the end of the transaction. */
     @Query(value = "select pg_advisory_xact_lock(hashtextextended(:key, 0)) is not null", nativeQuery = true)
     boolean lock(String key);

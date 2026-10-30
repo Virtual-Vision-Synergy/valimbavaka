@@ -1,5 +1,8 @@
 package org.vvs.valimbavaka.feature.article.service;
 
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
@@ -21,6 +24,9 @@ public interface ArticleService {
     PageResponse<ArticleExportRDto> getExportableArticles(PageQuery query, ArticleFilter filter);
 
     ArticleRDto getArticleById(UUID articleId);
+
+    /** Purchase cost of the given articles (STK-03); an unknown article or one without cost is absent. */
+    Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds);
 
     /** Active articles usable in production with this usage (ART-04): MP/SF as inputs, finished products as outputs. */
     PageResponse<ArticleRDto> getProductionArticles(PageQuery query, ProductionUsage usage);

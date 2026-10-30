@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.stock.dto.StockRDto;
+import org.vvs.valimbavaka.feature.stock.dto.StockValuationRDto;
 import org.vvs.valimbavaka.feature.stock.service.StockService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -45,6 +46,14 @@ public class StockController {
     @HasPermission("stocks.read")
     public PageResponse<StockRDto> getStocks(@Valid PageQuery query) {
         return stockService.getStocks(query);
+    }
+
+    @GetMapping("/valuation")
+    @Operation(summary = "Quantity and value at cost of the stock per location, in Ariary")
+    @ApiResponse(responseCode = "200", description = "Valuation of the stock")
+    @HasPermission("stocks.value")
+    public StockValuationRDto getValuation() {
+        return stockService.getValuation();
     }
 
     @GetMapping("/{articleId}")

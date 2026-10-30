@@ -1,7 +1,11 @@
 package org.vvs.valimbavaka.feature.article.service.impl;
 
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +23,7 @@ import org.vvs.valimbavaka.feature.article.dto.ArticleExportRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
 import org.vvs.valimbavaka.feature.article.mapper.ArticleMapper;
+import org.vvs.valimbavaka.feature.article.repository.ArticleCost;
 import org.vvs.valimbavaka.feature.article.repository.ArticleRepository;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
@@ -77,6 +82,12 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public ArticleRDto getArticleById(UUID articleId) {
         return articleMapper.toRDto(findArticle(articleId));
+    }
+
+    @Override
+    public Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds) {
+        return articleRepository.findCosts(articleIds).stream()
+                .collect(Collectors.toMap(ArticleCost::articleId, ArticleCost::cost));
     }
 
     @Override

@@ -1,7 +1,17 @@
 import { STOCK_LOCATIONS, StockLocation } from '../../../shared/data-access/demo-catalog';
 import { ProductRange } from '../../../shared/models/tone';
 import { ProductRangeRDto } from '../../referential/data-access/referential-models';
-import { StockRDto, StockRowRDto } from './stock-models';
+import { LocationFilter } from './stock-levels';
+import { StockRDto, StockRowRDto, StockValuationRDto } from './stock-models';
+
+/** Quantité et valeur d'une carte d'emplacement, calculées par le serveur sur tout le stock (STK-03). */
+export interface LocationTotal {
+  readonly units: number;
+  readonly value: number;
+  readonly unvaluedUnits: number;
+}
+
+export type LocationTotals = Readonly<Record<LocationFilter, LocationTotal>>;
 
 /** Codes d'emplacement du serveur (référentiel SYS-05) → codes utilisés par l'interface. */
 const LOCATION_BY_CODE: Readonly<Record<string, StockLocation>> = {
@@ -24,6 +34,31 @@ export function toStockRow(stock: StockRDto, ranges: readonly ProductRangeRDto[]
     threshold: stock.threshold,
     unitCost: stock.cost ?? 0,
     ...PENDING_RESTOCK_FIELDS,
+  };
+}
+
+/** Valorisation du serveur rangée sous les emplacements de l'interface ; « Tous » reprend les totaux. */
+export function toLocationTotals(valuation: StockValuationRDto): LocationTotals {
+  const totals = Object.fromEntries(
+    STOCK_LOCATIONS.map((location) => [location, { units: 0, value: 0, unvaluedUnits: 0 }]),
+  ) as Record<StockLocation, LocationTotal>;
+  for (const item of valuation.locations) {
+    const location = LOCATION_BY_CODE[item.code];
+    if (location) {
+      totals[location] = {
+        units: item.quantity,
+        value: item.value,
+        unvaluedUnits: item.unvaluedQuantity,
+      };
+    }
+  }
+  return {
+    ...totals,
+    ALL: {
+      units: valuation.quantity,
+      value: valuation.value,
+      unvaluedUnits: valuation.unvaluedQuantity,
+    },
   };
 }
 

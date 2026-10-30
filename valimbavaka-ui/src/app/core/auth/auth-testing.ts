@@ -1,6 +1,6 @@
 import { CurrentUserRDto } from './auth-models';
 
-/** Permissions de chaque rôle, miroir du seed Liquibase (2026_10_19-01) : à n'utiliser que dans les tests. */
+/** Permissions de chaque rôle, miroir des seeds Liquibase (2026_10_19-01…) : à n'utiliser que dans les tests. */
 export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
   ADMIN: [
     'dashboard.read',
@@ -13,6 +13,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     'articles.import',
     'articles.export',
     'stocks.read',
+    'stocks.value',
     'production.read',
     'transfers.read',
     'inventory.read',

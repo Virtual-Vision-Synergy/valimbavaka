@@ -22,6 +22,11 @@
       <span class="value num">
         {{ 'stocks.value' | translate: { amount: (card.value | ariary: 'compact') } }}
       </span>
+      @if (card.unvaluedUnits) {
+        <span class="unvalued">
+          {{ 'stocks.unvalued' | translate: { count: (card.unvaluedUnits | ariary: 'plain') } }}
+        </span>
+      }
     </button>
   }
 </div>
