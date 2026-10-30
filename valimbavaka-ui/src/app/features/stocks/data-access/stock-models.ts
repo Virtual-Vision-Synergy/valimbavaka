@@ -24,6 +24,25 @@ export interface StockRDto {
   readonly locations: readonly StockLocationQuantityRDto[];
 }
 
+/** Stock d'un emplacement, tous articles confondus : valeur au coût d'achat en ariary (STK-03). */
+export interface StockLocationValueRDto {
+  readonly locationId: string;
+  readonly code: string;
+  readonly label: string;
+  readonly quantity: number;
+  readonly value: number;
+  /** Part de la quantité non valorisée : ses articles n'ont pas de coût d'achat. */
+  readonly unvaluedQuantity: number;
+}
+
+/** `GET /api/v1/stocks/valuation` (permission `stocks.value`) : chaque emplacement actif et les totaux (STK-03). */
+export interface StockValuationRDto {
+  readonly quantity: number;
+  readonly value: number;
+  readonly unvaluedQuantity: number;
+  readonly locations: readonly StockLocationValueRDto[];
+}
+
 /**
  * Ligne affichée par la page des stocks, déduite d'un `StockRDto` (voir `stock-mapping.ts`).
  * Fournisseur, délai et ventes journalières sont provisoires jusqu'à STK-05.

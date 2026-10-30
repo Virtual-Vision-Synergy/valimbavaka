@@ -538,6 +538,7 @@
     "alerts": "Entana {{count}} lany amin'ity toerana ity",
     "units": "isa",
     "value": "Sanda {{amount}} Ar",
+    "unvalued": "{{count}} tsy misy vidin'ny fividianana",
     "listLabel": "Tahiry isaky ny entana sy toerana",
     "levelFilter": "Haavon'ny tahiry",
     "level": {

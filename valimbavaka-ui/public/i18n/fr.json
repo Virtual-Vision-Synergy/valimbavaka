@@ -538,6 +538,7 @@
     "alerts": "{{count}} rupture(s) dans cet emplacement",
     "units": "unités",
     "value": "Valeur {{amount}} Ar",
+    "unvalued": "dont {{count}} sans coût d'achat",
     "listLabel": "Stock par article et par emplacement",
     "levelFilter": "Niveau de stock",
     "level": {

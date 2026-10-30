@@ -17,7 +17,7 @@
   @if (stock.error()) {
     <div class="card"><vvs-list-state kind="error" (retry)="stock.reload()" /></div>
   } @else if (stock.value(); as all) {
-    <vvs-location-cards [rows]="all" [(selected)]="location" />
+    <vvs-location-cards [rows]="all" [totals]="totals()" [(selected)]="location" />
 
     <section class="card flush" [attr.aria-label]="'stocks.listLabel' | translate">
       <div class="toolbar">

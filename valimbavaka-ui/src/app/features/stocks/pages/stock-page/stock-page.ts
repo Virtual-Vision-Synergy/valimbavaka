@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FilePlus, Truck } from 'lucide';
+import { of } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthStore } from '../../../../core/auth/auth-store';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -45,11 +47,20 @@ type LevelFilter = 'ALL' | Exclude<StockLevel, 'OK'>;
 })
 export class StockPage {
   private readonly stockService = inject(StockService);
+  private readonly authStore = inject(AuthStore);
   private readonly toast = inject(ToastService);
 
   protected readonly icons = { FilePlus, Truck };
   protected readonly locations = STOCK_LOCATIONS;
   protected readonly stock = rxResource({ stream: () => this.stockService.list() });
+  /** Valorisation de tout le stock par emplacement (STK-03) : administrateur seulement, sinon calcul local. */
+  protected readonly valuation = rxResource({
+    stream: () =>
+      this.authStore.hasPermission('stocks.value') ? this.stockService.valuation() : of(null),
+  });
+  protected readonly totals = computed(() =>
+    this.valuation.hasValue() ? this.valuation.value() : null,
+  );
   protected readonly location = signal<LocationFilter>('ALL');
   protected readonly level = signal<LevelFilter>('ALL');
   protected readonly selection = signal<ReadonlySet<string>>(new Set());

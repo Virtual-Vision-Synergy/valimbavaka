@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { LocationTotals } from './stock-mapping';
 import { StockRowRDto } from './stock-models';
 import { StockService } from './stock-service';
 
@@ -56,6 +57,32 @@ describe('StockService', () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].quantities.SHOP).toBe(12);
     expect(rows[0].range).toBe('ZEZIKA');
+  });
+
+  it('lit la valorisation par emplacement du serveur (STK-03)', () => {
+    let totals: LocationTotals | undefined;
+    service.valuation().subscribe((value) => (totals = value));
+
+    const request = httpMock.expectOne('/api/v1/stocks/valuation');
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      quantity: 4,
+      value: 12482,
+      unvaluedQuantity: 0,
+      locations: [
+        {
+          locationId: 'l2',
+          code: 'STORE',
+          label: 'Boutique',
+          quantity: 4,
+          value: 12482,
+          unvaluedQuantity: 0,
+        },
+      ],
+    });
+
+    expect(totals?.SHOP).toEqual({ units: 4, value: 12482, unvaluedUnits: 0 });
+    expect(totals?.ALL.value).toBe(12482);
   });
 
   it('renvoie une liste vide quand aucun article n’est actif', () => {
