@@ -1,10 +1,12 @@
 package org.vvs.valimbavaka.feature.stock.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -15,7 +17,9 @@ import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
+import org.vvs.valimbavaka.feature.stock.dto.StockLocationValueRDto;
 import org.vvs.valimbavaka.feature.stock.dto.StockRDto;
+import org.vvs.valimbavaka.feature.stock.dto.StockValuationRDto;
 import org.vvs.valimbavaka.feature.stock.mapper.StockMapper;
 import org.vvs.valimbavaka.feature.stock.repository.StockBalance;
 import org.vvs.valimbavaka.feature.stock.repository.StockMovementRepository;
@@ -29,6 +33,7 @@ public class StockServiceImpl implements StockService {
 
     private static final PageQuery ALL_LOCATIONS = new PageQuery(1, 100, null, "code", null);
     private static final ArticleFilter ACTIVE_ARTICLES = new ArticleFilter(null, null, null, true);
+    private static final int MONEY_SCALE = 2;
 
     private final ArticleService articleService;
     private final ReferentialService referentialService;
@@ -65,6 +70,51 @@ public class StockServiceImpl implements StockService {
         var balances = balancesByArticle(List.of(articleId));
         var locations = referentialService.getStockLocations(ALL_LOCATIONS).items();
         return toStock(article, locations, balances);
+    }
+
+    @Override
+    public StockValuationRDto getValuation() {
+        var balances = stockMovementRepository.nonZeroBalances();
+        var articleIds = balances.stream().map(StockBalance::articleId).collect(Collectors.toSet());
+        var costs = articleIds.isEmpty() ? Map.<UUID, BigDecimal>of() : articleService.getCosts(articleIds);
+        var byLocation = balances.stream().collect(Collectors.groupingBy(StockBalance::locationId));
+        var locations = referentialService.getStockLocations(ALL_LOCATIONS).items().stream()
+                .map(location -> valueOf(location, byLocation.getOrDefault(location.id(), List.of()), costs))
+                .toList();
+        return new StockValuationRDto(
+                sum(locations, StockLocationValueRDto::quantity),
+                sum(locations, StockLocationValueRDto::value),
+                sum(locations, StockLocationValueRDto::unvaluedQuantity),
+                locations);
+    }
+
+    /** Quantity times cost of each article, rounded once per location; an article without cost is not valued. */
+    private static StockLocationValueRDto valueOf(
+            StockLocationRDto location, List<StockBalance> balances, Map<UUID, BigDecimal> costs) {
+        var quantity = BigDecimal.ZERO;
+        var value = BigDecimal.ZERO;
+        var unvalued = BigDecimal.ZERO;
+        for (var balance : balances) {
+            quantity = quantity.add(balance.quantity());
+            var cost = costs.get(balance.articleId());
+            if (cost == null) {
+                unvalued = unvalued.add(balance.quantity());
+            } else {
+                value = value.add(balance.quantity().multiply(cost));
+            }
+        }
+        return new StockLocationValueRDto(
+                location.id(),
+                location.code(),
+                location.label(),
+                quantity,
+                value.setScale(MONEY_SCALE, RoundingMode.HALF_UP),
+                unvalued);
+    }
+
+    private static BigDecimal sum(
+            List<StockLocationValueRDto> locations, Function<StockLocationValueRDto, BigDecimal> field) {
+        return locations.stream().map(field).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private StockRDto toStock(

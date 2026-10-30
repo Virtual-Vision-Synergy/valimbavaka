@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.article.repository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -86,4 +87,12 @@ public interface ArticleRepository extends Repository<Article, UUID> {
                    or a.barcode like concat('%', :search, '%'))
             """)
     Page<Article> searchActiveByTypes(String search, Collection<ArticleType> types, Pageable pageable);
+
+    /** Costs of the given articles; articles without cost are left out. */
+    @Query("""
+            select new org.vvs.valimbavaka.feature.article.repository.ArticleCost(a.id, a.cost)
+            from Article a
+            where a.id in :articleIds and a.cost is not null
+            """)
+    List<ArticleCost> findCosts(Collection<UUID> articleIds);
 }

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +32,7 @@ import org.vvs.valimbavaka.feature.article.domain.ArticleType;
 import org.vvs.valimbavaka.feature.article.domain.ArticleUnit;
 import org.vvs.valimbavaka.feature.article.dto.ArticleWDto;
 import org.vvs.valimbavaka.feature.article.mapper.ArticleMapper;
+import org.vvs.valimbavaka.feature.article.repository.ArticleCost;
 import org.vvs.valimbavaka.feature.article.repository.ArticleRepository;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
@@ -110,6 +112,21 @@ class ArticleServiceImplTest {
                 .isInstanceOf(BusinessException.class);
         verify(articleRepository, never()).save(any());
         verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void getCosts_articlesWithCost_returnsTheCostOfEachArticle() {
+        // Arrange
+        var ids = List.of(ARTICLE_ID);
+        when(articleRepository.findCosts(ids))
+                .thenReturn(List.of(new ArticleCost(ARTICLE_ID, new BigDecimal("3120.50"))));
+
+        // Act
+        var costs = sut.getCosts(ids);
+
+        // Assert
+        assertThat(costs).containsOnlyKeys(ARTICLE_ID);
+        assertThat(costs.get(ARTICLE_ID)).isEqualByComparingTo("3120.5");
     }
 
     @Test

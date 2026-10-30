@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +25,7 @@ import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
 import org.vvs.valimbavaka.feature.stock.dto.StockLocationQuantityRDto;
+import org.vvs.valimbavaka.feature.stock.dto.StockLocationValueRDto;
 import org.vvs.valimbavaka.feature.stock.mapper.StockMapper;
 import org.vvs.valimbavaka.feature.stock.repository.StockBalance;
 import org.vvs.valimbavaka.feature.stock.repository.StockMovementRepository;
@@ -33,6 +36,7 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 class StockServiceImplTest {
 
     private static final UUID ARTICLE_ID = UUID.randomUUID();
+    private static final UUID OTHER_ARTICLE_ID = UUID.randomUUID();
     private static final StockLocationRDto WAREHOUSE =
             new StockLocationRDto(UUID.randomUUID(), "WAREHOUSE", "Entrepôt");
     private static final StockLocationRDto STORE = new StockLocationRDto(UUID.randomUUID(), "STORE", "Boutique");
@@ -121,6 +125,83 @@ class StockServiceImplTest {
         // Assert
         assertThat(stock.total()).isEqualByComparingTo("0");
         assertThat(stock.locations()).hasSize(2);
+    }
+
+    @Test
+    void getValuation_articlesWithAndWithoutCost_returnsQuantityAndValuePerLocation() {
+        // Arrange
+        when(stockMovementRepository.nonZeroBalances())
+                .thenReturn(List.of(
+                        new StockBalance(ARTICLE_ID, WAREHOUSE.id(), new BigDecimal("6.000")),
+                        new StockBalance(ARTICLE_ID, STORE.id(), new BigDecimal("4.000")),
+                        new StockBalance(OTHER_ARTICLE_ID, STORE.id(), new BigDecimal("2.500"))));
+        when(articleService.getCosts(Set.of(ARTICLE_ID, OTHER_ARTICLE_ID)))
+                .thenReturn(Map.of(ARTICLE_ID, new BigDecimal("3120.50")));
+        when(referentialService.getStockLocations(any())).thenReturn(locations());
+
+        // Act
+        var result = sut.getValuation();
+
+        // Assert
+        assertThat(result.locations()).extracting(StockLocationValueRDto::code).containsExactly("WAREHOUSE", "STORE");
+        var warehouse = result.locations().get(0);
+        assertThat(warehouse.quantity()).isEqualByComparingTo("6");
+        assertThat(warehouse.value()).isEqualTo(new BigDecimal("18723.00"));
+        var store = result.locations().get(1);
+        assertThat(store.quantity()).isEqualByComparingTo("6.5");
+        assertThat(store.value()).isEqualTo(new BigDecimal("12482.00"));
+        assertThat(store.unvaluedQuantity()).isEqualByComparingTo("2.5");
+        assertThat(result.quantity()).isEqualByComparingTo("12.5");
+        assertThat(result.value()).isEqualByComparingTo("31205.00");
+        assertThat(result.unvaluedQuantity()).isEqualByComparingTo("2.5");
+    }
+
+    @Test
+    void getValuation_fractionalQuantity_roundsTheValueToTwoDecimals() {
+        // Arrange
+        when(stockMovementRepository.nonZeroBalances())
+                .thenReturn(List.of(new StockBalance(ARTICLE_ID, WAREHOUSE.id(), new BigDecimal("0.333"))));
+        when(articleService.getCosts(Set.of(ARTICLE_ID))).thenReturn(Map.of(ARTICLE_ID, new BigDecimal("1000.05")));
+        when(referentialService.getStockLocations(any())).thenReturn(locations());
+
+        // Act
+        var result = sut.getValuation();
+
+        // Assert
+        assertThat(result.locations().getFirst().value()).isEqualTo(new BigDecimal("333.02"));
+    }
+
+    @Test
+    void getValuation_noMovement_returnsEveryLocationAtZeroWithoutReadingTheCosts() {
+        // Arrange
+        when(stockMovementRepository.nonZeroBalances()).thenReturn(List.of());
+        when(referentialService.getStockLocations(any())).thenReturn(locations());
+
+        // Act
+        var result = sut.getValuation();
+
+        // Assert
+        assertThat(result.locations()).hasSize(2);
+        assertThat(result.quantity()).isEqualByComparingTo("0");
+        assertThat(result.value()).isEqualByComparingTo("0");
+        verify(articleService, never()).getCosts(any());
+    }
+
+    @Test
+    void getValuation_balanceInAnInactiveLocation_isLeftOut() {
+        // Arrange
+        var inactiveLocationId = UUID.randomUUID();
+        when(stockMovementRepository.nonZeroBalances())
+                .thenReturn(List.of(new StockBalance(ARTICLE_ID, inactiveLocationId, new BigDecimal("9"))));
+        when(articleService.getCosts(Set.of(ARTICLE_ID))).thenReturn(Map.of(ARTICLE_ID, BigDecimal.TEN));
+        when(referentialService.getStockLocations(any())).thenReturn(locations());
+
+        // Act
+        var result = sut.getValuation();
+
+        // Assert
+        assertThat(result.quantity()).isEqualByComparingTo("0");
+        assertThat(result.value()).isEqualByComparingTo("0");
     }
 
     private static PageResponse<StockLocationRDto> locations() {
