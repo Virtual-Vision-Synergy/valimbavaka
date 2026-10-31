@@ -123,12 +123,12 @@ describe('StockPage', () => {
     await open('SELLER', [ALERT]);
     await settle();
 
-    const row = element
-      .querySelector('vvs-threshold-alerts tbody tr')
-      ?.textContent?.replace(/\s+/g, ' ');
+    const row = Array.from(element.querySelectorAll('vvs-threshold-alerts tbody td'))
+      .map((cell) => cell.textContent?.trim())
+      .join(' | ');
     expect(element.querySelector('vvs-threshold-alerts h2')?.textContent).toContain('1 article(s)');
     expect(row).toContain('Savon noir 100 g');
-    expect(row).toContain('12.5 40 27.5 30');
+    expect(row).toContain('12.5 | 40 | 27.5 | 30');
   });
 
   it("n'affiche pas le bloc d'alertes quand aucun article n'est sous son seuil", async () => {

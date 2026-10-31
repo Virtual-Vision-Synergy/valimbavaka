@@ -34,9 +34,12 @@ describe('ThresholdAlerts', () => {
     element = fixture.nativeElement as HTMLElement;
   };
 
+  /** Texte de chaque ligne, cellules séparées par « | » (Angular retire les espaces entre balises). */
   const rows = (): string[] =>
-    Array.from(element.querySelectorAll('tbody tr')).map(
-      (row) => row.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+    Array.from(element.querySelectorAll('tbody tr')).map((row) =>
+      Array.from(row.querySelectorAll('td'))
+        .map((cell) => cell.textContent?.trim() ?? '')
+        .join(' | '),
     );
 
   it('affiche stock actuel, seuil, manque et quantité suggérée avec son unité', async () => {
@@ -46,7 +49,8 @@ describe('ThresholdAlerts', () => {
       th.textContent?.trim(),
     );
     expect(headers).toEqual(['Article', 'Stock actuel', 'Seuil', 'Manque', 'Quantité suggérée']);
-    expect(rows()[0]).toContain('12.5 40 27.5 30 Pièce');
+    expect(rows()[0]).toContain('12.5 | 40 | 27.5 | 30');
+    expect(element.querySelector('tbody .unit')?.textContent?.trim()).toBe('Pièce');
     expect(rows()[0]).toContain('Sous le seuil');
   });
 
@@ -54,7 +58,7 @@ describe('ThresholdAlerts', () => {
     await render([alert({ quantity: 0, threshold: 15, shortage: 15, suggestedQuantity: 20 })]);
 
     expect(rows()[0]).toContain('En rupture');
-    expect(rows()[0]).toContain('0 15 15 20');
+    expect(rows()[0]).toContain('0 | 15 | 15 | 20');
   });
 
   it('garde l’ordre du serveur et indique quand seules les plus urgentes sont affichées', async () => {
