@@ -1,8 +1,9 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { PageResponse } from '../../../shared/models/page-response';
 import { LocationTotals } from './stock-mapping';
-import { StockRowRDto } from './stock-models';
+import { StockAlertRDto, StockRowRDto } from './stock-models';
 import { StockService } from './stock-service';
 
 const page = (items: unknown[]) => ({
@@ -83,6 +84,37 @@ describe('StockService', () => {
 
     expect(totals?.SHOP).toEqual({ units: 4, value: 12482, unvaluedUnits: 0 });
     expect(totals?.ALL.value).toBe(12482);
+  });
+
+  it('lit les 100 alertes de seuil les plus urgentes sans tri imposé (STK-04)', () => {
+    let alerts: PageResponse<StockAlertRDto> | undefined;
+    service.alerts().subscribe((value) => (alerts = value));
+
+    const request = httpMock.expectOne((req) => req.url === '/api/v1/stocks/alerts');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('page')).toBe('1');
+    expect(request.request.params.get('size')).toBe('100');
+    expect(request.request.params.has('sortBy')).toBe(false);
+    request.flush({
+      ...page([
+        {
+          articleId: 'art-1',
+          code: 'ART-0031',
+          name: 'Savon noir 100 g',
+          unit: 'PIECE',
+          quantity: 0,
+          threshold: 15,
+          shortage: 15,
+          suggestedQuantity: 20,
+        },
+      ]),
+      totalCount: 140,
+      totalPages: 2,
+    });
+
+    expect(alerts?.items[0].shortage).toBe(15);
+    expect(alerts?.items[0].suggestedQuantity).toBe(20);
+    expect(alerts?.totalCount).toBe(140);
   });
 
   it('renvoie une liste vide quand aucun article n’est actif', () => {

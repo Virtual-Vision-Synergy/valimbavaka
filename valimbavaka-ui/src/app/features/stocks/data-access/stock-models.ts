@@ -24,6 +24,21 @@ export interface StockRDto {
   readonly locations: readonly StockLocationQuantityRDto[];
 }
 
+/**
+ * `GET /api/v1/stocks/alerts` : article actif sous son seuil minimum (STK-04). `quantity` est le total des
+ * emplacements actifs, `shortage` = seuil − stock, `suggestedQuantity` = manque arrondi à la dizaine supérieure.
+ */
+export interface StockAlertRDto {
+  readonly articleId: string;
+  readonly code: string;
+  readonly name: string;
+  readonly unit: string;
+  readonly quantity: number;
+  readonly threshold: number;
+  readonly shortage: number;
+  readonly suggestedQuantity: number;
+}
+
 /** Stock d'un emplacement, tous articles confondus : valeur au coût d'achat en ariary (STK-03). */
 export interface StockLocationValueRDto {
   readonly locationId: string;
