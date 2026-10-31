@@ -1,6 +1,6 @@
 # STK-04 · Alerte de seuil minimum
 
-> Ticket GitHub [#33](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/33) · Ouvert · Milestone : 04 · Stock & transferts · 2 SP · Assigné(e) : And-Matia
+> Ticket GitHub [#33](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/33) · Ouvert · Milestone : 04 · Stock & transferts · 2 SP · Assigné(e) : ManaJudy
 
 Dossier : [scénario de test](scenario-test.md) · [guide d'intégration](guide.md) · [index des tickets](../README.md)
 
