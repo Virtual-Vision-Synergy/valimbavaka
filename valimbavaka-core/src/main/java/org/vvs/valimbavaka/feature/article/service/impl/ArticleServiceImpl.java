@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.article.service.impl;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -88,6 +89,13 @@ public class ArticleServiceImpl implements ArticleService {
     public Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds) {
         return articleRepository.findCosts(articleIds).stream()
                 .collect(Collectors.toMap(ArticleCost::articleId, ArticleCost::cost));
+    }
+
+    @Override
+    public List<ArticleRDto> getArticlesWithThreshold() {
+        return articleRepository.findByActiveTrueAndThresholdGreaterThanOrderByCodeAsc(BigDecimal.ZERO).stream()
+                .map(articleMapper::toRDto)
+                .toList();
     }
 
     @Override

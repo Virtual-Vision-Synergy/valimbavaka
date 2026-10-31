@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.article.repository;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -87,6 +88,9 @@ public interface ArticleRepository extends Repository<Article, UUID> {
                    or a.barcode like concat('%', :search, '%'))
             """)
     Page<Article> searchActiveByTypes(String search, Collection<ArticleType> types, Pageable pageable);
+
+    /** Active articles whose minimum threshold is above {@code threshold}, by code (STK-04: threshold alerts). */
+    List<Article> findByActiveTrueAndThresholdGreaterThanOrderByCodeAsc(BigDecimal threshold);
 
     /** Costs of the given articles; articles without cost are left out. */
     @Query("""
