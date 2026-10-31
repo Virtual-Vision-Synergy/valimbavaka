@@ -15,6 +15,7 @@ import { STOCK_LOCATIONS } from '../../../../shared/data-access/demo-catalog';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { LocationCards } from '../../components/location-cards/location-cards';
 import { RestockDraft } from '../../components/restock-draft/restock-draft';
+import { ThresholdAlerts } from '../../components/threshold-alerts/threshold-alerts';
 import {
   LocationFilter,
   StockLevel,
@@ -40,6 +41,7 @@ type LevelFilter = 'ALL' | Exclude<StockLevel, 'OK'>;
     StockGauge,
     LocationCards,
     RestockDraft,
+    ThresholdAlerts,
   ],
   templateUrl: './stock-page.html',
   styleUrl: './stock-page.css',
@@ -61,6 +63,8 @@ export class StockPage {
   protected readonly totals = computed(() =>
     this.valuation.hasValue() ? this.valuation.value() : null,
   );
+  /** Articles sous leur seuil (STK-04) : calculés par le serveur sur tout le stock, pas sur la page chargée. */
+  protected readonly alerts = rxResource({ stream: () => this.stockService.alerts() });
   protected readonly location = signal<LocationFilter>('ALL');
   protected readonly level = signal<LevelFilter>('ALL');
   protected readonly selection = signal<ReadonlySet<string>>(new Set());

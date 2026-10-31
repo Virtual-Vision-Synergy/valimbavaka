@@ -28,6 +28,18 @@ const STOCK = {
   locations: [{ locationId: 'l1', code: 'WAREHOUSE', label: 'Entrepôt', quantity: 10 }],
 };
 
+/** Alerte de seuil telle que calculée par le serveur (STK-04). */
+const ALERT = {
+  articleId: 'art-1',
+  code: 'ART-0031',
+  name: 'Savon noir 100 g',
+  unit: 'PIECE',
+  quantity: 12.5,
+  threshold: 40,
+  shortage: 27.5,
+  suggestedQuantity: 30,
+};
+
 /** Tout le stock vu par le serveur, articles hors de la page compris. */
 const VALUATION = {
   quantity: 1250,
@@ -51,7 +63,7 @@ describe('StockPage', () => {
   let fixture: ComponentFixture<StockPage>;
   let element: HTMLElement;
 
-  const open = async (role: 'ADMIN' | 'SELLER'): Promise<void> => {
+  const open = async (role: 'ADMIN' | 'SELLER', alerts: unknown[] = []): Promise<void> => {
     await TestBed.configureTestingModule({
       imports: [StockPage],
       providers: [
@@ -68,6 +80,7 @@ describe('StockPage', () => {
     fixture.detectChanges();
     httpMock.expectOne((req) => req.url === '/api/v1/stocks').flush(page([STOCK]));
     httpMock.expectOne((req) => req.url === '/api/v1/product-ranges').flush(page([]));
+    httpMock.expectOne((req) => req.url === '/api/v1/stocks/alerts').flush(page(alerts));
   };
 
   const settle = async (): Promise<void> => {
@@ -104,6 +117,25 @@ describe('StockPage', () => {
 
     expect(card('Entrepôt')).toMatch(/10 unités/);
     expect(card('Entrepôt')).toContain('Valeur 0,01 M Ar');
+  });
+
+  it('affiche les articles sous le seuil avec stock, seuil, manque et quantité suggérée (STK-04)', async () => {
+    await open('SELLER', [ALERT]);
+    await settle();
+
+    const row = element
+      .querySelector('vvs-threshold-alerts tbody tr')
+      ?.textContent?.replace(/\s+/g, ' ');
+    expect(element.querySelector('vvs-threshold-alerts h2')?.textContent).toContain('1 article(s)');
+    expect(row).toContain('Savon noir 100 g');
+    expect(row).toContain('12.5 40 27.5 30');
+  });
+
+  it("n'affiche pas le bloc d'alertes quand aucun article n'est sous son seuil", async () => {
+    await open('SELLER');
+    await settle();
+
+    expect(element.querySelector('vvs-threshold-alerts')).toBeNull();
   });
 
   it('ne demande pas la valorisation pour une vendeuse (permission stocks.value)', async () => {
