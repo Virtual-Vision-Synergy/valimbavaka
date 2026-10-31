@@ -27,9 +27,9 @@ supérieure, minimum 10. Tri : ratio stock / seuil croissant (ruptures d'abord),
 | 1.3 | Calcul des champs d'une alerte (12,5 / 40) | manque 27,5 ; suggéré 30 | `StockAlertPolicyTest.toAlert_stockUnderThreshold_returnsQuantityThresholdShortageAndSuggestion` | ☐ |
 | 1.4 | Trois articles au seuil 40 : 12,5 / 0 / 40 | Seuls le 0 puis le 12,5 sont listés, `totalCount` 2 | `StockServiceImplAlertTest.getAlerts_mixedStocks_returnsOnlyArticlesUnderThresholdMostUrgentFirst` | ☐ |
 | 1.5 | Alertes 20/40, 0/10, 0/50, 10/100 | Ordre : `ART-0002` (0/50), `ART-0003` (0/10), 10/100, 20/40 | `StockAlertPolicyTest.mostUrgentFirst_severalAlerts_sortsByCoverageThenByCode` | ☐ |
-| 1.6 | Page des stocks (vendeuse), le serveur renvoie l'alerte 12,5 / 40 | Bloc « 1 article(s) sous le seuil minimum », cellules « 12.5 | 40 | 27.5 | 30 » | `stock-page.spec.ts` › « affiche les articles sous le seuil avec stock, seuil, manque et quantité suggérée (STK-04) » | ☐ |
+| 1.6 | Page des stocks (vendeuse), le serveur renvoie l'alerte 12,5 / 40 | Bloc « 1 article(s) sous le seuil minimum », cellules « 12.5 \| 40 \| 27.5 \| 30 » | `stock-page.spec.ts` › « affiche les articles sous le seuil avec stock, seuil, manque et quantité suggérée (STK-04) » | ☐ |
 | 1.7 | Composant : colonnes et unité | En-têtes Article / Stock actuel / Seuil / Manque / Quantité suggérée ; « 30 Pièce » ; pastille « Sous le seuil » | `threshold-alerts.spec.ts` › « affiche stock actuel, seuil, manque et quantité suggérée avec son unité » | ☐ |
-| 1.8 | Composant : stock nul | Pastille « En rupture », cellules « 0 | 15 | 15 | 20 » | `threshold-alerts.spec.ts` › « signale une rupture quand le stock est nul » | ☐ |
+| 1.8 | Composant : stock nul | Pastille « En rupture », cellules « 0 \| 15 \| 15 \| 20 » | `threshold-alerts.spec.ts` › « signale une rupture quand le stock est nul » | ☐ |
 | 1.9 | Service front | `GET /api/v1/stocks/alerts?page=1&size=100`, sans `sortBy` | `stock-service.spec.ts` › « lit les 100 alertes de seuil les plus urgentes sans tri imposé (STK-04) » | ☐ |
 
 ## Sécurité et erreurs
