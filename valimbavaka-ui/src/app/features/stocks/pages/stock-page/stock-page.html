@@ -19,6 +19,12 @@
   } @else if (stock.value(); as all) {
     <vvs-location-cards [rows]="all" [totals]="totals()" [(selected)]="location" />
 
+    @if (alerts.value(); as alertPage) {
+      @if (alertPage.totalCount > 0) {
+        <vvs-threshold-alerts [alerts]="alertPage.items" [total]="alertPage.totalCount" />
+      }
+    }
+
     <section class="card flush" [attr.aria-label]="'stocks.listLabel' | translate">
       <div class="toolbar">
         <vvs-filter-chips

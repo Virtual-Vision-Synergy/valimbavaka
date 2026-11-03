@@ -4,11 +4,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +20,7 @@ import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
+import org.vvs.valimbavaka.feature.stock.dto.StockAlertRDto;
 import org.vvs.valimbavaka.feature.stock.dto.StockLocationValueRDto;
 import org.vvs.valimbavaka.feature.stock.dto.StockRDto;
 import org.vvs.valimbavaka.feature.stock.dto.StockValuationRDto;
@@ -73,6 +77,23 @@ public class StockServiceImpl implements StockService {
     }
 
     @Override
+    public PageResponse<StockAlertRDto> getAlerts(PageQuery query) {
+        var search = query.searchTerm().toLowerCase(Locale.ROOT);
+        var articles = articleService.getArticlesWithThreshold().stream()
+                .filter(article -> matches(article, search))
+                .toList();
+        var balances = balancesByArticle(articles.stream().map(ArticleRDto::id).toList());
+        var locations = referentialService.getStockLocations(ALL_LOCATIONS).items();
+        var alerts = articles.stream()
+                .map(article -> toStock(article, locations, balances))
+                .filter(StockAlertPolicy::isUnderThreshold)
+                .map(StockAlertPolicy::toAlert)
+                .sorted(StockAlertPolicy.MOST_URGENT_FIRST)
+                .toList();
+        return pageOf(alerts, query);
+    }
+
+    @Override
     public StockValuationRDto getValuation() {
         var balances = stockMovementRepository.nonZeroBalances();
         var articleIds = balances.stream().map(StockBalance::articleId).collect(Collectors.toSet());
@@ -115,6 +136,20 @@ public class StockServiceImpl implements StockService {
     private static BigDecimal sum(
             List<StockLocationValueRDto> locations, Function<StockLocationValueRDto, BigDecimal> field) {
         return locations.stream().map(field).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /** Same search as the article list, on code and name; an empty search matches everything. */
+    private static boolean matches(ArticleRDto article, String search) {
+        return article.code().toLowerCase(Locale.ROOT).contains(search)
+                || article.name().toLowerCase(Locale.ROOT).contains(search);
+    }
+
+    /** Page of an already filtered list; a page past the end is empty. */
+    private static <T> PageResponse<T> pageOf(List<T> items, PageQuery query) {
+        var pageable = PageRequest.of(query.page() - 1, query.size());
+        var from = (int) Math.min(pageable.getOffset(), items.size());
+        var to = Math.min(from + query.size(), items.size());
+        return PageResponse.from(new PageImpl<>(items.subList(from, to), pageable, items.size()));
     }
 
     private StockRDto toStock(

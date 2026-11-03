@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.vvs.valimbavaka.feature.stock.dto.StockAlertRDto;
 import org.vvs.valimbavaka.feature.stock.dto.StockRDto;
 import org.vvs.valimbavaka.feature.stock.dto.StockValuationRDto;
 import org.vvs.valimbavaka.feature.stock.service.StockService;
@@ -46,6 +47,15 @@ public class StockController {
     @HasPermission("stocks.read")
     public PageResponse<StockRDto> getStocks(@Valid PageQuery query) {
         return stockService.getStocks(query);
+    }
+
+    @GetMapping("/alerts")
+    @Operation(summary = "Active articles under their minimum threshold, with shortage and suggested quantity")
+    @ApiResponse(responseCode = "200", description = "Page of threshold alerts, most urgent first")
+    @ApiResponse(responseCode = "422", description = "Invalid paging (VALIDATION_FAILED)")
+    @HasPermission("stocks.read")
+    public PageResponse<StockAlertRDto> getAlerts(@Valid PageQuery query) {
+        return stockService.getAlerts(query);
     }
 
     @GetMapping("/valuation")

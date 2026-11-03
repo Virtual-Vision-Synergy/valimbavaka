@@ -13,6 +13,10 @@ final class StockTestData {
     private StockTestData() {}
 
     static ArticleRDto article(UUID id, String code) {
+        return article(id, code, "40");
+    }
+
+    static ArticleRDto article(UUID id, String code, String threshold) {
         return new ArticleRDto(
                 id,
                 code,
@@ -23,7 +27,7 @@ final class StockTestData {
                 ArticleUnit.PIECE,
                 null,
                 null,
-                new BigDecimal("40"),
+                new BigDecimal(threshold),
                 null,
                 true,
                 Instant.parse("2026-10-29T08:00:00Z"),

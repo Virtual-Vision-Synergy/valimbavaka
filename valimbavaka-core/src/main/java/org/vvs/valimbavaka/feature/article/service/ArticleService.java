@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.article.service;
 
 import java.math.BigDecimal;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,6 +28,9 @@ public interface ArticleService {
 
     /** Purchase cost of the given articles (STK-03); an unknown article or one without cost is absent. */
     Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds);
+
+    /** Active articles with a minimum threshold above zero, by code (STK-04: threshold alerts). */
+    List<ArticleRDto> getArticlesWithThreshold();
 
     /** Active articles usable in production with this usage (ART-04): MP/SF as inputs, finished products as outputs. */
     PageResponse<ArticleRDto> getProductionArticles(PageQuery query, ProductionUsage usage);

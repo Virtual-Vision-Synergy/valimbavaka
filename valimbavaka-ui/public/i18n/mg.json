@@ -547,6 +547,17 @@
       "OUT": "Lany"
     },
     "thresholdLegend": "Fetra ambany indrindra",
+    "thresholdAlerts": {
+      "title": "Entana {{count}} ambanin'ny fetra ambany indrindra",
+      "partial": "Ireo {{shown}} maika indrindra no aseho.",
+      "label": "Entana ambanin'ny fetra ambany indrindra, ny lany aloha",
+      "col": {
+        "quantity": "Tahiry ankehitriny",
+        "threshold": "Fetra",
+        "shortage": "Tsy ampy",
+        "suggested": "Isa atolotra"
+      }
+    },
     "select": "Fifantenana",
     "selectOne": "Hampiditra {{name}} amin'ny baiko famenoana",
     "col": {

@@ -547,6 +547,17 @@
       "OUT": "En rupture"
     },
     "thresholdLegend": "Seuil minimum",
+    "thresholdAlerts": {
+      "title": "{{count}} article(s) sous le seuil minimum",
+      "partial": "Les {{shown}} plus urgents sont affichés.",
+      "label": "Articles sous le seuil minimum, ruptures d'abord",
+      "col": {
+        "quantity": "Stock actuel",
+        "threshold": "Seuil",
+        "shortage": "Manque",
+        "suggested": "Quantité suggérée"
+      }
+    },
     "select": "Sélection",
     "selectOne": "Ajouter {{name}} au bon de réapprovisionnement",
     "col": {

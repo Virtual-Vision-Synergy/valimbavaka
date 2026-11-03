@@ -53,6 +53,34 @@ class StockSecurityIT extends StockApiTestSupport {
     }
 
     @Test
+    void getAlerts_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(STOCKS + "/alerts"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void getAlerts_withDeliveryDriverRole_returns403() throws Exception {
+        // Arrange
+        var token = tokenOf(RoleName.DELIVERY_DRIVER);
+
+        // Act + Assert
+        mockMvc.perform(get(STOCKS + "/alerts").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    void getAlerts_withSellerRole_returns200() throws Exception {
+        // Arrange
+        var token = tokenOf(RoleName.SELLER);
+
+        // Act + Assert
+        mockMvc.perform(get(STOCKS + "/alerts").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void stocks_writeVerbs_areNotExposed() throws Exception {
         // Arrange
         var auth = bearer(adminToken());

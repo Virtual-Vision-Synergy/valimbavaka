@@ -1,0 +1,66 @@
+<section class="card alerts" aria-labelledby="threshold-alerts-title">
+  <div class="head">
+    <h2 id="threshold-alerts-title">
+      {{ 'stocks.thresholdAlerts.title' | translate: { count: total() } }}
+    </h2>
+    @if (total() > alerts().length) {
+      <span class="subtitle">
+        {{ 'stocks.thresholdAlerts.partial' | translate: { shown: alerts().length } }}
+      </span>
+    }
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <caption class="sr-only">
+        {{
+          'stocks.thresholdAlerts.label' | translate
+        }}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ 'stocks.col.article' | translate }}</th>
+          <th scope="col" class="cell-num">
+            {{ 'stocks.thresholdAlerts.col.quantity' | translate }}
+          </th>
+          <th scope="col" class="cell-num">
+            {{ 'stocks.thresholdAlerts.col.threshold' | translate }}
+          </th>
+          <th scope="col" class="cell-num">
+            {{ 'stocks.thresholdAlerts.col.shortage' | translate }}
+          </th>
+          <th scope="col" class="cell-num">
+            {{ 'stocks.thresholdAlerts.col.suggested' | translate }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (alert of alerts(); track alert.articleId) {
+          <tr>
+            <td>
+              <span class="cell-title">{{ alert.name }}</span>
+              <span class="cell-sub">
+                <span class="mono">{{ alert.code }}</span>
+                @if (alert.quantity <= 0) {
+                  <span class="badge badge-dot badge-danger">{{
+                    'stocks.level.OUT' | translate
+                  }}</span>
+                } @else {
+                  <span class="badge badge-dot badge-warning">{{
+                    'stocks.level.LOW' | translate
+                  }}</span>
+                }
+              </span>
+            </td>
+            <td class="cell-num">{{ alert.quantity }}</td>
+            <td class="cell-num">{{ alert.threshold }}</td>
+            <td class="cell-num shortage">{{ alert.shortage }}</td>
+            <td class="cell-num">
+              <strong>{{ alert.suggestedQuantity }}</strong>
+              <span class="unit">{{ 'articles.unit.' + alert.unit | translate }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
