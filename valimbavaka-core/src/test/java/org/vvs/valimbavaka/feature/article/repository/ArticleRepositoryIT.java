@@ -140,8 +140,8 @@ class ArticleRepositoryIT {
     void search_bySupplier_returnsOnlyTheArticlesOfThatSupplier() {
         // Arrange
         var supplierName = "Fournisseur-" + UUID.randomUUID();
-        var supplier = supplierRepository.save(
-                Supplier.create(new SupplierDetails(supplierName, SupplierType.LOCAL, null, null, null, null, null)));
+        var supplier = supplierRepository.save(Supplier.create(
+                new SupplierDetails(supplierName, SupplierType.LOCAL, null, null, null, null, null, null)));
         var supplied = sut.save(Article.create(
                 nextCode(),
                 new ArticleDetails(

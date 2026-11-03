@@ -6,6 +6,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.ReportingPolicy;
 
 import org.vvs.valimbavaka.feature.supplier.domain.Supplier;
+import org.vvs.valimbavaka.feature.supplier.dto.SupplierLeadTimeRDto;
 import org.vvs.valimbavaka.feature.supplier.dto.SupplierRDto;
 
 /** Read-only: creation and update go through the business methods of {@link Supplier}. */
@@ -16,4 +17,6 @@ import org.vvs.valimbavaka.feature.supplier.dto.SupplierRDto;
 public interface SupplierMapper {
 
     SupplierRDto toRDto(Supplier supplier);
+
+    SupplierLeadTimeRDto toLeadTimeRDto(Supplier supplier);
 }

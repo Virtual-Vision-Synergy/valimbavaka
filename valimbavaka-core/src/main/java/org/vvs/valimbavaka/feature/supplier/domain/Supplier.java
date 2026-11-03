@@ -45,6 +45,10 @@ public class Supplier extends BaseEntity {
     @Column(name = "notes", length = 2000)
     private @Nullable String notes;
 
+    /** Days between the order and the delivery (FRS-04); defaults to the type's lead time. */
+    @Column(name = "lead_time_days", nullable = false)
+    private int leadTimeDays;
+
     @Column(name = "is_active", nullable = false)
     private boolean active;
 
@@ -78,10 +82,12 @@ public class Supplier extends BaseEntity {
         this.email = normalizeEmail(details.email());
         this.address = blankToNull(details.address());
         this.notes = blankToNull(details.notes());
+        var leadTime = details.leadTimeDays();
+        this.leadTimeDays = leadTime == null ? type.defaultLeadTimeDays() : leadTime;
     }
 
     private SupplierDetails details() {
-        return new SupplierDetails(name, type, contactName, phone, email, address, notes);
+        return new SupplierDetails(name, type, contactName, phone, email, address, notes, leadTimeDays);
     }
 
     private static @Nullable String normalizeEmail(@Nullable String email) {

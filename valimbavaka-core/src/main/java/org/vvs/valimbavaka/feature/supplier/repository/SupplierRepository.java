@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.supplier.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +26,9 @@ public interface SupplierRepository extends Repository<Supplier, UUID> {
     boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 
     boolean existsByIdAndActiveTrue(UUID id);
+
+    /** Suppliers of the given identifiers, active or not (lead times of the threshold alerts, FRS-04). */
+    List<Supplier> findAllByIdIn(Collection<UUID> ids);
 
     /** Case-insensitive search on name and contact; empty {@code search} = all, null filters = all. */
     @Query(value = """
