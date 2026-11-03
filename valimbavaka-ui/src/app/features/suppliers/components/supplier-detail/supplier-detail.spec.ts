@@ -76,6 +76,13 @@ describe('SupplierDetail', () => {
     expect(element.querySelector('dl')?.textContent).toContain('Livre le mardi');
   });
 
+  it('should show the restocking lead time of the supplier', async () => {
+    await open('ADMIN', { ...huilesRavo, type: 'FOREIGN', leadTimeDays: 45 });
+
+    expect(element.querySelector('dl')?.textContent).toContain('Délai de réapprovisionnement');
+    expect(element.querySelector('dl')?.textContent).toContain('45 jours');
+  });
+
   it('should show a dash for every detail the sheet does not have', async () => {
     await open('ADMIN', {
       ...huilesRavo,
@@ -86,10 +93,11 @@ describe('SupplierDetail', () => {
       notes: null,
     });
 
-    expect(element.querySelectorAll('dl dd')).toHaveLength(5);
+    // Le délai n'est jamais vide : le serveur le remplit avec le défaut du type (FRS-04).
+    expect(element.querySelectorAll('dl dd')).toHaveLength(6);
     expect(element.querySelector('a[href^="tel:"]')).toBeNull();
     expect(Array.from(element.querySelectorAll('dl dd')).map((d) => d.textContent?.trim())).toEqual(
-      ['—', '—', '—', '—', '—'],
+      ['—', '—', '—', '—', '7 jours', '—'],
     );
   });
 

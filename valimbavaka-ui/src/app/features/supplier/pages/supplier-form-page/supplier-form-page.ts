@@ -17,7 +17,12 @@ import { errorMessage } from '../../../../core/http/problem-detail';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { ArticleRDto } from '../../../article/data-access/article-models';
 import { ArticleService } from '../../../article/data-access/article-service';
-import { SupplierRDto, SupplierType } from '../../data-access/supplier-models';
+import {
+  DEFAULT_LEAD_TIME_DAYS,
+  MAX_LEAD_TIME_DAYS,
+  SupplierRDto,
+  SupplierType,
+} from '../../data-access/supplier-models';
 import { SupplierService } from '../../data-access/supplier-service';
 
 const SUPPLIED_ARTICLES_SIZE = 100;
@@ -28,7 +33,10 @@ interface FieldError {
   params?: { max: number };
 }
 
-/** Fiche fournisseur (FRS-01) : création et modification de tous les champs (FRS-02). */
+/**
+ * Fiche fournisseur (FRS-01) : création et modification de tous les champs (FRS-02), dont le délai de
+ * réapprovisionnement (FRS-04) proposé selon le type.
+ */
 @Component({
   selector: 'vvs-supplier-form-page',
   imports: [ReactiveFormsModule, RouterLink, TranslatePipe],
@@ -55,6 +63,8 @@ export class SupplierFormPage implements OnInit {
   /** Version de la fiche ouverte : le serveur refuse (409) si elle a changé entre-temps. */
   private version: number | null = null;
   private readonly sheetRead = signal(false);
+  /** Type dont le délai par défaut a été proposé : un délai resté égal à ce défaut suit le changement de type. */
+  private previousType: SupplierType = 'LOCAL';
   /** En modification, rien ne s'enregistre tant que la fiche n'est pas lue : un envoi l'écraserait. */
   protected readonly canSave = computed(
     () => !this.isSaving() && (!this.isEdit() || this.sheetRead()),
@@ -69,7 +79,23 @@ export class SupplierFormPage implements OnInit {
     email: ['', [Validators.email, Validators.maxLength(255)]],
     address: ['', Validators.maxLength(500)],
     notes: ['', Validators.maxLength(2000)],
+    // Nombre entier de jours, mêmes bornes que le serveur (@Min(0) @Max(365)).
+    leadTimeDays: [
+      DEFAULT_LEAD_TIME_DAYS.LOCAL as number | null,
+      [
+        Validators.required,
+        Validators.min(0),
+        Validators.max(MAX_LEAD_TIME_DAYS),
+        Validators.pattern(/^\d+$/),
+      ],
+    ],
   });
+
+  constructor() {
+    this.form.controls.type.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe((type) => this.followTypeDefault(type));
+  }
 
   ngOnInit(): void {
     const id = this.id();
@@ -98,6 +124,9 @@ export class SupplierFormPage implements OnInit {
     const maxLength = control.getError('maxlength') as { requiredLength: number } | null;
     if (maxLength) {
       return { key: 'supplier.form.tooLong', params: { max: maxLength.requiredLength } };
+    }
+    if (field === 'leadTimeDays') {
+      return { key: 'supplier.form.leadTimeInvalid' };
     }
     return {
       key: control.hasError('email') ? 'supplier.form.emailInvalid' : 'supplier.form.nameRequired',
@@ -133,17 +162,32 @@ export class SupplierFormPage implements OnInit {
       });
   }
 
+  /** Un délai vide ou resté au défaut de l'ancien type prend le défaut du nouveau ; un délai saisi est gardé. */
+  private followTypeDefault(type: SupplierType): void {
+    const leadTime = this.form.controls.leadTimeDays;
+    if (leadTime.value === null || leadTime.value === DEFAULT_LEAD_TIME_DAYS[this.previousType]) {
+      leadTime.setValue(DEFAULT_LEAD_TIME_DAYS[type]);
+    }
+    this.previousType = type;
+  }
+
   private fill(supplier: SupplierRDto): void {
     this.version = supplier.version;
     this.sheetRead.set(true);
-    this.form.setValue({
-      name: supplier.name,
-      type: supplier.type,
-      contactName: supplier.contactName ?? '',
-      phone: supplier.phone ?? '',
-      email: supplier.email ?? '',
-      address: supplier.address ?? '',
-      notes: supplier.notes ?? '',
-    });
+    this.previousType = supplier.type;
+    // Sans émission : relire la fiche ne doit pas remplacer son délai par le défaut du type.
+    this.form.setValue(
+      {
+        name: supplier.name,
+        type: supplier.type,
+        contactName: supplier.contactName ?? '',
+        phone: supplier.phone ?? '',
+        email: supplier.email ?? '',
+        address: supplier.address ?? '',
+        notes: supplier.notes ?? '',
+        leadTimeDays: supplier.leadTimeDays,
+      },
+      { emitEvent: false },
+    );
   }
 }

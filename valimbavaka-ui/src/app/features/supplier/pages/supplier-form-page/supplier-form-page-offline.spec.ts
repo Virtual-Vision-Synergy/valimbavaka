@@ -16,7 +16,14 @@ import { SupplierFormPage } from './supplier-form-page';
 const SUPPLIERS_URL = '/api/v1/suppliers';
 const SUPPLIER_ID = '0195f0a0-0000-7000-8000-0000000000f1';
 const SUPPLIER_URL = `${SUPPLIERS_URL}/${SUPPLIER_ID}`;
-const saved = { id: SUPPLIER_ID, name: 'Huiles Ravo', type: 'LOCAL', active: true, version: 0 };
+const saved = {
+  id: SUPPLIER_ID,
+  name: 'Huiles Ravo',
+  type: 'LOCAL',
+  leadTimeDays: 7,
+  active: true,
+  version: 0,
+};
 
 /**
  * Formulaire de référence de la file hors ligne (SYS-07) : la saisie fournisseur passe par `OutboxService`,

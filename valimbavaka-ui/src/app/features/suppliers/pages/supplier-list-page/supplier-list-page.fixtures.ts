@@ -11,6 +11,7 @@ export const supplier = (name: string, type: SupplierRDto['type']): SupplierRDto
   email: 'contact@fournisseur.mg',
   address: 'Lot II B 14, Antananarivo',
   notes: 'Livre le mardi',
+  leadTimeDays: type === 'FOREIGN' ? 30 : 7,
   active: true,
   createdAt: '2026-10-21T08:30:00Z',
   updatedAt: '2026-10-21T08:30:00Z',

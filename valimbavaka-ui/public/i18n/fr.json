@@ -555,8 +555,11 @@
         "quantity": "Stock actuel",
         "threshold": "Seuil",
         "shortage": "Manque",
-        "suggested": "Quantité suggérée"
-      }
+        "suggested": "Quantité suggérée",
+        "supplier": "Fournisseur · délai"
+      },
+      "leadTime": "{{days}} j · livraison prévue le {{date}}",
+      "noSupplier": "Fabrication interne (atelier)"
     },
     "select": "Sélection",
     "selectOne": "Ajouter {{name}} au bon de réapprovisionnement",
@@ -988,6 +991,8 @@
     "phone": "Téléphone",
     "email": "E-mail",
     "address": "Adresse",
+    "leadTime": "Délai de réapprovisionnement",
+    "leadTimeValue": "{{days}} jours",
     "articlesHint": "Coût d'achat enregistré sur la fiche de chaque article."
   },
   "production": {
@@ -1370,7 +1375,8 @@
       "phone": "Téléphone",
       "email": "Email",
       "address": "Adresse",
-      "notes": "Notes"
+      "notes": "Notes",
+      "leadTimeDays": "Délai de réapprovisionnement (jours)"
     },
     "type": {
       "LOCAL": "Local",
@@ -1390,7 +1396,9 @@
       "cancel": "Annuler",
       "nameRequired": "Le nom est obligatoire",
       "tooLong": "{{max}} caractères maximum",
-      "emailInvalid": "L'email n'est pas valide"
+      "emailInvalid": "L'email n'est pas valide",
+      "leadTimeHint": "Par défaut : 7 jours pour un fournisseur local, 30 jours pour un fournisseur étranger.",
+      "leadTimeInvalid": "Nombre entier de jours entre 0 et 365"
     },
     "articles": {
       "title": "Articles fournis",

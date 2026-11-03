@@ -88,6 +88,12 @@
               <dt>{{ 'suppliers.address' | translate }}</dt>
               <dd>{{ s.address ?? '—' }}</dd>
             </div>
+            <div>
+              <dt>{{ 'suppliers.leadTime' | translate }}</dt>
+              <dd class="num">
+                {{ 'suppliers.leadTimeValue' | translate: { days: s.leadTimeDays } }}
+              </dd>
+            </div>
             <div class="wide">
               <dt>{{ 'supplier.field.notes' | translate }}</dt>
               <dd>{{ s.notes ?? '—' }}</dd>

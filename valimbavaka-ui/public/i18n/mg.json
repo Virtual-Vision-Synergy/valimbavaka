@@ -555,8 +555,11 @@
         "quantity": "Tahiry ankehitriny",
         "threshold": "Fetra",
         "shortage": "Tsy ampy",
-        "suggested": "Isa atolotra"
-      }
+        "suggested": "Isa atolotra",
+        "supplier": "Mpamatsy · faharetana"
+      },
+      "leadTime": "{{days}} andro · andrasana ho tonga amin'ny {{date}}",
+      "noSupplier": "Vokarina ao amin'ny atelier"
     },
     "select": "Fifantenana",
     "selectOne": "Hampiditra {{name}} amin'ny baiko famenoana",
@@ -988,6 +991,8 @@
     "phone": "Finday",
     "email": "Mailaka",
     "address": "Adiresy",
+    "leadTime": "Faharetan'ny famatsiana",
+    "leadTimeValue": "{{days}} andro",
     "articlesHint": "Vidin'ny fividianana voasoratra amin'ny kisarisary tsirairay."
   },
   "production": {
@@ -1370,7 +1375,8 @@
       "phone": "Finday",
       "email": "Mailaka",
       "address": "Adiresy",
-      "notes": "Fanamarihana"
+      "notes": "Fanamarihana",
+      "leadTimeDays": "Faharetan'ny famatsiana (andro)"
     },
     "type": {
       "LOCAL": "Eto an-toerana",
@@ -1390,7 +1396,9 @@
       "cancel": "Foanana",
       "nameRequired": "Tsy maintsy fenoina ny anarana",
       "tooLong": "{{max}} litera farafahabetsany",
-      "emailInvalid": "Tsy mety ny mailaka"
+      "emailInvalid": "Tsy mety ny mailaka",
+      "leadTimeHint": "Raha tsy misy: 7 andro ho an'ny mpamatsy eto an-toerana, 30 andro ho an'ny avy any ivelany.",
+      "leadTimeInvalid": "Isan'andro feno eo anelanelan'ny 0 sy 365"
     },
     "articles": {
       "title": "Entana omena",
