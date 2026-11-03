@@ -31,6 +31,7 @@
           <th scope="col" class="cell-num">
             {{ 'stocks.thresholdAlerts.col.suggested' | translate }}
           </th>
+          <th scope="col">{{ 'stocks.thresholdAlerts.col.supplier' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -57,6 +58,21 @@
             <td class="cell-num">
               <strong>{{ alert.suggestedQuantity }}</strong>
               <span class="unit">{{ 'articles.unit.' + alert.unit | translate }}</span>
+            </td>
+            <td class="supplier">
+              @if (alert.supplierName; as supplierName) {
+                <span class="cell-title">{{ supplierName }}</span>
+                <span class="cell-sub">{{
+                  'stocks.thresholdAlerts.leadTime'
+                    | translate
+                      : {
+                          days: alert.leadTimeDays,
+                          date: alert.expectedDeliveryDate | date: 'dd/MM/yyyy',
+                        }
+                }}</span>
+              } @else {
+                <span class="cell-sub">{{ 'stocks.thresholdAlerts.noSupplier' | translate }}</span>
+              }
             </td>
           </tr>
         }

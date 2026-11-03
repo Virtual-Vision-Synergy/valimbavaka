@@ -1,7 +1,11 @@
 package org.vvs.valimbavaka.feature.supplier.service.impl;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,6 +20,7 @@ import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.supplier.domain.Supplier;
 import org.vvs.valimbavaka.feature.supplier.domain.SupplierDetails;
 import org.vvs.valimbavaka.feature.supplier.domain.SupplierType;
+import org.vvs.valimbavaka.feature.supplier.dto.SupplierLeadTimeRDto;
 import org.vvs.valimbavaka.feature.supplier.dto.SupplierRDto;
 import org.vvs.valimbavaka.feature.supplier.dto.SupplierWDto;
 import org.vvs.valimbavaka.feature.supplier.mapper.SupplierMapper;
@@ -118,6 +123,16 @@ public class SupplierServiceImpl implements SupplierService {
         return supplierRepository.existsByIdAndActiveTrue(supplierId);
     }
 
+    @Override
+    public Map<UUID, SupplierLeadTimeRDto> getLeadTimes(Collection<UUID> supplierIds) {
+        if (supplierIds.isEmpty()) {
+            return Map.of();
+        }
+        return supplierRepository.findAllByIdIn(Set.copyOf(supplierIds)).stream()
+                .map(supplierMapper::toLeadTimeRDto)
+                .collect(Collectors.toMap(SupplierLeadTimeRDto::id, Function.identity()));
+    }
+
     private Supplier findSupplier(UUID supplierId) {
         return supplierRepository
                 .findById(supplierId)
@@ -132,6 +147,7 @@ public class SupplierServiceImpl implements SupplierService {
                 request.phone(),
                 request.email(),
                 request.address(),
-                request.notes());
+                request.notes(),
+                request.leadTimeDays());
     }
 }

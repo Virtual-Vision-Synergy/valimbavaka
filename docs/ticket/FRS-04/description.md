@@ -17,6 +17,8 @@ En tant qu'administrateur, je veux que le type de fournisseur influence le déla
 
 - [ ] Règle de calcul du délai à préciser avant développement.
 
+> Règle retenue le 2026-11-03 (option B) : délai `leadTimeDays` propre à chaque fournisseur (0 à 365 jours), prérempli selon le type (`LOCAL` 7 j, `FOREIGN` 30 j). Les alertes de seuil affichent le fournisseur, le délai et la date de livraison prévue, et départagent à couverture égale par délai décroissant. Détail : [guide](guide.md). Critère à cocher après exécution des tests.
+
 ## Détails
 
 | | |

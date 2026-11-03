@@ -2,10 +2,13 @@ package org.vvs.valimbavaka.feature.stock.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,6 +31,8 @@ import org.vvs.valimbavaka.feature.stock.mapper.StockMapper;
 import org.vvs.valimbavaka.feature.stock.repository.StockBalance;
 import org.vvs.valimbavaka.feature.stock.repository.StockMovementRepository;
 import org.vvs.valimbavaka.feature.stock.service.StockService;
+import org.vvs.valimbavaka.feature.supplier.dto.SupplierLeadTimeRDto;
+import org.vvs.valimbavaka.feature.supplier.service.SupplierService;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
@@ -43,16 +48,22 @@ public class StockServiceImpl implements StockService {
     private final ReferentialService referentialService;
     private final StockMovementRepository stockMovementRepository;
     private final StockMapper stockMapper;
+    private final SupplierService supplierService;
+    private final Clock clock;
 
     public StockServiceImpl(
             ArticleService articleService,
             ReferentialService referentialService,
             StockMovementRepository stockMovementRepository,
-            StockMapper stockMapper) {
+            StockMapper stockMapper,
+            SupplierService supplierService,
+            Clock clock) {
         this.articleService = articleService;
         this.referentialService = referentialService;
         this.stockMovementRepository = stockMovementRepository;
         this.stockMapper = stockMapper;
+        this.supplierService = supplierService;
+        this.clock = clock;
     }
 
     @Override
@@ -84,10 +95,12 @@ public class StockServiceImpl implements StockService {
                 .toList();
         var balances = balancesByArticle(articles.stream().map(ArticleRDto::id).toList());
         var locations = referentialService.getStockLocations(ALL_LOCATIONS).items();
+        var suppliers = suppliersByArticle(articles);
+        var today = LocalDate.now(clock.withZone(StockAlertPolicy.BUSINESS_ZONE));
         var alerts = articles.stream()
                 .map(article -> toStock(article, locations, balances))
                 .filter(StockAlertPolicy::isUnderThreshold)
-                .map(StockAlertPolicy::toAlert)
+                .map(stock -> StockAlertPolicy.toAlert(stock, suppliers.get(stock.articleId()), today))
                 .sorted(StockAlertPolicy.MOST_URGENT_FIRST)
                 .toList();
         return pageOf(alerts, query);
@@ -155,6 +168,24 @@ public class StockServiceImpl implements StockService {
     private StockRDto toStock(
             ArticleRDto article, List<StockLocationRDto> locations, Map<UUID, Map<UUID, BigDecimal>> balances) {
         return stockMapper.toRDto(article, locations, balances.getOrDefault(article.id(), Map.of()));
+    }
+
+    /** Lead time of each article's supplier (FRS-04); an article without (known) supplier is absent. */
+    private Map<UUID, SupplierLeadTimeRDto> suppliersByArticle(List<ArticleRDto> articles) {
+        var supplierIds = articles.stream()
+                .map(ArticleRDto::supplierId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        var leadTimes = supplierService.getLeadTimes(supplierIds);
+        var byArticle = new HashMap<UUID, SupplierLeadTimeRDto>();
+        for (var article : articles) {
+            var supplierId = article.supplierId();
+            var leadTime = supplierId == null ? null : leadTimes.get(supplierId);
+            if (leadTime != null) {
+                byArticle.put(article.id(), leadTime);
+            }
+        }
+        return byArticle;
     }
 
     private Map<UUID, Map<UUID, BigDecimal>> balancesByArticle(List<UUID> articleIds) {

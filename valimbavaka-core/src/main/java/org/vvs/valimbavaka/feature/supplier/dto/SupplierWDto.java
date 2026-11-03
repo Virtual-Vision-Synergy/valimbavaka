@@ -1,6 +1,8 @@
 package org.vvs.valimbavaka.feature.supplier.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -33,6 +35,12 @@ public record SupplierWDto(
 
         @Size(max = 2000, message = "Les notes ne doivent pas dépasser {max} caractères") @Nullable
         String notes,
+
+        // Restocking lead time in days (FRS-04); null means the default of the type (LOCAL 7, FOREIGN 30).
+        @Min(value = 0, message = "Le délai ne peut pas être négatif")
+        @Max(value = 365, message = "Le délai ne doit pas dépasser {value} jours")
+        @Nullable
+        Integer leadTimeDays,
 
         // Version read by the client (SupplierRDto.version): a stale value is refused with 409 instead of silently
         // overwriting a concurrent update. Optional on creation.

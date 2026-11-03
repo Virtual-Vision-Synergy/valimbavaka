@@ -3,6 +3,15 @@ import { PageQuery } from '../../../shared/models/page-response';
 /** Miroir de SupplierType côté backend. */
 export type SupplierType = 'LOCAL' | 'FOREIGN';
 
+/** Délai par défaut de chaque type (FRS-04), identique à `SupplierType.defaultLeadTimeDays()` côté serveur. */
+export const DEFAULT_LEAD_TIME_DAYS: Readonly<Record<SupplierType, number>> = {
+  LOCAL: 7,
+  FOREIGN: 30,
+};
+
+/** Bornes du délai de réapprovisionnement acceptées par le serveur (`SupplierWDto`). */
+export const MAX_LEAD_TIME_DAYS = 365;
+
 /** Miroir de SupplierRDto : fiche fournisseur en lecture. */
 export interface SupplierRDto {
   id: string;
@@ -13,6 +22,8 @@ export interface SupplierRDto {
   email: string | null;
   address: string | null;
   notes: string | null;
+  /** Délai de réapprovisionnement en jours (FRS-04). */
+  leadTimeDays: number;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -29,6 +40,8 @@ export interface SupplierWDto {
   email: string | null;
   address: string | null;
   notes: string | null;
+  /** Délai en jours (0 à 365) ; `null` = délai par défaut du type. */
+  leadTimeDays: number | null;
   /** Version lue lors de l'ouverture de la fiche ; absente en création. */
   version?: number | null;
 }

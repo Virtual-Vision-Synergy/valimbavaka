@@ -23,6 +23,7 @@ const supplier: SupplierRDto = {
   email: null,
   address: null,
   notes: null,
+  leadTimeDays: 7,
   active: true,
   createdAt: '2026-10-21T08:30:00Z',
   updatedAt: '2026-10-22T08:30:00Z',
@@ -127,6 +128,8 @@ describe('SupplierFormPage', () => {
         email: 'lee@ocean.com',
         address: 'Marseille',
         notes: 'Livraison le mardi',
+        // Délai resté au défaut LOCAL (7 j) : il suit le passage en FOREIGN (30 j).
+        leadTimeDays: 30,
         version: 3,
       });
       request.flush({ ...supplier, name: 'Import Océan', version: 4 });
@@ -270,6 +273,7 @@ describe('SupplierFormPage', () => {
         name: '  Coopérative Itasy ',
         type: 'FOREIGN',
         contactName: '',
+        leadTimeDays: 30,
         version: null,
       });
       request.flush(

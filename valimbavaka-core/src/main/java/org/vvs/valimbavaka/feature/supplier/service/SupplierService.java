@@ -1,10 +1,13 @@
 package org.vvs.valimbavaka.feature.supplier.service;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 
 import org.vvs.valimbavaka.feature.supplier.domain.SupplierType;
+import org.vvs.valimbavaka.feature.supplier.dto.SupplierLeadTimeRDto;
 import org.vvs.valimbavaka.feature.supplier.dto.SupplierRDto;
 import org.vvs.valimbavaka.feature.supplier.dto.SupplierWDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -25,4 +28,10 @@ public interface SupplierService {
 
     /** True if the supplier exists and is active (reference check for the other features, e.g. articles). */
     boolean isActiveSupplier(UUID supplierId);
+
+    /**
+     * Lead times of the given suppliers, by identifier (FRS-04), whatever their status: an unknown identifier is
+     * simply absent from the map.
+     */
+    Map<UUID, SupplierLeadTimeRDto> getLeadTimes(Collection<UUID> supplierIds);
 }

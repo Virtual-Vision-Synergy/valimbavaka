@@ -30,6 +30,29 @@
       </div>
 
       <div class="field">
+        <label for="leadTimeDays">{{ 'supplier.field.leadTimeDays' | translate }} *</label>
+        <input
+          id="leadTimeDays"
+          class="input"
+          type="number"
+          min="0"
+          max="365"
+          step="1"
+          inputmode="numeric"
+          formControlName="leadTimeDays"
+          aria-describedby="leadTimeDays-hint leadTimeDays-error"
+        />
+        <span id="leadTimeDays-hint" class="field-hint">{{
+          'supplier.form.leadTimeHint' | translate
+        }}</span>
+        @if (fieldError('leadTimeDays'); as error) {
+          <span id="leadTimeDays-error" class="field-error" aria-live="polite">{{
+            error.key | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
         <label for="contactName">{{ 'supplier.field.contactName' | translate }}</label>
         <input
           id="contactName"

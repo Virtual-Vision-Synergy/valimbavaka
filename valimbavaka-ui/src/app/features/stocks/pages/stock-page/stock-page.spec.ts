@@ -38,6 +38,10 @@ const ALERT = {
   threshold: 40,
   shortage: 27.5,
   suggestedQuantity: 30,
+  supplierId: null,
+  supplierName: null,
+  leadTimeDays: null,
+  expectedDeliveryDate: null,
 };
 
 /** Tout le stock vu par le serveur, articles hors de la page compris. */

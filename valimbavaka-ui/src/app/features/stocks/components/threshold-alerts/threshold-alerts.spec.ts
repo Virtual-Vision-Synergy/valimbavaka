@@ -12,10 +12,14 @@ const alert = (overrides: Partial<StockAlertRDto>): StockAlertRDto => ({
   threshold: 40,
   shortage: 27.5,
   suggestedQuantity: 30,
+  supplierId: 'sup-1',
+  supplierName: 'Huiles Ravo',
+  leadTimeDays: 7,
+  expectedDeliveryDate: '2026-11-10',
   ...overrides,
 });
 
-/** STK-04 : liste des articles sous le seuil, telle que calculée par le serveur. */
+/** STK-04 : liste des articles sous le seuil, telle que calculée par le serveur ; FRS-04 : délai fournisseur. */
 describe('ThresholdAlerts', () => {
   let fixture: ComponentFixture<ThresholdAlerts>;
   let element: HTMLElement;
@@ -48,10 +52,48 @@ describe('ThresholdAlerts', () => {
     const headers = Array.from(element.querySelectorAll('thead th')).map((th) =>
       th.textContent?.trim(),
     );
-    expect(headers).toEqual(['Article', 'Stock actuel', 'Seuil', 'Manque', 'Quantité suggérée']);
+    expect(headers).toEqual([
+      'Article',
+      'Stock actuel',
+      'Seuil',
+      'Manque',
+      'Quantité suggérée',
+      'Fournisseur · délai',
+    ]);
     expect(rows()[0]).toContain('12.5 | 40 | 27.5 | 30');
     expect(element.querySelector('tbody .unit')?.textContent?.trim()).toBe('Pièce');
     expect(rows()[0]).toContain('Sous le seuil');
+  });
+
+  it('affiche le fournisseur, son délai et la date de livraison prévue', async () => {
+    await render([
+      alert({
+        supplierName: 'Provence Essences',
+        leadTimeDays: 30,
+        expectedDeliveryDate: '2026-12-03',
+      }),
+    ]);
+
+    const supplier = element.querySelector('tbody td.supplier');
+    expect(supplier?.querySelector('.cell-title')?.textContent?.trim()).toBe('Provence Essences');
+    expect(supplier?.querySelector('.cell-sub')?.textContent?.trim()).toBe(
+      '30 j · livraison prévue le 03/12/2026',
+    );
+  });
+
+  it('indique la fabrication interne pour un article sans fournisseur', async () => {
+    await render([
+      alert({
+        supplierId: null,
+        supplierName: null,
+        leadTimeDays: null,
+        expectedDeliveryDate: null,
+      }),
+    ]);
+
+    expect(element.querySelector('tbody td.supplier')?.textContent?.trim()).toBe(
+      'Fabrication interne (atelier)',
+    );
   });
 
   it('signale une rupture quand le stock est nul', async () => {

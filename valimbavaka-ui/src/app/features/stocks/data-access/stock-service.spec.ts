@@ -106,6 +106,10 @@ describe('StockService', () => {
           threshold: 15,
           shortage: 15,
           suggestedQuantity: 20,
+          supplierId: 'sup-1',
+          supplierName: 'Provence Essences',
+          leadTimeDays: 30,
+          expectedDeliveryDate: '2026-12-03',
         },
       ]),
       totalCount: 140,
@@ -113,6 +117,7 @@ describe('StockService', () => {
     });
 
     expect(alerts?.items[0].shortage).toBe(15);
+    expect(alerts?.items[0].leadTimeDays).toBe(30);
     expect(alerts?.items[0].suggestedQuantity).toBe(20);
     expect(alerts?.totalCount).toBe(140);
   });

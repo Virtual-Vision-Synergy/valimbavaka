@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
+
 import org.vvs.valimbavaka.feature.article.domain.ArticleType;
 import org.vvs.valimbavaka.feature.article.domain.ArticleUnit;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
@@ -17,6 +19,10 @@ final class StockTestData {
     }
 
     static ArticleRDto article(UUID id, String code, String threshold) {
+        return article(id, code, threshold, null);
+    }
+
+    static ArticleRDto article(UUID id, String code, String threshold, @Nullable UUID supplierId) {
         return new ArticleRDto(
                 id,
                 code,
@@ -28,7 +34,7 @@ final class StockTestData {
                 null,
                 null,
                 new BigDecimal(threshold),
-                null,
+                supplierId,
                 true,
                 Instant.parse("2026-10-29T08:00:00Z"),
                 Instant.parse("2026-10-29T08:00:00Z"),

@@ -79,6 +79,6 @@ class SupplierRepositoryIT {
     }
 
     private static Supplier supplier(String name, SupplierType type, String contactName) {
-        return Supplier.create(new SupplierDetails(name, type, contactName, null, null, null, null));
+        return Supplier.create(new SupplierDetails(name, type, contactName, null, null, null, null, null));
     }
 }

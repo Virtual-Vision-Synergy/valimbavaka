@@ -10,7 +10,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +29,7 @@ import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.supplier.domain.Supplier;
 import org.vvs.valimbavaka.feature.supplier.domain.SupplierDetails;
 import org.vvs.valimbavaka.feature.supplier.domain.SupplierType;
+import org.vvs.valimbavaka.feature.supplier.dto.SupplierLeadTimeRDto;
 import org.vvs.valimbavaka.feature.supplier.dto.SupplierWDto;
 import org.vvs.valimbavaka.feature.supplier.mapper.SupplierMapper;
 import org.vvs.valimbavaka.feature.supplier.repository.SupplierRepository;
@@ -58,7 +61,15 @@ class SupplierServiceImplTest {
         when(supplierRepository.existsByNameIgnoreCase("Coopérative Itasy")).thenReturn(false);
         when(supplierRepository.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
         var request = new SupplierWDto(
-                "  Coopérative Itasy ", SupplierType.LOCAL, " ", "034 00 000 00", "Contact@Itasy.MG", null, null, null);
+                "  Coopérative Itasy ",
+                SupplierType.LOCAL,
+                " ",
+                "034 00 000 00",
+                "Contact@Itasy.MG",
+                null,
+                null,
+                null,
+                null);
 
         // Act
         sut.createSupplier(request);
@@ -105,6 +116,7 @@ class SupplierServiceImplTest {
                 "lee@ocean.com",
                 "Marseille",
                 "Raw materials",
+                null,
                 null);
 
         // Act
@@ -129,7 +141,8 @@ class SupplierServiceImplTest {
         when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
         when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Coopérative Itasy", SUPPLIER_ID))
                 .thenReturn(false);
-        var request = new SupplierWDto("  Coopérative Itasy ", SupplierType.LOCAL, " ", "", null, null, null, null);
+        var request =
+                new SupplierWDto("  Coopérative Itasy ", SupplierType.LOCAL, " ", "", null, null, null, null, null);
 
         // Act
         sut.updateSupplier(SUPPLIER_ID, request);
@@ -158,7 +171,8 @@ class SupplierServiceImplTest {
         // Arrange
         var supplier = existingSupplier();
         when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
-        var staleRequest = new SupplierWDto("Import Océan", SupplierType.FOREIGN, null, null, null, null, null, 7L);
+        var staleRequest =
+                new SupplierWDto("Import Océan", SupplierType.FOREIGN, null, null, null, null, null, null, 7L);
 
         // Act + Assert
         assertThatThrownBy(() -> sut.updateSupplier(SUPPLIER_ID, staleRequest))
@@ -222,12 +236,118 @@ class SupplierServiceImplTest {
         assertThat(sut.isActiveSupplier(inactiveId)).isFalse();
     }
 
+    @Test
+    void createSupplier_foreignWithoutLeadTime_takesThirtyDaysByDefault() {
+        // Arrange
+        when(supplierRepository.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var request =
+                new SupplierWDto("Provence Essences", SupplierType.FOREIGN, null, null, null, null, null, null, null);
+
+        // Act
+        sut.createSupplier(request);
+
+        // Assert
+        var saved = ArgumentCaptor.forClass(Supplier.class);
+        verify(supplierRepository).save(saved.capture());
+        assertThat(saved.getValue().getLeadTimeDays()).isEqualTo(30);
+    }
+
+    @Test
+    void createSupplier_localWithoutLeadTime_takesSevenDaysByDefault() {
+        // Arrange
+        when(supplierRepository.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        sut.createSupplier(request("Huiles Ravo"));
+
+        // Assert
+        var saved = ArgumentCaptor.forClass(Supplier.class);
+        verify(supplierRepository).save(saved.capture());
+        assertThat(saved.getValue().getLeadTimeDays()).isEqualTo(7);
+    }
+
+    @Test
+    void createSupplier_explicitLeadTime_keepsItWhateverTheType() {
+        // Arrange
+        when(supplierRepository.save(any(Supplier.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var request = new SupplierWDto("Import Rapide", SupplierType.FOREIGN, null, null, null, null, null, 12, null);
+
+        // Act
+        sut.createSupplier(request);
+
+        // Assert
+        var saved = ArgumentCaptor.forClass(Supplier.class);
+        verify(supplierRepository).save(saved.capture());
+        assertThat(saved.getValue().getLeadTimeDays()).isEqualTo(12);
+    }
+
+    @Test
+    void updateSupplier_onlyLeadTimeChanged_updatesItAndTracesInJournal() {
+        // Arrange
+        var supplier = existingSupplier();
+        when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
+        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Coopérative Itasy", SUPPLIER_ID))
+                .thenReturn(false);
+        var request = new SupplierWDto("Coopérative Itasy", SupplierType.LOCAL, null, null, null, null, null, 3, null);
+
+        // Act
+        sut.updateSupplier(SUPPLIER_ID, request);
+
+        // Assert
+        assertThat(supplier.getLeadTimeDays()).isEqualTo(3);
+        verify(journalService)
+                .record(JournalAction.UPDATE, "SUPPLIER", SUPPLIER_ID, "Modification du fournisseur Coopérative Itasy");
+    }
+
+    @Test
+    void updateSupplier_typeChangedWithoutLeadTime_takesTheDefaultOfTheNewType() {
+        // Arrange
+        var supplier = existingSupplier();
+        when(supplierRepository.findById(SUPPLIER_ID)).thenReturn(Optional.of(supplier));
+        when(supplierRepository.existsByNameIgnoreCaseAndIdNot("Coopérative Itasy", SUPPLIER_ID))
+                .thenReturn(false);
+        var request =
+                new SupplierWDto("Coopérative Itasy", SupplierType.FOREIGN, null, null, null, null, null, null, null);
+
+        // Act
+        sut.updateSupplier(SUPPLIER_ID, request);
+
+        // Assert
+        assertThat(supplier.getLeadTimeDays()).isEqualTo(30);
+    }
+
+    @Test
+    void getLeadTimes_noIdentifier_returnsEmptyMapWithoutQuery() {
+        // Act
+        var result = sut.getLeadTimes(Set.of());
+
+        // Assert
+        assertThat(result).isEmpty();
+        verifyNoInteractions(supplierRepository);
+    }
+
+    @Test
+    void getLeadTimes_knownAndUnknownIdentifiers_returnsTheKnownOnesById() {
+        // Arrange
+        var unknownId = UUID.randomUUID();
+        var supplier = existingSupplier();
+        var leadTime = new SupplierLeadTimeRDto(SUPPLIER_ID, "Coopérative Itasy", SupplierType.LOCAL, 7);
+        when(supplierRepository.findAllByIdIn(Set.of(SUPPLIER_ID, unknownId))).thenReturn(List.of(supplier));
+        when(supplierMapper.toLeadTimeRDto(supplier)).thenReturn(leadTime);
+
+        // Act
+        var result = sut.getLeadTimes(List.of(SUPPLIER_ID, unknownId, SUPPLIER_ID));
+
+        // Assert
+        assertThat(result).containsOnlyKeys(SUPPLIER_ID).containsEntry(SUPPLIER_ID, leadTime);
+    }
+
     private static Supplier existingSupplier() {
         return Supplier.create(
-                new SupplierDetails("Coopérative Itasy", SupplierType.LOCAL, null, null, null, null, null));
+                new SupplierDetails("Coopérative Itasy", SupplierType.LOCAL, null, null, null, null, null, null));
     }
 
     private static SupplierWDto request(String name) {
-        return new SupplierWDto(name, SupplierType.LOCAL, null, null, null, null, null, null);
+        return new SupplierWDto(name, SupplierType.LOCAL, null, null, null, null, null, null, null);
     }
 }

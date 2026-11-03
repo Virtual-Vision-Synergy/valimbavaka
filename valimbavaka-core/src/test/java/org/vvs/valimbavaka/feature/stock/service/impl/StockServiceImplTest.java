@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +30,7 @@ import org.vvs.valimbavaka.feature.stock.dto.StockLocationValueRDto;
 import org.vvs.valimbavaka.feature.stock.mapper.StockMapper;
 import org.vvs.valimbavaka.feature.stock.repository.StockBalance;
 import org.vvs.valimbavaka.feature.stock.repository.StockMovementRepository;
+import org.vvs.valimbavaka.feature.supplier.service.SupplierService;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
@@ -43,6 +45,9 @@ class StockServiceImplTest {
     private static final PageQuery QUERY = new PageQuery(1, 20, null, null, null);
 
     @Mock
+    private SupplierService supplierService;
+
+    @Mock
     private ArticleService articleService;
 
     @Mock
@@ -55,7 +60,13 @@ class StockServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        sut = new StockServiceImpl(articleService, referentialService, stockMovementRepository, new StockMapper());
+        sut = new StockServiceImpl(
+                articleService,
+                referentialService,
+                stockMovementRepository,
+                new StockMapper(),
+                supplierService,
+                Clock.systemUTC());
     }
 
     @Test
