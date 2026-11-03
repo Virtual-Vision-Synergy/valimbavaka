@@ -27,6 +27,8 @@ export interface StockRDto {
 /**
  * `GET /api/v1/stocks/alerts` : article actif sous son seuil minimum (STK-04). `quantity` est le total des
  * emplacements actifs, `shortage` = seuil − stock, `suggestedQuantity` = manque arrondi à la dizaine supérieure.
+ * Fournisseur, délai et date de livraison prévue (commande du jour + délai) viennent du fournisseur de l'article
+ * (FRS-04) ; tous `null` pour un article sans fournisseur (fabrication interne).
  */
 export interface StockAlertRDto {
   readonly articleId: string;
@@ -37,6 +39,11 @@ export interface StockAlertRDto {
   readonly threshold: number;
   readonly shortage: number;
   readonly suggestedQuantity: number;
+  readonly supplierId: string | null;
+  readonly supplierName: string | null;
+  readonly leadTimeDays: number | null;
+  /** Date ISO `yyyy-MM-dd`, au fuseau de Madagascar. */
+  readonly expectedDeliveryDate: string | null;
 }
 
 /** Stock d'un emplacement, tous articles confondus : valeur au coût d'achat en ariary (STK-03). */
