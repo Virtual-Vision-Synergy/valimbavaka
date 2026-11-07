@@ -43,17 +43,11 @@ export interface InventorySheet {
   readonly lines: readonly InventorySheetLine[];
 }
 
-export interface PreviousSessionRDto {
-  readonly number: string;
-  readonly locationLabel: string;
-  readonly closedOn: string;
-  readonly gapUnits: number;
-}
-
 export interface InventoryContextRDto {
   /** Null quand aucune session n'est en cours. */
   readonly session: InventorySheet | null;
-  readonly previous: readonly PreviousSessionRDto[];
+  /** Dernières sessions clôturées, les plus récentes d'abord (INV-05). */
+  readonly previous: readonly InventorySessionRDto[];
 }
 
 /** Ouverture d'une session (INV-01) : les 4 informations obligatoires ; `rangeId` seulement si `RANGE`. */
@@ -84,6 +78,8 @@ export interface InventorySessionRDto {
   readonly openedBy: string | null;
   readonly closedAt: string | null;
   readonly lineCount: number;
+  /** Lignes comptées dont le compté diffère du théorique figé (INV-05). */
+  readonly gapCount: number;
   readonly version: number;
 }
 

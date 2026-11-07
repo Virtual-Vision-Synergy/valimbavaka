@@ -11,6 +11,14 @@ export function toLocalMinute(instant: string): string {
   );
 }
 
+/**
+ * Jour local (`AAAA-MM-JJ`) où une session s'est terminée (INV-05) : jour de la clôture, sinon date du comptage
+ * prévue à l'ouverture (session en cours ou annulée).
+ */
+export function closedOn(session: InventorySessionRDto): string {
+  return session.closedAt ? toLocalMinute(session.closedAt).slice(0, 10) : session.countDate;
+}
+
 /** Session et lignes du serveur vers la feuille de comptage affichée (INV-02). */
 export function toInventorySheet(
   session: InventorySessionRDto,

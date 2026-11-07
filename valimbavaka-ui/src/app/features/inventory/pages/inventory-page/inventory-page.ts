@@ -27,13 +27,14 @@ import {
   InventoryReason,
   InventorySheetLine,
 } from '../../data-access/inventory-models';
-import { parseQuantity, toLocalMinute } from '../../data-access/inventory-sheet';
+import { closedOn, parseQuantity, toLocalMinute } from '../../data-access/inventory-sheet';
 import { InventoryService } from '../../data-access/inventory-service';
 
 /**
  * Session d'inventaire en cours (INV-01 à INV-05) : comptage article par article enregistré sur le serveur
  * (INV-02), écart calculé en direct, motif de chaque écart enregistré sur le serveur (INV-03), clôture quand tout
- * est compté et expliqué : le serveur ajuste alors le stock aux quantités comptées (INV-04).
+ * est compté et expliqué : le serveur ajuste alors le stock aux quantités comptées (INV-04). À côté, les dernières
+ * sessions clôturées avec leur nombre d'écarts et un lien vers l'historique complet (INV-05).
  */
 @Component({
   selector: 'vvs-inventory-page',
@@ -62,6 +63,7 @@ export class InventoryPage {
   protected readonly state = inject(InventoryState);
   protected readonly icons = { Lock, ScanBarcode };
   protected readonly reasons = INVENTORY_REASONS;
+  protected readonly closedOn = closedOn;
   protected readonly inventory = rxResource({ stream: () => this.inventoryService.current() });
   protected readonly closedAt = signal<string | null>(null);
   protected readonly closing = signal(false);

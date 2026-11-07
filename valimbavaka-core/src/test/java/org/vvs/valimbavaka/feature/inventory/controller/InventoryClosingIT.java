@@ -244,6 +244,52 @@ class InventoryClosingIT {
         assertThat(sessionStatus()).isEqualTo("IN_PROGRESS");
     }
 
+    @Test
+    void getSessions_closedFilter_returnsClosedSessionWithStatusAndGapCount() throws Exception {
+        // Arrange
+        count(soapId, "10");
+        qualify(soapId, "BREAKAGE");
+        count(oilId, "5");
+        mockMvc.perform(asAdmin(post(closeUrl()))).andExpect(status().isOk());
+
+        // Act + Assert
+        mockMvc.perform(asAdmin(get(INVENTORIES + "?status=CLOSED&size=1&locationId={id}", storeId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].id").value(sessionId))
+                .andExpect(jsonPath("$.items[0].status").value("CLOSED"))
+                .andExpect(jsonPath("$.items[0].closedAt").isNotEmpty())
+                .andExpect(jsonPath("$.items[0].lineCount").value(2))
+                .andExpect(jsonPath("$.items[0].gapCount").value(1));
+    }
+
+    @Test
+    void getSession_countedLines_countsOnlyLinesWithGap() throws Exception {
+        // Arrange
+        count(soapId, "12.000");
+        count(oilId, "4");
+
+        // Act + Assert
+        mockMvc.perform(asAdmin(get(INVENTORIES + "/" + sessionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
+                .andExpect(jsonPath("$.lineCount").value(2))
+                .andExpect(jsonPath("$.gapCount").value(1));
+    }
+
+    @Test
+    void getSession_nothingCounted_returnsZeroGap() throws Exception {
+        mockMvc.perform(asAdmin(get(INVENTORIES + "/" + sessionId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gapCount").value(0));
+    }
+
+    @Test
+    void getSessions_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(INVENTORIES + "?status=CLOSED"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
     private void countAllWithoutGap() throws Exception {
         count(soapId, "12");
         count(oilId, "5");

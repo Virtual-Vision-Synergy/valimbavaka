@@ -322,6 +322,7 @@ class InventoryClosingServiceImplTest {
                 null,
                 NOW,
                 lineCount,
+                0L,
                 1L);
     }
 }

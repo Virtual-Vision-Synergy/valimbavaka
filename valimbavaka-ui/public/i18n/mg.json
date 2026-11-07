@@ -1212,6 +1212,25 @@
     "missingReasons": "Elanelana {{count}} tsy misy antony : azo akatona rehefa voasoratra ny antony.",
     "previous": "Fotoana teo aloha",
     "previousEmpty": "Mbola tsy misy fanisana vita haseho.",
+    "gapCount": "Elanelana {{count}}",
+    "historyLink": "Hijery ny tantaran'ny fotoam-panisana",
+    "history": {
+      "title": "Tantaran'ny fotoam-panisana entana",
+      "subtitle": "Fotoana {{count}}",
+      "back": "← Hiverina amin'ny fanisana entana",
+      "listLabel": "Fotoam-panisana entana",
+      "statusFilter": "Sivanina araka ny sata",
+      "allStatuses": "Rehetra",
+      "empty": "Tsy misy fotoam-panisana amin'ity sivana ity.",
+      "col": {
+        "session": "Fotoana",
+        "countDate": "Daty fanisana",
+        "closedOn": "Nakatona tamin'ny",
+        "status": "Sata",
+        "lines": "Entana",
+        "gaps": "Elanelana"
+      }
+    },
     "confirmTitle": "Hakatona ve ny fotoana ?",
     "confirmText": "Hampitoviana amin'ny fanisana ny tahiry ({{count}} entana misy elanelana). Tsy azo averina io hetsika io.",
     "scope": {
