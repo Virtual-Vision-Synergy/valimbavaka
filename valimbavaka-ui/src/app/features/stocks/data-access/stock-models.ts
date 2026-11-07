@@ -68,13 +68,57 @@ export interface RestockOrderLineRDto {
   readonly expectedDeliveryDate: string | null;
 }
 
-/** Bon de réapprovisionnement généré par le serveur (`BR-000001`), en attente de réception (STK-06). */
+/** Bon de réapprovisionnement généré par le serveur (`BR-000001`), `RECEIVED` une fois réceptionné (STK-06). */
 export interface RestockOrderRDto {
   readonly id: string;
   readonly reference: string;
   readonly status: 'PENDING' | 'RECEIVED';
   readonly createdAt: string;
   readonly lines: readonly RestockOrderLineRDto[];
+}
+
+/** Ligne reçue d'une livraison fournisseur (STK-06) : quantité à 3 décimales, coût unitaire d'achat en ariary. */
+export interface SupplierReceiptLineWDto {
+  readonly articleId: string;
+  readonly quantity: number;
+  readonly unitCost: number;
+}
+
+/**
+ * `POST /api/v1/stocks/receipts` (STK-06) : sans emplacement, l'entrepôt ; `restockOrderId` reprend un bon
+ * de réapprovisionnement (STK-05), qui passe alors à `RECEIVED`.
+ */
+export interface SupplierReceiptWDto {
+  readonly supplierId: string;
+  readonly locationId: string | null;
+  readonly restockOrderId: string | null;
+  readonly lines: readonly SupplierReceiptLineWDto[];
+  readonly note: string | null;
+}
+
+export interface SupplierReceiptLineRDto {
+  readonly articleId: string;
+  readonly articleCode: string;
+  readonly articleName: string;
+  readonly quantity: number;
+  readonly unitCost: number;
+  /** Quantité × coût unitaire, arrondi au centime. */
+  readonly lineCost: number;
+}
+
+/** Réception enregistrée (`REC-000001`) ; `REVERSED` une fois contre-passée (mouvements inverses). */
+export interface SupplierReceiptRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly status: 'VALIDATED' | 'REVERSED';
+  readonly supplierId: string;
+  readonly supplierName: string;
+  readonly locationId: string;
+  readonly restockOrderId: string | null;
+  readonly note: string | null;
+  readonly createdAt: string;
+  readonly totalCost: number;
+  readonly lines: readonly SupplierReceiptLineRDto[];
 }
 
 /** Stock d'un emplacement, tous articles confondus : valeur au coût d'achat en ariary (STK-03). */

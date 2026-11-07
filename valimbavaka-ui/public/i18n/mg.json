@@ -602,6 +602,32 @@
       "expectedDelivery": "Ho tonga ny {{date}} raha alefa androany ny baiko.",
       "generated": "Vita ny baiko famenoana {{reference}} · entana {{count}}",
       "failed": "Tsy vita ny baiko : {{message}}"
+    },
+    "receipt": {
+      "title": "Fandraisana avy amin'ny mpamatsy",
+      "subtitle": "Miditra ao amin'ny tahiry amin'ny toerana voafidy ny entana voaray. Tsy fafana ny fandraisana voamarina : ahitsy amin'ny fanafoanana mifanohitra ny hadisoana.",
+      "back": "← Hiverina any amin'ny tahiry",
+      "order": "Baiko famenoana",
+      "freeEntry": "Fampidirana malalaka (tsy misy baiko)",
+      "orderOption": "{{reference}} · entana {{count}}",
+      "orderHint": "Ny fakana baiko dia mameno mialoha ny entana, ny isa nobaikoina ary ny vidiny ; lasa « voaray » ny baiko.",
+      "supplier": "Mpamatsy",
+      "chooseSupplier": "Mifidiana mpamatsy",
+      "supplierRequired": "Fidio ny mpamatsy nanatitra.",
+      "location": "Toerana handraisana",
+      "lines": "Entana voaray",
+      "article": "Entana",
+      "chooseArticle": "Mifidiana entana",
+      "articleRequired": "Mifidiana entana iray.",
+      "quantity": "Isa",
+      "quantityInvalid": "Isa mihoatra ny aotra, desimaly 3 farafahabetsany.",
+      "unitCost": "Vidiny isaky ny iray (Ar)",
+      "unitCostInvalid": "Vidiny tsy latsaky ny aotra, desimaly 2 farafahabetsany.",
+      "removeLine": "Esory ny andalana {{index}}",
+      "addLine": "Hanampy entana",
+      "note": "Fanamarihana",
+      "submit": "Hanamarina ny fandraisana",
+      "saved": "Voatahiry ny fandraisana {{number}} : vaovao ny tahiry."
     }
   },
   "articles": {
