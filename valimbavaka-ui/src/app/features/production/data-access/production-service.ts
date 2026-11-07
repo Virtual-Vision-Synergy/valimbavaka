@@ -39,9 +39,10 @@ export interface CreatedLot {
 }
 
 /**
- * Production (PRD-01). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
- * l'entrepôt (STK-01), vendeuses et lots récents. Création par la file hors ligne (SYS-07) ; le serveur
- * contrôle chaque ligne et crée le lot planifié, sans mouvement de stock (PRD-02).
+ * Production (PRD-01, PRD-02). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
+ * l'entrepôt (STK-01), vendeuses et lots récents. Écritures par la file hors ligne (SYS-07) : « Enregistrer »
+ * crée un lot planifié sans mouvement de stock ; « Valider » crée et valide le lot en une seule requête,
+ * le serveur sortant les entrants et entrant le produit fini dans la même transaction (PRD-02).
  */
 @Injectable({ providedIn: 'root' })
 export class ProductionService {
@@ -91,14 +92,26 @@ export class ProductionService {
     });
   }
 
-  /** `articleName` et `operator` servent à afficher le lot créé sans relire la liste. */
+  /**
+   * `lot.validate` : création et validation en une seule requête (`production.complete`), donc rejouable
+   * telle quelle hors ligne. `articleName` et `operator` servent à afficher le lot créé sans relire la liste.
+   */
   createLot(
     lot: LotWDto,
     labels: Pick<LotRDto, 'articleName' | 'operator'>,
   ): Observable<CreatedLot> {
+    const url = lot.validate ? `${this.baseUrl}/completed-batches` : `${this.baseUrl}/batches`;
     return this.outbox
-      .submit<ProductionBatchRDto>('POST', `${this.baseUrl}/batches`, toBatchWDto(lot))
+      .submit<ProductionBatchRDto>('POST', url, toBatchWDto(lot))
       .pipe(map((result) => toCreatedLot(result, labels)));
+  }
+
+  /** Valide un lot planifié existant (PRD-02) : mouvements de stock et coûts figés côté serveur. */
+  completeLot(id: string): Observable<SubmitResult<ProductionBatchRDto>> {
+    return this.outbox.submit<ProductionBatchRDto>(
+      'POST',
+      `${this.baseUrl}/batches/${id}/completion`,
+    );
   }
 }
 

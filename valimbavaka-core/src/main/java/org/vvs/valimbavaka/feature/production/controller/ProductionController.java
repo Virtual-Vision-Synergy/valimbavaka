@@ -31,7 +31,10 @@ import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Production batches (PRD-01): administrator and seller; never deleted (JNL-02). */
+/**
+ * Production batches (PRD-01): administrator and seller plan them; only the administrator completes them and moves the
+ * stock (PRD-02). Never deleted (JNL-02).
+ */
 @Tag(name = "Production")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -78,6 +81,30 @@ public class ProductionController {
     @HasPermission("production.create")
     public ResponseEntity<ProductionBatchRDto> createBatch(@Valid @RequestBody ProductionBatchWDto request) {
         var created = productionBatchService.createBatch(request);
+        return ResponseEntity.created(URI.create("/api/v1/production/batches/" + created.id()))
+                .body(created);
+    }
+
+    @PostMapping("/batches/{id}/completion")
+    @Operation(summary = "Completes a batch: inputs out of the warehouse and output in, in one transaction")
+    @ApiResponse(responseCode = "200", description = "Batch COMPLETED, stock moved, input costs frozen")
+    @ApiResponse(responseCode = "404", description = "Batch not found (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Already completed or insufficient stock (CONFLICT)")
+    @ApiResponse(responseCode = "422", description = "Warehouse unknown or inactive (VALIDATION_FAILED)")
+    @HasPermission("production.complete")
+    public ProductionBatchRDto completeBatch(@PathVariable UUID id) {
+        return productionBatchService.completeBatch(id);
+    }
+
+    @PostMapping("/completed-batches")
+    @Operation(summary = "Plans and completes a batch in one transaction (screen button \"Valider le lot\")")
+    @ApiResponse(responseCode = "201", description = "Batch created with status COMPLETED, stock moved")
+    @ApiResponse(responseCode = "404", description = "Unknown article (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Insufficient stock (CONFLICT): nothing is created")
+    @ApiResponse(responseCode = "422", description = "Invalid data (VALIDATION_FAILED)")
+    @HasPermission("production.complete")
+    public ResponseEntity<ProductionBatchRDto> createCompletedBatch(@Valid @RequestBody ProductionBatchWDto request) {
+        var created = productionBatchService.createCompletedBatch(request);
         return ResponseEntity.created(URI.create("/api/v1/production/batches/" + created.id()))
                 .body(created);
     }
