@@ -1,6 +1,6 @@
 # Guide d'intégration — SHO-03 · Suivi des sorties shooting en cours
 
-Statut : ✅ écrit le 2026-11-08 — tests à lancer en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#45](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/45) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests exécutés en CI, tous verts (voir « Résultat de l'exécution » du scénario) · Ticket : [#45](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/45) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -95,4 +95,5 @@ inject(ShootingService).summary().subscribe((summary) => summary.lateCount);
 - Si l'appel échoue (réseau, 5xx), les indicateurs ne s'affichent simplement pas ; la liste garde son propre état d'erreur. Lecture seule, donc pas de file hors ligne.
 - Les indicateurs ne sont pas affichés dans l'encart « Sorties en cours » de l'onglet Salon (le critère vise l'écran Shooting).
 - `ROLE_PERMISSIONS` (`core/auth/auth-testing.ts`) n'a pas été complété avec les permissions shooting (comme pour SHO-01/02) : la page a11y reste testée sur l'onglet Salon.
+- Tests exécutés en CI le 2026-11-08 (10 backend, 4 frontend ajoutés, tous verts) ; recette manuelle 🧪 à passer.
 - PR empilée sur SHO-02 (`feature/SHO-02-reintegration-produit-shooting`) : à merger après elle.
