@@ -1,5 +1,8 @@
 package org.vvs.valimbavaka.feature.stock.service;
 
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.stock.dto.StockAlertRDto;
@@ -28,4 +31,10 @@ public interface StockService {
      * included: they are still physically in stock.
      */
     StockValuationRDto getValuation();
+
+    /**
+     * Quantity of each given article in one location (inventory, INV-01/INV-02); an article that never moved there
+     * is absent from the map (zero). Inactive articles included.
+     */
+    Map<UUID, BigDecimal> getQuantities(UUID locationId, Collection<UUID> articleIds);
 }
