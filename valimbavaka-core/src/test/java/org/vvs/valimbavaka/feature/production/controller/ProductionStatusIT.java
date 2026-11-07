@@ -56,7 +56,9 @@ class ProductionStatusIT extends ProductionApiTestSupport {
         start(id, seller).andExpect(status().isOk());
 
         // Act
-        start(id, seller).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("CONFLICT"));
+        start(id, seller)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
 
         // Assert
         assertThat(journalEntries(id)).isEqualTo(1);
@@ -72,7 +74,9 @@ class ProductionStatusIT extends ProductionApiTestSupport {
         complete(id, admin).andExpect(status().isOk());
 
         // Act
-        start(id, admin).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("CONFLICT"));
+        start(id, admin)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
 
         // Assert
         assertThat(batchStatus(id)).isEqualTo("COMPLETED");
@@ -91,11 +95,13 @@ class ProductionStatusIT extends ProductionApiTestSupport {
         var id = plan(createArticle("FINISHED"), input(createArticle("RAW_MATERIAL"), "2"));
         var forged = "{\"status\":\"COMPLETED\",\"completedAt\":\"2020-01-01T00:00:00Z\"}";
 
+        var request = post(BATCHES + "/" + id + "/start")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(forged)
+                .header(HttpHeaders.AUTHORIZATION, bearer(adminToken()));
+
         // Act + Assert
-        mockMvc.perform(post(BATCHES + "/" + id + "/start")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(forged)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
+        mockMvc.perform(request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$.completedAt").value(nullValue()));
@@ -150,11 +156,11 @@ class ProductionStatusIT extends ProductionApiTestSupport {
     }
 
     private ResultActions inProgress(String number, String authorization) throws Exception {
-        return mockMvc.perform(get(BATCHES)
-                        .param("status", "IN_PROGRESS")
-                        .param("search", number)
-                        .header(HttpHeaders.AUTHORIZATION, authorization))
-                .andExpect(status().isOk());
+        var request = get(BATCHES)
+                .param("status", "IN_PROGRESS")
+                .param("search", number)
+                .header(HttpHeaders.AUTHORIZATION, authorization);
+        return mockMvc.perform(request).andExpect(status().isOk());
     }
 
     private UUID plan(UUID output, String inputs) throws Exception {
@@ -169,20 +175,20 @@ class ProductionStatusIT extends ProductionApiTestSupport {
     }
 
     private void receive(UUID articleId, String quantity) {
-        var warehouseId =
-                jdbcTemplate.queryForObject("select id from stock_locations where code = 'WAREHOUSE'", UUID.class);
         stockMovementService.record(new StockMovementCommand(
-                articleId, warehouseId, StockMovementType.RECEIPT, new BigDecimal(quantity), null));
+                articleId, warehouseId(), StockMovementType.RECEIPT, new BigDecimal(quantity), null));
+    }
+
+    private UUID warehouseId() {
+        return jdbcTemplate.queryForObject("select id from stock_locations where code = 'WAREHOUSE'", UUID.class);
     }
 
     private String batchStatus(UUID batchId) {
-        return jdbcTemplate.queryForObject(
-                "select status from production_batches where id = ?", String.class, batchId);
+        return jdbcTemplate.queryForObject("select status from production_batches where id = ?", String.class, batchId);
     }
 
     private String batchNumber(UUID batchId) {
-        return jdbcTemplate.queryForObject(
-                "select number from production_batches where id = ?", String.class, batchId);
+        return jdbcTemplate.queryForObject("select number from production_batches where id = ?", String.class, batchId);
     }
 
     private Integer productionMovements(UUID batchId) {
