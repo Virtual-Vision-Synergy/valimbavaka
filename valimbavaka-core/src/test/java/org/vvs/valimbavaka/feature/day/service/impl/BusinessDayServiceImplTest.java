@@ -94,7 +94,9 @@ class BusinessDayServiceImplTest {
             assertThat(command.origin()).isEqualTo(TransferOrigin.MORNING);
             assertThat(command.fromLocationId()).isEqualTo(WAREHOUSE);
         });
-        assertThat(commands.getAllValues()).extracting(TransferCommand::toLocationId).containsExactly(STORE, DELIVERY);
+        assertThat(commands.getAllValues())
+                .extracting(TransferCommand::toLocationId)
+                .containsExactly(STORE, DELIVERY);
         assertThat(commands.getAllValues().getFirst().lines()).hasSize(2);
         var saved = ArgumentCaptor.forClass(BusinessDay.class);
         verify(dayRepository).saveAndFlush(saved.capture());
