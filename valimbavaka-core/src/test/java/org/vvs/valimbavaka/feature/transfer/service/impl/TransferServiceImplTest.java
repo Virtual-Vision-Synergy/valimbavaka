@@ -11,7 +11,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,9 +29,12 @@ import org.springframework.data.domain.Sort;
 import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.feature.transfer.domain.Transfer;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferCommand;
+import org.vvs.valimbavaka.feature.transfer.domain.TransferLineCommand;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferOrigin;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferStatus;
 import org.vvs.valimbavaka.feature.transfer.dto.StockReturnWDto;
+import org.vvs.valimbavaka.feature.transfer.dto.TransferLineRDto;
+import org.vvs.valimbavaka.feature.transfer.dto.TransferRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferLineWDto;
 import org.vvs.valimbavaka.feature.transfer.mapper.TransferMapper;
 import org.vvs.valimbavaka.feature.transfer.repository.TransferRepository;
@@ -171,5 +176,43 @@ class TransferServiceImplTest {
         var pageable = ArgumentCaptor.forClass(Pageable.class);
         verify(transferRepository).search(eq(""), isNull(), pageable.capture());
         assertThat(pageable.getValue().getSort()).isEqualTo(Sort.by(Sort.Direction.ASC, "number"));
+    }
+
+    @Test
+    void getTransfersByIds_knownIds_returnsEachTransferWithItsLines() {
+        // Arrange
+        var transferId = UUID.randomUUID();
+        var line = new TransferLineCommand(ARTICLE_ID, new BigDecimal("12"));
+        var command = new TransferCommand(TransferOrigin.MORNING, WAREHOUSE, STORE, List.of(line), null);
+        var transfer = Transfer.create("TRF-0093", command);
+        var expected = new TransferRDto(
+                transferId,
+                "TRF-0093",
+                TransferOrigin.MORNING,
+                TransferStatus.VALIDATED,
+                WAREHOUSE,
+                STORE,
+                null,
+                List.of(new TransferLineRDto(ARTICLE_ID, new BigDecimal("12"))),
+                Instant.parse("2026-11-07T05:00:00Z"),
+                null);
+        when(transferRepository.findAllByIdIn(Set.of(transferId))).thenReturn(List.of(transfer));
+        when(transferMapper.toRDto(transfer)).thenReturn(expected);
+
+        // Act
+        var result = sut.getTransfersByIds(List.of(transferId, transferId));
+
+        // Assert
+        assertThat(result).containsExactly(expected);
+    }
+
+    @Test
+    void getTransfersByIds_noId_returnsEmptyWithoutReading() {
+        // Act
+        var result = sut.getTransfersByIds(List.of());
+
+        // Assert
+        assertThat(result).isEmpty();
+        verifyNoInteractions(transferRepository);
     }
 }
