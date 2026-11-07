@@ -1455,5 +1455,11 @@
       "title": "Entana omena",
       "empty": "Tsy misy entana omen'ity mpamatsy ity."
     }
+  },
+  "export": {
+    "done": "Vita ny rakitra {{filename}}.",
+    "failed": "Tsy tafita ny famoahana : andramo indray.",
+    "tooLarge": "Be loatra ny andalana hamoahana : ahenoy ny sivana.",
+    "forbidden": "Tsy manana alalana hamoaka ireo angona ireo ianao."
   }
 }
