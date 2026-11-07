@@ -1120,7 +1120,8 @@
     "title": "Fanisana · {{location}}",
     "status": {
       "IN_PROGRESS": "Mandeha",
-      "CLOSED": "Voakatona"
+      "CLOSED": "Voakatona",
+      "CANCELLED": "Nofoanana"
     },
     "openedBy": "Nosokafan'i {{who}} ny fotoana {{number}} tamin'ny {{date}} tamin'ny {{time}}",
     "salesBlocked": "Voasakana ny varotra amin'ity toerana ity mandritra ny fanisana.",
@@ -1157,14 +1158,39 @@
       "OTHER": "Antony hafa"
     },
     "empty": "Tsy misy entana amin'io sivana io.",
+    "noSession": "Tsy misy fanisana entana mandeha amin'izao. Manokafa iray hanombohana ny fanisana.",
+    "countFailed": "Tsy voatahiry ny isa {{article}} : {{reason}}",
+    "reasonFailed": "Tsy voatahiry ny antony nahatonga ny elanelana {{article}} : {{reason}}",
     "balance": "Famintinana vonjimaika",
     "gapUnits": "Elanelana amin'ny isa",
     "gapValue": "Elanelana amin'ny sanda",
     "gapArticles": "Entana misy elanelana",
     "missingReasons": "Elanelana {{count}} tsy misy antony : azo akatona rehefa voasoratra ny antony.",
     "previous": "Fotoana teo aloha",
+    "previousEmpty": "Mbola tsy misy fanisana vita haseho.",
     "confirmTitle": "Hakatona ve ny fotoana ?",
-    "confirmText": "Hampitoviana amin'ny fanisana ny tahiry ({{count}} entana misy elanelana). Tsy azo averina io hetsika io."
+    "confirmText": "Hampitoviana amin'ny fanisana ny tahiry ({{count}} entana misy elanelana). Tsy azo averina io hetsika io.",
+    "scope": {
+      "ALL": "Ny toerana manontolo",
+      "RANGE": "Karazana vokatra iray"
+    },
+    "open": {
+      "link": "Hanokatra fotoam-panisana",
+      "back": "← Hiverina amin'ny fanisana entana",
+      "title": "Hanokatra fotoam-panisana entana",
+      "hint": "Raikitra amin'ny fanokafana ny lahatahiry ao anatin'ny sehatra ; fotoana iray monja mandeha isaky ny toerana.",
+      "location": "Toerana",
+      "countDate": "Daty fanisana",
+      "scope": "Sehatra",
+      "range": "Karazana vokatra",
+      "responsible": "Tompon'andraikitra amin'ny fanisana",
+      "choose": "Mifidiana…",
+      "required": "Tsy maintsy fenoina ity saha ity.",
+      "rangeRequired": "Fidio ny karazana vokatra hisaina.",
+      "pastDate": "Tsy azo atao amin'ny daty efa lasa ny fanisana.",
+      "submit": "Sokafy ny fotoana",
+      "opened": "Voasokatra ny fotoana {{number}}"
+    }
   },
   "promotions": {
     "title": "Fampiroboroboana",

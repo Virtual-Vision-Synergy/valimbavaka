@@ -1,0 +1,110 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" routerLink="/inventory">{{ 'inventory.open.back' | translate }}</a>
+    <h1>{{ 'inventory.open.title' | translate }}</h1>
+    <p class="muted">{{ 'inventory.open.hint' | translate }}</p>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="grid">
+      <div class="field">
+        <label for="locationId">{{ 'inventory.open.location' | translate }} *</label>
+        <select
+          id="locationId"
+          class="input"
+          formControlName="locationId"
+          aria-describedby="locationId-error"
+        >
+          <option value="">{{ 'inventory.open.choose' | translate }}</option>
+          @for (location of locations(); track location.id) {
+            <option [value]="location.id">{{ location.label }}</option>
+          }
+        </select>
+        @if (fieldError('locationId'); as error) {
+          <span id="locationId-error" class="field-error" aria-live="polite">{{
+            error | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="countDate">{{ 'inventory.open.countDate' | translate }} *</label>
+        <input
+          id="countDate"
+          class="input"
+          type="date"
+          [min]="today"
+          formControlName="countDate"
+          aria-describedby="countDate-error"
+        />
+        @if (fieldError('countDate'); as error) {
+          <span id="countDate-error" class="field-error" aria-live="polite">{{
+            error | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="scope">{{ 'inventory.open.scope' | translate }} *</label>
+        <select id="scope" class="input" formControlName="scope">
+          @for (scope of scopes; track scope) {
+            <option [value]="scope">{{ 'inventory.scope.' + scope | translate }}</option>
+          }
+        </select>
+      </div>
+
+      @if (form.controls.scope.value === 'RANGE') {
+        <div class="field">
+          <label for="rangeId">{{ 'inventory.open.range' | translate }} *</label>
+          <select
+            id="rangeId"
+            class="input"
+            formControlName="rangeId"
+            aria-describedby="rangeId-error"
+          >
+            <option value="">{{ 'inventory.open.choose' | translate }}</option>
+            @for (range of ranges(); track range.id) {
+              <option [value]="range.id">{{ range.label }}</option>
+            }
+          </select>
+          @if (fieldError('rangeId'); as error) {
+            <span id="rangeId-error" class="field-error" aria-live="polite">{{
+              error | translate
+            }}</span>
+          }
+        </div>
+      }
+
+      <div class="field full">
+        <label for="responsibleId">{{ 'inventory.open.responsible' | translate }} *</label>
+        <select
+          id="responsibleId"
+          class="input"
+          formControlName="responsibleId"
+          aria-describedby="responsibleId-error"
+        >
+          <option value="">{{ 'inventory.open.choose' | translate }}</option>
+          @for (user of users(); track user.id) {
+            <option [value]="user.id">{{ user.firstName }} {{ user.lastName }}</option>
+          }
+        </select>
+        @if (fieldError('responsibleId'); as error) {
+          <span id="responsibleId-error" class="field-error" aria-live="polite">{{
+            error | translate
+          }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" routerLink="/inventory">{{ 'common.cancel' | translate }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="isSaving()">
+        {{ 'inventory.open.submit' | translate }}
+      </button>
+    </div>
+  </form>
+</section>
