@@ -51,6 +51,9 @@ export class ServicesPage {
   protected readonly canRecordShooting = computed(() =>
     this.authStore.hasPermission('shootings.create'),
   );
+  protected readonly canReturnShooting = computed(() =>
+    this.authStore.hasPermission('shootings.return'),
+  );
   protected readonly tab = signal<ServicesTab>('salon');
   /** Articles et stock par emplacement, chargés à l'ouverture de l'onglet Shooting si la saisie est permise. */
   protected readonly shootingStock = rxResource({
@@ -60,6 +63,7 @@ export class ServicesPage {
   protected readonly savingShooting = signal(false);
   protected readonly shootingError = signal<string | null>(null);
   protected readonly created = signal<readonly SalonServiceRDto[]>([]);
+  /** Réintégrations en file hors ligne : affichées « Réintégré » en attendant le serveur. */
   protected readonly returnedNumbers = signal<readonly string[]>([]);
 
   protected readonly shootings = computed<readonly ShootingRowRDto[]>(() =>
@@ -126,11 +130,29 @@ export class ServicesPage {
     });
   }
 
-  /** Réintégration encore simulée : branchée sur le serveur par SHO-02. */
+  /** Réintégration (SHO-02) : statut Réintégré et stock de l'emplacement de sortie remis à jour par le serveur. */
   protected returnShooting(number: string): void {
-    this.salonService.returnShooting(number).subscribe(() => {
-      this.returnedNumbers.update((all) => [...all, number]);
-      this.toast.show('services.shooting.returnedToast', { number });
+    const shooting = this.shootings().find((row) => row.number === number);
+    if (!shooting) {
+      return;
+    }
+    this.shootingService.returnShooting(shooting.id).subscribe({
+      next: (result) => {
+        if (result.queued) {
+          this.returnedNumbers.update((all) => [...all, number]);
+          this.toast.show('common.queuedSaved', {}, 'info');
+          return;
+        }
+        this.toast.show('services.shooting.returnedToast', { number });
+        this.shootingRows.reload();
+        this.shootingStock.reload();
+      },
+      error: (error: unknown) =>
+        this.toast.show(
+          'services.shooting.returnFailed',
+          { number, message: errorMessage(error) },
+          'danger',
+        ),
     });
   }
 }
