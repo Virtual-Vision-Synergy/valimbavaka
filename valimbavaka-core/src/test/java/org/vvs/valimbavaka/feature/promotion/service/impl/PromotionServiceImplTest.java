@@ -25,6 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
@@ -39,6 +42,8 @@ import org.vvs.valimbavaka.feature.promotion.domain.PromotionStatus;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionWDto;
 import org.vvs.valimbavaka.feature.promotion.mapper.PromotionMapper;
 import org.vvs.valimbavaka.feature.promotion.repository.PromotionRepository;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.SortDirection;
 
 @ExtendWith(MockitoExtension.class)
 class PromotionServiceImplTest {
@@ -151,6 +156,59 @@ class PromotionServiceImplTest {
 
         // Assert
         verify(promotionMapper).toRDto(promotion, PromotionStatus.SCHEDULED);
+    }
+
+    @Test
+    void getPromotions_activeFilter_searchesByStatusNameOnTheBusinessDayWithWhiteListedSort() {
+        // Arrange
+        var promotion = promotion(new PromotionPeriod(BUSINESS_TODAY.minusDays(5), BUSINESS_TODAY));
+        when(promotionRepository.search(eq("rose"), eq("ACTIVE"), eq(BUSINESS_TODAY), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(promotion)));
+        var query = new PageQuery(2, 10, "  rose ", "name", SortDirection.ASC);
+
+        // Act
+        var page = sut.getPromotions(query, PromotionStatus.ACTIVE);
+
+        // Assert
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(promotionRepository).search(eq("rose"), eq("ACTIVE"), eq(BUSINESS_TODAY), pageable.capture());
+        assertThat(pageable.getValue().getPageNumber()).isEqualTo(1);
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(10);
+        assertThat(pageable.getValue().getSort().getOrderFor("name")).isNotNull();
+        assertThat(page.totalCount()).isEqualTo(1);
+        verify(promotionMapper).toRDto(promotion, PromotionStatus.ACTIVE);
+    }
+
+    @Test
+    void getPromotions_noStatusAndSortOutsideWhiteList_searchesAllByStartDateDescending() {
+        // Arrange
+        var ended = promotion(new PromotionPeriod(BUSINESS_TODAY.minusDays(10), BUSINESS_TODAY.minusDays(1)));
+        when(promotionRepository.search(eq(""), eq(PromotionRepository.ANY_STATUS), eq(BUSINESS_TODAY), any()))
+                .thenReturn(new PageImpl<>(List.of(ended)));
+
+        // Act
+        sut.getPromotions(new PageQuery(null, null, null, "code; drop table promotions", null), null);
+
+        // Assert
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(promotionRepository).search(eq(""), eq("ALL"), eq(BUSINESS_TODAY), pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("startsOn"))
+                .isEqualTo(Sort.Order.desc("startsOn"));
+        verify(promotionMapper).toRDto(ended, PromotionStatus.ENDED);
+    }
+
+    private static Promotion promotion(PromotionPeriod period) {
+        return Promotion.create(new PromotionDetails(
+                "Octobre rose",
+                null,
+                PromotionKind.PERCENT,
+                new BigDecimal("15"),
+                null,
+                PromotionScope.ALL,
+                Set.of(),
+                period,
+                Set.of(CHANNEL_ID),
+                null));
     }
 
     private static PromotionWDto request(String code, List<UUID> channelIds) {
