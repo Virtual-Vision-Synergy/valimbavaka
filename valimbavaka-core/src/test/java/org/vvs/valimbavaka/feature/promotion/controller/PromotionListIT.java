@@ -113,7 +113,8 @@ class PromotionListIT {
     @Test
     void getPromotions_bySellerSearchingTheCodeInLowerCase_findsThePromotion() throws Exception {
         // Arrange
-        var code = UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+        var code =
+                UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
         save(uniqueTag(), code, new PromotionPeriod(today(), today().plusDays(3)));
         var token = accessToken(createUser(RoleName.SELLER), PASSWORD);
 
@@ -122,7 +123,8 @@ class PromotionListIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCount").value(1))
                 .andExpect(jsonPath("$.items[0].code").value(code))
-                .andExpect(jsonPath("$.items[0].channelIds[0]").value(channelId().toString()));
+                .andExpect(
+                        jsonPath("$.items[0].channelIds[0]").value(channelId().toString()));
     }
 
     @Test

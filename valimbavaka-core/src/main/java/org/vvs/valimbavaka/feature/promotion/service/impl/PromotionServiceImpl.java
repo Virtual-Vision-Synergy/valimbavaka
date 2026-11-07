@@ -64,7 +64,8 @@ public class PromotionServiceImpl implements PromotionService {
         var statusFilter = status == null ? PromotionRepository.ANY_STATUS : status.name();
         return PageResponse.from(promotionRepository
                 .search(query.searchTerm(), statusFilter, today, pageable)
-                .map(promotion -> promotionMapper.toRDto(promotion, promotion.getPeriod().statusOn(today))));
+                .map(promotion ->
+                        promotionMapper.toRDto(promotion, promotion.getPeriod().statusOn(today))));
     }
 
     @Override

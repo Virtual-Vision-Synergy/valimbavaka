@@ -192,8 +192,7 @@ class PromotionServiceImplTest {
         // Assert
         var pageable = ArgumentCaptor.forClass(Pageable.class);
         verify(promotionRepository).search(eq(""), eq("ALL"), eq(BUSINESS_TODAY), pageable.capture());
-        assertThat(pageable.getValue().getSort().getOrderFor("startsOn"))
-                .isEqualTo(Sort.Order.desc("startsOn"));
+        assertThat(pageable.getValue().getSort().getOrderFor("startsOn")).isEqualTo(Sort.Order.desc("startsOn"));
         verify(promotionMapper).toRDto(ended, PromotionStatus.ENDED);
     }
 
