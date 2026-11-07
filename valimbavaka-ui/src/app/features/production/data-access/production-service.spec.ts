@@ -137,4 +137,55 @@ describe('ProductionService', () => {
       status: 'DRAFT',
     });
   });
+
+  it('« Valider le lot » crée et valide en une seule requête POST sur /completed-batches', () => {
+    let created: CreatedLot | undefined;
+    service
+      .createLot(
+        {
+          articleId: 'pf-1',
+          quantity: 12,
+          operatorId: 'op-1',
+          lines: [{ materialId: 'mp-1', quantity: 3 }],
+          validate: true,
+        },
+        { articleName: 'Savon noir', operator: 'Soa Rakoto' },
+      )
+      .subscribe((value) => (created = value));
+
+    const request = httpMock.expectOne('/api/v1/production/completed-batches');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.has('Idempotency-Key')).toBe(true);
+    expect(request.request.body).toEqual({
+      outputArticleId: 'pf-1',
+      quantity: 12,
+      operatorId: 'op-1',
+      inputs: [{ articleId: 'mp-1', quantity: 3 }],
+    });
+    request.flush({
+      id: 'b5',
+      number: 'LOT-00005',
+      outputArticleId: 'pf-1',
+      quantity: 12,
+      operatorId: 'op-1',
+      status: 'COMPLETED',
+      inputs: [{ articleId: 'mp-1', quantity: 3, unitCost: 12000 }],
+      completedAt: '2026-11-08T08:00:00Z',
+      createdAt: '2026-11-08T08:00:00Z',
+    });
+
+    expect(created?.lot).toMatchObject({ number: 'LOT-00005', status: 'VALIDATED' });
+  });
+
+  it('valide un lot planifié existant par POST sur /batches/{id}/completion', () => {
+    let status: string | undefined;
+    service.completeLot('b2').subscribe((result) => (status = result.body?.status));
+
+    const request = httpMock.expectOne('/api/v1/production/batches/b2/completion');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.has('Idempotency-Key')).toBe(true);
+    request.flush({ id: 'b2', status: 'COMPLETED' });
+
+    expect(status).toBe('COMPLETED');
+  });
 });

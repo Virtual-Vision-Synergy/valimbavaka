@@ -1045,7 +1045,7 @@
     },
     "draftToast": "Lot {{number}} enregistré : planifié, le stock n'a pas bougé",
     "saveError": "Le lot n'a pas été enregistré : {{message}}",
-    "validatedToast": "Lot {{number}} validé : stock mis à jour (démonstration)"
+    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt"
   },
   "transfers": {
     "title": "Transferts de stock",
