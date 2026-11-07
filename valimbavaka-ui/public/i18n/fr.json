@@ -31,6 +31,7 @@
       "show": "Afficher le mot de passe",
       "hide": "Masquer le mot de passe",
       "capsLock": "Verrouillage des majuscules activé.",
+      "sessionExpired": "Votre session a expiré. Reconnectez-vous avec le même compte : vos saisies en attente sont conservées sur cet appareil et seront envoyées après la connexion.",
       "noAccount": "Pas de compte ? Seul un administrateur peut en créer un."
     },
     "password": {
