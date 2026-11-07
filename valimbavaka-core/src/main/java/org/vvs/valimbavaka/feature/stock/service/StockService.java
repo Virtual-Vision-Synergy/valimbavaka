@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.stock.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.stock.dto.StockAlertRDto;
@@ -22,6 +23,9 @@ public interface StockService {
      * search (code or name) are used, the order is fixed.
      */
     PageResponse<StockAlertRDto> getAlerts(PageQuery query);
+
+    /** Every threshold alert, not paged, in the order of {@link #getAlerts}: content of a restock order (STK-05). */
+    List<StockAlertRDto> getAllAlerts();
 
     /**
      * Quantity and value at purchase cost of the whole stock per active location (STK-03), inactive articles

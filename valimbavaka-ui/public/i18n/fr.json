@@ -594,13 +594,14 @@
     "restock": {
       "start": "Bon de réapprovisionnement",
       "title": "Bon de réapprovisionnement · brouillon",
-      "subtitle": "{{count}} article(s) sélectionné(s) · quantités proposées pour couvrir {{days}} jours de ventes",
+      "subtitle": "{{count}} article(s) sous le seuil · quantité suggérée = manque arrondi à la dizaine supérieure",
       "exportPdf": "Exporter PDF",
       "validate": "Valider le bon",
       "leadTime": "délai {{days}} j",
       "inHouse": "Fabrication interne (atelier)",
-      "orderBefore": "Commander avant le {{date}} pour éviter une rupture prolongée.",
-      "validated": "Bon de réapprovisionnement validé · {{count}} article(s) (démonstration)"
+      "expectedDelivery": "Livraison prévue le {{date}} si la commande part aujourd'hui.",
+      "generated": "Bon de réapprovisionnement {{reference}} généré · {{count}} article(s)",
+      "failed": "Le bon n'a pas été généré : {{message}}"
     }
   },
   "articles": {

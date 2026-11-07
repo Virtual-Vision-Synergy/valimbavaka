@@ -89,7 +89,16 @@ public class StockServiceImpl implements StockService {
 
     @Override
     public PageResponse<StockAlertRDto> getAlerts(PageQuery query) {
-        var search = query.searchTerm().toLowerCase(Locale.ROOT);
+        return pageOf(alerts(query.searchTerm().toLowerCase(Locale.ROOT)), query);
+    }
+
+    @Override
+    public List<StockAlertRDto> getAllAlerts() {
+        return alerts("");
+    }
+
+    /** Alerts of the articles whose code or name contains {@code search} (lower case), most urgent first. */
+    private List<StockAlertRDto> alerts(String search) {
         var articles = articleService.getArticlesWithThreshold().stream()
                 .filter(article -> matches(article, search))
                 .toList();
@@ -97,13 +106,12 @@ public class StockServiceImpl implements StockService {
         var locations = referentialService.getStockLocations(ALL_LOCATIONS).items();
         var suppliers = suppliersByArticle(articles);
         var today = LocalDate.now(clock.withZone(StockAlertPolicy.BUSINESS_ZONE));
-        var alerts = articles.stream()
+        return articles.stream()
                 .map(article -> toStock(article, locations, balances))
                 .filter(StockAlertPolicy::isUnderThreshold)
                 .map(stock -> StockAlertPolicy.toAlert(stock, suppliers.get(stock.articleId()), today))
                 .sorted(StockAlertPolicy.MOST_URGENT_FIRST)
                 .toList();
-        return pageOf(alerts, query);
     }
 
     @Override
