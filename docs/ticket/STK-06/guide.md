@@ -1,6 +1,6 @@
 # Guide d'intégration — STK-06 · Réception d'une livraison fournisseur (entrée en stock)
 
-Statut : ✅ rédigé — tests à lancer (voir « Résultat de l'exécution » du scénario) · Ticket : [#113](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/113) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé (tests verts en CI le 08/11/2026) · Ticket : [#113](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/113) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -151,4 +151,4 @@ inject(StockService).recordReceipt({ supplierId, locationId: null, restockOrderI
   l'écran se limite à la saisie. À ajouter si la recette le demande.
 - L'écran ne propose que les 100 articles actifs triés par nom (`StockService.quantities()`) et les 100 bons les plus
   récents encore `PENDING` : au-delà, passer par l'API.
-- Tests écrits, à lancer en CI : voir le scénario avant de s'appuyer sur ce contrat.
+- Tests automatiques verts en CI le 08/11/2026 ; la recette manuelle reste à passer (voir le scénario).
