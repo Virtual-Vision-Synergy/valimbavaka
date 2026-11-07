@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'production.title' | translate"
     [subtitle]="'production.subtitle' | translate"
-    [codes]="['PRD-01', 'PRD-05']"
+    [codes]="['PRD-01', 'PRD-04', 'PRD-05']"
   />
 
   @if (context.value(); as data) {
@@ -17,16 +17,26 @@
         [label]="'production.kpi.units' | translate"
         [value]="'' + data.kpis.unitsProduced"
       >
-        <p class="note up">
-          {{ 'production.kpi.unitsNote' | translate: { percent: data.kpis.unitsTrendPercent } }}
-        </p>
+        @let trend = data.kpis.unitsTrendPercent;
+        @if (trend === null) {
+          <p class="note">{{ 'production.kpi.unitsNoTrend' | translate }}</p>
+        } @else {
+          <p class="note" [class.up]="trend > 0" [class.down]="trend < 0">
+            {{ 'production.kpi.unitsNote' | translate: { trend: (trend > 0 ? '+' : '') + trend } }}
+          </p>
+        }
       </vvs-kpi-card>
       <vvs-kpi-card
         [label]="'production.kpi.cost' | translate"
-        [value]="data.kpis.averageCost | ariary: 'plain'"
-        unit="Ar"
+        [value]="data.kpis.averageCost === null ? '—' : (data.kpis.averageCost | ariary: 'plain')"
+        [unit]="data.kpis.averageCost === null ? undefined : 'Ar'"
       >
         <p class="note">{{ 'production.kpi.costNote' | translate }}</p>
+        @if (data.kpis.uncostedLots > 0) {
+          <p class="note warn">
+            {{ 'production.kpi.uncosted' | translate: { count: data.kpis.uncostedLots } }}
+          </p>
+        }
       </vvs-kpi-card>
       <vvs-kpi-card
         [label]="'production.kpi.rebuy' | translate"

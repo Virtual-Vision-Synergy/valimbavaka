@@ -7,13 +7,20 @@ import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import { ArticleService } from '../../article/data-access/article-service';
 import { StockRDto } from '../../stocks/data-access/stock-models';
-import { toBatchWDto, toLot, toMaterial, toOperator, toProducible } from './production-mapping';
+import {
+  toBatchWDto,
+  toKpis,
+  toLot,
+  toMaterial,
+  toOperator,
+  toProducible,
+} from './production-mapping';
 import {
   LotRDto,
   LotWDto,
   ProductionBatchRDto,
   ProductionContextRDto,
-  ProductionKpisRDto,
+  ProductionIndicatorsRDto,
   ProductionOperatorRDto,
 } from './production-models';
 
@@ -22,16 +29,6 @@ const BY_NAME: PageQuery = { page: 1, size: 100, sortBy: 'name', sortDirection: 
 const RECENT_LOTS: PageQuery = { page: 1, size: 10 };
 const OPERATORS: PageQuery = { page: 1, size: 100 };
 
-/** Indicateurs encore à zéro : calculés par le serveur dans PRD-04. */
-const NO_KPIS: ProductionKpisRDto = {
-  lotsThisMonth: 0,
-  curing: 0,
-  unitsProduced: 0,
-  unitsTrendPercent: 0,
-  averageCost: 0,
-  materialsToRebuy: 0,
-};
-
 /** Résultat d'une création : `lot` est absent si la saisie attend le réseau (file hors ligne). */
 export interface CreatedLot {
   readonly queued: boolean;
@@ -39,10 +36,10 @@ export interface CreatedLot {
 }
 
 /**
- * Production (PRD-01 à PRD-03). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
- * l'entrepôt (STK-01), vendeuses et lots récents. Écritures par la file hors ligne (SYS-07) : « Enregistrer »
- * crée un lot planifié sans mouvement de stock ; « Valider » crée et valide le lot en une seule requête,
- * le serveur sortant les entrants et entrant le produit fini dans la même transaction (PRD-02).
+ * Production (PRD-01 à PRD-04). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
+ * l'entrepôt (STK-01), vendeuses, lots récents et indicateurs du mois (PRD-04). Écritures par la file hors ligne
+ * (SYS-07) : « Enregistrer » crée un lot planifié sans mouvement de stock ; « Valider » crée et valide le lot en une
+ * seule requête, le serveur sortant les entrants et entrant le produit fini dans la même transaction (PRD-02).
  */
 @Injectable({ providedIn: 'root' })
 export class ProductionService {
@@ -60,8 +57,9 @@ export class ProductionService {
       }),
       operators: this.operators(),
       batches: this.batches(RECENT_LOTS),
+      indicators: this.indicators(),
     }).pipe(
-      map(({ outputs, inputs, stocks, operators, batches }) => {
+      map(({ outputs, inputs, stocks, operators, batches, indicators }) => {
         const products = outputs.items.map(toProducible);
         const options = operators.items.map(toOperator);
         return {
@@ -70,7 +68,11 @@ export class ProductionService {
           materials: inputs.items.map((article) => toMaterial(article, stocks.items)),
           products,
           recentLots: batches.items.map((batch) => toLot(batch, products, options)),
-          kpis: NO_KPIS,
+          kpis: toKpis(
+            indicators,
+            inputs.items.map((article) => article.id),
+            stocks.items,
+          ),
         };
       }),
     );
@@ -80,6 +82,11 @@ export class ProductionService {
     return this.http.get<PageResponse<ProductionBatchRDto>>(`${this.baseUrl}/batches`, {
       params: toHttpParams(query),
     });
+  }
+
+  /** Indicateurs du mois en cours (PRD-04), calculés par le serveur. */
+  indicators(): Observable<ProductionIndicatorsRDto> {
+    return this.http.get<ProductionIndicatorsRDto>(`${this.baseUrl}/indicators`);
   }
 
   getById(id: string): Observable<ProductionBatchRDto> {
