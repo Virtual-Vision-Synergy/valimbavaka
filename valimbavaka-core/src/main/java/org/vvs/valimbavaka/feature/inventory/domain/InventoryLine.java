@@ -66,4 +66,29 @@ public class InventoryLine extends BaseEntity {
         line.barcode = article.barcode();
         return line;
     }
+
+    /**
+     * Records the physical count (INV-02) and freezes the theoretical stock of the location at this instant, so
+     * that later sales do not move the gap. A recount replaces both quantities.
+     *
+     * @return false when the same count is sent again (offline replay): nothing changes
+     */
+    public boolean count(BigDecimal counted, BigDecimal expected, Instant at) {
+        if (isCountedAs(counted, expected)) {
+            return false;
+        }
+        countedQuantity = counted;
+        expectedQuantity = expected;
+        countedAt = at;
+        return true;
+    }
+
+    private boolean isCountedAs(BigDecimal counted, BigDecimal expected) {
+        var currentCount = countedQuantity;
+        var currentExpected = expectedQuantity;
+        return currentCount != null
+                && currentExpected != null
+                && currentCount.compareTo(counted) == 0
+                && currentExpected.compareTo(expected) == 0;
+    }
 }
