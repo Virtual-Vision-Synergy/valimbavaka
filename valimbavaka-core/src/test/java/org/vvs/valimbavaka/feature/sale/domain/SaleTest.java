@@ -33,8 +33,9 @@ class SaleTest {
 
         // Assert
         assertThat(sut.getStatus()).isEqualTo(OperationStatus.VALIDATED);
-        assertThat(sut.getLines()).extracting(SaleLine::getLineTotal).containsExactly(
-                new BigDecimal("25500.00"), new BigDecimal("12000.00"));
+        assertThat(sut.getLines())
+                .extracting(SaleLine::getLineTotal)
+                .containsExactly(new BigDecimal("25500.00"), new BigDecimal("12000.00"));
         assertThat(sut.getLines().get(1).getUnitCost()).isEqualByComparingTo("7000");
         assertThat(sut.getSubtotal()).isEqualByComparingTo("37500");
         assertThat(sut.getDiscountAmount()).isEqualByComparingTo("0");

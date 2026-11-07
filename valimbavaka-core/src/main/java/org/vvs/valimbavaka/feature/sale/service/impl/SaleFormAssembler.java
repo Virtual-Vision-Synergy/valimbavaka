@@ -64,29 +64,26 @@ class SaleFormAssembler {
         for (var article : articles) {
             var price = article.price();
             if (price != null) {
-                var quantities = Map.copyOf(stock.getOrDefault(article.id(), Map.of()));
-                result.add(new SaleArticleRDto(
-                        article.id(),
-                        article.code(),
-                        article.barcode(),
-                        article.name(),
-                        article.rangeId(),
-                        price,
-                        quantities));
+                result.add(toRDto(article, price, stock.getOrDefault(article.id(), Map.of())));
             }
         }
         return result;
     }
 
+    private static SaleArticleRDto toRDto(ArticleRDto article, BigDecimal price, Map<UUID, BigDecimal> stock) {
+        var quantities = Map.copyOf(stock);
+        return new SaleArticleRDto(
+                article.id(), article.code(), article.barcode(), article.name(), article.rangeId(), price, quantities);
+    }
+
     /** Article id → (location id → quantity), for the distinct locations of the channels. */
     private Map<UUID, Map<UUID, BigDecimal>> stock(List<SaleChannelOptionRDto> options, List<UUID> articleIds) {
         var stock = new HashMap<UUID, Map<UUID, BigDecimal>>();
-        var locationIds =
-                options.stream().map(SaleChannelOptionRDto::stockLocationId).distinct().toList();
+        var locationIds = options.stream().map(SaleChannelOptionRDto::stockLocationId).distinct().toList();
         for (var locationId : locationIds) {
-            var quantities = stockService.getQuantities(locationId, articleIds);
-            quantities.forEach((articleId, quantity) ->
-                    stock.computeIfAbsent(articleId, id -> new HashMap<>()).put(locationId, quantity));
+            for (var entry : stockService.getQuantities(locationId, articleIds).entrySet()) {
+                stock.computeIfAbsent(entry.getKey(), id -> new HashMap<>()).put(locationId, entry.getValue());
+            }
         }
         return stock;
     }

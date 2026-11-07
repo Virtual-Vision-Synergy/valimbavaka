@@ -11,4 +11,7 @@ import org.jspecify.annotations.Nullable;
  * @param unitCost purchase cost of the article at the time of the sale (margin, COM-01 base {@code MARGIN}), if known
  */
 public record PricedSaleLine(
-        UUID articleId, BigDecimal quantity, BigDecimal unitPrice, @Nullable BigDecimal unitCost) {}
+        UUID articleId,
+        BigDecimal quantity,
+        BigDecimal unitPrice,
+        @Nullable BigDecimal unitCost) {}

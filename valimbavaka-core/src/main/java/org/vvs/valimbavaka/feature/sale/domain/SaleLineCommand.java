@@ -12,4 +12,7 @@ import org.jspecify.annotations.Nullable;
  * @param unitPrice price agreed beforehand (an order delivered by LIV-03), 2 decimals at most; {@code null} = the
  *     current sale price of the article, which is always the case for a sale entered at the counter
  */
-public record SaleLineCommand(UUID articleId, BigDecimal quantity, @Nullable BigDecimal unitPrice) {}
+public record SaleLineCommand(
+        UUID articleId,
+        BigDecimal quantity,
+        @Nullable BigDecimal unitPrice) {}

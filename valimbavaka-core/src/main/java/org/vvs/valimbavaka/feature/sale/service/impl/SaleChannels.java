@@ -57,8 +57,8 @@ class SaleChannels {
                 ? locations.get(channel.code())
                 : locations.get(DEFAULT_LOCATION_CODE);
         if (locationId == null) {
-            throw new BusinessException("L'emplacement de stock du canal %s est inconnu ou inactif."
-                    .formatted(channel.label()));
+            throw new BusinessException(
+                    "L'emplacement de stock du canal %s est inconnu ou inactif.".formatted(channel.label()));
         }
         return new SaleChannelOptionRDto(channel.id(), channel.code(), channel.label(), locationId);
     }

@@ -63,7 +63,10 @@ public class SaleServiceImpl implements SaleService {
         var number = "VTE-%04d".formatted(saleRepository.nextNumber());
         var sale = saleRepository.save(Sale.record(number, header, checked.lines()));
         ledger.post(sale, checked.channel().label());
-        log.info("Vente {} enregistrée ({} ligne(s))", sale.getNumber(), sale.getLines().size());
+        log.info(
+                "Vente {} enregistrée ({} ligne(s))",
+                sale.getNumber(),
+                sale.getLines().size());
         return saleMapper.toRDto(sale);
     }
 

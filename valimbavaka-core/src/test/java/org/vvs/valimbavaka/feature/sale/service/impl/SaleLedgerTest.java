@@ -79,7 +79,9 @@ class SaleLedgerTest {
         assertThat(movements.getValue())
                 .extracting(StockMovementCommand::articleId, StockMovementCommand::type)
                 .containsExactly(tuple(SOAP, StockMovementType.SALE), tuple(OIL, StockMovementType.SALE));
-        assertThat(movements.getValue()).extracting(StockMovementCommand::locationId).containsOnly(STORE);
+        assertThat(movements.getValue())
+                .extracting(StockMovementCommand::locationId)
+                .containsOnly(STORE);
         assertThat(movements.getValue().getFirst().quantity()).isEqualByComparingTo("-3");
         verify(journalService)
                 .record(
