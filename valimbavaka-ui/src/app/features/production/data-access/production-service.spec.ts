@@ -85,15 +85,6 @@ describe('ProductionService', () => {
       ]),
     );
 
-    expect(context?.products[0].articleId).toBe('pf-1');
-    expect(context?.materials[0]).toMatchObject({ id: 'mp-1', unit: 'kg', available: 12.5 });
-    expect(context?.operators).toEqual([{ id: 'op-1', name: 'Soa Rakoto' }]);
-    expect(context?.recentLots[0]).toMatchObject({
-      number: 'LOT-00003',
-      articleName: 'Savon noir',
-      operator: 'Soa Rakoto',
-      status: 'DRAFT',
-    });
     httpMock.expectOne('/api/v1/production/indicators').flush({
       month: '2026-11',
       completedBatches: 18,
@@ -104,6 +95,16 @@ describe('ProductionService', () => {
       materialCost: 2946240,
       materialCostPerUnit: 3410,
       uncostedBatches: 1,
+    });
+
+    expect(context?.products[0].articleId).toBe('pf-1');
+    expect(context?.materials[0]).toMatchObject({ id: 'mp-1', unit: 'kg', available: 12.5 });
+    expect(context?.operators).toEqual([{ id: 'op-1', name: 'Soa Rakoto' }]);
+    expect(context?.recentLots[0]).toMatchObject({
+      number: 'LOT-00003',
+      articleName: 'Savon noir',
+      operator: 'Soa Rakoto',
+      status: 'DRAFT',
     });
 
     // Le produit fini sous son seuil n'est pas une matière à racheter : seul l'entrant mp-1 compte.
