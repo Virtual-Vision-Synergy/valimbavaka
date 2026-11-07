@@ -63,7 +63,8 @@ class DeliveryDriverRoundIT extends DeliveryApiTestSupport {
 
     @Test
     void getOrders_driverRoundWithoutToken_returns401() throws Exception {
-        mockMvc.perform(get(DELIVERIES).param("date", LocalDate.now(BUSINESS_ZONE).toString()))
+        mockMvc.perform(get(DELIVERIES)
+                        .param("date", LocalDate.now(BUSINESS_ZONE).toString()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
