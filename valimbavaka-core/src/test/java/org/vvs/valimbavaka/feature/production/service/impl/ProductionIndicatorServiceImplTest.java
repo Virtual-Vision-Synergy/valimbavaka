@@ -138,8 +138,10 @@ class ProductionIndicatorServiceImplTest {
     private void arrange(List<ProductionBatch> batches, String previousUnits, long inProgress) {
         var previous = new BigDecimal(previousUnits);
         when(productionBatchRepository.findCompletedBetween(any(), any())).thenReturn(batches);
-        when(productionBatchRepository.sumCompletedQuantityBetween(any(), any())).thenReturn(previous);
-        when(productionBatchRepository.countByStatus(ProductionBatchStatus.IN_PROGRESS)).thenReturn(inProgress);
+        when(productionBatchRepository.sumCompletedQuantityBetween(any(), any()))
+                .thenReturn(previous);
+        when(productionBatchRepository.countByStatus(ProductionBatchStatus.IN_PROGRESS))
+                .thenReturn(inProgress);
     }
 
     private static ProductionBatch completed(String quantity, Map<UUID, BigDecimal> costs, ProductionInput... inputs) {

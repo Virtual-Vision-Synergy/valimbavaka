@@ -48,7 +48,8 @@ class ProductionIndicatorsIT extends ProductionApiTestSupport {
         var after = indicators(seller);
 
         // Assert
-        assertThat(after.read("$.month", String.class)).isEqualTo(YearMonth.now(MADAGASCAR).toString());
+        assertThat(after.read("$.month", String.class))
+                .isEqualTo(YearMonth.now(MADAGASCAR).toString());
         assertThat(delta(before, after, "completedBatches")).isEqualByComparingTo("1");
         assertThat(delta(before, after, "unitsProduced")).isEqualByComparingTo("10");
         assertThat(delta(before, after, "materialCost")).isEqualByComparingTo("2400");
@@ -103,7 +104,8 @@ class ProductionIndicatorsIT extends ProductionApiTestSupport {
         var oil = createArticle("RAW_MATERIAL");
         receive(oil, "2");
         var id = completeNewBatch(createArticle("FINISHED"), input(oil, "2"));
-        var lastMonth = YearMonth.now(MADAGASCAR).atDay(1).atStartOfDay(MADAGASCAR).minusHours(1);
+        var lastMonth =
+                YearMonth.now(MADAGASCAR).atDay(1).atStartOfDay(MADAGASCAR).minusHours(1);
         var completedAt = Timestamp.from(lastMonth.toInstant());
         jdbcTemplate.update("update production_batches set completed_at = ? where id = ?", completedAt, id);
 
