@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.promotion.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -20,6 +21,12 @@ public interface PromotionService {
     PageResponse<PromotionRDto> getPromotions(PageQuery query, @Nullable PromotionStatus status);
 
     PromotionRDto getPromotionById(UUID promotionId);
+
+    /**
+     * Promotions active today (Antananarivo) that reach this article (ART-06): whole catalogue, its range
+     * ({@code rangeId}, null if none) or the article itself; closest end first. Usage limit not considered.
+     */
+    List<PromotionRDto> getActivePromotionsFor(UUID articleId, @Nullable UUID rangeId);
 
     /**
      * Creates a promotion after checking its period, value, targets and channels (422) and the uniqueness of its

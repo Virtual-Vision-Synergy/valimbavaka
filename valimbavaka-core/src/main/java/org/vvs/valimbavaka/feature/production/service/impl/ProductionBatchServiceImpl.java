@@ -1,11 +1,13 @@
 package org.vvs.valimbavaka.feature.production.service.impl;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +68,12 @@ public class ProductionBatchServiceImpl implements ProductionBatchService {
     public ProductionBatchRDto getBatchById(UUID batchId) {
         return productionMapper.toRDto(
                 productionBatchRepository.findById(batchId).orElseThrow(() -> notFound(batchId)));
+    }
+
+    @Override
+    public List<ProductionBatchRDto> getRecentBatchesOf(UUID articleId, int limit) {
+        var batches = productionBatchRepository.findInvolving(articleId, PageRequest.of(0, limit));
+        return batches.stream().map(productionMapper::toRDto).toList();
     }
 
     @Override

@@ -1,6 +1,8 @@
 package org.vvs.valimbavaka.feature.promotion.repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 
 import org.vvs.valimbavaka.feature.promotion.domain.Promotion;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionScope;
 
 /** Extends {@link Repository}, not JpaRepository: no delete exposed. */
 public interface PromotionRepository extends Repository<Promotion, UUID> {
@@ -47,4 +50,16 @@ public interface PromotionRepository extends Repository<Promotion, UUID> {
                    or (:status = 'ENDED' and p.endsOn < :today))
             """)
     Page<Promotion> search(String search, String status, LocalDate today, Pageable pageable);
+
+    /**
+     * Promotions active on {@code today} (same rule as {@code PromotionPeriod.statusOn}) that target one of
+     * {@code targetIds} (an article and its range, ART-06) or have the {@code catalogue} scope; closest end first.
+     */
+    @Query("""
+            select distinct p from Promotion p left join p.targetIds t
+            where p.startsOn <= :today and p.endsOn >= :today
+              and (p.scope = :catalogue or t in :targetIds)
+            order by p.endsOn, p.name
+            """)
+    List<Promotion> findActiveTargeting(Collection<UUID> targetIds, PromotionScope catalogue, LocalDate today);
 }

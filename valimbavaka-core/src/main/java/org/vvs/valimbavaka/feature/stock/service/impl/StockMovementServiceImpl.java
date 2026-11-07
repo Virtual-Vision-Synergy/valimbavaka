@@ -1,7 +1,9 @@
 package org.vvs.valimbavaka.feature.stock.service.impl;
 
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,5 +61,12 @@ public class StockMovementServiceImpl implements StockMovementService {
     public List<StockMovementRDto> recordAll(List<StockMovementCommand> commands) {
         commands.stream().map(StockMovementPolicy::lockKey).distinct().sorted().forEach(stockMovementRepository::lock);
         return commands.stream().map(this::record).toList();
+    }
+
+    @Override
+    public List<StockMovementRDto> getRecentMovements(UUID articleId, int limit) {
+        var page = PageRequest.of(0, limit);
+        var movements = stockMovementRepository.findByArticleIdOrderByOccurredAtDescIdDesc(articleId, page);
+        return movements.stream().map(stockMovementMapper::toRDto).toList();
     }
 }
