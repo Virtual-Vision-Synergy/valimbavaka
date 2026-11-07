@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -17,11 +18,15 @@ import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.promotion.domain.Promotion;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionDetails;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionPeriod;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionStatus;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionRDto;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionWDto;
 import org.vvs.valimbavaka.feature.promotion.mapper.PromotionMapper;
 import org.vvs.valimbavaka.feature.promotion.repository.PromotionRepository;
 import org.vvs.valimbavaka.feature.promotion.service.PromotionService;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.PageResponse;
+import org.vvs.valimbavaka.shared.dto.SortDirection;
 
 @Service
 @Transactional(readOnly = true)
@@ -31,6 +36,7 @@ public class PromotionServiceImpl implements PromotionService {
 
     private static final String RESOURCE_TYPE = "PROMOTION";
     private static final String CODE_ALREADY_USED = "Ce code promo est déjà utilisé par une autre promotion.";
+    private static final Set<String> SORT_FIELDS = Set.of("startsOn", "endsOn", "name", "createdAt");
 
     private final PromotionRepository promotionRepository;
     private final PromotionMapper promotionMapper;
@@ -49,6 +55,16 @@ public class PromotionServiceImpl implements PromotionService {
         this.promotionRules = promotionRules;
         this.journalService = journalService;
         this.clock = clock;
+    }
+
+    @Override
+    public PageResponse<PromotionRDto> getPromotions(PageQuery query, @Nullable PromotionStatus status) {
+        var today = today();
+        var pageable = query.toPageable(SORT_FIELDS, "startsOn", SortDirection.DESC);
+        var statusFilter = status == null ? PromotionRepository.ANY_STATUS : status.name();
+        return PageResponse.from(promotionRepository
+                .search(query.searchTerm(), statusFilter, today, pageable)
+                .map(promotion -> promotionMapper.toRDto(promotion, promotion.getPeriod().statusOn(today))));
     }
 
     @Override

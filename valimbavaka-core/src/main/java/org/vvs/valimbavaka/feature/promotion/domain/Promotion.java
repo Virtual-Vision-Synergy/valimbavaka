@@ -15,6 +15,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.BatchSize;
 import org.jspecify.annotations.Nullable;
 
 import lombok.AccessLevel;
@@ -32,6 +33,9 @@ import org.vvs.valimbavaka.shared.domain.BaseEntity;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Promotion extends BaseEntity {
+
+    /** A page of the list (PRO-04, size ≤ 100) loads its targets and channels in one query each, not one per row. */
+    private static final int LIST_BATCH_SIZE = 100;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -68,12 +72,14 @@ public class Promotion extends BaseEntity {
 
     @Getter(AccessLevel.NONE)
     @ElementCollection
+    @BatchSize(size = LIST_BATCH_SIZE)
     @CollectionTable(name = "promotion_targets", joinColumns = @JoinColumn(name = "promotion_id"))
     @Column(name = "target_id", nullable = false)
     private Set<UUID> targetIds = new HashSet<>();
 
     @Getter(AccessLevel.NONE)
     @ElementCollection
+    @BatchSize(size = LIST_BATCH_SIZE)
     @CollectionTable(name = "promotion_channels", joinColumns = @JoinColumn(name = "promotion_id"))
     @Column(name = "sales_channel_id", nullable = false)
     private Set<UUID> channelIds = new HashSet<>();
