@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -128,6 +129,16 @@ public class StockServiceImpl implements StockService {
                 sum(locations, StockLocationValueRDto::value),
                 sum(locations, StockLocationValueRDto::unvaluedQuantity),
                 locations);
+    }
+
+    @Override
+    public Map<UUID, BigDecimal> getQuantities(UUID locationId, Collection<UUID> articleIds) {
+        if (articleIds.isEmpty()) {
+            return Map.of();
+        }
+        return stockMovementRepository.balances(articleIds).stream()
+                .filter(balance -> balance.locationId().equals(locationId))
+                .collect(Collectors.toMap(StockBalance::articleId, StockBalance::quantity));
     }
 
     /** Quantity times cost of each article, rounded once per location; an article without cost is not valued. */
