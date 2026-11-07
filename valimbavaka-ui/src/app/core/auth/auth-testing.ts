@@ -25,6 +25,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     'sales.read',
     'deliveries.read',
     'deliveries.create',
+    'deliveries.fail',
     'promotions.read',
     'commissions.read',
     'services.read',
@@ -51,7 +52,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     'services.read',
     'referentials.read',
   ],
-  DELIVERY_DRIVER: ['dashboard.read', 'deliveries.read'],
+  DELIVERY_DRIVER: ['dashboard.read', 'deliveries.read', 'deliveries.fail'],
 };
 
 const ROLE_LABELS: Record<string, string> = {
