@@ -863,6 +863,8 @@
       "deliveredPaid": "Livré et encaissé",
       "finished": "Tournée terminée",
       "finishedHint": "Bravo ! {{amount}} encaissés. Rapportez la caisse à la boutique.",
+      "noStops": "Aucun arrêt aujourd'hui",
+      "noStopsHint": "Aucune commande ne vous est confiée pour ce jour. Les nouvelles commandes apparaîtront ici.",
       "later": "Ensuite",
       "paid": "Payée",
       "doneToast": "{{name}} : livrée",

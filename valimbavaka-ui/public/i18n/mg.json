@@ -863,6 +863,8 @@
       "deliveredPaid": "Tonga sy voaloa",
       "finished": "Vita ny fihodinana",
       "finishedHint": "Arahabaina ! {{amount}} voaray. Ento any amin'ny fivarotana ny vola.",
+      "noStops": "Tsy misy fijanonana anio",
+      "noStopsHint": "Tsy misy baiko nankinina aminao anio. Hiseho eto ny baiko vaovao.",
       "later": "Manaraka",
       "paid": "Voaloa",
       "doneToast": "{{name}} : tonga",

@@ -5,6 +5,7 @@ import {
   DeliveryRDto,
   DeliveryRoundRDto,
   DeliveryStatus,
+  DriverRoundRDto,
 } from './delivery-models';
 
 /** Fuseau métier : les jours de tournée et les heures affichées sont ceux d'Antananarivo. */
@@ -76,4 +77,25 @@ export function toBoard(
     }
   }
   return { rounds, deliveries };
+}
+
+/** Arrêt encore à faire : ni livré ni en échec (une commande à préparer peut être livrée d'un geste, LIV-01). */
+export function isPendingStop(status: DeliveryStatus): boolean {
+  return status === 'TO_PREPARE' || status === 'ON_ROUND';
+}
+
+/**
+ * Tournée du jour d'un livreur (LIV-02) : ses commandes dans l'ordre des arrêts (`stopNumber` croissant), les
+ * commandes annulées écartées.
+ */
+export function toDriverRound(
+  orders: readonly DeliveryOrderRDto[],
+  driver: DeliveryDriverRDto,
+  day: string,
+): DriverRoundRDto {
+  const stops = orders
+    .flatMap((order) => (order.status === 'CANCELLED' ? [] : [toDelivery(order, order.status)]))
+    .sort((a, b) => (a.stop ?? 0) - (b.stop ?? 0));
+  const label = driverLabel(driver);
+  return { round: { id: driver.id, name: label, driverName: label }, date: day, stops };
 }
