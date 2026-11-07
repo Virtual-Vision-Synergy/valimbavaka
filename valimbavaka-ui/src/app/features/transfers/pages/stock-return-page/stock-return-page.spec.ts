@@ -124,8 +124,8 @@ describe('StockReturnPage', () => {
 
   it('envoie le retour, annonce son numéro et revient aux stocks pour la vendeuse', async () => {
     recordReturn.mockReturnValue(of({ queued: false, body: RECORDED }));
-    const show = vi.spyOn(toast, 'show');
     await open('SELLER');
+    const show = vi.spyOn(toast, 'show');
     await fillLine('soap', '2,5');
 
     await submit();
@@ -152,8 +152,8 @@ describe('StockReturnPage', () => {
 
   it('annonce une saisie mise en file hors connexion', async () => {
     recordReturn.mockReturnValue(of({ queued: true }));
-    const show = vi.spyOn(toast, 'show');
     await open();
+    const show = vi.spyOn(toast, 'show');
     await fillLine('soap', '3');
 
     await submit();
