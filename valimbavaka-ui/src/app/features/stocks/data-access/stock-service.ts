@@ -42,6 +42,16 @@ export class StockService {
     }).pipe(map(({ stocks, ranges }) => stocks.items.map((stock) => toStockRow(stock, ranges))));
   }
 
+  /**
+   * Stock brut de chaque article actif par emplacement (identifiant du référentiel), une page de 100 triée par
+   * nom : sert aux saisies qui sortent du stock d'un emplacement (retour de stock, TRF-03).
+   */
+  quantities(): Observable<readonly StockRDto[]> {
+    return this.http
+      .get<PageResponse<StockRDto>>(this.baseUrl, { params: toHttpParams(ALL_ARTICLES) })
+      .pipe(map((page) => page.items));
+  }
+
   /** Articles sous leur seuil minimum, ruptures d'abord, avec le manque et la quantité suggérée (STK-04). */
   alerts(): Observable<PageResponse<StockAlertRDto>> {
     return this.http.get<PageResponse<StockAlertRDto>>(`${this.baseUrl}/alerts`, {

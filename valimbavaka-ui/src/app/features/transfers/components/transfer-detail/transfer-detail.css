@@ -76,18 +76,13 @@
 }
 .qty {
   text-align: right;
+  white-space: nowrap;
 }
-.ok {
-  color: var(--succes-dark);
-  font-size: var(--text-sm);
-}
-.gap {
-  color: var(--warning-dark);
-  font-size: var(--text-sm);
-  font-weight: 700;
-}
-.lines .more {
-  color: var(--gris-moyen);
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
 }
 .actions {
   display: flex;

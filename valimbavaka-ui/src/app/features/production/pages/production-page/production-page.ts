@@ -25,6 +25,7 @@ import { ToastService } from '../../../../shared/components/toast/toast-service'
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
 import { LOT_STATUS_TONES } from '../../data-access/lot-tones';
+import { toLotStatus } from '../../data-access/production-mapping';
 import {
   DraftLine,
   costsOf,
@@ -32,7 +33,12 @@ import {
   recipeLines,
   toRows,
 } from '../../data-access/lot-draft';
-import { LotRDto, ProducibleArticleRDto } from '../../data-access/production-models';
+import {
+  LotRDto,
+  LotStatus,
+  ProducibleArticleRDto,
+  ProductionBatchRDto,
+} from '../../data-access/production-models';
 import { CreatedLot, ProductionService } from '../../data-access/production-service';
 
 /** Production (PRD-01 à PRD-05) : un lot transforme des matières en produits finis, avec coût de revient. */
@@ -66,6 +72,10 @@ export class ProductionPage {
   protected readonly context = rxResource({ stream: () => this.productionService.context() });
   protected readonly submitting = signal(false);
   protected readonly created = signal<readonly LotRDto[]>([]);
+  /** Statuts changés depuis l'écran (PRD-03), par identifiant de lot, sans recharger la liste. */
+  private readonly statuses = signal<Readonly<Record<string, LotStatus>>>({});
+  /** Lot dont le changement de statut est en cours d'envoi : ses boutons sont désactivés. */
+  protected readonly changing = signal<string | null>(null);
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     articleId: ['', Validators.required],
@@ -101,10 +111,13 @@ export class ProductionPage {
       (material) => !this.lines().some((line) => line.materialId === material.id),
     ),
   );
-  protected readonly recentLots = computed(() => [
-    ...this.created(),
-    ...(this.context.value()?.recentLots ?? []),
-  ]);
+  protected readonly recentLots = computed(() => {
+    const statuses = this.statuses();
+    return [...this.created(), ...(this.context.value()?.recentLots ?? [])].map((lot) => {
+      const status = statuses[lot.id];
+      return status ? { ...lot, status } : lot;
+    });
+  });
   protected readonly numberFormat = computed(
     () => new Intl.NumberFormat(this.language.current(), { maximumFractionDigits: 3 }),
   );
@@ -112,6 +125,8 @@ export class ProductionPage {
   protected readonly canComplete = computed(() =>
     this.authStore.hasPermission('production.complete'),
   );
+  /** Démarrer un lot planifié (PRD-03) : `production.update` ; le serveur décide. */
+  protected readonly canStart = computed(() => this.authStore.hasPermission('production.update'));
   protected readonly canValidate = computed(
     () =>
       this.form.valid &&
@@ -172,6 +187,44 @@ export class ProductionPage {
         error: (error: unknown) =>
           this.toast.show('production.saveError', { message: errorMessage(error) }, 'danger'),
       });
+  }
+
+  /** Fait avancer le statut d'un lot (PRD-03) : planifié → en cours, ou → terminé (stock mouvementé, PRD-02). */
+  protected advance(lot: LotRDto, step: 'start' | 'finish'): void {
+    const request =
+      step === 'start'
+        ? this.productionService.startLot(lot.id)
+        : this.productionService.completeLot(lot.id);
+    this.changing.set(lot.id);
+    request
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.changing.set(null)),
+      )
+      .subscribe({
+        next: ({ body }) => this.onAdvanced(lot, body),
+        error: (error: unknown) =>
+          this.toast.show(
+            'production.statusError',
+            { number: lot.number, message: errorMessage(error) },
+            'danger',
+          ),
+      });
+  }
+
+  /** Sans réponse, la saisie attend le réseau : le statut affiché ne change qu'avec la réponse du serveur. */
+  private onAdvanced(lot: LotRDto, batch: ProductionBatchRDto | undefined): void {
+    if (!batch) {
+      this.toast.show('common.queuedSaved', {}, 'info');
+      return;
+    }
+    const status = toLotStatus(batch.status);
+    this.statuses.update((all) => ({ ...all, [lot.id]: status }));
+    this.toast.show(
+      status === 'VALIDATED' ? 'production.validatedToast' : 'production.startedToast',
+      { number: lot.number },
+      'success',
+    );
   }
 
   /** Lot validé (PRD-02) : stock mis à jour par le serveur ; sinon lot planifié (PRD-01). */
