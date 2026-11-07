@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.UUID;
@@ -27,6 +28,7 @@ import org.vvs.valimbavaka.feature.promotion.repository.PromotionRepository;
 import org.vvs.valimbavaka.feature.referential.repository.ProductRangeRepository;
 import org.vvs.valimbavaka.feature.referential.repository.SalesChannelRepository;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
+import org.vvs.valimbavaka.feature.user.domain.SellerTerms;
 import org.vvs.valimbavaka.feature.user.domain.User;
 import org.vvs.valimbavaka.feature.user.domain.UserProfile;
 import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
@@ -152,7 +154,8 @@ class PromotionSecurityIT {
 
         // Assert
         assertThat(id).isNotEqualTo(forcedId);
-        assertThat(promotionRepository.findById(id).orElseThrow().getUsageCount()).isZero();
+        assertThat(promotionRepository.findById(id).orElseThrow().getUsageCount())
+                .isZero();
     }
 
     @Test
@@ -244,8 +247,12 @@ class PromotionSecurityIT {
     private String createUser(RoleName roleName) {
         var email = "promo-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = roleRepository.findByName(roleName).orElseThrow();
-        userRepository.save(
-                User.create(new UserProfile(email, "Tiana", "Ranaivoson"), passwordEncoder.encode(PASSWORD), role));
+        var terms = SellerTerms.NONE;
+        if (roleName == RoleName.SELLER) {
+            terms = new SellerTerms(channelId(), new BigDecimal("5.00"));
+        }
+        userRepository.save(User.create(
+                new UserProfile(email, "Tiana", "Ranaivoson"), passwordEncoder.encode(PASSWORD), role, terms));
         return email;
     }
 

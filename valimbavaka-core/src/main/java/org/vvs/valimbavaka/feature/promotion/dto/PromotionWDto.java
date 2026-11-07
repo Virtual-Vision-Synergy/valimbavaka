@@ -32,7 +32,8 @@ public record PromotionWDto(
         @Size(max = 500, message = "La description ne doit pas dépasser {max} caractères") @Nullable
         String description,
 
-        @NotNull(message = "Le type de remise est obligatoire") PromotionKind kind,
+        @NotNull(message = "Le type de remise est obligatoire")
+        PromotionKind kind,
 
         @NotNull(message = "La valeur est obligatoire")
         @DecimalMin(value = "0", inclusive = false, message = "La valeur doit être positive")
@@ -50,7 +51,8 @@ public record PromotionWDto(
         @Size(max = 100, message = "Au plus {max} gammes ou articles ciblés") @Nullable
         List<@NotNull UUID> targetIds,
 
-        @NotNull(message = "La date de début est obligatoire") LocalDate startsOn,
+        @NotNull(message = "La date de début est obligatoire")
+        LocalDate startsOn,
 
         @NotNull(message = "La date de fin est obligatoire") LocalDate endsOn,
 
