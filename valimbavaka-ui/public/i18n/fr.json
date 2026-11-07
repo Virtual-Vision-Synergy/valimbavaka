@@ -367,15 +367,16 @@
     },
     "stockAlerts": {
       "title": "Alertes de stock",
-      "subtitle": "{{count}} articles sous le seuil minimum",
+      "subtitle": "{{count}} article(s) sous le seuil minimum",
       "reorder": "Générer le bon de réappro.",
       "article": "Article",
-      "range": "Gamme",
-      "location": "Emplacement",
       "level": "Stock / seuil",
+      "suggested": "À commander",
       "state": "État",
       "out": "Rupture",
-      "low": "Stock faible"
+      "low": "Stock faible",
+      "emptyTitle": "Aucun article sous son seuil",
+      "emptyMessage": "Tous les articles suivis ont un stock au moins égal à leur seuil minimum."
     },
     "activity": {
       "title": "En direct",

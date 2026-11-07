@@ -1,16 +1,4 @@
-import { ProductRange } from '../../../shared/models/tone';
 import { DashboardRDto } from './dashboard-models';
-
-/** Référence, désignation, gamme, emplacement, quantité, seuil minimum. */
-type StockAlertRow = readonly [string, string, ProductRange, string, number, number];
-
-const STOCK_ALERTS: readonly StockAlertRow[] = [
-  ['ART-0112', 'Huile de coco vierge 250 ml', 'BOTANIKA', 'Boutique', 0, 12],
-  ['ART-0087', 'Gommage café 200 g', 'ZEZIKA', 'Boutique', 3, 10],
-  ['ART-0154', 'Beurre de karité 150 g', 'SOLIKA', 'Entrepôt', 6, 20],
-  ['ART-0031', 'Savon noir 100 g', 'BOTANIKA', 'Livraison', 2, 8],
-  ['ART-0201', 'Baume lèvres miel 15 g', 'ZEZIKA', 'Salon', 1, 6],
-];
 
 /**
  * Données de démonstration du cockpit (articles issus du jeu de test v1) : remplacées par
@@ -68,15 +56,6 @@ export const DASHBOARD_FIXTURE: DashboardRDto = {
     { channel: 'FACEBOOK', amount: 398_000 },
     { channel: 'PHONE', amount: 218_000 },
   ],
-  stockAlerts: STOCK_ALERTS.map(([reference, name, range, location, quantity, threshold]) => ({
-    articleId: reference.toLowerCase(),
-    reference,
-    name,
-    range,
-    location,
-    quantity,
-    threshold,
-  })),
   activity: [
     {
       id: 'a1',
