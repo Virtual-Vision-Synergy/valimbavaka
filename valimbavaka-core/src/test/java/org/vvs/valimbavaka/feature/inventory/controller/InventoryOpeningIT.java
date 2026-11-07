@@ -134,11 +134,11 @@ class InventoryOpeningIT {
     @Test
     void openSession_countDateYesterday_returns422() throws Exception {
         // Arrange
-        var body = body("STORE", "ALL", null).replace(tomorrow().toString(), tomorrow().minusDays(2).toString());
+        var body = body("STORE", "ALL", null)
+                .replace(tomorrow().toString(), tomorrow().minusDays(2).toString());
 
         // Act + Assert
-        mockMvc.perform(asAdmin(post(INVENTORIES)).content(body))
-                .andExpect(status().isUnprocessableContent());
+        mockMvc.perform(asAdmin(post(INVENTORIES)).content(body)).andExpect(status().isUnprocessableContent());
     }
 
     @Test
@@ -216,8 +216,7 @@ class InventoryOpeningIT {
 
     @Test
     void getSessions_sizeOver100_returns422() throws Exception {
-        mockMvc.perform(asAdmin(get(INVENTORIES)).param("size", "101"))
-                .andExpect(status().isUnprocessableContent());
+        mockMvc.perform(asAdmin(get(INVENTORIES)).param("size", "101")).andExpect(status().isUnprocessableContent());
     }
 
     @Test
@@ -253,7 +252,8 @@ class InventoryOpeningIT {
         var range = rangeId == null ? "null" : "\"" + rangeId + "\"";
         return """
                 {"locationId":"%s","scope":"%s","rangeId":%s,"responsibleId":"%s","countDate":"%s"}
-                """.formatted(location(locationCode), scope, range, adminId(), tomorrow()).strip();
+                """.formatted(location(locationCode), scope, range, adminId(), tomorrow())
+                .strip();
     }
 
     /** Tomorrow in Antananarivo: never in the past, even around midnight. */
@@ -295,8 +295,9 @@ class InventoryOpeningIT {
 
     private String accessToken(String email, String password) throws Exception {
         var body = "{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password);
-        MvcResult result = mockMvc.perform(
-                        post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
+        MvcResult result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andReturn();
         return JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");

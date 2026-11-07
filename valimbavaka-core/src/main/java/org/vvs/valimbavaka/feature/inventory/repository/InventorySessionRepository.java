@@ -26,6 +26,5 @@ public interface InventorySessionRepository extends OperationRepository<Inventor
             where (:status is null or s.status = :status)
               and (:locationId is null or s.locationId = :locationId)
             """)
-    Page<InventorySession> search(
-            @Nullable InventoryStatus status, @Nullable UUID locationId, Pageable pageable);
+    Page<InventorySession> search(@Nullable InventoryStatus status, @Nullable UUID locationId, Pageable pageable);
 }
