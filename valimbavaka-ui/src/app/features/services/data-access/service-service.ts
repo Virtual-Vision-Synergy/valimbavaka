@@ -5,8 +5,9 @@ import { SERVICES_FIXTURE } from './service-fixtures';
 import { SalonServiceWDto, ServicesContextRDto } from './service-models';
 
 /**
- * Salon et shooting. Provisoire ; à terme `GET /api/v1/services/context`, `POST /api/v1/services`
- * et `POST /api/v1/shootings/{id}/return`.
+ * Salon (démonstration) : à terme `GET /api/v1/services/context` et `POST /api/v1/services`. Les sorties
+ * shooting passent par `ShootingService` (SHO-01) ; seule la réintégration reste simulée ici jusqu'à SHO-02
+ * (`POST /api/v1/shootings/{id}/return`).
  */
 @Injectable({ providedIn: 'root' })
 export class SalonService {
