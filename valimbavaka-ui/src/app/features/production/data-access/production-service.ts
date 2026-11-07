@@ -39,7 +39,7 @@ export interface CreatedLot {
 }
 
 /**
- * Production (PRD-01, PRD-02). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
+ * Production (PRD-01 à PRD-03). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
  * l'entrepôt (STK-01), vendeuses et lots récents. Écritures par la file hors ligne (SYS-07) : « Enregistrer »
  * crée un lot planifié sans mouvement de stock ; « Valider » crée et valide le lot en une seule requête,
  * le serveur sortant les entrants et entrant le produit fini dans la même transaction (PRD-02).
@@ -106,7 +106,15 @@ export class ProductionService {
       .pipe(map((result) => toCreatedLot(result, labels)));
   }
 
-  /** Valide un lot planifié existant (PRD-02) : mouvements de stock et coûts figés côté serveur. */
+  /** Démarre un lot planifié (PRD-03) : statut « en cours », le stock ne bouge pas. */
+  startLot(id: string): Observable<SubmitResult<ProductionBatchRDto>> {
+    return this.outbox.submit<ProductionBatchRDto>('POST', `${this.baseUrl}/batches/${id}/start`);
+  }
+
+  /**
+   * Termine (valide) un lot planifié ou en cours (PRD-02, PRD-03) : mouvements de stock et coûts figés côté
+   * serveur.
+   */
   completeLot(id: string): Observable<SubmitResult<ProductionBatchRDto>> {
     return this.outbox.submit<ProductionBatchRDto>(
       'POST',

@@ -243,7 +243,7 @@
           <a class="link-arrow" routerLink="/production">{{ 'production.all' | translate }}</a>
         </header>
         <ul class="lots">
-          @for (lot of recentLots(); track lot.number) {
+          @for (lot of recentLots(); track lot.id) {
             <li>
               <span class="date num" aria-hidden="true">{{ lot.date | shortDate }}</span>
               <span class="lot-info">
@@ -252,10 +252,34 @@
                   >{{ lot.number }} · {{ lot.quantity }} u. · {{ lot.operator }}</span
                 >
               </span>
-              <vvs-status-badge
-                [tone]="lotTones[lot.status]"
-                [label]="'production.status.' + lot.status | translate"
-              />
+              <span class="lot-status">
+                <vvs-status-badge
+                  [tone]="lotTones[lot.status]"
+                  [label]="'production.status.' + lot.status | translate"
+                />
+                @if (canStart() && lot.status === 'DRAFT') {
+                  <button
+                    class="btn btn-ghost btn-sm"
+                    type="button"
+                    [disabled]="changing() !== null"
+                    [attr.aria-label]="'production.startLot' | translate: { number: lot.number }"
+                    (click)="advance(lot, 'start')"
+                  >
+                    {{ 'production.start' | translate }}
+                  </button>
+                }
+                @if (canComplete() && lot.status !== 'VALIDATED') {
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    type="button"
+                    [disabled]="changing() !== null"
+                    [attr.aria-label]="'production.finishLot' | translate: { number: lot.number }"
+                    (click)="advance(lot, 'finish')"
+                  >
+                    {{ 'production.finish' | translate }}
+                  </button>
+                }
+              </span>
             </li>
           }
         </ul>

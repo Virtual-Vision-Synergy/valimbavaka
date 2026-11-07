@@ -75,12 +75,13 @@ tbody th {
   font-size: var(--text-sm);
   white-space: nowrap;
 }
-.c-date {
+.c-date,
+.c-issuer {
   white-space: nowrap;
 }
+/* Écran étroit : le type d'origine se masque ; date et émetteur restent (critère de TRF-01). */
 @container (max-width: 700px) {
-  .c-origin,
-  .c-date {
+  .c-origin {
     display: none;
   }
 }

@@ -68,6 +68,7 @@ export function toLot(
   operators: readonly OperatorOption[],
 ): LotRDto {
   return {
+    id: batch.id,
     number: batch.number,
     date: batch.createdAt.slice(0, 10),
     articleName: products.find((item) => item.articleId === batch.outputArticleId)?.name ?? '—',

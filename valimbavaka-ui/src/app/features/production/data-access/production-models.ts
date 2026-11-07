@@ -82,8 +82,9 @@ export interface ProducibleArticleRDto {
   readonly recipe: readonly RecipeLineRDto[];
 }
 
-/** Lot récent (PRD-03). */
+/** Lot récent (PRD-03) ; `id` sert aux changements de statut (démarrer, terminer). */
 export interface LotRDto {
+  readonly id: string;
   readonly number: string;
   readonly date: string;
   readonly articleName: string;

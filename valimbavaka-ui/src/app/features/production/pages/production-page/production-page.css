@@ -231,6 +231,14 @@ tbody th {
   flex-direction: column;
   min-width: 0;
 }
+.lot-status {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
 @media (max-width: 1280px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);

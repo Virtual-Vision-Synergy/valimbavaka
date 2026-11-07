@@ -123,6 +123,7 @@ const LOTS: readonly LotRDto[] = (
     ['PRD-0071', 10, 'ART-0031', 60, 'Soa R.', 'VALIDATED'],
   ] as const
 ).map(([number, ago, reference, quantity, operator, status]) => ({
+  id: number,
   number,
   date: isoDay(-ago),
   articleName: demoArticle(reference).name,

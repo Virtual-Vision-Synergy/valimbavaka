@@ -1064,12 +1064,18 @@
     "all": "Rehetra →",
     "status": {
       "DRAFT": "Drafitra",
-      "CURING": "Mahamaina",
-      "VALIDATED": "Voamarina"
+      "CURING": "Eo am-panaovana",
+      "VALIDATED": "Vita"
     },
     "draftToast": "Voatahiry ho drafitra ny andiany {{number}}",
     "saveError": "Tsy voatahiry ny andiany : {{message}}",
-    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry"
+    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry",
+    "start": "Atombohy",
+    "startLot": "Atombohy ny andiany {{number}}",
+    "finish": "Vita",
+    "finishLot": "Vita ny andiany {{number}} (mivoaka ny akora, miditra ny vokatra)",
+    "startedToast": "Eo am-panaovana ny andiany {{number}}",
+    "statusError": "Tsy niova ny satan'ny andiany {{number}} : {{message}}"
   },
   "transfers": {
     "title": "Famindrana tahiry",
@@ -1089,23 +1095,27 @@
       "MANUAL": "Amin'ny tanana",
       "RETURN": "Famerenana"
     },
-    "week": "Tamin'ity herinandro ity · famindrana {{count}}",
+    "total": "Famindrana {{count}}",
     "empty": "Tsy misy famindrana",
+    "locationUnknown": "Toerana tsy ampiasaina intsony",
     "col": {
       "number": "N°",
       "route": "Lalana",
       "origin": "Niaviana",
       "lines": "Andalana",
       "date": "Daty",
-      "status": "Sata"
+      "status": "Sata",
+      "issuer": "Nandefa"
     },
     "status": {
       "IN_TRANSIT": "Eny an-dalana",
       "RECEIVED": "Voaray",
       "DISCREPANCY": "Elanelana",
-      "RETURN": "Famerenana"
+      "RETURN": "Famerenana",
+      "VALIDATED": "Voamarina"
     },
     "detailLabel": "Taratasy famindrana {{number}}",
+    "detailPending": "Ho hita tsy ho ela ny antsipirian'ny taratasy",
     "from": "Avy any",
     "to": "Mankany",
     "pending": "eny an-dalana",
@@ -1113,7 +1123,26 @@
     "gapLine": "voaray {{received}} amin'ny {{sent}}",
     "moreLines": "+ andalana {{count}} hafa",
     "print": "Hanonta ny taratasy",
-    "createReturn": "Hamorona famerenana"
+    "createReturn": "Hamorona famerenana",
+    "return": {
+      "title": "Fampiverenana tahiry",
+      "subtitle": "Avereno any amin'ny toerana hafa ny entana tsy lafo, ohatra avy any amin'ny fivarotana mankany amin'ny trano fitehirizana.",
+      "back": "← Hiverina",
+      "lines": "Entana averina",
+      "noStock": "Tsy misy entana amin'ity toerana ity.",
+      "article": "Entana",
+      "chooseArticle": "Mifidiana entana",
+      "articleRequired": "Mifidiana entana iray.",
+      "quantity": "Isa",
+      "available": "Misy : {{count}}",
+      "quantityInvalid": "Isa mihoatra ny aotra, desimaly 3 farafahabetsany.",
+      "removeLine": "Esory ny andalana {{index}}",
+      "addLine": "Hanampy entana",
+      "note": "Fanamarihana",
+      "submit": "Hitahiry ny famerenana",
+      "saved": "Voatahiry ny famerenana {{number}}.",
+      "sameLocation": "Tsy maintsy samy hafa ny niaviana sy ny alehany."
+    }
   },
   "inventory": {
     "pageTitle": "Fanisana",
@@ -1456,5 +1485,11 @@
       "title": "Entana omena",
       "empty": "Tsy misy entana omen'ity mpamatsy ity."
     }
+  },
+  "export": {
+    "done": "Vita ny rakitra {{filename}}.",
+    "failed": "Tsy tafita ny famoahana : andramo indray.",
+    "tooLarge": "Be loatra ny andalana hamoahana : ahenoy ny sivana.",
+    "forbidden": "Tsy manana alalana hamoaka ireo angona ireo ianao."
   }
 }

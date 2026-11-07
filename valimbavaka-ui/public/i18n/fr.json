@@ -1064,12 +1064,18 @@
     "all": "Tous →",
     "status": {
       "DRAFT": "Planifié",
-      "CURING": "En cure",
-      "VALIDATED": "Validé"
+      "CURING": "En cours",
+      "VALIDATED": "Terminé"
     },
     "draftToast": "Lot {{number}} enregistré : planifié, le stock n'a pas bougé",
     "saveError": "Le lot n'a pas été enregistré : {{message}}",
-    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt"
+    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt",
+    "start": "Démarrer",
+    "startLot": "Démarrer le lot {{number}}",
+    "finish": "Terminer",
+    "finishLot": "Terminer le lot {{number}} (sort les matières, entre le produit fini)",
+    "startedToast": "Lot {{number}} en cours : le stock bougera quand il sera terminé",
+    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}"
   },
   "transfers": {
     "title": "Transferts de stock",
@@ -1089,23 +1095,27 @@
       "MANUAL": "Manuels",
       "RETURN": "Retours"
     },
-    "week": "Cette semaine · {{count}} transferts",
+    "total": "{{count}} transfert(s)",
     "empty": "Aucun transfert",
+    "locationUnknown": "Emplacement désactivé",
     "col": {
       "number": "N°",
       "route": "Trajet",
       "origin": "Origine",
       "lines": "Lignes",
       "date": "Date",
-      "status": "Statut"
+      "status": "Statut",
+      "issuer": "Émetteur"
     },
     "status": {
       "IN_TRANSIT": "En transit",
       "RECEIVED": "Reçu",
       "DISCREPANCY": "Écart",
-      "RETURN": "Retour"
+      "RETURN": "Retour",
+      "VALIDATED": "Validé"
     },
     "detailLabel": "Bon de transfert {{number}}",
+    "detailPending": "Détail du bon bientôt disponible",
     "from": "De",
     "to": "Vers",
     "pending": "en transit",
@@ -1113,7 +1123,26 @@
     "gapLine": "reçu {{received}} sur {{sent}}",
     "moreLines": "+ {{count}} autres lignes",
     "print": "Imprimer le bon",
-    "createReturn": "Créer un retour"
+    "createReturn": "Créer un retour",
+    "return": {
+      "title": "Retour de stock",
+      "subtitle": "Renvoyer les articles non écoulés vers un autre emplacement, par exemple de la boutique vers l'entrepôt.",
+      "back": "← Retour",
+      "lines": "Articles retournés",
+      "noStock": "Aucun article en stock à cet emplacement.",
+      "article": "Article",
+      "chooseArticle": "Choisir un article",
+      "articleRequired": "Choisissez un article.",
+      "quantity": "Quantité",
+      "available": "Disponible : {{count}}",
+      "quantityInvalid": "Quantité positive, 3 décimales au maximum.",
+      "removeLine": "Retirer la ligne {{index}}",
+      "addLine": "Ajouter un article",
+      "note": "Note",
+      "submit": "Enregistrer le retour",
+      "saved": "Retour {{number}} enregistré.",
+      "sameLocation": "L'origine et la destination doivent être différentes."
+    }
   },
   "inventory": {
     "pageTitle": "Inventaire",
@@ -1456,5 +1485,11 @@
       "title": "Articles fournis",
       "empty": "Aucun article fourni par ce fournisseur."
     }
+  },
+  "export": {
+    "done": "Fichier {{filename}} généré.",
+    "failed": "Export impossible : réessayez.",
+    "tooLarge": "Trop de lignes à exporter : affinez les filtres.",
+    "forbidden": "Vous n'avez pas le droit d'exporter ces données."
   }
 }
