@@ -21,6 +21,7 @@ import {
   StockLevel,
   levelAt,
   quantityAt,
+  segmentsOf,
   thresholdAt,
 } from '../../data-access/stock-levels';
 import { StockService } from '../../data-access/stock-service';
@@ -77,6 +78,8 @@ export class StockPage {
       threshold: thresholdAt(row, location),
       level: levelAt(row, location),
       value: quantityAt(row, 'ALL') * row.unitCost,
+      /** Répartition par emplacement, seulement sur la vue « Tous » (STK-02). */
+      segments: location === 'ALL' ? segmentsOf(row) : [],
     }));
   });
   protected readonly visibleRows = computed(() => {
