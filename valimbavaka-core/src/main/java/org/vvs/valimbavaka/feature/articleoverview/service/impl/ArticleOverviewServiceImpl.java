@@ -72,7 +72,8 @@ public class ArticleOverviewServiceImpl implements ArticleOverviewService {
 
     private List<ArticleBatchRDto> batches(UUID articleId) {
         var batches = productionBatchService.getRecentBatchesOf(articleId, RECENT_LIMIT);
-        var outputIds = batches.stream().map(ProductionBatchRDto::outputArticleId).toList();
+        var outputIds =
+                batches.stream().map(ProductionBatchRDto::outputArticleId).toList();
         var outputs = articleService.getArticlesByIds(outputIds).stream()
                 .collect(Collectors.toMap(ArticleRDto::id, Function.identity()));
         return batches.stream().map(batch -> toRDto(batch, articleId, outputs)).toList();
