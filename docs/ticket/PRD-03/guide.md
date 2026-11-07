@@ -1,6 +1,6 @@
 # Guide d'intégration — PRD-03 · Statut d'un lot de production
 
-Statut : ✅ rédigé le 2026-11-08 — **tests écrits, à lancer** (voir le [scénario](scenario-test.md)) · Ticket : [#40](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/40) · [description](description.md)
+Statut : ✅ rédigé le 2026-11-08 — **tests exécutés en CI, verts** (voir le [scénario](scenario-test.md)) · Ticket : [#40](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/40) · [description](description.md)
 
 ## En bref
 
@@ -104,4 +104,4 @@ this.productionService.startLot(lot.id).subscribe(({ queued, body }) => ...); //
   boutons. Une page liste paginée relèverait d'un ticket à part.
 - Libellé « En cure » de la maquette remplacé par « En cours » (vocabulaire de la user story) ; la note KPI
   « dont … en cours de cure » attend PRD-04.
-- Compilation Java et Spotless non vérifiés en local (Maven Central inaccessible) : la CI tranche.
+- Compilation, tests, Spotless et Checkstyle vérifiés en CI (run 42414235707 / 42414237395).
