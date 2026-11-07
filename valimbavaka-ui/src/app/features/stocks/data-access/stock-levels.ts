@@ -1,4 +1,5 @@
 import { STOCK_LOCATIONS, StockLocation } from '../../../shared/data-access/demo-catalog';
+import { StockGaugeSegment } from '../../../shared/components/stock-gauge/stock-gauge';
 import { StockRowRDto } from './stock-models';
 
 export type LocationFilter = 'ALL' | StockLocation;
@@ -31,4 +32,13 @@ export function levelAt(row: StockRowRDto, location: LocationFilter): StockLevel
 export function proposedQuantity(row: StockRowRDto): number {
   const missing = row.dailySales * COVERAGE_DAYS - quantityAt(row, 'ALL');
   return Math.max(10, Math.ceil(Math.max(missing, row.threshold) / 10) * 10);
+}
+
+/** Répartition de la jauge (STK-02) : une part par emplacement, dans l'ordre des colonnes, zéro compris. */
+export function segmentsOf(row: StockRowRDto): readonly StockGaugeSegment[] {
+  return STOCK_LOCATIONS.map((item) => ({
+    key: item,
+    labelKey: `stocks.location.${item}`,
+    quantity: row.quantities[item],
+  }));
 }

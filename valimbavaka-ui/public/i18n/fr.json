@@ -241,6 +241,10 @@
     "current": "en cours",
     "upcoming": "à venir"
   },
+  "stockGauge": {
+    "label": "Répartition du stock par emplacement",
+    "total": "Total"
+  },
   "search": {
     "placeholder": "Rechercher un article, une vente…",
     "open": "Rechercher un article, une vente… (Ctrl K)",
