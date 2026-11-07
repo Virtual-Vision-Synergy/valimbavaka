@@ -44,13 +44,15 @@ class ProductionCompletion {
 
     /** Must be called in a transaction, on a batch locked or just created. */
     void complete(ProductionBatch batch) {
-        var inputIds = batch.getInputs().stream().map(ProductionInput::getArticleId).toList();
+        var inputIds =
+                batch.getInputs().stream().map(ProductionInput::getArticleId).toList();
         batch.complete(articleService.getCosts(inputIds), clock.instant());
         var warehouseId = referentialService.requireActiveStockLocationId(PRODUCTION_LOCATION);
         // Inputs in a stable order, output last: two completions never take the stock locks in opposite orders.
         batch.getInputs().stream()
                 .sorted(Comparator.comparing(ProductionInput::getArticleId))
-                .forEach(input -> move(batch, input.getArticleId(), warehouseId, input.getQuantity().negate()));
+                .forEach(input -> move(
+                        batch, input.getArticleId(), warehouseId, input.getQuantity().negate()));
         move(batch, batch.getOutputArticleId(), warehouseId, batch.getQuantity());
     }
 

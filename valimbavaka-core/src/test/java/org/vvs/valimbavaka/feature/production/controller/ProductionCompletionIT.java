@@ -85,8 +85,7 @@ class ProductionCompletionIT extends ProductionApiTestSupport {
         receive(oil, "10");
         var id = plan(output, "5", input(oil, "2"));
         var auth = bearer(adminToken());
-        complete(id, auth)
-                .andExpect(status().isOk());
+        complete(id, auth).andExpect(status().isOk());
 
         // Act
         complete(id, auth)
@@ -115,8 +114,8 @@ class ProductionCompletionIT extends ProductionApiTestSupport {
         var body = batchBody(output, "12", seller.getId(), input(oil, "3"));
 
         // Act
-        var response = mockMvc.perform(postJson(COMPLETED_BATCHES, body)
-                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
+        var response = mockMvc.perform(
+                        postJson(COMPLETED_BATCHES, body).header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andReturn()
@@ -224,7 +223,6 @@ class ProductionCompletionIT extends ProductionApiTestSupport {
     }
 
     private String batchStatus(UUID batchId) {
-        return jdbcTemplate.queryForObject(
-                "select status from production_batches where id = ?", String.class, batchId);
+        return jdbcTemplate.queryForObject("select status from production_batches where id = ?", String.class, batchId);
     }
 }
