@@ -1064,12 +1064,18 @@
     "all": "Rehetra →",
     "status": {
       "DRAFT": "Drafitra",
-      "CURING": "Mahamaina",
-      "VALIDATED": "Voamarina"
+      "CURING": "Eo am-panaovana",
+      "VALIDATED": "Vita"
     },
     "draftToast": "Voatahiry ho drafitra ny andiany {{number}}",
     "saveError": "Tsy voatahiry ny andiany : {{message}}",
-    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry"
+    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry",
+    "start": "Atombohy",
+    "startLot": "Atombohy ny andiany {{number}}",
+    "finish": "Vita",
+    "finishLot": "Vita ny andiany {{number}} (mivoaka ny akora, miditra ny vokatra)",
+    "startedToast": "Eo am-panaovana ny andiany {{number}}",
+    "statusError": "Tsy niova ny satan'ny andiany {{number}} : {{message}}"
   },
   "transfers": {
     "title": "Famindrana tahiry",

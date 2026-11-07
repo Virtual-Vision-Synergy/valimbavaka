@@ -177,6 +177,18 @@ describe('ProductionService', () => {
     expect(created?.lot).toMatchObject({ number: 'LOT-00005', status: 'VALIDATED' });
   });
 
+  it('démarre un lot planifié par POST sur /batches/{id}/start avec une clé d’idempotence', () => {
+    let status: string | undefined;
+    service.startLot('b2').subscribe((result) => (status = result.body?.status));
+
+    const request = httpMock.expectOne('/api/v1/production/batches/b2/start');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.has('Idempotency-Key')).toBe(true);
+    request.flush({ id: 'b2', status: 'IN_PROGRESS' });
+
+    expect(status).toBe('IN_PROGRESS');
+  });
+
   it('valide un lot planifié existant par POST sur /batches/{id}/completion', () => {
     let status: string | undefined;
     service.completeLot('b2').subscribe((result) => (status = result.body?.status));
