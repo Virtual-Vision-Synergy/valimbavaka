@@ -92,6 +92,16 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    public List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds) {
+        if (articleIds.isEmpty()) {
+            return List.of();
+        }
+        return articleRepository.findAllByIdIn(Set.copyOf(articleIds)).stream()
+                .map(articleMapper::toRDto)
+                .toList();
+    }
+
+    @Override
     public List<ArticleRDto> getArticlesWithThreshold() {
         return articleRepository.findByActiveTrueAndThresholdGreaterThanOrderByCodeAsc(BigDecimal.ZERO).stream()
                 .map(articleMapper::toRDto)

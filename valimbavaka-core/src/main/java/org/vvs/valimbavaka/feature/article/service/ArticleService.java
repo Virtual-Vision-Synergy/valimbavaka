@@ -29,6 +29,12 @@ public interface ArticleService {
     /** Purchase cost of the given articles (STK-03); an unknown article or one without cost is absent. */
     Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds);
 
+    /**
+     * Articles of the given identifiers, active or not (PRO-01: targets of a promotion); an unknown identifier is
+     * simply absent from the list.
+     */
+    List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds);
+
     /** Active articles with a minimum threshold above zero, by code (STK-04: threshold alerts). */
     List<ArticleRDto> getArticlesWithThreshold();
 
