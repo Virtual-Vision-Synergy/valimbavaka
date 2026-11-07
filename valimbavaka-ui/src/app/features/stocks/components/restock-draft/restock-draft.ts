@@ -1,13 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { StockRowRDto } from '../../data-access/stock-models';
-import { COVERAGE_DAYS, proposedQuantity } from '../../data-access/stock-levels';
+import { StockAlertRDto } from '../../data-access/stock-models';
 
-const MS_PER_DAY = 86_400_000;
-/** Date du jour de démonstration (même journée que les autres écrans). */
-const TODAY = new Date(2026, 9, 21);
-
-/** Brouillon de bon de réapprovisionnement (STK-05), regroupé par fournisseur ou par atelier. */
+/**
+ * Brouillon du bon de réapprovisionnement (STK-05), regroupé par fournisseur ou par atelier. Les lignes sont les
+ * alertes de seuil du serveur (STK-04) : la quantité affichée est celle que le bon enregistrera.
+ */
 @Component({
   selector: 'vvs-restock-draft',
   imports: [TranslatePipe],
@@ -16,34 +14,37 @@ const TODAY = new Date(2026, 9, 21);
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RestockDraft {
-  readonly rows = input.required<readonly StockRowRDto[]>();
+  readonly alerts = input.required<readonly StockAlertRDto[]>();
+  /** Génération en cours : le bouton de validation est désactivé pour éviter un double bon. */
+  readonly busy = input(false);
   readonly exported = output();
   readonly validated = output();
 
-  protected readonly coverageDays = COVERAGE_DAYS;
   protected readonly groups = computed(() => {
-    const groups = new Map<string | null, StockRowRDto[]>();
-    for (const row of this.rows()) {
-      groups.set(row.supplierName, [...(groups.get(row.supplierName) ?? []), row]);
+    const groups = new Map<string | null, StockAlertRDto[]>();
+    for (const alert of this.alerts()) {
+      groups.set(alert.supplierName, [...(groups.get(alert.supplierName) ?? []), alert]);
     }
-    return [...groups.entries()].map(([supplier, rows]) => ({
+    return [...groups.entries()].map(([supplier, alerts]) => ({
       supplier,
-      leadTimeDays: rows[0].leadTimeDays,
-      orderBefore: this.orderBefore(rows[0].leadTimeDays),
-      lines: rows.map((row) => ({
-        id: row.articleId,
-        name: row.name,
-        quantity: proposedQuantity(row),
+      leadTimeDays: alerts[0].leadTimeDays,
+      expectedDelivery: formatDate(alerts[0].expectedDeliveryDate),
+      lines: alerts.map((alert) => ({
+        id: alert.articleId,
+        name: alert.name,
+        quantity: alert.suggestedQuantity,
       })),
     }));
   });
+}
 
-  /** Dernier jour pour commander : avant que le délai fournisseur n'entame la couverture restante. */
-  private orderBefore(leadTimeDays: number | null): string | null {
-    if (leadTimeDays === null) {
-      return null;
-    }
-    const date = new Date(TODAY.getTime() + Math.max(1, 14 - leadTimeDays) * MS_PER_DAY);
-    return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(date);
+/** `yyyy-MM-dd` (jour de Madagascar) → « 15 nov. » ; la date est lue telle quelle, sans fuseau. */
+function formatDate(isoDate: string | null): string | null {
+  if (isoDate === null) {
+    return null;
   }
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short' }).format(
+    new Date(year, month - 1, day),
+  );
 }
