@@ -128,7 +128,8 @@ class TransferServiceImplTest {
     void getTransfers_noSort_searchesNewestFirstWithTheTrimmedTermAndTheOrigin() {
         // Arrange
         var query = new PageQuery(2, 10, "  ret-00 ", null, null);
-        when(transferRepository.search(eq("ret-00"), eq(TransferOrigin.RETURN), any())).thenReturn(Page.empty());
+        when(transferRepository.search(eq("ret-00"), eq(TransferOrigin.RETURN), any()))
+                .thenReturn(Page.empty());
 
         // Act
         sut.getTransfers(query, TransferOrigin.RETURN);

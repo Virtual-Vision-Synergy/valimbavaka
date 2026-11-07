@@ -56,9 +56,11 @@ class TransferHistoryIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.items[0].createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.items[0].origin").value("RETURN"))
                 .andExpect(jsonPath("$.items[0].status").value("RETURN"))
-                .andExpect(jsonPath("$.items[0].fromLocationId").value(location("STORE").toString()))
+                .andExpect(jsonPath("$.items[0].fromLocationId")
+                        .value(location("STORE").toString()))
                 .andExpect(jsonPath("$.items[0].fromLocationLabel").value(label("STORE")))
-                .andExpect(jsonPath("$.items[0].toLocationId").value(location("WAREHOUSE").toString()))
+                .andExpect(jsonPath("$.items[0].toLocationId")
+                        .value(location("WAREHOUSE").toString()))
                 .andExpect(jsonPath("$.items[0].toLocationLabel").value(label("WAREHOUSE")))
                 .andExpect(jsonPath("$.items[0].lineCount").value(2))
                 .andExpect(jsonPath("$.items[0].quantity").value(3.5))
@@ -130,7 +132,9 @@ class TransferHistoryIT extends StockApiTestSupport {
 
     @Test
     void getTransfers_size100_returns200() throws Exception {
-        list(adminToken(), "size", "100").andExpect(status().isOk()).andExpect(jsonPath("$.pageSize").value(100));
+        list(adminToken(), "size", "100")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pageSize").value(100));
     }
 
     @Test
@@ -176,8 +180,7 @@ class TransferHistoryIT extends StockApiTestSupport {
     }
 
     private ResultActions list(String token, String param, String value) throws Exception {
-        return mockMvc.perform(
-                get(TRANSFERS).param(param, value).header(HttpHeaders.AUTHORIZATION, bearer(token)));
+        return mockMvc.perform(get(TRANSFERS).param(param, value).header(HttpHeaders.AUTHORIZATION, bearer(token)));
     }
 
     private String recordReturn(String token, UUID first, UUID second) throws Exception {
