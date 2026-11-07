@@ -100,7 +100,6 @@ const SHOOTINGS: readonly ShootingRDto[] = [
 export const SERVICES_FIXTURE: ServicesContextRDto = {
   treatments: TREATMENTS,
   products: PRODUCTS,
-  staff: ['Fara Razafy', 'Lova Rakoto'],
   today: [
     { id: 's4', treatmentName: 'Soin visage éclat', time: '10:22', staff: 'Fara R.', price: 35000 },
     {
