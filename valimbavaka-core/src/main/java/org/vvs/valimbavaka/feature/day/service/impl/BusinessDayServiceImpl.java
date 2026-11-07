@@ -62,7 +62,9 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     public DayOpeningRDto getOpening() {
         var date = policy.today();
         var day = dayRepository.findByBusinessDate(date).map(dayMapper::toRDto).orElse(null);
-        var previousDay = dayRepository.findFirstByBusinessDateLessThanOrderByBusinessDateDesc(date).orElse(null);
+        var previousDay = dayRepository
+                .findFirstByBusinessDateLessThanOrderByBusinessDateDesc(date)
+                .orElse(null);
         return grid.build(date, previousDay, day);
     }
 

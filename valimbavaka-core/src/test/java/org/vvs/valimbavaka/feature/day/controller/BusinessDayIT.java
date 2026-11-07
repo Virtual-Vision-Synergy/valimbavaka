@@ -320,7 +320,9 @@ class BusinessDayIT extends StockApiTestSupport {
         LocalDate previousDay = LocalDate.parse(JsonPath.read(json, "$.previousDay"));
         assertThat(previousDay).isEqualTo(today.minusDays(3));
         var soapSent = yesterday(json, soap);
-        assertThat(soapSent).containsOnlyKeys(location("STORE").toString(), location("DELIVERY").toString());
+        assertThat(soapSent)
+                .containsOnlyKeys(
+                        location("STORE").toString(), location("DELIVERY").toString());
         assertThat(soapSent.get(location("STORE").toString())).isEqualByComparingTo("12");
         assertThat(soapSent.get(location("DELIVERY").toString())).isEqualByComparingTo("5");
         assertThat(yesterday(json, oil)).isEmpty();
@@ -404,7 +406,9 @@ class BusinessDayIT extends StockApiTestSupport {
         List<Map<String, Object>> sent = JsonPath.read(json, path);
         var quantities = new HashMap<String, BigDecimal>();
         for (var entry : sent) {
-            quantities.put(entry.get("locationId").toString(), new BigDecimal(entry.get("quantity").toString()));
+            quantities.put(
+                    entry.get("locationId").toString(),
+                    new BigDecimal(entry.get("quantity").toString()));
         }
         return quantities;
     }

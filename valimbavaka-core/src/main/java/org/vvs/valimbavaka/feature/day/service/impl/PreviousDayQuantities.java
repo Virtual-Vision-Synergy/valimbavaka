@@ -32,7 +32,9 @@ class PreviousDayQuantities {
         if (previousDay == null || previousDay.getTransfers().isEmpty()) {
             return Map.of();
         }
-        var transferIds = previousDay.getTransfers().stream().map(DayTransfer::getTransferId).toList();
+        var transferIds = previousDay.getTransfers().stream()
+                .map(DayTransfer::getTransferId)
+                .toList();
         var quantities = new HashMap<UUID, List<DayQuantityRDto>>();
         for (var transfer : transferService.getTransfersByIds(transferIds)) {
             for (var line : transfer.lines()) {

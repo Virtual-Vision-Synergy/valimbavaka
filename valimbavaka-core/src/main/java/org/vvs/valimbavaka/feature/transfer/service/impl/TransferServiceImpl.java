@@ -82,7 +82,9 @@ public class TransferServiceImpl implements TransferService {
         if (ids.isEmpty()) {
             return List.of();
         }
-        return transferRepository.findAllByIdIn(Set.copyOf(ids)).stream().map(transferMapper::toRDto).toList();
+        return transferRepository.findAllByIdIn(Set.copyOf(ids)).stream()
+                .map(transferMapper::toRDto)
+                .toList();
     }
 
     private String nextNumber(TransferOrigin origin) {
