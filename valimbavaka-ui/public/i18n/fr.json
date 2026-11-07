@@ -59,9 +59,27 @@
       "reason": "Motif du refus",
       "actions": "Actions",
       "retry": "Renvoyer",
-      "discard": "Abandonner"
+      "discard": "Abandonner",
+      "failedTitle": "Saisies refusées",
+      "pendingTitle": "Saisies en attente d'envoi",
+      "savedAt": "Saisie le",
+      "state": "État",
+      "waiting": "En attente",
+      "lastError": "Dernière tentative : {{message}}",
+      "noReason": "Motif non communiqué par le serveur.",
+      "retried": "Saisie renvoyée.",
+      "retriedOffline": "Saisie remise en file : elle partira au retour du réseau.",
+      "discarded": "Saisie abandonnée.",
+      "discardTitle": "Abandonner cette saisie ?",
+      "discardMessage": "La saisie « {{request}} » sera supprimée définitivement de cet appareil et ne sera jamais envoyée."
     },
-    "synced": "Synchronisé"
+    "synced": "Synchronisé",
+    "method": {
+      "POST": "Création",
+      "PUT": "Modification",
+      "PATCH": "Mise à jour",
+      "DELETE": "Suppression"
+    }
   },
   "layout": {
     "navigation": "Navigation principale",

@@ -59,9 +59,27 @@
       "reason": "Antony nanoloana",
       "actions": "Hetsika",
       "retry": "Alefaso indray",
-      "discard": "Foano"
+      "discard": "Foano",
+      "failedTitle": "Fampidirana nolavina",
+      "pendingTitle": "Fampidirana miandry halefa",
+      "savedAt": "Daty nampidirana",
+      "state": "Toe-javatra",
+      "waiting": "Miandry",
+      "lastError": "Fanandramana farany : {{message}}",
+      "noReason": "Tsy nomen'ny mpizara ny antony.",
+      "retried": "Nalefa indray ny fampidirana.",
+      "retriedOffline": "Naverina anaty filaharana : halefa rehefa miverina ny tambajotra.",
+      "discarded": "Nofoanana ny fampidirana.",
+      "discardTitle": "Hofoanana ve ity fampidirana ity ?",
+      "discardMessage": "Ho voafafa tanteraka amin'ity fitaovana ity ny fampidirana « {{request}} » ary tsy halefa mihitsy."
     },
-    "synced": "Mifanaraka"
+    "synced": "Mifanaraka",
+    "method": {
+      "POST": "Famoronana",
+      "PUT": "Fanovana",
+      "PATCH": "Fanavaozana",
+      "DELETE": "Famafana"
+    }
   },
   "layout": {
     "navigation": "Fandehanana lehibe",
