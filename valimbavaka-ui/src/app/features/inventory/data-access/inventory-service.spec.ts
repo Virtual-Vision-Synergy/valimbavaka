@@ -120,6 +120,21 @@ describe('InventoryService', () => {
     await expect(result).resolves.toMatchObject({ queued: false, body: { gap: -2 } });
   });
 
+  it('enregistre le motif d’écart d’une ligne par PUT avec une clé d’idempotence', async () => {
+    const result = new Promise((resolve) =>
+      service.qualify('session-1', 'line-1', { reason: 'BREAKAGE' }).subscribe(resolve),
+    );
+
+    const request = await vi.waitFor(() =>
+      httpMock.expectOne('/api/v1/inventories/session-1/lines/line-1/reason'),
+    );
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ reason: 'BREAKAGE' });
+    expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
+    request.flush({ id: 'line-1', gap: -2, reason: 'BREAKAGE' });
+    await expect(result).resolves.toMatchObject({ queued: false, body: { reason: 'BREAKAGE' } });
+  });
+
   it('renvoie une feuille vide quand aucune session n’est en cours', async () => {
     const result = firstValueFrom(service.current());
 

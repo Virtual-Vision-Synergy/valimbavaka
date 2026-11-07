@@ -165,7 +165,7 @@
                             ('inventory.col.reason' | translate) + ' — ' + row.line.name
                           "
                           [attr.aria-invalid]="!row.reason"
-                          (change)="state.setReason(row.line.articleId, reason.value)"
+                          (change)="saveReason(row.line, reason.value)"
                         >
                           <option value="" [selected]="!row.reason">
                             {{ 'inventory.chooseReason' | translate }}

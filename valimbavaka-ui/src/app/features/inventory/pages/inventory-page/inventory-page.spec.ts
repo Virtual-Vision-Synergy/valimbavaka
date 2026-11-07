@@ -18,6 +18,7 @@ const INVENTORIES_URL = '/api/v1/inventories';
 const SESSION_ID = '0195f0a0-0000-7000-8000-0000000000c1';
 const LINE_ID = '0195f0a0-0000-7000-8000-0000000000d1';
 const COUNT_URL = `${INVENTORIES_URL}/${SESSION_ID}/lines/${LINE_ID}/count`;
+const REASON_URL = `${INVENTORIES_URL}/${SESSION_ID}/lines/${LINE_ID}/reason`;
 const page = <T>(items: T[]) => ({
   items,
   page: 1,
@@ -56,13 +57,22 @@ const LINE: InventoryLineRDto = {
   reason: null,
 };
 
-/** INV-02 : la saisie d'une quantité met à jour immédiatement l'écart affiché, puis est enregistrée. */
+/** Ligne déjà comptée avec un écart de −2 (10 comptés pour 12 attendus). */
+const LINE_WITH_GAP: InventoryLineRDto = { ...LINE, countedQuantity: 10, gap: -2 };
+
+/**
+ * INV-02 : la saisie d'une quantité met à jour immédiatement l'écart affiché, puis est enregistrée.
+ * INV-03 : un motif est sélectionnable, et enregistré, pour toute ligne en écart.
+ */
 describe('InventoryPage', () => {
   let fixture: ComponentFixture<InventoryPage>;
   let element: HTMLElement;
   let httpMock: HttpTestingController;
 
-  const load = async (sessions: InventorySessionRDto[]): Promise<void> => {
+  const load = async (
+    sessions: InventorySessionRDto[],
+    line: InventoryLineRDto = LINE,
+  ): Promise<void> => {
     await TestBed.configureTestingModule({
       imports: [InventoryPage],
       providers: [
@@ -82,7 +92,7 @@ describe('InventoryPage', () => {
     if (sessions.length) {
       httpMock
         .expectOne((req) => req.url === `${INVENTORIES_URL}/${SESSION_ID}/lines`)
-        .flush(page([LINE]));
+        .flush(page([line]));
     }
     await fixture.whenStable();
     fixture.detectChanges();
@@ -100,6 +110,17 @@ describe('InventoryPage', () => {
     if (commit) {
       countInput().dispatchEvent(new Event('change'));
     }
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  const reasonSelect = (): HTMLSelectElement | null =>
+    element.querySelector<HTMLSelectElement>('select.reason');
+
+  const chooseReason = async (value: string): Promise<void> => {
+    const select = reasonSelect() as HTMLSelectElement;
+    select.value = value;
+    select.dispatchEvent(new Event('change'));
     await fixture.whenStable();
     fixture.detectChanges();
   };
@@ -183,8 +204,74 @@ describe('InventoryPage', () => {
     );
   });
 
-  it('ne présente aucune violation d’accessibilité détectable', async () => {
+  it('propose un motif pour une ligne en écart et l’enregistre', async () => {
+    await load([SESSION], LINE_WITH_GAP);
+    expect(reasonSelect()?.getAttribute('aria-invalid')).toBe('true');
+
+    await chooseReason('BREAKAGE');
+
+    const request = await vi.waitFor(() => httpMock.expectOne(REASON_URL));
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({ reason: 'BREAKAGE' });
+    request.flush({ ...LINE_WITH_GAP, reason: 'BREAKAGE' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(reasonSelect()?.value).toBe('BREAKAGE');
+    expect(reasonSelect()?.getAttribute('aria-invalid')).toBe('false');
+  });
+
+  it('ne propose aucun motif pour une ligne sans écart ou non comptée', async () => {
     await load([SESSION]);
+    expect(reasonSelect()).toBeNull();
+
+    await type('12', false);
+
+    expect(reasonSelect()).toBeNull();
+  });
+
+  it('n’envoie rien quand on revient sur « Choisir un motif… »', async () => {
+    await load([SESSION], { ...LINE_WITH_GAP, reason: 'LOSS' });
+
+    await chooseReason('');
+
+    httpMock.expectNone(REASON_URL);
+    expect(reasonSelect()?.getAttribute('aria-invalid')).toBe('true');
+  });
+
+  it('prévient quand le serveur refuse le motif', async () => {
+    await load([SESSION], LINE_WITH_GAP);
+    const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+
+    await chooseReason('LOSS');
+
+    const request = await vi.waitFor(() => httpMock.expectOne(REASON_URL));
+    request.flush(
+      { status: 422, code: 'VALIDATION_FAILED', detail: 'La ligne ART-0031 n’est pas en écart.' },
+      { status: 422, statusText: 'Unprocessable Content' },
+    );
+    await fixture.whenStable();
+    expect(show).toHaveBeenCalledWith(
+      'inventory.reasonFailed',
+      expect.objectContaining({ article: 'ART-0031' }),
+      'danger',
+    );
+  });
+
+  it('reprend le motif effacé par le serveur après un recomptage sans écart', async () => {
+    await load([SESSION], { ...LINE_WITH_GAP, reason: 'BREAKAGE' });
+
+    await type('12', true);
+    const request = await vi.waitFor(() => httpMock.expectOne(COUNT_URL));
+    request.flush({ ...LINE, countedQuantity: 12, gap: 0, reason: null });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    await type('10', false);
+
+    expect(reasonSelect()?.value).toBe('');
+  });
+
+  it('ne présente aucune violation d’accessibilité détectable', async () => {
+    await load([SESSION], LINE_WITH_GAP);
     document.body.appendChild(element);
 
     const results = await axe.run(element, {

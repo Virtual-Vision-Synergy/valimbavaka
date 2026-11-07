@@ -31,7 +31,7 @@ import org.vvs.valimbavaka.support.IntegrationTest;
 /** Shared fixtures of the STK-01 integration tests: users, articles created through the API, movements. */
 @IntegrationTest
 @AutoConfigureMockMvc
-abstract class StockApiTestSupport {
+public abstract class StockApiTestSupport {
 
     protected static final String STOCKS = "/api/v1/stocks";
     protected static final String ADMIN_EMAIL = "admin.test@valimbavaka.mg";
