@@ -35,6 +35,16 @@ public interface ServiceRecordRepository extends OperationRepository<ServiceReco
             """)
     Page<ServiceRecord> search(String search, Pageable pageable);
 
+    /** Services recorded by {@code sellerId} in {@code [from, to[} (SRV-03, day history of a seller). */
+    @Query(value = """
+            select r from ServiceRecord r
+            where r.sellerId = :sellerId and r.createdAt >= :from and r.createdAt < :to
+            """, countQuery = """
+            select count(r) from ServiceRecord r
+            where r.sellerId = :sellerId and r.createdAt >= :from and r.createdAt < :to
+            """)
+    Page<ServiceRecord> findBySellerBetween(UUID sellerId, Instant from, Instant to, Pageable pageable);
+
     /** Services performed in {@code [from, to[}, oldest first. */
     @Query("""
             select r from ServiceRecord r
