@@ -1,10 +1,14 @@
 package org.vvs.valimbavaka.feature.production.repository;
 
+import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.persistence.LockModeType;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import org.vvs.valimbavaka.feature.production.domain.ProductionBatch;
@@ -29,4 +33,12 @@ public interface ProductionBatchRepository extends OperationRepository<Productio
               and (:status is null or b.status = :status)
             """)
     Page<ProductionBatch> search(String search, @Nullable ProductionBatchStatus status, Pageable pageable);
+
+    /** Batch locked in write until the end of the transaction: two completions of the same batch are serialized. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from ProductionBatch b where b.id = :id")
+    Optional<ProductionBatch> findByIdForUpdate(UUID id);
+
+    /** Saves and flushes, so that the returned version and dates are those of the database (PRD-02). */
+    ProductionBatch saveAndFlush(ProductionBatch batch);
 }

@@ -36,6 +36,15 @@ mais une saisie en attente de relance ne retient plus que son « couloir » (`co
 - **adresse non classée** : file unique comme avant SYS-10.
 Un refus métier (`FAILED` sans `networkFailure`) ne retient toujours rien.
 
+## Mise à jour du 2026-11-08 : session expirée avec des saisies en attente (SYS-11)
+- Une saisie part toujours avec le jeton du compte créateur. Au retour du réseau, un 401 déclenche un seul refresh
+  (`core/http/session-interceptor.ts`) puis le rejeu avec le nouveau jeton et la **même** `Idempotency-Key`.
+- Refresh **refusé par le serveur** (401, 403, compte différent) : la session est fermée et l'utilisateur renvoyé
+  vers `/login?session=expired`, qui l'invite à se reconnecter ; la saisie n'est ni comptée comme un échec ni
+  envoyée. Elle part dès que le **même** compte se reconnecte ; un autre compte ne la voit pas et ne l'envoie pas.
+- Refresh **impossible** (réseau 0, 408, 429, 5xx) : la session est conservée, l'essai compte comme une erreur
+  transitoire et la relance suivante retente le refresh.
+
 ## Côté serveur
 `IdempotencyFilter` (`security/idempotency`, après l'authentification) traite les écritures
 (POST/PUT/PATCH/DELETE) portant `Idempotency-Key` :

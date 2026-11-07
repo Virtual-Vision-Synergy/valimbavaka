@@ -7,13 +7,16 @@ export type LotStatus = 'DRAFT' | 'CURING' | 'VALIDATED';
 /** Miroir de ProductionBatchStatus côté backend. */
 export type ProductionBatchStatus = 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED';
 
-/** Miroir de ProductionInputRDto / ProductionInputWDto : un entrant (MP ou SF) et sa quantité. */
-export interface ProductionInputRDto {
+/** Miroir de ProductionInputWDto : un entrant (MP ou SF) et sa quantité. */
+export interface ProductionInputWDto {
   readonly articleId: string;
   readonly quantity: number;
 }
 
-export type ProductionInputWDto = ProductionInputRDto;
+/** Miroir de ProductionInputRDto : `unitCost` est le coût d'achat figé à la validation (PRD-02), sinon null. */
+export interface ProductionInputRDto extends ProductionInputWDto {
+  readonly unitCost?: number | null;
+}
 
 /** Miroir de ProductionBatchRDto : lot lu (`GET /api/v1/production/batches`). */
 export interface ProductionBatchRDto {
@@ -25,6 +28,8 @@ export interface ProductionBatchRDto {
   readonly operatorId: string;
   readonly status: ProductionBatchStatus;
   readonly inputs: readonly ProductionInputRDto[];
+  /** Date de validation (PRD-02) : renseignée seulement au statut COMPLETED. */
+  readonly completedAt?: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly version: number;
@@ -113,8 +118,8 @@ export interface LotLineWDto {
 }
 
 /**
- * Saisie de l'écran. `validate` est ignoré tant que PRD-02 n'existe pas : tout lot est créé planifié.
- * Converti en `ProductionBatchWDto` par `toBatchWDto`.
+ * Saisie de l'écran. `validate` : le lot est créé et validé dans la même requête (PRD-02, stock mouvementé),
+ * sinon il est créé planifié. Converti en `ProductionBatchWDto` par `toBatchWDto`.
  */
 export interface LotWDto {
   readonly articleId: string;

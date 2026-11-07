@@ -39,16 +39,19 @@ public class ProductionBatchServiceImpl implements ProductionBatchService {
     private final ProductionMapper productionMapper;
     private final ProductionBatchPolicy policy;
     private final JournalService journalService;
+    private final ProductionCompletion completion;
 
     ProductionBatchServiceImpl(
             ProductionBatchRepository productionBatchRepository,
             ProductionMapper productionMapper,
             ProductionBatchPolicy policy,
-            JournalService journalService) {
+            JournalService journalService,
+            ProductionCompletion completion) {
         this.productionBatchRepository = productionBatchRepository;
         this.productionMapper = productionMapper;
         this.policy = policy;
         this.journalService = journalService;
+        this.completion = completion;
     }
 
     @Override
@@ -61,14 +64,47 @@ public class ProductionBatchServiceImpl implements ProductionBatchService {
 
     @Override
     public ProductionBatchRDto getBatchById(UUID batchId) {
-        return productionMapper.toRDto(productionBatchRepository
-                .findById(batchId)
-                .orElseThrow(() -> new NotFoundException("Lot de production introuvable : " + batchId)));
+        return productionMapper.toRDto(
+                productionBatchRepository.findById(batchId).orElseThrow(() -> notFound(batchId)));
     }
 
     @Override
     @Transactional
     public ProductionBatchRDto createBatch(ProductionBatchWDto request) {
+        return productionMapper.toRDto(plan(request));
+    }
+
+    @Override
+    @Transactional
+    public ProductionBatchRDto completeBatch(UUID batchId) {
+        var batch = productionBatchRepository.findByIdForUpdate(batchId).orElseThrow(() -> notFound(batchId));
+        return productionMapper.toRDto(complete(batch));
+    }
+
+    @Override
+    @Transactional
+    public ProductionBatchRDto createCompletedBatch(ProductionBatchWDto request) {
+        return productionMapper.toRDto(complete(plan(request)));
+    }
+
+    /** Moves the stock, then traces the completion; any refusal rolls back the whole transaction. */
+    private ProductionBatch complete(ProductionBatch batch) {
+        completion.complete(batch);
+        var saved = productionBatchRepository.saveAndFlush(batch);
+        journalService.record(
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                saved.getId(),
+                "Validation du lot %s : %s entrant(s) sortis, %s unité(s) entrées à l'entrepôt"
+                        .formatted(
+                                saved.getNumber(),
+                                saved.getInputs().size(),
+                                saved.getQuantity().stripTrailingZeros().toPlainString()));
+        log.info("Lot de production {} validé", saved.getId());
+        return saved;
+    }
+
+    private ProductionBatch plan(ProductionBatchWDto request) {
         var output = policy.check(request);
         var number = "LOT-%05d".formatted(productionBatchRepository.nextNumber());
         var saved = productionBatchRepository.save(ProductionBatch.plan(number, toDetails(request)));
@@ -84,7 +120,11 @@ public class ProductionBatchServiceImpl implements ProductionBatchService {
                                 output.name(),
                                 request.inputs().size()));
         log.info("Lot de production {} créé", saved.getId());
-        return productionMapper.toRDto(saved);
+        return saved;
+    }
+
+    private static NotFoundException notFound(UUID batchId) {
+        return new NotFoundException("Lot de production introuvable : " + batchId);
     }
 
     private static ProductionBatchDetails toDetails(ProductionBatchWDto request) {
