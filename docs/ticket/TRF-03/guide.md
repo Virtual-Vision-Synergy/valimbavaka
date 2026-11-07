@@ -1,6 +1,6 @@
 # Guide d'intégration — TRF-03 · Enregistrement d'un retour de stock
 
-Statut : ✅ écrit le 2026-11-08 — **tests à lancer** (voir « Résultat de l'exécution » du scénario) · Ticket : [#36](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/36) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#36](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/36) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -123,4 +123,4 @@ this.transferService.recordReturn({ fromLocationId, toLocationId, lines: [{ arti
 - **Écran limité à 100 articles actifs** (une page de `GET /api/v1/stocks`) : au-delà, il faudra une recherche d'article.
 - Le bouton « Créer un retour » du détail (maquette TRF-04) reste une action de démonstration : à brancher sur `/transfers/return` (avec préremplissage) par TRF-04 si souhaité.
 - `demo-pages.a11y.spec.ts` ne couvre pas la nouvelle page (elle appelle l'API) ; champs étiquetés, `fieldset`/`legend`, boutons nommés par `aria-label`.
-- Tests écrits mais pas encore exécutés : voir le scénario avant de s'appuyer sur ce contrat.
+- Tests exécutés et verts en CI le 2026-11-08 ; la recette manuelle (🧪) reste à passer.
