@@ -1,6 +1,6 @@
 # Scénarios de test — SRV-03 · Historique des prestations du jour
 
-Statut : ☐ tests écrits, à lancer (CI) · Ticket : [#83](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/83) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests automatiques exécutés en CI (2026-11-08), recette 🧪 à passer · Ticket : [#83](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/83) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -16,21 +16,21 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | Chaque prestation affiche heure, service, cliente et produits consommés. | Étant donné que Miora a enregistré aujourd'hui « Soin visage éclat » pour Hanta (sans produit) puis pour Voahirana (0,020 L d'huile de coco), et qu'une autre vendeuse a enregistré une prestation pour Lova ; quand Miora appelle `GET /api/v1/service-records/mine` ; alors elle reçoit ses 2 prestations, la plus récente d'abord | 200, `totalCount` = 2 ; `items[0]` : cliente Voahirana, `serviceName`, `performedAt`, produit huile de coco 0,02 ; `items[1]` : Hanta, `products` vide ; la prestation de Lova n'apparaît pas | `ServiceRecordHistoryIT.getMyServiceRecords_twoSellers_returnsOnlyOwnRecordsOfTodayMostRecentFirst` | ☐ |
-| 1 | (écran) | Étant donné deux prestations du jour (10:22 soin visage pour Hanta avec huile de coco 0,015 L et masque 1 u. ; 09:05 manucure sans cliente ni produit) ; quand la vendeuse ouvre `/services` ; alors l'encart « Mes prestations du jour » liste chaque prestation | « Soin visage éclat », « 10:22 · Hanta », « Huile de coco vierge · 0.015 L », « Masque argile rose · 1 u. » ; « 09:05 · Cliente non renseignée », « Aucun produit consommé » | `services-page.spec.ts` › affiche l'heure, le service, la cliente et les produits consommés de chaque prestation | ☐ |
-| 1 | (correspondance API → écran) | Une prestation `PRE-0001` à 10:22 heure locale, cliente Hanta, deux produits dont un article retiré de la liste des articles proposés | heure `10:22`, cliente, produits avec nom copié, quantité et unité courte (`L`), unité vide pour l'article inconnu | `service-record-mapping.spec.ts` › affiche une prestation à l'heure locale avec le soin, la cliente et les produits consommés | ☐ |
-| 1 | (jour métier) | Horloge à 22:30 UTC le 08/11 (01:30 le 09/11 à Madagascar) ; sans `date` | le serveur lit le jour du 09/11 heure de Madagascar : `[2026-11-08T21:00Z, 2026-11-09T21:00Z[`, pour le compte connecté | `ServiceRecordServiceImplTest.getMyServiceRecords_withoutDate_readsCurrentSellerOnTodayInMadagascar` | ☐ |
-| 1 | (jour choisi, tri) | `date=2026-11-01` | bornes `[2026-10-31T21:00Z, 2026-11-01T21:00Z[`, tri `createdAt` décroissant | `ServiceRecordServiceImplTest.getMyServiceRecords_withDate_readsThatBusinessDayMostRecentFirst` | ☐ |
+| 1 | Chaque prestation affiche heure, service, cliente et produits consommés. | Étant donné que Miora a enregistré aujourd'hui « Soin visage éclat » pour Hanta (sans produit) puis pour Voahirana (0,020 L d'huile de coco), et qu'une autre vendeuse a enregistré une prestation pour Lova ; quand Miora appelle `GET /api/v1/service-records/mine` ; alors elle reçoit ses 2 prestations, la plus récente d'abord | 200, `totalCount` = 2 ; `items[0]` : cliente Voahirana, `serviceName`, `performedAt`, produit huile de coco 0,02 ; `items[1]` : Hanta, `products` vide ; la prestation de Lova n'apparaît pas | `ServiceRecordHistoryIT.getMyServiceRecords_twoSellers_returnsOnlyOwnRecordsOfTodayMostRecentFirst` | ✅ auto |
+| 1 | (écran) | Étant donné deux prestations du jour (10:22 soin visage pour Hanta avec huile de coco 0,015 L et masque 1 u. ; 09:05 manucure sans cliente ni produit) ; quand la vendeuse ouvre `/services` ; alors l'encart « Mes prestations du jour » liste chaque prestation | « Soin visage éclat », « 10:22 · Hanta », « Huile de coco vierge · 0.015 L », « Masque argile rose · 1 u. » ; « 09:05 · Cliente non renseignée », « Aucun produit consommé » | `services-page.spec.ts` › affiche l'heure, le service, la cliente et les produits consommés de chaque prestation | ✅ auto |
+| 1 | (correspondance API → écran) | Une prestation `PRE-0001` à 10:22 heure locale, cliente Hanta, deux produits dont un article retiré de la liste des articles proposés | heure `10:22`, cliente, produits avec nom copié, quantité et unité courte (`L`), unité vide pour l'article inconnu | `service-record-mapping.spec.ts` › affiche une prestation à l'heure locale avec le soin, la cliente et les produits consommés | ✅ auto |
+| 1 | (jour métier) | Horloge à 22:30 UTC le 08/11 (01:30 le 09/11 à Madagascar) ; sans `date` | le serveur lit le jour du 09/11 heure de Madagascar : `[2026-11-08T21:00Z, 2026-11-09T21:00Z[`, pour le compte connecté | `ServiceRecordServiceImplTest.getMyServiceRecords_withoutDate_readsCurrentSellerOnTodayInMadagascar` | ✅ auto |
+| 1 | (jour choisi, tri) | `date=2026-11-01` | bornes `[2026-10-31T21:00Z, 2026-11-01T21:00Z[`, tri `createdAt` décroissant | `ServiceRecordServiceImplTest.getMyServiceRecords_withDate_readsThatBusinessDayMostRecentFirst` | ✅ auto |
 
 ## Sécurité et erreurs
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | `ServiceRecordHistoryIT.getMyServiceRecords_withoutToken_returns401` | ☐ |
-| Appel avec un mauvais rôle (livreur, sans `services.read`) | 403 `FORBIDDEN` | `ServiceRecordHistoryIT.getMyServiceRecords_withDeliveryDriverRole_returns403` | ☐ |
-| Date mal formée (`08/11/2026`) | 400 `MALFORMED_REQUEST` | `ServiceRecordHistoryIT.getMyServiceRecords_malformedDate_returns400` | ☐ |
-| Pas de compte courant (appel hors session) | `UnauthorizedException` (401), aucune lecture en base | `ServiceRecordServiceImplTest.getMyServiceRecords_withoutSession_throwsUnauthorizedException` | ☐ |
-| Voir les prestations d'une autre vendeuse | impossible par `/mine` : le serveur filtre sur le compte du jeton, aucun paramètre `sellerId` n'est accepté | `ServiceRecordHistoryIT.getMyServiceRecords_twoSellers_returnsOnlyOwnRecordsOfTodayMostRecentFirst` | ☐ |
+| Appel sans jeton | 401 `UNAUTHENTICATED` | `ServiceRecordHistoryIT.getMyServiceRecords_withoutToken_returns401` | ✅ auto |
+| Appel avec un mauvais rôle (livreur, sans `services.read`) | 403 `FORBIDDEN` | `ServiceRecordHistoryIT.getMyServiceRecords_withDeliveryDriverRole_returns403` | ✅ auto |
+| Date mal formée (`08/11/2026`) | 400 `MALFORMED_REQUEST` | `ServiceRecordHistoryIT.getMyServiceRecords_malformedDate_returns400` | ✅ auto |
+| Pas de compte courant (appel hors session) | `UnauthorizedException` (401), aucune lecture en base | `ServiceRecordServiceImplTest.getMyServiceRecords_withoutSession_throwsUnauthorizedException` | ✅ auto |
+| Voir les prestations d'une autre vendeuse | impossible par `/mine` : le serveur filtre sur le compte du jeton, aucun paramètre `sellerId` n'est accepté | `ServiceRecordHistoryIT.getMyServiceRecords_twoSellers_returnsOnlyOwnRecordsOfTodayMostRecentFirst` | ✅ auto |
 
 Pas d'écriture dans ce ticket : ni mass assignment, ni 404, 409 ou 422 propres.
 
@@ -38,14 +38,14 @@ Pas d'écriture dans ce ticket : ni mass assignment, ni 404, 409 ou 422 propres.
 
 | Cas | Exemple | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|
-| Aucune prestation sur le jour demandé | `date=2000-01-01` | 200, page vide (`totalCount` = 0) | `ServiceRecordHistoryIT.getMyServiceRecords_anotherDay_returnsEmptyPage` | ☐ |
-| Aucune prestation aujourd'hui (écran) | première connexion du matin | « Aucune prestation enregistrée aujourd'hui. » | `services-page.spec.ts` › annonce qu'aucune prestation n'a encore été enregistrée aujourd'hui | ☐ |
-| Appel de l'écran | sans date, 100 premières, tri `createdAt` décroissant | `GET /api/v1/service-records/mine?page=1&size=100&sortBy=createdAt&sortDirection=DESC`, sans `date` | `service-record-service.spec.ts` › lit les prestations du jour du compte connecté sans date : le serveur prend aujourd'hui | ☐ |
-| Jour donné | `date=2026-11-01` | paramètre `date` transmis tel quel | `service-record-service.spec.ts` › lit les prestations du compte connecté d'un jour donné | ☐ |
-| Minuit à Madagascar | prestation à 23:59 puis 00:01 heure locale | jours différents (bornes calculées en `Indian/Antananarivo`, pas en UTC) | `ServiceRecordServiceImplTest.getMyServiceRecords_withoutDate_readsCurrentSellerOnTodayInMadagascar` | ☐ |
+| Aucune prestation sur le jour demandé | `date=2000-01-01` | 200, page vide (`totalCount` = 0) | `ServiceRecordHistoryIT.getMyServiceRecords_anotherDay_returnsEmptyPage` | ✅ auto |
+| Aucune prestation aujourd'hui (écran) | première connexion du matin | « Aucune prestation enregistrée aujourd'hui. » | `services-page.spec.ts` › annonce qu'aucune prestation n'a encore été enregistrée aujourd'hui | ✅ auto |
+| Appel de l'écran | sans date, 100 premières, tri `createdAt` décroissant | `GET /api/v1/service-records/mine?page=1&size=100&sortBy=createdAt&sortDirection=DESC`, sans `date` | `service-record-service.spec.ts` › lit les prestations du jour du compte connecté sans date : le serveur prend aujourd'hui | ✅ auto |
+| Jour donné | `date=2026-11-01` | paramètre `date` transmis tel quel | `service-record-service.spec.ts` › lit les prestations du compte connecté d'un jour donné | ✅ auto |
+| Minuit à Madagascar | prestation à 23:59 puis 00:01 heure locale | jours différents (bornes calculées en `Indian/Antananarivo`, pas en UTC) | `ServiceRecordServiceImplTest.getMyServiceRecords_withoutDate_readsCurrentSellerOnTodayInMadagascar` | ✅ auto |
 | Plus de 100 prestations dans la journée | journée très chargée | l'écran n'affiche que les 100 plus récentes (pagination serveur disponible) | pas de test dédié | 🔍 code |
 | Hors ligne | lecture sans réseau | l'encart passe en erreur avec « Réessayer » (comportement commun `rxResource` / `vvs-list-state`) ; une prestation saisie hors ligne n'apparaît qu'après synchronisation | pas de test dédié | 🧪 recette |
-| Accessibilité | page `/services` réelle | aucune violation axe | `demo-pages.a11y.spec.ts` › services should have no detectable accessibility violation | ☐ |
+| Accessibilité | page `/services` réelle | aucune violation axe | `demo-pages.a11y.spec.ts` › services should have no detectable accessibility violation | ✅ auto |
 
 ## Tests existants
 
@@ -63,5 +63,7 @@ Pas d'écriture dans ce ticket : ni mass assignment, ni 404, 409 ou 422 propres.
 
 ## Résultat de l'exécution
 
-- Résultat de l'exécution : à lancer (CI ou local).
-- Anomalies ouvertes : aucune connue.
+- Date : 2026-11-08.
+- Environnement : CI GitHub sur `feature/SRV-03-historique-prestations-jour` (commit `6d1aad9`) : `ci.yml` vert (backend `mvn verify` : 318 tests unitaires + 288 tests d'intégration, dont `ServiceRecordServiceImplTest` 7 et `ServiceRecordHistoryIT` 5 ; frontend `ng test` : 356 tests, dont `services-page.spec.ts` 2, `service-record-service.spec.ts` 4, `service-record-mapping.spec.ts` 4, `demo-pages.a11y.spec.ts` 10) ; `conventions.yml` vert (Spotless, Checkstyle, Prettier, ESLint, gitleaks, commits et migrations) ; Qodana : aucun problème nouveau dans les fichiers de SRV-03 (le seul signalement, `SalonCatalogServiceImpl.java:142` « Constant values », existe déjà sur la branche de SRV-02).
+- Anomalies ouvertes : aucune. Écarts non bloquants dans les « Points d'attention » du guide.
+- Étapes 🧪 restantes : 4 (et le cas hors ligne).
