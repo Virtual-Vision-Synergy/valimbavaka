@@ -161,6 +161,12 @@ describe('SearchDialog', () => {
   it('should move the active result with the arrow keys', async () => {
     await open();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
+    // jsdom ne fait pas défiler : on observe seulement que l'option active est ramenée à l'écran.
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      value: scrollIntoView,
+      configurable: true,
+    });
     type('fourn');
     await pause();
     articlesRequest().flush(pageOf([]));
@@ -170,7 +176,9 @@ describe('SearchDialog', () => {
     fixture.detectChanges();
     field().dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
     expect(navigate).toHaveBeenCalledWith('/suppliers');
+    Reflect.deleteProperty(HTMLElement.prototype, 'scrollIntoView');
   });
 
   it('should keep pages and actions when the articles cannot be read', async () => {

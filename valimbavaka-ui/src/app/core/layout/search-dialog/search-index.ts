@@ -35,7 +35,7 @@ export interface SearchContext {
   readonly t: (key: string, params?: object) => string;
 }
 
-/** Action de création : visible seulement avec la permission d'écriture correspondante (mêmes codes que le backend). */
+/** Action de création : visible seulement avec sa permission d'écriture (mêmes codes que le backend). */
 interface CreateAction {
   readonly id: string;
   readonly labelKey: string;
