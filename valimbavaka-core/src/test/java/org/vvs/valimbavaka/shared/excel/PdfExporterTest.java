@@ -196,7 +196,10 @@ class PdfExporterTest {
 
     record SaleRow(
             @ExcelColumn(header = "Article", order = 1) String label,
-            @ExcelColumn(header = "Montant", order = 2, format = "#,##0.00") BigDecimal amount,
+
+            @ExcelColumn(header = "Montant", order = 2, format = "#,##0.00")
+            BigDecimal amount,
+
             @ExcelColumn(header = "Date", order = 3) LocalDate date,
             @ExcelColumn(header = "Livrée", order = 4) boolean delivered,
             @ExcelColumn(header = "Statut", order = 5) Status status,
