@@ -126,6 +126,51 @@ class ProductionBatchServiceImplTest {
     }
 
     @Test
+    void startBatch_plannedBatch_savesItInProgressAndTracesTheStart() {
+        // Arrange
+        var batch = plannedBatch();
+        var id = UUID.randomUUID();
+        when(productionBatchRepository.findByIdForUpdate(id)).thenReturn(Optional.of(batch));
+        when(productionBatchRepository.saveAndFlush(batch)).thenReturn(batch);
+
+        // Act
+        sut.startBatch(id);
+
+        // Assert
+        assertThat(batch.getStatus()).isEqualTo(ProductionBatchStatus.IN_PROGRESS);
+        var description = "Démarrage du lot LOT-00003 : planifié → en cours";
+        var order = inOrder(productionBatchRepository, journalService);
+        order.verify(productionBatchRepository).saveAndFlush(batch);
+        order.verify(journalService).record(JournalAction.UPDATE, "PRODUCTION_BATCH", batch.getId(), description);
+        verifyNoInteractions(completion);
+    }
+
+    @Test
+    void startBatch_unknownBatch_throwsNotFoundAndTracesNothing() {
+        // Arrange
+        var id = UUID.randomUUID();
+        when(productionBatchRepository.findByIdForUpdate(id)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.startBatch(id)).isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void startBatch_alreadyStartedBatch_throwsConflictAndSavesNothing() {
+        // Arrange
+        var batch = plannedBatch();
+        batch.start();
+        var id = UUID.randomUUID();
+        when(productionBatchRepository.findByIdForUpdate(id)).thenReturn(Optional.of(batch));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.startBatch(id)).isInstanceOf(ConflictException.class);
+        verify(productionBatchRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(journalService);
+    }
+
+    @Test
     void completeBatch_plannedBatch_movesTheStockThenFlushesAndTracesTheValidation() {
         // Arrange
         var batch = plannedBatch();

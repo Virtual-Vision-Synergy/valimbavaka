@@ -7,7 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MoveRight, Plus, Undo2 } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
@@ -32,7 +32,7 @@ export const TRANSFER_PAGE_SIZE = 9;
 
 /**
  * Historique des transferts de stock (TRF-01) : référence, trajet, origine, date, statut et émetteur, paginé et
- * filtré par origine côté serveur. Le détail d'un bon (TRF-04) reste une maquette.
+ * filtré par origine côté serveur. Le clic sur un numéro ouvre le détail du bon (TRF-04) dans le panneau latéral.
  */
 @Component({
   selector: 'vvs-transfer-list-page',
@@ -56,6 +56,7 @@ export const TRANSFER_PAGE_SIZE = 9;
 export class TransferListPage {
   private readonly transferService = inject(TransferService);
   private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
   protected readonly icons = { MoveRight, Plus, Undo2 };
   protected readonly pageSize = TRANSFER_PAGE_SIZE;
@@ -80,6 +81,11 @@ export class TransferListPage {
   protected readonly selectedNumber = computed(
     () => this.rows().find((item) => item.id === this.selectedId())?.number ?? '',
   );
+
+  /** « Créer un retour » depuis le détail : ouvre le formulaire de retour de stock (TRF-03). */
+  protected openReturn(): void {
+    void this.router.navigateByUrl('/transfers/return');
+  }
 
   protected demoAction(): void {
     this.toast.show('common.demoAction', {}, 'info');
