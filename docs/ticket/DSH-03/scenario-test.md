@@ -1,6 +1,6 @@
 # Scénarios de test — DSH-03 · Alertes de stock sur le cockpit
 
-Statut : ☐ tests écrits, à exécuter · Ticket : [#96](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/96) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests automatiques verts en CI, recette à passer · Ticket : [#96](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/96) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -22,20 +22,20 @@ par le scénario de [STK-04](../STK-04/scenario-test.md).
 
 | # | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|
-| 1 | Le serveur renvoie l'alerte `ART-0031` (id `7f1c2a9e-…-000000000031`) | Le nom « Savon noir 100 g » est un lien vers `/articles/7f1c2a9e-0000-4000-8000-000000000031` | `stock-alerts-card.spec.ts` › « rend chaque article en alerte cliquable vers sa fiche détaillée » | ☐ |
-| 1b | Administrateur ouvre le cockpit | Un seul `GET /api/v1/stocks/alerts?page=1&size=100` ; le bloc montre le lien vers la fiche et la pastille « Rupture » | `dashboard-page.spec.ts` › « lit les 100 alertes les plus urgentes et rend chaque article cliquable vers sa fiche » | ☐ |
-| 1c | Alerte 12,5 / 40, quantité suggérée 30 pièces | Cellules « ART-0031 », « 12.5 / 40 », « 30 Pièce », « Stock faible » | `stock-alerts-card.spec.ts` › « affiche stock, seuil, quantité à commander avec son unité et le code article » | ☐ |
-| 1d | Vue d'ensemble (`limit` 3), 4 alertes reçues sur `totalCount` 7 | Les 3 premières dans l'ordre du serveur (rupture d'abord), sous-titre « 7 article(s) sous le seuil minimum » | `stock-alerts-card.spec.ts` › « garde l’ordre du serveur, signale la rupture et limite la vue d’ensemble aux 3 plus urgents » | ☐ |
-| 1e | Onglet Analyse (sans limite), 4 alertes | 4 lignes, 4 liens | `stock-alerts-card.spec.ts` › « affiche toutes les alertes reçues sans limite » | ☐ |
-| 1f | Vendeuse (`stocks.read`) | Le bloc s'affiche aussi (même règle que la page des stocks, STK-04) | `dashboard-page.spec.ts` › « montre aussi les alertes à la vendeuse, qui a stocks.read » | ☐ |
+| 1 | Le serveur renvoie l'alerte `ART-0031` (id `7f1c2a9e-…-000000000031`) | Le nom « Savon noir 100 g » est un lien vers `/articles/7f1c2a9e-0000-4000-8000-000000000031` | `stock-alerts-card.spec.ts` › « rend chaque article en alerte cliquable vers sa fiche détaillée » | ✅ auto |
+| 1b | Administrateur ouvre le cockpit | Un seul `GET /api/v1/stocks/alerts?page=1&size=100` ; le bloc montre le lien vers la fiche et la pastille « Rupture » | `dashboard-page.spec.ts` › « lit les 100 alertes les plus urgentes et rend chaque article cliquable vers sa fiche » | ✅ auto |
+| 1c | Alerte 12,5 / 40, quantité suggérée 30 pièces | Cellules « ART-0031 », « 12.5 / 40 », « 30 Pièce », « Stock faible » | `stock-alerts-card.spec.ts` › « affiche stock, seuil, quantité à commander avec son unité et le code article » | ✅ auto |
+| 1d | Vue d'ensemble (`limit` 3), 4 alertes reçues sur `totalCount` 7 | Les 3 premières dans l'ordre du serveur (rupture d'abord), sous-titre « 7 article(s) sous le seuil minimum » | `stock-alerts-card.spec.ts` › « garde l’ordre du serveur, signale la rupture et limite la vue d’ensemble aux 3 plus urgents » | ✅ auto |
+| 1e | Onglet Analyse (sans limite), 4 alertes | 4 lignes, 4 liens | `stock-alerts-card.spec.ts` › « affiche toutes les alertes reçues sans limite » | ✅ auto |
+| 1f | Vendeuse (`stocks.read`) | Le bloc s'affiche aussi (même règle que la page des stocks, STK-04) | `dashboard-page.spec.ts` › « montre aussi les alertes à la vendeuse, qui a stocks.read » | ✅ auto |
 
 ## Sécurité et erreurs
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Livreur (`dashboard.read` sans `stocks.read`) | Aucun appel à `/api/v1/stocks/alerts`, bloc absent, le reste du cockpit s'affiche | `dashboard-page.spec.ts` › « n’appelle pas l’API et masque le bloc pour le livreur, sans stocks.read » | ☐ |
-| Raccourci « Générer le bon de réappro. » pour la vendeuse (sans `stocks.restock`) | Masqué, seul « Tout voir » reste | `stock-alerts-card.spec.ts` › « réserve le raccourci de réapprovisionnement à stocks.restock (administrateur) » | ☐ |
-| Raccourci pour l'administrateur | « Tout voir » et « Générer le bon de réappro. » | `stock-alerts-card.spec.ts` › « propose le raccourci de réapprovisionnement à l’administrateur » | ☐ |
+| Livreur (`dashboard.read` sans `stocks.read`) | Aucun appel à `/api/v1/stocks/alerts`, bloc absent, le reste du cockpit s'affiche | `dashboard-page.spec.ts` › « n’appelle pas l’API et masque le bloc pour le livreur, sans stocks.read » | ✅ auto |
+| Raccourci « Générer le bon de réappro. » pour la vendeuse (sans `stocks.restock`) | Masqué, seul « Tout voir » reste | `stock-alerts-card.spec.ts` › « réserve le raccourci de réapprovisionnement à stocks.restock (administrateur) » | ✅ auto |
+| Raccourci pour l'administrateur | « Tout voir » et « Générer le bon de réappro. » | `stock-alerts-card.spec.ts` › « propose le raccourci de réapprovisionnement à l’administrateur » | ✅ auto |
 | `GET /api/v1/stocks/alerts` sans jeton / livreur | 401 / 403 côté serveur | ⏭ hors périmètre : `StockSecurityIT.getAlerts_withoutToken_returns401`, `StockSecurityIT.getAlerts_withDeliveryDriverRole_returns403` (STK-04) | ⏭ |
 
 Non applicable : mass assignment, 404, 409, 422 et journal (lecture seule, aucun endpoint écrit par ce ticket).
@@ -44,13 +44,13 @@ Non applicable : mass assignment, 404, 409, 422 et journal (lecture seule, aucun
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Aucune alerte (`totalCount` 0) | Pas de tableau ; « Aucun article sous son seuil » ; sous-titre « 0 article(s)… » | `stock-alerts-card.spec.ts` › « indique qu’aucun article n’est sous son seuil quand la liste est vide » | ☐ |
-| Réponse pas encore reçue | Squelette (`role="status"`), pas de sous-titre | `stock-alerts-card.spec.ts` › « affiche un squelette tant que la page n’est pas reçue » | ☐ |
-| Échec du chargement (composant) | État d'erreur avec bouton « Réessayer » qui émet `retry` | `stock-alerts-card.spec.ts` › « affiche un état d’erreur avec réessai quand le chargement échoue » | ☐ |
-| Serveur 503 ou hors ligne (page) | Erreur dans le bloc seulement, KPI affichés ; « Réessayer » relance l'appel | `dashboard-page.spec.ts` › « affiche une erreur dans le bloc sans bloquer le cockpit, puis recharge au réessai » | ☐ |
-| Accessibilité du cockpit (axe, WCAG 2.1 AA) | Aucune violation (liens nommés, tableau avec `caption`, états annoncés) | `demo-pages.a11y.spec.ts` › « dashboard should have no detectable accessibility violation » | ☐ |
+| Aucune alerte (`totalCount` 0) | Pas de tableau ; « Aucun article sous son seuil » ; sous-titre « 0 article(s)… » | `stock-alerts-card.spec.ts` › « indique qu’aucun article n’est sous son seuil quand la liste est vide » | ✅ auto |
+| Réponse pas encore reçue | Squelette (`role="status"`), pas de sous-titre | `stock-alerts-card.spec.ts` › « affiche un squelette tant que la page n’est pas reçue » | ✅ auto |
+| Échec du chargement (composant) | État d'erreur avec bouton « Réessayer » qui émet `retry` | `stock-alerts-card.spec.ts` › « affiche un état d’erreur avec réessai quand le chargement échoue » | ✅ auto |
+| Serveur 503 ou hors ligne (page) | Erreur dans le bloc seulement, KPI affichés ; « Réessayer » relance l'appel | `dashboard-page.spec.ts` › « affiche une erreur dans le bloc sans bloquer le cockpit, puis recharge au réessai » | ✅ auto |
+| Accessibilité du cockpit (axe, WCAG 2.1 AA) | Aucune violation (liens nommés, tableau avec `caption`, états annoncés) | `demo-pages.a11y.spec.ts` › « dashboard should have no detectable accessibility violation » | ✅ auto |
 | Plus de 100 alertes | Le cockpit lit les 100 plus urgentes ; le sous-titre donne le `totalCount` réel ; « Tout voir » mène à la page des stocks | 🔍 code : `StockService.alerts()` (STK-04), `StockAlertsCard.total` | 🔍 |
-| Traductions fr / mg | Mêmes clés `dashboard.stockAlerts.*` dans les deux langues | `translations.spec.ts` › « should define every French key in Malagasy and no more » | ☐ |
+| Traductions fr / mg | Mêmes clés `dashboard.stockAlerts.*` dans les deux langues | `translations.spec.ts` › « should define every French key in Malagasy and no more » | ✅ auto |
 
 Pas de file hors ligne (`Idempotency-Key`) : le bloc est en lecture seule.
 
@@ -74,6 +74,10 @@ Pas de file hors ligne (`Idempotency-Key`) : le bloc est en lecture seule.
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local).
-- Environnement : `tsc -p tsconfig.app.json`, `tsc -p tsconfig.spec.json`, `eslint` et `prettier` sans erreur sur les fichiers touchés.
+- Date : 08/11/2026, CI GitHub (workflows `CI` et `Convention VVS` lancés à la main sur la branche
+  `feature/DSH-03-alertes-stock-cockpit`), tous verts.
+- Front : 68 fichiers, 413 tests verts, dont `stock-alerts-card.spec.ts` (9), `dashboard-page.spec.ts` (4),
+  `demo-pages.a11y.spec.ts` (9, page `dashboard` comprise) et `translations.spec.ts` (2).
+- Back : 385 tests verts (aucun test ajouté, non-régression).
+- Avant push : `tsc -p tsconfig.app.json`, `tsc -p tsconfig.spec.json`, `eslint` et `prettier` sans erreur sur les fichiers touchés.
 - Anomalies ouvertes : aucune connue. Étapes 🧪 restantes : 5.
