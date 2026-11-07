@@ -11,13 +11,16 @@ import {
   toBatchWDto,
   toKpis,
   toLot,
+  toLotCost,
   toMaterial,
   toOperator,
   toProducible,
 } from './production-mapping';
 import {
+  LotCostRDto,
   LotRDto,
   LotWDto,
+  ProductionBatchCostRDto,
   ProductionBatchRDto,
   ProductionContextRDto,
   ProductionIndicatorsRDto,
@@ -36,10 +39,11 @@ export interface CreatedLot {
 }
 
 /**
- * Production (PRD-01 à PRD-04). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
- * l'entrepôt (STK-01), vendeuses, lots récents et indicateurs du mois (PRD-04). Écritures par la file hors ligne
- * (SYS-07) : « Enregistrer » crée un lot planifié sans mouvement de stock ; « Valider » crée et valide le lot en une
- * seule requête, le serveur sortant les entrants et entrant le produit fini dans la même transaction (PRD-02).
+ * Production (PRD-01 à PRD-05). Lectures par `HttpClient` : produits finis et entrants (ART-04), stock de
+ * l'entrepôt (STK-01), vendeuses, lots récents, indicateurs du mois (PRD-04) et coût de revient d'un lot (PRD-05).
+ * Écritures par la file hors ligne (SYS-07) : « Enregistrer » crée un lot planifié sans mouvement de stock ;
+ * « Valider » crée et valide le lot en une seule requête, le serveur sortant les entrants et entrant le produit
+ * fini dans la même transaction (PRD-02).
  */
 @Injectable({ providedIn: 'root' })
 export class ProductionService {
@@ -91,6 +95,13 @@ export class ProductionService {
 
   getById(id: string): Observable<ProductionBatchRDto> {
     return this.http.get<ProductionBatchRDto>(`${this.baseUrl}/batches/${id}`);
+  }
+
+  /** Détail et coût de revient d'un lot (PRD-05), calculés par le serveur à partir des entrants. */
+  cost(id: string): Observable<LotCostRDto> {
+    return this.http
+      .get<ProductionBatchCostRDto>(`${this.baseUrl}/batches/${id}/cost`)
+      .pipe(map(toLotCost));
   }
 
   operators(): Observable<PageResponse<ProductionOperatorRDto>> {

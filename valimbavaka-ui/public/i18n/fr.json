@@ -1103,7 +1103,20 @@
     "finish": "Terminer",
     "finishLot": "Terminer le lot {{number}} (sort les matières, entre le produit fini)",
     "startedToast": "Lot {{number}} en cours : le stock bougera quand il sera terminé",
-    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}"
+    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}",
+    "detail": {
+      "pageTitle": "Détail d'un lot",
+      "title": "Lot {{number}}",
+      "back": "Retour à la production",
+      "open": "Détail du lot {{number}}",
+      "completedOn": "terminé le {{date}}",
+      "frozen": "Coûts figés à la validation du lot : un changement de prix d'achat ne les modifie plus.",
+      "estimated": "Lot non terminé : coût estimé avec les prix d'achat actuels, figé à la validation.",
+      "inputs": "Entrants du lot",
+      "unitCost": "Coût unitaire",
+      "uncosted": "{{count}} entrant(s) sans coût d'achat : coût de revient non calculable, renseignez le coût de l'article.",
+      "margin": "Marge sur prix de vente"
+    }
   },
   "transfers": {
     "title": "Transferts de stock",
@@ -1136,20 +1149,19 @@
       "issuer": "Émetteur"
     },
     "status": {
-      "IN_TRANSIT": "En transit",
-      "RECEIVED": "Reçu",
-      "DISCREPANCY": "Écart",
       "RETURN": "Retour",
       "VALIDATED": "Validé"
     },
     "detailLabel": "Bon de transfert {{number}}",
-    "detailPending": "Détail du bon bientôt disponible",
     "from": "De",
     "to": "Vers",
-    "pending": "en transit",
-    "receivedLine": "reçu",
-    "gapLine": "reçu {{received}} sur {{sent}}",
-    "moreLines": "+ {{count}} autres lignes",
+    "note": "Note",
+    "linesLabel": "{{count}} article(s) transféré(s)",
+    "unit": {
+      "PIECE": "u.",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
     "print": "Imprimer le bon",
     "createReturn": "Créer un retour",
     "return": {
@@ -1188,7 +1200,8 @@
     "closeHint": "Disponible quand tout est compté et chaque écart expliqué.",
     "closeReady": "Tout est compté : vous pouvez clôturer.",
     "closedAt": "Session clôturée à {{time}}.",
-    "closedToast": "Session {{number}} clôturée : stock ajusté (démonstration)",
+    "closedToast": "Session {{number}} clôturée : stock ajusté aux quantités comptées",
+    "closeFailed": "Clôture de la session {{number}} refusée : {{reason}}",
     "listLabel": "Articles à compter",
     "filterLabel": "Filtrer les articles",
     "filter": {
@@ -1225,6 +1238,25 @@
     "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
     "previous": "Sessions précédentes",
     "previousEmpty": "Aucune session clôturée à afficher pour l'instant.",
+    "gapCount": "{{count}} écart(s)",
+    "historyLink": "Voir l'historique des sessions",
+    "history": {
+      "title": "Historique des sessions d'inventaire",
+      "subtitle": "{{count}} session(s)",
+      "back": "← Retour à l'inventaire",
+      "listLabel": "Sessions d'inventaire",
+      "statusFilter": "Filtrer par statut",
+      "allStatuses": "Toutes",
+      "empty": "Aucune session d'inventaire pour ce filtre.",
+      "col": {
+        "session": "Session",
+        "countDate": "Comptage prévu",
+        "closedOn": "Clôturée le",
+        "status": "Statut",
+        "lines": "Articles",
+        "gaps": "Écarts"
+      }
+    },
     "confirmTitle": "Clôturer la session ?",
     "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée.",
     "scope": {

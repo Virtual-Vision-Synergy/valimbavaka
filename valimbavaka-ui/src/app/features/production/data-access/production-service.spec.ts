@@ -225,4 +225,30 @@ describe('ProductionService', () => {
 
     expect(status).toBe('COMPLETED');
   });
+
+  it("lit le détail et le coût de revient d'un lot par GET sur /batches/{id}/cost", () => {
+    let unitCost: number | null | undefined;
+    service.cost('b2').subscribe((lot) => (unitCost = lot.unitCost));
+
+    const request = httpMock.expectOne('/api/v1/production/batches/b2/cost');
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      id: 'b2',
+      number: 'LOT-00002',
+      outputArticleId: 'pf-1',
+      outputArticleName: 'Savon noir',
+      quantity: 30,
+      status: 'COMPLETED',
+      completedAt: '2026-11-08T08:00:00Z',
+      estimated: false,
+      inputs: [],
+      materialCost: 8400,
+      unitCost: 280,
+      uncostedInputs: 0,
+      salePrice: 8500,
+      marginPercent: 97,
+    });
+
+    expect(unitCost).toBe(280);
+  });
 });
