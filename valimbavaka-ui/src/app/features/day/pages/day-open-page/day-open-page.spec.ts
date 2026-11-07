@@ -24,7 +24,7 @@ const GRID: DayOpeningGrid = {
       warehouse: 20,
       carryOver: null,
       proposed: NO_QUANTITIES,
-      yesterday: NO_QUANTITIES,
+      yesterday: { SHOP: 12, DELIVERY: 5, SALON: 0 },
     },
     {
       articleId: 'oil',
@@ -98,6 +98,11 @@ describe('DayOpenPage', () => {
   const validateButton = (): HTMLButtonElement =>
     element.querySelector<HTMLButtonElement>('.summary .btn-primary') as HTMLButtonElement;
 
+  const yesterdayButton = (): HTMLButtonElement =>
+    element.querySelector<HTMLButtonElement>(
+      '.toolbar-actions .btn-secondary',
+    ) as HTMLButtonElement;
+
   const validate = async (): Promise<void> => {
     validateButton().click();
     fixture.detectChanges();
@@ -133,6 +138,33 @@ describe('DayOpenPage', () => {
     expect(element.textContent).toContain('TRF-0093');
     expect(element.textContent).toContain('TRF-0094');
     expect(show).toHaveBeenCalledWith('day.open.validated', { count: 2 });
+  });
+
+  it('reprend les quantités du dernier jour ouvré et les envoie à la validation (JR-02)', async () => {
+    openDay.mockReturnValue(of({ queued: false, body: OPENED }));
+    await render();
+    await type('qty-SALON-1', '2');
+
+    yesterdayButton().click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(element.querySelector<HTMLInputElement>('#qty-SHOP-0')?.value).toBe('12');
+    expect(element.querySelector<HTMLInputElement>('#qty-DELIVERY-0')?.value).toBe('5');
+    expect(element.querySelector<HTMLInputElement>('#qty-SALON-1')?.value).toBe('0');
+    await validate();
+    expect(openDay).toHaveBeenCalledWith({
+      lines: [
+        { articleId: 'soap', destinationId: 'store-id', quantity: 12 },
+        { articleId: 'soap', destinationId: 'delivery-id', quantity: 5 },
+      ],
+    });
+  });
+
+  it('désactive « Reprendre hier » la toute première journée (pas de veille)', async () => {
+    await render({ ...GRID, previousDay: null });
+
+    expect(yesterdayButton().disabled).toBe(true);
   });
 
   it('n’envoie rien quand on demande plus que le stock de l’entrepôt', async () => {

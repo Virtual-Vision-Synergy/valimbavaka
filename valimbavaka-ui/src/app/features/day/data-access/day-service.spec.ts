@@ -25,6 +25,7 @@ const OPENING: DayOpeningRDto = {
       unit: 'PIECE',
       threshold: 40,
       warehouse: 20,
+      yesterday: [],
     },
   ],
 };
@@ -65,6 +66,25 @@ describe('DayService', () => {
       warehouse: 20,
       proposed: { SHOP: 0, DELIVERY: 0, SALON: 0 },
     });
+  });
+
+  it('range les quantités du dernier jour ouvré par colonne (JR-02)', () => {
+    let grid: DayOpeningGrid | undefined;
+    const yesterday = [
+      { locationId: 'store-id', quantity: 12 },
+      { locationId: 'salon-id', quantity: 3 },
+      { locationId: 'unknown-id', quantity: 9 },
+    ];
+
+    TestBed.inject(DayService)
+      .opening()
+      .subscribe((value) => (grid = value));
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/v1/days/opening')
+      .flush({ ...OPENING, lines: [{ ...OPENING.lines[0], yesterday }] });
+
+    expect(grid?.previousDay).toBe('2026-11-07');
+    expect(grid?.lines[0].yesterday).toEqual({ SHOP: 12, DELIVERY: 0, SALON: 3 });
   });
 
   it('reprend les bons du matin quand la journée est déjà ouverte', () => {
