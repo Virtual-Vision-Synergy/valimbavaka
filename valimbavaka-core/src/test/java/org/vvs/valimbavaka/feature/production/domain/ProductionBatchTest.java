@@ -83,7 +83,9 @@ class ProductionBatchTest {
         sut.complete(Map.of(), Instant.parse("2026-11-08T10:00:00Z"));
 
         // Assert
-        assertThat(sut.getInputs()).singleElement().satisfies(input -> assertThat(input.getUnitCost()).isNull());
+        assertThat(sut.getInputs())
+                .singleElement()
+                .satisfies(input -> assertThat(input.getUnitCost()).isNull());
     }
 
     @Test
