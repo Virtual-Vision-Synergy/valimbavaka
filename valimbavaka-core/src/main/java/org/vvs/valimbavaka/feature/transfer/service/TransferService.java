@@ -1,8 +1,14 @@
 package org.vvs.valimbavaka.feature.transfer.service;
 
+import org.jspecify.annotations.Nullable;
+
 import org.vvs.valimbavaka.feature.transfer.domain.TransferCommand;
+import org.vvs.valimbavaka.feature.transfer.domain.TransferOrigin;
 import org.vvs.valimbavaka.feature.transfer.dto.StockReturnWDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferRDto;
+import org.vvs.valimbavaka.feature.transfer.dto.TransferSummaryRDto;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
  * Transfers of stock between locations (TRF-03). {@link #record} is the port reused by the other features (morning
@@ -20,4 +26,10 @@ public interface TransferService {
 
     /** Records a stock return (origin {@code RETURN}, status {@code RETURN}, number {@code RET-0001}...). */
     TransferRDto recordReturn(StockReturnWDto request);
+
+    /**
+     * Transfer history (TRF-01), newest first by default; sortable by {@code createdAt}, {@code number},
+     * {@code origin} and {@code status}, searchable on the number, filtered by origin when {@code origin} is set.
+     */
+    PageResponse<TransferSummaryRDto> getTransfers(PageQuery query, @Nullable TransferOrigin origin);
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,6 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.feature.transfer.domain.Transfer;
@@ -29,6 +33,8 @@ import org.vvs.valimbavaka.feature.transfer.dto.StockReturnWDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferLineWDto;
 import org.vvs.valimbavaka.feature.transfer.mapper.TransferMapper;
 import org.vvs.valimbavaka.feature.transfer.repository.TransferRepository;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.SortDirection;
 
 @ExtendWith(MockitoExtension.class)
 class TransferServiceImplTest {
@@ -49,11 +55,14 @@ class TransferServiceImplTest {
     @Mock
     private TransferLedger ledger;
 
+    @Mock
+    private TransferHistory history;
+
     private TransferServiceImpl sut;
 
     @BeforeEach
     void setUp() {
-        sut = new TransferServiceImpl(transferRepository, transferMapper, policy, ledger);
+        sut = new TransferServiceImpl(transferRepository, transferMapper, policy, ledger, history);
     }
 
     @Test
@@ -113,5 +122,53 @@ class TransferServiceImplTest {
         assertThatThrownBy(() -> sut.record(command)).isInstanceOf(BusinessException.class);
         verify(transferRepository, never()).save(any());
         verifyNoInteractions(ledger);
+    }
+
+    @Test
+    void getTransfers_noSort_searchesNewestFirstWithTheTrimmedTermAndTheOrigin() {
+        // Arrange
+        var query = new PageQuery(2, 10, "  ret-00 ", null, null);
+        when(transferRepository.search(eq("ret-00"), eq(TransferOrigin.RETURN), any())).thenReturn(Page.empty());
+
+        // Act
+        sut.getTransfers(query, TransferOrigin.RETURN);
+
+        // Assert
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(transferRepository).search(eq("ret-00"), eq(TransferOrigin.RETURN), pageable.capture());
+        assertThat(pageable.getValue().getPageNumber()).isEqualTo(1);
+        assertThat(pageable.getValue().getPageSize()).isEqualTo(10);
+        assertThat(pageable.getValue().getSort()).isEqualTo(Sort.by(Sort.Direction.DESC, "createdAt"));
+        verify(history).toRDtos(any());
+    }
+
+    @Test
+    void getTransfers_sortOutsideTheWhiteList_fallsBackToTheDate() {
+        // Arrange
+        var query = new PageQuery(1, 20, null, "note", SortDirection.ASC);
+        when(transferRepository.search(eq(""), isNull(), any())).thenReturn(Page.empty());
+
+        // Act
+        sut.getTransfers(query, null);
+
+        // Assert
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(transferRepository).search(eq(""), isNull(), pageable.capture());
+        assertThat(pageable.getValue().getSort()).isEqualTo(Sort.by(Sort.Direction.ASC, "createdAt"));
+    }
+
+    @Test
+    void getTransfers_sortByNumber_isAllowed() {
+        // Arrange
+        var query = new PageQuery(1, 20, null, "number", SortDirection.ASC);
+        when(transferRepository.search(eq(""), isNull(), any())).thenReturn(Page.empty());
+
+        // Act
+        sut.getTransfers(query, null);
+
+        // Assert
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(transferRepository).search(eq(""), isNull(), pageable.capture());
+        assertThat(pageable.getValue().getSort()).isEqualTo(Sort.by(Sort.Direction.ASC, "number"));
     }
 }
