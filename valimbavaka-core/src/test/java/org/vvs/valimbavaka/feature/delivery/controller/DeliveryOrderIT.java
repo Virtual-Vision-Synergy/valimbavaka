@@ -152,14 +152,15 @@ class DeliveryOrderIT extends DeliveryApiTestSupport {
 
     @Test
     void createOrder_blankCustomerName_returns422() throws Exception {
-        var body = body(createDriver(), tomorrow(), line(UUID.randomUUID(), "1")).replace("\"Rakoto Be\"", "\"   \"");
+        var body =
+                body(createDriver(), tomorrow(), line(UUID.randomUUID(), "1")).replace("\"Rakoto Be\"", "\"   \"");
         assertValidationFailed(body);
     }
 
     @Test
     void createOrder_invalidPhone_returns422() throws Exception {
-        var body = body(createDriver(), tomorrow(), line(UUID.randomUUID(), "1"))
-                .replace("034 12 345 67", "appelez-moi");
+        var body =
+                body(createDriver(), tomorrow(), line(UUID.randomUUID(), "1")).replace("034 12 345 67", "appelez-moi");
         assertValidationFailed(body);
     }
 

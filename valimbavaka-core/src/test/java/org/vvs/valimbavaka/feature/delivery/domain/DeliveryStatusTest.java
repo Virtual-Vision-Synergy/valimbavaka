@@ -43,7 +43,9 @@ class DeliveryStatusTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = DeliveryStatus.class, names = {"DELIVERED", "FAILED", "CANCELLED"})
+    @EnumSource(
+            value = DeliveryStatus.class,
+            names = {"DELIVERED", "FAILED", "CANCELLED"})
     void isFinal_finalStatus_leavesToNoOtherStatus(DeliveryStatus sut) {
         assertThat(sut.isFinal()).isTrue();
         for (var target : DeliveryStatus.values()) {
