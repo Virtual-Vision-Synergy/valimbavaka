@@ -22,11 +22,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.production.domain.ProductionBatchStatus;
+import org.vvs.valimbavaka.feature.production.dto.ProductionBatchCostRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionBatchRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionBatchWDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionIndicatorsRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionOperatorRDto;
 import org.vvs.valimbavaka.feature.production.service.ProductionBatchService;
+import org.vvs.valimbavaka.feature.production.service.ProductionCostService;
 import org.vvs.valimbavaka.feature.production.service.ProductionIndicatorService;
 import org.vvs.valimbavaka.feature.production.service.ProductionOperatorService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
@@ -35,7 +37,8 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
  * Production batches: administrator and seller plan them (PRD-01), start them (PRD-03) and complete them, which moves
- * the stock (PRD-02). Never deleted (JNL-02). Indicators of the month at the top of the screen (PRD-04).
+ * the stock (PRD-02). Never deleted (JNL-02). Indicators of the month at the top of the screen (PRD-04), cost price of
+ * a batch (PRD-05).
  */
 @Tag(name = "Production")
 @ApiResponses({
@@ -51,14 +54,17 @@ public class ProductionController {
     private final ProductionBatchService productionBatchService;
     private final ProductionOperatorService productionOperatorService;
     private final ProductionIndicatorService productionIndicatorService;
+    private final ProductionCostService productionCostService;
 
     public ProductionController(
             ProductionBatchService productionBatchService,
             ProductionOperatorService productionOperatorService,
-            ProductionIndicatorService productionIndicatorService) {
+            ProductionIndicatorService productionIndicatorService,
+            ProductionCostService productionCostService) {
         this.productionBatchService = productionBatchService;
         this.productionOperatorService = productionOperatorService;
         this.productionIndicatorService = productionIndicatorService;
+        this.productionCostService = productionCostService;
     }
 
     @GetMapping("/batches")
@@ -77,6 +83,15 @@ public class ProductionController {
     @HasPermission("production.read")
     public ProductionBatchRDto getBatchById(@PathVariable UUID id) {
         return productionBatchService.getBatchById(id);
+    }
+
+    @GetMapping("/batches/{id}/cost")
+    @Operation(summary = "Batch detail with its cost price: inputs, material cost, cost per unit and margin")
+    @ApiResponse(responseCode = "200", description = "Cost frozen at completion, estimated before")
+    @ApiResponse(responseCode = "404", description = "Batch not found (NOT_FOUND)")
+    @HasPermission("production.read")
+    public ProductionBatchCostRDto getBatchCost(@PathVariable UUID id) {
+        return productionCostService.getBatchCost(id);
     }
 
     @PostMapping("/batches")
