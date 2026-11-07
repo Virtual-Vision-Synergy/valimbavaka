@@ -52,8 +52,7 @@ class BusinessDayIT extends StockApiTestSupport {
         var oil = createArticle(uniqueName());
         move(soap, "WAREHOUSE", StockMovementType.RECEIPT, "20");
         move(oil, "WAREHOUSE", StockMovementType.RECEIPT, "10");
-        var lines = String.join(
-                ",", line(soap, "STORE", "12"), line(oil, "STORE", "4"), line(soap, "DELIVERY", "5"));
+        var lines = String.join(",", line(soap, "STORE", "12"), line(oil, "STORE", "4"), line(soap, "DELIVERY", "5"));
 
         // Act
         var json = openDay(adminToken(), body(lines))
@@ -61,10 +60,12 @@ class BusinessDayIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.status").value("OPEN"))
                 .andExpect(jsonPath("$.businessDate").isNotEmpty())
                 .andExpect(jsonPath("$.transfers.length()").value(2))
-                .andExpect(jsonPath("$.transfers[0].locationId").value(location("STORE").toString()))
+                .andExpect(jsonPath("$.transfers[0].locationId")
+                        .value(location("STORE").toString()))
                 .andExpect(jsonPath("$.transfers[0].lineCount").value(2))
                 .andExpect(jsonPath("$.transfers[0].quantity").value(16.0))
-                .andExpect(jsonPath("$.transfers[1].locationId").value(location("DELIVERY").toString()))
+                .andExpect(jsonPath("$.transfers[1].locationId")
+                        .value(location("DELIVERY").toString()))
                 .andExpect(jsonPath("$.transfers[1].transferNumber").value(startsWith("TRF-")))
                 .andReturn()
                 .getResponse()
@@ -222,8 +223,8 @@ class BusinessDayIT extends StockApiTestSupport {
         withKey(token, key, body)
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Idempotency-Replayed", "true"))
-                .andExpect(jsonPath("$.id").value((String) JsonPath.read(
-                        first.getResponse().getContentAsString(), "$.id")));
+                .andExpect(jsonPath("$.id")
+                        .value((String) JsonPath.read(first.getResponse().getContentAsString(), "$.id")));
 
         // Assert
         assertThat(balance(soap, "STORE")).isEqualByComparingTo("4");
@@ -231,7 +232,9 @@ class BusinessDayIT extends StockApiTestSupport {
 
     @Test
     void openDay_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(DAYS).contentType(MediaType.APPLICATION_JSON).content(body("")))
+        mockMvc.perform(post(DAYS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body("")))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
@@ -256,7 +259,8 @@ class BusinessDayIT extends StockApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.businessDate").isNotEmpty())
                 .andExpect(jsonPath("$.day").doesNotExist())
-                .andExpect(jsonPath("$.warehouseLocationId").value(location("WAREHOUSE").toString()))
+                .andExpect(jsonPath("$.warehouseLocationId")
+                        .value(location("WAREHOUSE").toString()))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -264,9 +268,10 @@ class BusinessDayIT extends StockApiTestSupport {
         // Assert
         List<String> destinations = JsonPath.read(json, "$.destinations[*].code");
         assertThat(destinations).contains("STORE", "DELIVERY", "TRADE_SHOW").doesNotContain("WAREHOUSE");
-        List<Object> warehouse = JsonPath.read(json, "$.lines[?(@.articleId == '%s')].warehouse".formatted(stocked));
-        assertThat(warehouse).singleElement().satisfies(q -> assertThat(new BigDecimal(q.toString()))
-                .isEqualByComparingTo("20"));
+        var stockedFilter = "$.lines[?(@.articleId == '%s')].warehouse".formatted(stocked);
+        List<Object> warehouse = JsonPath.read(json, stockedFilter);
+        assertThat(warehouse).hasSize(1);
+        assertThat(new BigDecimal(warehouse.getFirst().toString())).isEqualByComparingTo("20");
         List<Object> absent = JsonPath.read(json, "$.lines[?(@.articleId == '%s')]".formatted(empty));
         assertThat(absent).isEmpty();
     }

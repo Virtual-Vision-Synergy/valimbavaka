@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.day.service.impl;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -87,12 +88,11 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     @Override
     public BusinessDayRDto requireOpenDay() {
         var date = policy.today();
-        return dayRepository
-                .findByBusinessDate(date)
-                .filter(BusinessDay::isOpen)
-                .map(dayMapper::toRDto)
-                .orElseThrow(() -> new ConflictException("La journée du %s n'est pas ouverte."
-                        .formatted(DayOpeningPolicy.DATE_FORMAT.format(date))));
+        var day = dayRepository.findByBusinessDate(date).filter(BusinessDay::isOpen);
+        if (day.isEmpty()) {
+            throw new ConflictException("La journée du %s n'est pas ouverte.".formatted(format(date)));
+        }
+        return dayMapper.toRDto(day.get());
     }
 
     private static TransferCommand morningTransfer(
@@ -103,16 +103,18 @@ public class BusinessDayServiceImpl implements BusinessDayService {
         return new TransferCommand(TransferOrigin.MORNING, warehouseId, destinationId, lines, null);
     }
 
-    /** E.g. {@code Ouverture de la journée du 08/11/2026 : 3 transfert(s) du matin (TRF-0093, TRF-0094, TRF-0095)}. */
+    /** E.g. {@code Ouverture de la journée du 08/11/2026 : 2 transfert(s) du matin (TRF-0093, TRF-0094)}. */
     private static String description(BusinessDay day) {
-        var date = DayOpeningPolicy.DATE_FORMAT.format(day.getBusinessDate());
+        var date = format(day.getBusinessDate());
         if (day.getTransfers().isEmpty()) {
             return "Ouverture de la journée du %s sans transfert du matin".formatted(date);
         }
-        var numbers = day.getTransfers().stream()
-                .map(DayTransfer::getTransferNumber)
-                .collect(Collectors.joining(", "));
-        return "Ouverture de la journée du %s : %d transfert(s) du matin (%s)"
-                .formatted(date, day.getTransfers().size(), numbers);
+        var numbers = day.getTransfers().stream().map(DayTransfer::getTransferNumber).collect(Collectors.joining(", "));
+        var template = "Ouverture de la journée du %s : %d transfert(s) du matin (%s)";
+        return template.formatted(date, day.getTransfers().size(), numbers);
+    }
+
+    private static String format(LocalDate date) {
+        return DayOpeningPolicy.DATE_FORMAT.format(date);
     }
 }

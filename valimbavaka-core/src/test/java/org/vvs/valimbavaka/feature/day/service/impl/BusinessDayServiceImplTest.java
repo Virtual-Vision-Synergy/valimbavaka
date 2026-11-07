@@ -28,6 +28,7 @@ import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.feature.day.domain.BusinessDay;
 import org.vvs.valimbavaka.feature.day.domain.DayStatus;
 import org.vvs.valimbavaka.feature.day.domain.DayTransfer;
+import org.vvs.valimbavaka.feature.day.dto.BusinessDayRDto;
 import org.vvs.valimbavaka.feature.day.dto.DayOpeningWDto;
 import org.vvs.valimbavaka.feature.day.mapper.BusinessDayMapper;
 import org.vvs.valimbavaka.feature.day.repository.BusinessDayRepository;
@@ -140,14 +141,16 @@ class BusinessDayServiceImplTest {
     void requireOpenDay_openedToday_returnsTheDay() {
         // Arrange
         var day = BusinessDay.open(TODAY);
+        var expected = new BusinessDayRDto(UUID.randomUUID(), TODAY, DayStatus.OPEN, List.of(), Instant.EPOCH, null);
         when(policy.today()).thenReturn(TODAY);
         when(dayRepository.findByBusinessDate(TODAY)).thenReturn(Optional.of(day));
+        when(dayMapper.toRDto(day)).thenReturn(expected);
 
         // Act
-        sut.requireOpenDay();
+        var result = sut.requireOpenDay();
 
         // Assert
-        verify(dayMapper).toRDto(day);
+        assertThat(result).isSameAs(expected);
     }
 
     /** Store: soap 12 and oil 4; delivery: soap 5. */
