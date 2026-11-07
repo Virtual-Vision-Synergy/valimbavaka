@@ -76,7 +76,7 @@ describe('production-mapping', () => {
     expect(product.recipe).toEqual([]);
   });
 
-  it('affiche un lot planifié comme planifié (DRAFT) avec ses libellés', () => {
+  it('affiche un lot planifié comme planifié (DRAFT) avec ses libellés et son identifiant', () => {
     const lot = toLot(
       batch,
       [{ articleId: 'pf-1', reference: 'ART-0031', name: 'Savon noir', price: 8500, recipe: [] }],
@@ -84,6 +84,7 @@ describe('production-mapping', () => {
     );
 
     expect(lot).toEqual({
+      id: 'batch-1',
       number: 'LOT-00007',
       date: '2026-11-08',
       articleName: 'Savon noir',
