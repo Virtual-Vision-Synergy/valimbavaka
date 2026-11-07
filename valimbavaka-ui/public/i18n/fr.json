@@ -1077,7 +1077,20 @@
     "finish": "Terminer",
     "finishLot": "Terminer le lot {{number}} (sort les matières, entre le produit fini)",
     "startedToast": "Lot {{number}} en cours : le stock bougera quand il sera terminé",
-    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}"
+    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}",
+    "detail": {
+      "pageTitle": "Détail d'un lot",
+      "title": "Lot {{number}}",
+      "back": "Retour à la production",
+      "open": "Détail du lot {{number}}",
+      "completedOn": "terminé le {{date}}",
+      "frozen": "Coûts figés à la validation du lot : un changement de prix d'achat ne les modifie plus.",
+      "estimated": "Lot non terminé : coût estimé avec les prix d'achat actuels, figé à la validation.",
+      "inputs": "Entrants du lot",
+      "unitCost": "Coût unitaire",
+      "uncosted": "{{count}} entrant(s) sans coût d'achat : coût de revient non calculable, renseignez le coût de l'article.",
+      "margin": "Marge sur prix de vente"
+    }
   },
   "transfers": {
     "title": "Transferts de stock",

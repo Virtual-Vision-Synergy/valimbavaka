@@ -1,3 +1,5 @@
+import { ArticleUnit } from '../../article/data-access/article-models';
+
 /**
  * Statut affiché. Le serveur (PRD-01, PRD-03) dit PLANNED / IN_PROGRESS / COMPLETED : voir `toLotStatus`
  * dans `production-mapping.ts` (DRAFT = planifié, CURING = en cours, VALIDATED = terminé).
@@ -127,6 +129,73 @@ export interface ProductionKpisRDto {
   readonly uncostedLots: number;
   /** Entrants dont le stock total est sous le seuil d'alerte (règle STK-04). */
   readonly materialsToRebuy: number;
+}
+
+/** Miroir de ProductionInputCostRDto (PRD-05) : un entrant du lot et son coût. */
+export interface ProductionInputCostRDto {
+  readonly articleId: string;
+  readonly articleCode: string;
+  readonly articleName: string;
+  readonly unit: ArticleUnit;
+  readonly quantity: number;
+  /** Coût figé à la validation (PRD-02), coût d'achat actuel avant ; null si l'article n'a pas de coût. */
+  readonly unitCost?: number | null;
+  /** Quantité × coût unitaire, arrondi à 2 décimales ; null sans coût unitaire. */
+  readonly lineCost?: number | null;
+}
+
+/**
+ * Miroir de ProductionBatchCostRDto (`GET /api/v1/production/batches/{id}/cost`, PRD-05) : détail et coût de
+ * revient d'un lot. `estimated` : lot non validé, coûts d'achat actuels. Totaux null dès qu'un entrant n'a pas de
+ * coût (jamais compté pour 0).
+ */
+export interface ProductionBatchCostRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly outputArticleId: string;
+  readonly outputArticleName: string;
+  readonly quantity: number;
+  readonly status: ProductionBatchStatus;
+  readonly completedAt?: string | null;
+  readonly estimated: boolean;
+  readonly inputs: readonly ProductionInputCostRDto[];
+  readonly materialCost?: number | null;
+  /** Coût de revient unitaire : coût matière / quantité produite. */
+  readonly unitCost?: number | null;
+  readonly uncostedInputs: number;
+  /** Prix de vente actuel du produit obtenu. */
+  readonly salePrice?: number | null;
+  /** Marge arrondie sur le prix de vente ; null sans prix ou sans coût. */
+  readonly marginPercent?: number | null;
+}
+
+/** Entrant affiché dans le détail d'un lot (PRD-05) ; `unit` en libellé court (kg, l, u.). */
+export interface LotCostLineRDto {
+  readonly articleId: string;
+  readonly code: string;
+  readonly name: string;
+  readonly unit: string;
+  readonly quantity: number;
+  readonly unitCost: number | null;
+  readonly lineCost: number | null;
+}
+
+/** Détail d'un lot affiché (PRD-05) : voir `toLotCost` dans `production-mapping.ts`. */
+export interface LotCostRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly articleName: string;
+  readonly quantity: number;
+  readonly status: LotStatus;
+  /** Jour de validation `AAAA-MM-JJ`, null tant que le lot n'est pas terminé. */
+  readonly completedOn: string | null;
+  readonly estimated: boolean;
+  readonly lines: readonly LotCostLineRDto[];
+  readonly materialCost: number | null;
+  readonly unitCost: number | null;
+  readonly uncosted: number;
+  readonly salePrice: number | null;
+  readonly margin: number | null;
 }
 
 /** Contexte de l'écran de production (PRD-01 à PRD-05). */

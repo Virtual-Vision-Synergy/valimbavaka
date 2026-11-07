@@ -1077,7 +1077,20 @@
     "finish": "Vita",
     "finishLot": "Vita ny andiany {{number}} (mivoaka ny akora, miditra ny vokatra)",
     "startedToast": "Eo am-panaovana ny andiany {{number}}",
-    "statusError": "Tsy niova ny satan'ny andiany {{number}} : {{message}}"
+    "statusError": "Tsy niova ny satan'ny andiany {{number}} : {{message}}",
+    "detail": {
+      "pageTitle": "Antsipirian'ny andiany",
+      "title": "Andiany {{number}}",
+      "back": "Hiverina amin'ny famokarana",
+      "open": "Antsipirian'ny andiany {{number}}",
+      "completedOn": "vita ny {{date}}",
+      "frozen": "Raikitra tamin'ny fanamarinana ny andiany ny vidiny : tsy manova azy intsony ny fiovan'ny vidin'ny fividianana.",
+      "estimated": "Andiany mbola tsy vita : vinavina amin'ny vidin'ny fividianana ankehitriny, raikitra rehefa voamarina.",
+      "inputs": "Akora ampiasain'ny andiany",
+      "unitCost": "Vidiny isaky ny iray",
+      "uncosted": "Akora {{count}} tsy misy vidin'ny fividianana : tsy azo kajiana ny vidin'ny famokarana, fenoy ny vidin'ilay entana.",
+      "margin": "Tombony amin'ny vidin'ny varotra"
+    }
   },
   "transfers": {
     "title": "Famindrana tahiry",
