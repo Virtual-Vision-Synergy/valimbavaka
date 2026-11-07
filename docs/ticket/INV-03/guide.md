@@ -1,6 +1,6 @@
 # Guide d'intégration — INV-03 · Motif d'écart par ligne
 
-Statut : ✍ écrit le 2026-11-08 — **tests à lancer** (voir « Résultat de l'exécution » du scénario) · Ticket : [#79](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/79) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests exécutés en CI, verts (voir « Résultat de l'exécution » du scénario) · Ticket : [#79](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/79) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
