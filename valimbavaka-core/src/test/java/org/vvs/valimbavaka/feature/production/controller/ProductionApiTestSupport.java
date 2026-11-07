@@ -64,8 +64,8 @@ abstract class ProductionApiTestSupport {
                         finished ? "PIECE" : "KILOGRAM",
                         finished ? "\"" + rangeId + "\"" : "null",
                         finished ? "8500" : "null");
-        MvcResult result = mockMvc.perform(postJson("/api/v1/articles", body).header(
-                        HttpHeaders.AUTHORIZATION, bearer(adminToken())))
+        MvcResult result = mockMvc.perform(
+                        postJson("/api/v1/articles", body).header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isCreated())
                 .andReturn();
         return UUID.fromString(JsonPath.read(result.getResponse().getContentAsString(), "$.id"));
