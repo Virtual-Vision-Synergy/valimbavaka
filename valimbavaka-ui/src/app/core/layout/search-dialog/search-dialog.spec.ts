@@ -81,10 +81,15 @@ describe('SearchDialog', () => {
     fixture.detectChanges();
   };
 
-  /** La recherche d'articles part 300 ms après la dernière frappe : on attend ce délai en temps réel. */
+  /**
+   * La recherche d'articles part 300 ms après la dernière frappe : on attend ce délai en temps réel.
+   * Une requête lancée est une tâche en cours tant que le test ne l'a pas fait répondre : pas de `whenStable`.
+   */
   const pause = async (): Promise<void> => {
     await new Promise((resolve) => setTimeout(resolve, 350));
-    await refresh();
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.detectChanges();
   };
 
   const articlesRequest = (): TestRequest => httpMock.expectOne((req) => req.url === ARTICLES_URL);
