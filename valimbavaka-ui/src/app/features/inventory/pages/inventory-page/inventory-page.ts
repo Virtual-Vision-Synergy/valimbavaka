@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { Lock, ScanBarcode } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../../../core/i18n/language-service';
@@ -17,19 +18,35 @@ import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
+import { errorMessage } from '../../../../core/http/problem-detail';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
 import { InventoryFilter, InventoryState } from '../../data-access/inventory-state';
-import { INVENTORY_REASONS } from '../../data-access/inventory-models';
+import {
+  INVENTORY_REASONS,
+  InventoryReason,
+  InventorySheetLine,
+} from '../../data-access/inventory-models';
+import { parseQuantity } from '../../data-access/inventory-sheet';
 import { InventoryService } from '../../data-access/inventory-service';
 
 /**
- * Session d'inventaire (INV-01 à INV-05) : comptage article par article, écart calculé en direct,
- * motif obligatoire pour chaque écart, clôture seulement quand tout est compté et expliqué.
+ * Session d'inventaire en cours (INV-01 à INV-05) : comptage article par article enregistré sur le serveur
+ * (INV-02), écart calculé en direct, motif de chaque écart enregistré sur le serveur (INV-03), clôture quand tout
+ * est compté et expliqué. La clôture (INV-04) reste simulée en attendant son ticket.
  */
 @Component({
   selector: 'vvs-inventory-page',
-  imports: [TranslatePipe, AriaryPipe, ShortDatePipe, Icon, ListState, FilterChips, StatusBadge],
+  imports: [
+    RouterLink,
+    TranslatePipe,
+    AriaryPipe,
+    ShortDatePipe,
+    Icon,
+    ListState,
+    FilterChips,
+    StatusBadge,
+  ],
   templateUrl: './inventory-page.html',
   styleUrl: './inventory-page.css',
   providers: [InventoryState],
@@ -77,7 +94,7 @@ export class InventoryPage {
   protected readonly numberFormat = computed(() => new Intl.NumberFormat(this.language.current()));
 
   constructor() {
-    effect(() => this.state.session.set(this.inventory.value()?.session));
+    effect(() => this.state.session.set(this.inventory.value()?.session ?? undefined));
   }
 
   /** Code-barres scanné : filtre levé, focus sur le champ de comptage de l'article. */
@@ -94,6 +111,50 @@ export class InventoryPage {
         .querySelector<HTMLInputElement>(`[id="count-${row.line.articleId}"]`)
         ?.focus(),
     );
+  }
+
+  /** Quantité validée (sortie du champ, Entrée) : enregistrée ; le théorique figé par le serveur est repris. */
+  protected saveCount(line: InventorySheetLine, raw: string): void {
+    const sessionId = this.inventory.value()?.session?.id;
+    const countedQuantity = parseQuantity(raw);
+    if (!sessionId || countedQuantity === null) {
+      return;
+    }
+    this.inventoryService.count(sessionId, line.lineId, { countedQuantity }).subscribe({
+      next: (result) => {
+        if (result.body) {
+          this.state.applyCount(line.articleId, result.body.theoreticalQuantity);
+          this.state.setReason(line.articleId, result.body.reason ?? '');
+        }
+      },
+      error: (error: unknown) =>
+        this.toast.show(
+          'inventory.countFailed',
+          { article: line.reference, reason: errorMessage(error) },
+          'danger',
+        ),
+    });
+  }
+
+  /**
+   * Motif choisi : affiché tout de suite, puis enregistré (INV-03). Revenir sur « Choisir un motif… »
+   * n'envoie rien : le serveur garde le dernier motif, qui revient au rechargement.
+   */
+  protected saveReason(line: InventorySheetLine, raw: string): void {
+    this.state.setReason(line.articleId, raw);
+    const sessionId = this.inventory.value()?.session?.id;
+    if (!sessionId || !raw) {
+      return;
+    }
+    const reason = raw as InventoryReason;
+    this.inventoryService.qualify(sessionId, line.lineId, { reason }).subscribe({
+      error: (error: unknown) =>
+        this.toast.show(
+          'inventory.reasonFailed',
+          { article: line.reference, reason: errorMessage(error) },
+          'danger',
+        ),
+    });
   }
 
   protected signedGap(gap: number): string {
@@ -115,7 +176,7 @@ export class InventoryPage {
       this.closedAt.set(new Date().toTimeString().slice(0, 5));
       this.cancelClose();
       this.toast.show('inventory.closedToast', {
-        number: this.inventory.value()?.session.number ?? '',
+        number: this.inventory.value()?.session?.number ?? '',
       });
     });
   }
