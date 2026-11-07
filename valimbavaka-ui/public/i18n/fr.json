@@ -602,6 +602,32 @@
       "expectedDelivery": "Livraison prévue le {{date}} si la commande part aujourd'hui.",
       "generated": "Bon de réapprovisionnement {{reference}} généré · {{count}} article(s)",
       "failed": "Le bon n'a pas été généré : {{message}}"
+    },
+    "receipt": {
+      "title": "Réception fournisseur",
+      "subtitle": "Les marchandises reçues entrent en stock à l'emplacement choisi. Une réception validée ne se supprime pas : une erreur se corrige par contre-passation.",
+      "back": "← Retour aux stocks",
+      "order": "Bon de réapprovisionnement",
+      "freeEntry": "Saisie libre (sans bon)",
+      "orderOption": "{{reference}} · {{count}} article(s)",
+      "orderHint": "Reprendre un bon préremplit les articles, les quantités commandées et le coût d'achat ; le bon passe à « reçu ».",
+      "supplier": "Fournisseur",
+      "chooseSupplier": "Choisir un fournisseur",
+      "supplierRequired": "Choisissez le fournisseur de la livraison.",
+      "location": "Emplacement de réception",
+      "lines": "Articles reçus",
+      "article": "Article",
+      "chooseArticle": "Choisir un article",
+      "articleRequired": "Choisissez un article.",
+      "quantity": "Quantité",
+      "quantityInvalid": "Quantité supérieure à zéro, 3 décimales au maximum.",
+      "unitCost": "Coût unitaire (Ar)",
+      "unitCostInvalid": "Coût positif ou nul, 2 décimales au maximum.",
+      "removeLine": "Retirer la ligne {{index}}",
+      "addLine": "Ajouter un article",
+      "note": "Note",
+      "submit": "Valider la réception",
+      "saved": "Réception {{number}} enregistrée : le stock est à jour."
     }
   },
   "articles": {
