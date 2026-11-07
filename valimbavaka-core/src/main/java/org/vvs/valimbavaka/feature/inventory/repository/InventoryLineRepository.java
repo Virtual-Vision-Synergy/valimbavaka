@@ -19,6 +19,9 @@ public interface InventoryLineRepository extends OperationRepository<InventoryLi
 
     long countBySessionId(UUID sessionId);
 
+    /** Every line of a session, by article code (INV-04: closing). */
+    List<InventoryLine> findBySessionIdOrderByArticleCode(UUID sessionId);
+
     /** A line is only reachable through its own session (INV-02). */
     Optional<InventoryLine> findByIdAndSessionId(UUID id, UUID sessionId);
 }
