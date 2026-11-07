@@ -86,6 +86,11 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    public boolean isActiveArticle(UUID articleId) {
+        return articleRepository.existsByIdAndActiveTrue(articleId);
+    }
+
+    @Override
     public Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds) {
         return articleRepository.findCosts(articleIds).stream()
                 .collect(Collectors.toMap(ArticleCost::articleId, ArticleCost::cost));

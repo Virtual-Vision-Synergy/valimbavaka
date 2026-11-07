@@ -26,6 +26,9 @@ public interface ArticleService {
 
     ArticleRDto getArticleById(UUID articleId);
 
+    /** Cross-feature check (SRV-01: products consumed by a salon service): true if the article exists and is active. */
+    boolean isActiveArticle(UUID articleId);
+
     /** Purchase cost of the given articles (STK-03); an unknown article or one without cost is absent. */
     Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds);
 
