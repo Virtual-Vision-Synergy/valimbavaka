@@ -65,7 +65,9 @@ final class PdfCellFormatter {
 
     private String formatNumber(Number number, String format) {
         String pattern = format.isBlank() ? defaultPattern(number) : format;
-        return numberFormats.computeIfAbsent(pattern, PdfCellFormatter::decimalFormat).format(number);
+        return numberFormats
+                .computeIfAbsent(pattern, PdfCellFormatter::decimalFormat)
+                .format(number);
     }
 
     private static String defaultPattern(Number number) {

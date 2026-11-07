@@ -79,8 +79,7 @@ class PdfExportIT {
     @Test
     void exportPdf_pagedRoute_returnsPdfWithTitleHeadersAndFormattedValues() throws Exception {
         // Act
-        var response = mockMvc.perform(
-                        get(BASE + "/products/export/pdf").header(HttpHeaders.AUTHORIZATION, bearer()))
+        var response = mockMvc.perform(get(BASE + "/products/export/pdf").header(HttpHeaders.AUTHORIZATION, bearer()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
                 .andExpect(header().string(

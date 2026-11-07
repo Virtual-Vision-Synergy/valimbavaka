@@ -111,7 +111,8 @@ class PdfExporterTest {
         var row = new SaleRow("Crème\tvisage → 🙂", BigDecimal.ONE, null, false, null, 0L);
 
         // Act
-        String page = export(PdfExporter.report("Ventes", SaleRow.class, Stream.of(row))).getFirst();
+        var report = PdfExporter.report("Ventes", SaleRow.class, Stream.of(row));
+        String page = export(report).getFirst();
 
         // Assert
         assertThat(page).contains("Crème visage ? ?").contains("Non");
@@ -123,7 +124,8 @@ class PdfExporterTest {
         var row = new SaleRow("x".repeat(600), BigDecimal.ONE, null, false, null, 0L);
 
         // Act
-        String page = export(PdfExporter.report("Ventes", SaleRow.class, Stream.of(row))).getFirst();
+        var report = PdfExporter.report("Ventes", SaleRow.class, Stream.of(row));
+        String page = export(report).getFirst();
 
         // Assert
         assertThat(page).contains("x…").doesNotContain("x".repeat(600));
@@ -135,7 +137,8 @@ class PdfExporterTest {
         var event = new EventRow(Instant.parse("2026-10-19T21:30:00Z"));
 
         // Act
-        String page = export(PdfExporter.report("Journal", EventRow.class, Stream.of(event))).getFirst();
+        var report = PdfExporter.report("Journal", EventRow.class, Stream.of(event));
+        String page = export(report).getFirst();
 
         // Assert
         assertThat(page).contains("20/10/2026 00:30");
