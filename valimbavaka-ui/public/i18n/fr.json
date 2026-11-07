@@ -31,6 +31,7 @@
       "show": "Afficher le mot de passe",
       "hide": "Masquer le mot de passe",
       "capsLock": "Verrouillage des majuscules activé.",
+      "sessionExpired": "Votre session a expiré. Reconnectez-vous avec le même compte : vos saisies en attente sont conservées sur cet appareil et seront envoyées après la connexion.",
       "noAccount": "Pas de compte ? Seul un administrateur peut en créer un."
     },
     "password": {
@@ -59,9 +60,27 @@
       "reason": "Motif du refus",
       "actions": "Actions",
       "retry": "Renvoyer",
-      "discard": "Abandonner"
+      "discard": "Abandonner",
+      "failedTitle": "Saisies refusées",
+      "pendingTitle": "Saisies en attente d'envoi",
+      "savedAt": "Saisie le",
+      "state": "État",
+      "waiting": "En attente",
+      "lastError": "Dernière tentative : {{message}}",
+      "noReason": "Motif non communiqué par le serveur.",
+      "retried": "Saisie renvoyée.",
+      "retriedOffline": "Saisie remise en file : elle partira au retour du réseau.",
+      "discarded": "Saisie abandonnée.",
+      "discardTitle": "Abandonner cette saisie ?",
+      "discardMessage": "La saisie « {{request}} » sera supprimée définitivement de cet appareil et ne sera jamais envoyée."
     },
-    "synced": "Synchronisé"
+    "synced": "Synchronisé",
+    "method": {
+      "POST": "Création",
+      "PUT": "Modification",
+      "PATCH": "Mise à jour",
+      "DELETE": "Suppression"
+    }
   },
   "layout": {
     "navigation": "Navigation principale",
@@ -222,6 +241,10 @@
     "done": "terminée",
     "current": "en cours",
     "upcoming": "à venir"
+  },
+  "stockGauge": {
+    "label": "Répartition du stock par emplacement",
+    "total": "Total"
   },
   "search": {
     "placeholder": "Rechercher un article, une vente…",
@@ -571,13 +594,14 @@
     "restock": {
       "start": "Bon de réapprovisionnement",
       "title": "Bon de réapprovisionnement · brouillon",
-      "subtitle": "{{count}} article(s) sélectionné(s) · quantités proposées pour couvrir {{days}} jours de ventes",
+      "subtitle": "{{count}} article(s) sous le seuil · quantité suggérée = manque arrondi à la dizaine supérieure",
       "exportPdf": "Exporter PDF",
       "validate": "Valider le bon",
       "leadTime": "délai {{days}} j",
       "inHouse": "Fabrication interne (atelier)",
-      "orderBefore": "Commander avant le {{date}} pour éviter une rupture prolongée.",
-      "validated": "Bon de réapprovisionnement validé · {{count}} article(s) (démonstration)"
+      "expectedDelivery": "Livraison prévue le {{date}} si la commande part aujourd'hui.",
+      "generated": "Bon de réapprovisionnement {{reference}} généré · {{count}} article(s)",
+      "failed": "Le bon n'a pas été généré : {{message}}"
     }
   },
   "articles": {
@@ -999,12 +1023,14 @@
     "title": "Production",
     "subtitle": "Transformer des matières premières en produits finis, avec coût de revient.",
     "kpi": {
-      "lots": "Lots ce mois",
-      "lotsNote": "dont {{count}} en cours de cure",
+      "lots": "Lots terminés ce mois",
+      "lotsNote": "{{count}} lot(s) en cours",
       "units": "Unités produites",
-      "unitsNote": "+{{percent}} % vs mois dernier",
-      "cost": "Coût de revient moyen",
-      "costNote": "par unité, toutes gammes",
+      "unitsNote": "{{trend}} % vs mois dernier",
+      "unitsNoTrend": "aucune production le mois dernier",
+      "cost": "Coût matière moyen",
+      "costNote": "par unité, lots terminés ce mois",
+      "uncosted": "{{count}} lot(s) sans coût d'entrant, non compté(s)",
       "rebuy": "Matières à racheter",
       "rebuyNote": "bloquent les prochains lots"
     },
@@ -1039,12 +1065,19 @@
     "recent": "Lots récents",
     "all": "Tous →",
     "status": {
-      "DRAFT": "Brouillon",
-      "CURING": "En cure",
-      "VALIDATED": "Validé"
+      "DRAFT": "Planifié",
+      "CURING": "En cours",
+      "VALIDATED": "Terminé"
     },
-    "draftToast": "Lot {{number}} enregistré en brouillon (démonstration)",
-    "validatedToast": "Lot {{number}} validé : stock mis à jour (démonstration)"
+    "draftToast": "Lot {{number}} enregistré : planifié, le stock n'a pas bougé",
+    "saveError": "Le lot n'a pas été enregistré : {{message}}",
+    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt",
+    "start": "Démarrer",
+    "startLot": "Démarrer le lot {{number}}",
+    "finish": "Terminer",
+    "finishLot": "Terminer le lot {{number}} (sort les matières, entre le produit fini)",
+    "startedToast": "Lot {{number}} en cours : le stock bougera quand il sera terminé",
+    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}"
   },
   "transfers": {
     "title": "Transferts de stock",
@@ -1064,38 +1097,61 @@
       "MANUAL": "Manuels",
       "RETURN": "Retours"
     },
-    "week": "Cette semaine · {{count}} transferts",
+    "total": "{{count}} transfert(s)",
     "empty": "Aucun transfert",
+    "locationUnknown": "Emplacement désactivé",
     "col": {
       "number": "N°",
       "route": "Trajet",
       "origin": "Origine",
       "lines": "Lignes",
       "date": "Date",
-      "status": "Statut"
+      "status": "Statut",
+      "issuer": "Émetteur"
     },
     "status": {
-      "IN_TRANSIT": "En transit",
-      "RECEIVED": "Reçu",
-      "DISCREPANCY": "Écart",
-      "RETURN": "Retour"
+      "RETURN": "Retour",
+      "VALIDATED": "Validé"
     },
     "detailLabel": "Bon de transfert {{number}}",
     "from": "De",
     "to": "Vers",
-    "pending": "en transit",
-    "receivedLine": "reçu",
-    "gapLine": "reçu {{received}} sur {{sent}}",
-    "moreLines": "+ {{count}} autres lignes",
+    "note": "Note",
+    "linesLabel": "{{count}} article(s) transféré(s)",
+    "unit": {
+      "PIECE": "u.",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
     "print": "Imprimer le bon",
-    "createReturn": "Créer un retour"
+    "createReturn": "Créer un retour",
+    "return": {
+      "title": "Retour de stock",
+      "subtitle": "Renvoyer les articles non écoulés vers un autre emplacement, par exemple de la boutique vers l'entrepôt.",
+      "back": "← Retour",
+      "lines": "Articles retournés",
+      "noStock": "Aucun article en stock à cet emplacement.",
+      "article": "Article",
+      "chooseArticle": "Choisir un article",
+      "articleRequired": "Choisissez un article.",
+      "quantity": "Quantité",
+      "available": "Disponible : {{count}}",
+      "quantityInvalid": "Quantité positive, 3 décimales au maximum.",
+      "removeLine": "Retirer la ligne {{index}}",
+      "addLine": "Ajouter un article",
+      "note": "Note",
+      "submit": "Enregistrer le retour",
+      "saved": "Retour {{number}} enregistré.",
+      "sameLocation": "L'origine et la destination doivent être différentes."
+    }
   },
   "inventory": {
     "pageTitle": "Inventaire",
     "title": "Inventaire · {{location}}",
     "status": {
       "IN_PROGRESS": "En cours",
-      "CLOSED": "Clôturée"
+      "CLOSED": "Clôturée",
+      "CANCELLED": "Annulée"
     },
     "openedBy": "Session {{number}} ouverte le {{date}} à {{time}} par {{who}}",
     "salesBlocked": "Ventes bloquées sur cet emplacement pendant le comptage.",
@@ -1132,14 +1188,39 @@
       "OTHER": "Autre motif"
     },
     "empty": "Aucun article dans ce filtre.",
+    "noSession": "Aucune session d'inventaire en cours. Ouvrez-en une pour commencer le comptage.",
+    "countFailed": "Comptage de {{article}} non enregistré : {{reason}}",
+    "reasonFailed": "Motif de l'écart de {{article}} non enregistré : {{reason}}",
     "balance": "Bilan provisoire",
     "gapUnits": "Écart en unités",
     "gapValue": "Écart en valeur",
     "gapArticles": "Articles avec écart",
     "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
     "previous": "Sessions précédentes",
+    "previousEmpty": "Aucune session clôturée à afficher pour l'instant.",
     "confirmTitle": "Clôturer la session ?",
-    "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée."
+    "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée.",
+    "scope": {
+      "ALL": "Tout l'emplacement",
+      "RANGE": "Une gamme"
+    },
+    "open": {
+      "link": "Ouvrir une session",
+      "back": "← Retour à l'inventaire",
+      "title": "Ouvrir une session d'inventaire",
+      "hint": "Les articles du périmètre sont figés à l'ouverture ; une seule session en cours par emplacement.",
+      "location": "Emplacement",
+      "countDate": "Date du comptage",
+      "scope": "Périmètre",
+      "range": "Gamme",
+      "responsible": "Responsable du comptage",
+      "choose": "Choisir…",
+      "required": "Ce champ est obligatoire.",
+      "rangeRequired": "Choisissez la gamme à inventorier.",
+      "pastDate": "La date du comptage ne peut pas être passée.",
+      "submit": "Ouvrir la session",
+      "opened": "Session {{number}} ouverte"
+    }
   },
   "promotions": {
     "title": "Promotions",
@@ -1415,5 +1496,11 @@
       "title": "Articles fournis",
       "empty": "Aucun article fourni par ce fournisseur."
     }
+  },
+  "export": {
+    "done": "Fichier {{filename}} généré.",
+    "failed": "Export impossible : réessayez.",
+    "tooLarge": "Trop de lignes à exporter : affinez les filtres.",
+    "forbidden": "Vous n'avez pas le droit d'exporter ces données."
   }
 }

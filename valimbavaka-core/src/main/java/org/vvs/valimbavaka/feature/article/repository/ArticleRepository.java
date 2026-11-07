@@ -100,6 +100,6 @@ public interface ArticleRepository extends Repository<Article, UUID> {
             """)
     List<ArticleCost> findCosts(Collection<UUID> articleIds);
 
-    /** Articles of the given identifiers, active or not (targets of a promotion, PRO-01). */
-    List<Article> findAllByIdIn(Collection<UUID> ids);
+    /** Articles with the given ids, active or not (TRF-04, PRO-01, ART-06); an unknown id is left out. */
+    List<Article> findByIdIn(Collection<UUID> ids);
 }

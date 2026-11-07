@@ -1,7 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
@@ -29,6 +29,7 @@ describe('LoginPage', () => {
       providers: [
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
+        provideRouter([]),
         provideTestTranslations(),
       ],
     }).compileComponents();
@@ -84,5 +85,32 @@ describe('LoginPage', () => {
     submit();
 
     httpMock.expectNone('/api/v1/auth/login');
+  });
+
+  it('should not show the expired session message on a normal visit', () => {
+    expect(element.querySelector('[role="status"]')).toBeNull();
+  });
+});
+
+describe('LoginPage after an expired session', () => {
+  it('should invite the user to sign in again and say the pending entries are kept', async () => {
+    await TestBed.configureTestingModule({
+      imports: [LoginPage],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideTestTranslations(),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ session: 'expired' }) } },
+        },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(LoginPage);
+    await fixture.whenStable();
+
+    const message = (fixture.nativeElement as HTMLElement).querySelector('[role="status"]');
+    expect(message?.textContent).toContain('Votre session a expiré');
+    expect(message?.textContent).toContain('saisies en attente sont conservées');
   });
 });

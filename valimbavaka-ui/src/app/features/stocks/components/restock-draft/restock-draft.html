@@ -6,14 +6,14 @@
         <span class="code-chip" aria-hidden="true">STK-05</span>
       </h2>
       <p class="subtitle">
-        {{ 'stocks.restock.subtitle' | translate: { count: rows().length, days: coverageDays } }}
+        {{ 'stocks.restock.subtitle' | translate: { count: alerts().length } }}
       </p>
     </div>
     <div class="actions">
       <button class="btn btn-secondary" type="button" (click)="exported.emit()">
         {{ 'stocks.restock.exportPdf' | translate }}
       </button>
-      <button class="btn btn-primary" type="button" (click)="validated.emit()">
+      <button class="btn btn-primary" type="button" [disabled]="busy()" (click)="validated.emit()">
         {{ 'stocks.restock.validate' | translate }}
       </button>
     </div>
@@ -37,9 +37,9 @@
             </li>
           }
         </ul>
-        @if (group.orderBefore) {
+        @if (group.expectedDelivery) {
           <p class="hint">
-            {{ 'stocks.restock.orderBefore' | translate: { date: group.orderBefore } }}
+            {{ 'stocks.restock.expectedDelivery' | translate: { date: group.expectedDelivery } }}
           </p>
         }
       </section>

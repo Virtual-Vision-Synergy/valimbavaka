@@ -2,11 +2,15 @@
   <header class="page-header">
     <div>
       <h1>{{ 'sync.page.title' | translate }}</h1>
-      <p>{{ 'sync.pending' | translate: { count: pendingCount() } }}</p>
+      <p>
+        {{ 'sync.pending' | translate: { count: pending().length } }} ·
+        {{ 'sync.failed' | translate: { count: failed().length } }}
+      </p>
     </div>
   </header>
 
   <div class="card">
+    <h2>{{ 'sync.page.failedTitle' | translate }}</h2>
     @if (failed().length === 0) {
       <p>{{ 'sync.page.empty' | translate }}</p>
     } @else {
@@ -14,6 +18,7 @@
         <table>
           <thead>
             <tr>
+              <th scope="col">{{ 'sync.page.savedAt' | translate }}</th>
               <th scope="col">{{ 'sync.page.request' | translate }}</th>
               <th scope="col">{{ 'sync.page.reason' | translate }}</th>
               <th scope="col" class="actions">{{ 'sync.page.actions' | translate }}</th>
@@ -22,18 +27,24 @@
           <tbody>
             @for (entry of failed(); track entry.id) {
               <tr>
-                <td class="request">{{ entry.method }} {{ entry.url }}</td>
-                <td>{{ entry.errorMessage }}</td>
+                <td>{{ savedAt(entry) }}</td>
+                <td>
+                  <span>{{ 'sync.method.' + entry.method | translate }}</span>
+                  <span class="request">{{ entry.url }}</span>
+                </td>
+                <td class="reason">
+                  {{ entry.errorMessage || ('sync.page.noReason' | translate) }}
+                </td>
                 <td class="actions">
                   <button
                     class="btn btn-ghost btn-sm"
                     type="button"
                     [disabled]="isSyncing()"
-                    (click)="retry(entry.id)"
+                    (click)="retry(entry)"
                   >
                     {{ 'sync.page.retry' | translate }}
                   </button>
-                  <button class="btn btn-ghost btn-sm" type="button" (click)="discard(entry.id)">
+                  <button class="btn btn-ghost btn-sm" type="button" (click)="askDiscard(entry)">
                     {{ 'sync.page.discard' | translate }}
                   </button>
                 </td>
@@ -44,4 +55,54 @@
       </div>
     }
   </div>
+
+  @if (pending().length > 0) {
+    <div class="card">
+      <h2>{{ 'sync.page.pendingTitle' | translate }}</h2>
+      @if (!isOnline()) {
+        <p>{{ 'sync.offline' | translate }}</p>
+      }
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'sync.page.savedAt' | translate }}</th>
+              <th scope="col">{{ 'sync.page.request' | translate }}</th>
+              <th scope="col">{{ 'sync.page.state' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of pending(); track entry.id) {
+              <tr>
+                <td>{{ savedAt(entry) }}</td>
+                <td>
+                  <span>{{ 'sync.method.' + entry.method | translate }}</span>
+                  <span class="request">{{ entry.url }}</span>
+                </td>
+                <td>
+                  <vvs-status-badge tone="warning" [label]="'sync.page.waiting' | translate" />
+                  @if (entry.errorMessage) {
+                    <span class="reason">{{
+                      'sync.page.lastError' | translate: { message: entry.errorMessage }
+                    }}</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
 </section>
+
+@if (toDiscard(); as entry) {
+  <vvs-confirm-dialog
+    [heading]="'sync.page.discardTitle' | translate"
+    [message]="'sync.page.discardMessage' | translate: { request: entry.method + ' ' + entry.url }"
+    [confirmLabel]="'sync.page.discard' | translate"
+    [danger]="true"
+    (confirmed)="confirmDiscard()"
+    (cancelled)="cancelDiscard()"
+  />
+}

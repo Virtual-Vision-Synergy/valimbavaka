@@ -269,3 +269,9 @@ tr[data-gap='plus'] > * {
     position: static;
   }
 }
+
+.no-session {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+}

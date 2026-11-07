@@ -15,6 +15,8 @@ export interface OutboxEntry {
   readonly attempts: number;
   readonly status: OutboxStatus;
   readonly errorMessage?: string;
+  /** true si la saisie est FAILED après des relances réseau épuisées (et non refusée par le serveur), SYS-10. */
+  readonly networkFailure?: boolean;
 }
 
 /**

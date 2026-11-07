@@ -4,14 +4,22 @@
     [subtitle]="'stocks.subtitle' | translate"
     [codes]="['STK-01 → STK-06']"
   >
+    @if (canRecordReturn) {
+      <a class="btn btn-secondary" routerLink="/transfers/return">
+        <svg [vvsIcon]="icons.Undo2" [size]="18"></svg>
+        {{ 'transfers.stockReturn' | translate }}
+      </a>
+    }
     <button class="btn btn-secondary" type="button" (click)="demoAction()">
       <svg [vvsIcon]="icons.Truck" [size]="18"></svg>
       {{ 'stocks.reception' | translate }}
     </button>
-    <button class="btn btn-primary" type="button" (click)="startRestock()">
-      <svg [vvsIcon]="icons.FilePlus" [size]="18"></svg>
-      {{ 'stocks.restock.start' | translate }}
-    </button>
+    @if (canRestock()) {
+      <button class="btn btn-primary" type="button" (click)="startRestock()">
+        <svg [vvsIcon]="icons.FilePlus" [size]="18"></svg>
+        {{ 'stocks.restock.start' | translate }}
+      </button>
+    }
   </vvs-page-header>
 
   @if (stock.error()) {
@@ -94,6 +102,7 @@
                       [threshold]="row.threshold"
                       [max]="row.threshold * 2.5"
                       [showThreshold]="true"
+                      [segments]="row.segments"
                     />
                     <span class="num ratio">{{ row.quantity }} / {{ row.threshold }}</span>
                   </span>
@@ -110,9 +119,10 @@
       </div>
     </section>
 
-    @if (selectedRows().length) {
+    @if (canRestock() && selectedAlerts().length) {
       <vvs-restock-draft
-        [rows]="selectedRows()"
+        [alerts]="selectedAlerts()"
+        [busy]="generating()"
         (exported)="demoAction()"
         (validated)="validateRestock()"
       />
