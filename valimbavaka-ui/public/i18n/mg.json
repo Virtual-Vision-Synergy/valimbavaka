@@ -1286,6 +1286,17 @@
       "none": "Tsy misy mbola any ivelany.",
       "returnedToast": "Naverina tao amin'ny tahiry ny {{number}}",
       "returnFailed": "Tsy nekena ny famerenana ny {{number}} : {{message}}",
+      "kpi": {
+        "label": "Fanaraha-maso ny vokatra mbola any ivelany",
+        "out": "Mbola any ivelany",
+        "outNote": "vokatra mbola ampiasaina amin'ny sary",
+        "late": "Tara",
+        "lateNote": "lasa ny fotoana hamerenana",
+        "lateBadge": "Ampahatsiahivina",
+        "value": "Sanda mihidy",
+        "valueNote": "araka ny vidin'ny vokatra nivoaka",
+        "unvaluedNote": "anisan'izany {{count}} tsy misy vidiny, tsy voasanda"
+      },
       "status": {
         "OUT": "Nivoaka",
         "LATE": "Tara",

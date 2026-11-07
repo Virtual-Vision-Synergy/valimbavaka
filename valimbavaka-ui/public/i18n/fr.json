@@ -1286,6 +1286,17 @@
       "none": "Aucune sortie en cours.",
       "returnedToast": "Sortie {{number}} réintégrée : statut Réintégré, stock remis à jour",
       "returnFailed": "Réintégration de {{number}} refusée : {{message}}",
+      "kpi": {
+        "label": "Suivi des sorties en cours",
+        "out": "Sorties en cours",
+        "outNote": "produits encore en séance photo",
+        "late": "En retard",
+        "lateNote": "retour prévu dépassé",
+        "lateBadge": "À relancer",
+        "value": "Valeur immobilisée",
+        "valueNote": "au coût d'achat des produits sortis",
+        "unvaluedNote": "dont {{count}} unité(s) sans coût, non valorisée(s)"
+      },
       "status": {
         "OUT": "Sorti",
         "LATE": "En retard",

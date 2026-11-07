@@ -61,7 +61,9 @@
 .today li + li {
   border-top: 1px solid var(--border-subtle);
 }
-.wide {
+.wide,
+vvs-shooting-kpis {
+  display: block;
   max-width: 760px;
 }
 @media (max-width: 1200px) {
