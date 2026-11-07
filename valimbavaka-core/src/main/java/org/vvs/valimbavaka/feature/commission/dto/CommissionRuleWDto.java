@@ -20,7 +20,8 @@ public record CommissionRuleWDto(
         @Size(max = 100, message = "Le nom ne doit pas dépasser {max} caractères")
         String name,
 
-        @NotNull(message = "Le canal de vente est obligatoire") UUID salesChannelId,
+        @NotNull(message = "Le canal de vente est obligatoire")
+        UUID salesChannelId,
 
         @NotNull(message = "Le taux de commission est obligatoire")
         @DecimalMin(value = "0.00", message = "Le taux de commission ne peut pas être négatif")
@@ -28,7 +29,8 @@ public record CommissionRuleWDto(
         @Digits(integer = 3, fraction = 2, message = "Le taux de commission accepte 2 décimales au maximum")
         BigDecimal rate,
 
-        @NotNull(message = "La base de calcul est obligatoire") CommissionBase base,
+        @NotNull(message = "La base de calcul est obligatoire")
+        CommissionBase base,
 
         // Version read by the client (CommissionRuleRDto.version): a stale value is refused with 409. Optional.
         @Nullable Long version) {}

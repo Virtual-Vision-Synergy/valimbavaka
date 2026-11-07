@@ -13,4 +13,7 @@ import org.vvs.valimbavaka.feature.commission.domain.CommissionRateSource;
  * from and, for a channel rule, the rule's identifier ({@code null} otherwise).
  */
 public record ApplicableCommissionRDto(
-        BigDecimal rate, CommissionBase base, CommissionRateSource source, @Nullable UUID ruleId) {}
+        BigDecimal rate,
+        CommissionBase base,
+        CommissionRateSource source,
+        @Nullable UUID ruleId) {}

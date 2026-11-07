@@ -148,7 +148,8 @@ class CommissionRuleServiceImplTest {
         // Arrange
         var rule = shopRule();
         when(ruleRepository.findById(RULE_ID)).thenReturn(Optional.of(rule));
-        when(ruleRepository.existsByNameIgnoreCaseAndIdNot("Boutique standard", RULE_ID)).thenReturn(false);
+        when(ruleRepository.existsByNameIgnoreCaseAndIdNot("Boutique standard", RULE_ID))
+                .thenReturn(false);
         when(ruleRepository.findBySalesChannelIdAndActiveTrue(SHOP_ID)).thenReturn(Optional.empty());
 
         // Act
