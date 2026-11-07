@@ -1,14 +1,31 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
+import { of } from 'rxjs';
+import { AuthStore } from '../../../../core/auth/auth-store';
+import { errorMessage } from '../../../../core/http/problem-detail';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { TabItem, Tabs } from '../../../../shared/components/tabs/tabs';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { SalonForm } from '../../components/salon-form/salon-form';
+import { ShootingForm } from '../../components/shooting-form/shooting-form';
 import { ShootingList } from '../../components/shooting-list/shooting-list';
-import { SalonServiceRDto, SalonServiceWDto, ShootingRDto } from '../../data-access/service-models';
+import {
+  SalonServiceRDto,
+  SalonServiceWDto,
+  ShootingRowRDto,
+  ShootingWDto,
+} from '../../data-access/service-models';
 import { SalonService } from '../../data-access/service-service';
+import { ShootingService } from '../../data-access/shooting-service';
 import { isoDay } from '../../../../shared/data-access/demo-dates';
 
 type ServicesTab = 'salon' | 'shooting';
@@ -16,22 +33,37 @@ type ServicesTab = 'salon' | 'shooting';
 /** Salon et shooting (SRV-01 à SRV-04, SHO-01 à SHO-03) : prestations du jour et sorties de produits. */
 @Component({
   selector: 'vvs-services-page',
-  imports: [TranslatePipe, AriaryPipe, ListState, Tabs, SalonForm, ShootingList],
+  imports: [TranslatePipe, AriaryPipe, ListState, Tabs, SalonForm, ShootingForm, ShootingList],
   templateUrl: './services-page.html',
   styleUrl: './services-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServicesPage {
   private readonly salonService = inject(SalonService);
+  private readonly shootingService = inject(ShootingService);
   private readonly toast = inject(ToastService);
+  private readonly shootingForm = viewChild(ShootingForm);
 
   protected readonly context = rxResource({ stream: () => this.salonService.context() });
+  /** Sorties shooting réelles (SHO-01) ; le salon reste en démonstration (SRV-xx). */
+  protected readonly shootingRows = rxResource({ stream: () => this.shootingService.list() });
+  private readonly authStore = inject(AuthStore);
+  protected readonly canRecordShooting = computed(() =>
+    this.authStore.hasPermission('shootings.create'),
+  );
   protected readonly tab = signal<ServicesTab>('salon');
+  /** Articles et stock par emplacement, chargés à l'ouverture de l'onglet Shooting si la saisie est permise. */
+  protected readonly shootingStock = rxResource({
+    params: () => this.canRecordShooting() && this.tab() === 'shooting',
+    stream: ({ params }) => (params ? this.shootingService.stock() : of(null)),
+  });
+  protected readonly savingShooting = signal(false);
+  protected readonly shootingError = signal<string | null>(null);
   protected readonly created = signal<readonly SalonServiceRDto[]>([]);
   protected readonly returnedNumbers = signal<readonly string[]>([]);
 
-  protected readonly shootings = computed<readonly ShootingRDto[]>(() =>
-    (this.context.value()?.shootings ?? []).map((shooting) =>
+  protected readonly shootings = computed<readonly ShootingRowRDto[]>(() =>
+    (this.shootingRows.value() ?? []).map((shooting) =>
       this.returnedNumbers().includes(shooting.number)
         ? { ...shooting, status: 'RETURNED' }
         : shooting,
@@ -72,6 +104,29 @@ export class ServicesPage {
     });
   }
 
+  protected recordShooting(request: ShootingWDto): void {
+    this.savingShooting.set(true);
+    this.shootingError.set(null);
+    this.shootingService.create(request).subscribe({
+      next: (result) => {
+        this.savingShooting.set(false);
+        this.shootingForm()?.reset();
+        if (result.queued) {
+          this.toast.show('common.queuedSaved', {}, 'info');
+          return;
+        }
+        this.toast.show('services.shooting.form.savedToast', { number: result.body?.number ?? '' });
+        this.shootingRows.reload();
+        this.shootingStock.reload();
+      },
+      error: (error: unknown) => {
+        this.savingShooting.set(false);
+        this.shootingError.set(errorMessage(error));
+      },
+    });
+  }
+
+  /** Réintégration encore simulée : branchée sur le serveur par SHO-02. */
   protected returnShooting(number: string): void {
     this.salonService.returnShooting(number).subscribe(() => {
       this.returnedNumbers.update((all) => [...all, number]);

@@ -1381,6 +1381,22 @@
         "OUT": "Sorti",
         "LATE": "En retard",
         "RETURNED": "Réintégré"
+      },
+      "form": {
+        "title": "Nouvelle sortie shooting",
+        "hint": "Les produits quittent le stock de l'emplacement choisi sans être comptés comme perte.",
+        "location": "Emplacement de sortie",
+        "expectedReturn": "Retour prévu",
+        "returnInPast": "Le retour prévu doit être dans le futur.",
+        "items": "Articles sortis",
+        "available": "disponible {{count}}",
+        "remove": "Retirer",
+        "noItem": "Ajoutez au moins un article.",
+        "add": "Ajouter un article",
+        "shortage": "Stock insuffisant à cet emplacement pour un des articles : ajustez la quantité.",
+        "note": "Note",
+        "save": "Enregistrer la sortie",
+        "savedToast": "Sortie {{number}} enregistrée : statut Sorti"
       }
     }
   },

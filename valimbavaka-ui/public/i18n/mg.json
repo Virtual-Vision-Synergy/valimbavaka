@@ -1381,6 +1381,22 @@
         "OUT": "Nivoaka",
         "LATE": "Tara",
         "RETURNED": "Naverina"
+      },
+      "form": {
+        "title": "Famoahana shooting vaovao",
+        "hint": "Mivoaka amin'ny tahirin'ny toerana voafidy ny vokatra fa tsy isaina ho very.",
+        "location": "Toerana ivoahana",
+        "expectedReturn": "Fotoana hamerenana",
+        "returnInPast": "Tokony ho amin'ny ho avy ny fotoana hamerenana.",
+        "items": "Entana nivoaka",
+        "available": "misy {{count}}",
+        "remove": "Esory",
+        "noItem": "Ampio entana iray farafahakeliny.",
+        "add": "Hanampy entana",
+        "shortage": "Tsy ampy ny tahiry amin'ity toerana ity ho an'ny entana iray : ovay ny isa.",
+        "note": "Fanamarihana",
+        "save": "Raketo ny famoahana",
+        "savedToast": "Voaraketa ny famoahana {{number}} : Nivoaka"
       }
     }
   },
