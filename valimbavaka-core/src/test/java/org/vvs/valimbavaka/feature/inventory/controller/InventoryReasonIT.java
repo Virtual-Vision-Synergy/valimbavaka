@@ -110,7 +110,8 @@ class InventoryReasonIT {
     void qualifyLine_otherReason_replacesPreviousReason() throws Exception {
         // Arrange
         countAt("13");
-        mockMvc.perform(asAdmin(put(reasonUrl())).content(reason("ENTRY_ERROR"))).andExpect(status().isOk());
+        mockMvc.perform(asAdmin(put(reasonUrl())).content(reason("ENTRY_ERROR")))
+                .andExpect(status().isOk());
 
         // Act + Assert
         mockMvc.perform(asAdmin(put(reasonUrl())).content(reason("UNDECLARED_SHOOTING")))
@@ -177,8 +178,8 @@ class InventoryReasonIT {
     void qualifyLine_massAssignmentOfIdAndQuantities_isIgnored() throws Exception {
         // Arrange
         countAt("10");
-        var forged = "{\"id\":\"%s\",\"countedQuantity\":12,\"gap\":0,\"reason\":\"OTHER\"}"
-                .formatted(UUID.randomUUID());
+        var forged =
+                "{\"id\":\"%s\",\"countedQuantity\":12,\"gap\":0,\"reason\":\"OTHER\"}".formatted(UUID.randomUUID());
 
         // Act + Assert
         mockMvc.perform(asAdmin(put(reasonUrl())).content(forged))
