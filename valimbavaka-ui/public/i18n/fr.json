@@ -1106,7 +1106,8 @@
     "closeHint": "Disponible quand tout est compté et chaque écart expliqué.",
     "closeReady": "Tout est compté : vous pouvez clôturer.",
     "closedAt": "Session clôturée à {{time}}.",
-    "closedToast": "Session {{number}} clôturée : stock ajusté (démonstration)",
+    "closedToast": "Session {{number}} clôturée : stock ajusté aux quantités comptées",
+    "closeFailed": "Clôture de la session {{number}} refusée : {{reason}}",
     "listLabel": "Articles à compter",
     "filterLabel": "Filtrer les articles",
     "filter": {

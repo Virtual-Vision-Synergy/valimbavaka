@@ -1106,7 +1106,8 @@
     "closeHint": "Azo atao rehefa voaisa daholo ary voazava ny elanelana rehetra.",
     "closeReady": "Voaisa daholo : azonao akatona.",
     "closedAt": "Voakatona tamin'ny {{time}} ny fotoana.",
-    "closedToast": "Voakatona ny fotoana {{number}} : voasitrana ny tahiry (fanandramana)",
+    "closedToast": "Voakatona ny fotoana {{number}} : nampifanarahina tamin'ny isa voaisa ny tahiry",
+    "closeFailed": "Tsy nekena ny fanakatonana ny fotoana {{number}} : {{reason}}",
     "listLabel": "Entana hosaina",
     "filterLabel": "Sivano ny entana",
     "filter": {

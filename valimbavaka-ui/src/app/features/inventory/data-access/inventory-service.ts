@@ -3,12 +3,10 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { demo } from '../../../shared/data-access/demo';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import { toInventorySheet } from './inventory-sheet';
 import {
-  InventoryCloseWDto,
   InventoryContextRDto,
   InventoryCountWDto,
   InventoryLineRDto,
@@ -23,8 +21,8 @@ const LINE_PAGE_SIZE = 100;
 
 /**
  * Sessions d'inventaire branchées sur `/api/v1/inventories` : ouverture (INV-01), feuille de comptage et saisie
- * du comptage (INV-02), motif d'écart par ligne (INV-03). Les écritures passent par la file hors ligne (SYS-07).
- * La clôture (`close`) reste en démonstration jusqu'à INV-04.
+ * du comptage (INV-02), motif d'écart par ligne (INV-03), clôture avec ajustement du stock (INV-04). Les écritures
+ * passent par la file hors ligne (SYS-07).
  */
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
@@ -97,9 +95,12 @@ export class InventoryService {
     return this.outbox.submit<InventoryLineRDto>('PUT', url, body);
   }
 
-  /** Simulation : accepte la clôture et renvoie le numéro de session (INV-04). */
-  close(request: InventoryCloseWDto): Observable<InventoryCloseWDto> {
-    return demo(request);
+  /**
+   * Clôture la session (INV-04) : le serveur ajuste le stock de l'emplacement aux quantités comptées et renvoie la
+   * session `CLOSED` ; `queued` si la clôture attend le réseau.
+   */
+  close(sessionId: string): Observable<SubmitResult<InventorySessionRDto>> {
+    return this.outbox.submit<InventorySessionRDto>('POST', `${this.baseUrl}/${sessionId}/close`);
   }
 
   /** Toutes les lignes d'une session, triées par code article : première page, puis les suivantes en parallèle. */
