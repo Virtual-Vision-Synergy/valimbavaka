@@ -284,6 +284,34 @@ describe('OutboxService', () => {
     expect(sut.pendingCount()).toBe(0);
   });
 
+  it('should list the account pending entries in queue order', async () => {
+    online.set(false);
+    await submit('/api/v1/first');
+    await submit('/api/v1/second');
+
+    expect(sut.pending().map((entry) => entry.url)).toEqual(['/api/v1/first', '/api/v1/second']);
+    expect(sut.pendingCount()).toBe(2);
+  });
+
+  it('should show a retried entry as pending at once even when offline', async () => {
+    online.set(false);
+    await submit('/api/v1/first');
+    online.set(true);
+    const flushing = sut.flush();
+    await answer('/api/v1/first', 409);
+    await flushing;
+    const [refused] = sut.failed();
+    online.set(false);
+
+    await sut.retry(refused.id);
+
+    expect(sut.failedCount()).toBe(0);
+    expect(sut.pending()).toEqual([
+      expect.objectContaining({ id: refused.id, attempts: 0, errorMessage: undefined }),
+    ]);
+    httpMock.expectNone('/api/v1/first');
+  });
+
   it('should empty the queue on clear', async () => {
     online.set(false);
     await submit('/api/v1/first');

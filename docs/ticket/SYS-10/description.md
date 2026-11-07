@@ -18,6 +18,10 @@ En tant qu'utilisateur, je veux qu'une saisie impossible à envoyer ne bloque pa
 - [ ] Une saisie bloquée par un problème réseau n'empêche pas l'envoi des saisies indépendantes autorisées par cette règle.
 - [ ] Les saisies qui dépendent les unes des autres sont toujours envoyées dans l'ordre de saisie.
 
+## Règle décidée (décision PO du 07/11/2026, Randy)
+
+**Ordre strict par type.** Les saisies du journal, des ventes et des factures, et plus largement toute opération métier rejouable (mouvements de stock, transferts, production, inventaire, livraisons, avoirs), restent dans l'ordre strict de saisie et attendent derrière une saisie bloquée de leur groupe. Les saisies indépendantes (fiches et référentiels : fournisseurs, articles, utilisateurs, promotions, catalogues) peuvent passer devant une saisie bloquée par une erreur réseau. Détail et classement des adresses : [guide](guide.md).
+
 ## Détails
 
 | | |

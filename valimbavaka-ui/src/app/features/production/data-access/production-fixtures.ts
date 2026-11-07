@@ -133,7 +133,11 @@ const LOTS: readonly LotRDto[] = (
 
 export const PRODUCTION_FIXTURE: ProductionContextRDto = {
   nextNumber: 'PRD-0081',
-  operators: ['Soa Rakoto', 'Fara Rasoa', 'Hanta Rasolofoson'],
+  operators: [
+    { id: 'op-1', name: 'Soa Rakoto' },
+    { id: 'op-2', name: 'Fara Rasoa' },
+    { id: 'op-3', name: 'Hanta Rasolofoson' },
+  ],
   materials: MATERIALS,
   products: RECIPES.map(toProduct),
   recentLots: LOTS,
