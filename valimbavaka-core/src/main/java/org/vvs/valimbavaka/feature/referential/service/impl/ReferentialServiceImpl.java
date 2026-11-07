@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.feature.referential.domain.StockLocation;
 import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
 import org.vvs.valimbavaka.feature.referential.dto.SalesChannelRDto;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
@@ -72,6 +74,14 @@ public class ReferentialServiceImpl implements ReferentialService {
     @Override
     public boolean isActiveStockLocation(UUID stockLocationId) {
         return stockLocationRepository.existsByIdAndActiveTrue(stockLocationId);
+    }
+
+    @Override
+    public UUID requireActiveStockLocationId(String code) {
+        return stockLocationRepository
+                .findByCodeAndActiveTrue(code)
+                .map(StockLocation::getId)
+                .orElseThrow(() -> new BusinessException("Emplacement de stock " + code + " inconnu ou inactif."));
     }
 
     private static Pageable pageable(PageQuery query) {
