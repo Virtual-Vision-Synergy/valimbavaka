@@ -6,6 +6,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryLine;
+import org.vvs.valimbavaka.feature.inventory.domain.InventoryLineTally;
 import org.vvs.valimbavaka.feature.inventory.domain.InventorySession;
 import org.vvs.valimbavaka.feature.inventory.dto.InventoryLineRDto;
 import org.vvs.valimbavaka.feature.inventory.dto.InventorySessionRDto;
@@ -15,7 +16,7 @@ import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 @Component
 public class InventoryMapper {
 
-    public InventorySessionRDto toRDto(InventorySession session, StockLocationRDto location, long lineCount) {
+    public InventorySessionRDto toRDto(InventorySession session, StockLocationRDto location, InventoryLineTally tally) {
         return new InventorySessionRDto(
                 session.getId(),
                 session.getNumber(),
@@ -31,7 +32,8 @@ public class InventoryMapper {
                 session.getCreatedAt(),
                 session.getCreatedBy(),
                 session.getClosedAt(),
-                lineCount,
+                tally.lineCount(),
+                tally.gapCount(),
                 session.getVersion());
     }
 
