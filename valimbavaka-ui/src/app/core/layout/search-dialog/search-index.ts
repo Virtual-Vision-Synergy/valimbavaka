@@ -1,9 +1,16 @@
-import { IconNode, Handshake, Package, Plus, ShoppingCart, Truck } from 'lucide';
-import { ARTICLES_FIXTURE } from '../../../features/articles/data-access/article-fixtures';
+import { IconNode, Package, Plus } from 'lucide';
+import { ArticleRDto } from '../../../features/article/data-access/article-models';
 import { ProductRange } from '../../../shared/models/tone';
+import { formatAriary } from '../../../shared/pipes/ariary-pipe';
 import { MENU_SECTIONS } from '../menu';
 
-export type SearchGroupKey = 'articles' | 'records' | 'actions' | 'goto';
+export type SearchGroupKey = 'articles' | 'actions' | 'goto';
+
+/** Saisie minimale (caractères, espaces rognés) avant de chercher. */
+export const MIN_TERM_LENGTH = 2;
+
+/** Nombre maximal d'articles proposés par la palette (une seule page demandée au serveur). */
+export const MAX_ARTICLES = 5;
 
 export interface SearchItem {
   readonly id: string;
@@ -11,7 +18,7 @@ export interface SearchItem {
   readonly title: string;
   readonly meta: string;
   readonly range: ProductRange | null;
-  /** Libellé discret à droite (type d'enregistrement). */
+  /** Libellé discret à droite (type d'article). */
   readonly aside: string;
   readonly route: string;
   readonly highlight: boolean;
@@ -28,44 +35,41 @@ export interface SearchContext {
   readonly t: (key: string, params?: object) => string;
 }
 
-interface RecordEntry {
+/** Action de création : visible seulement avec la permission d'écriture correspondante (mêmes codes que le backend). */
+interface CreateAction {
   readonly id: string;
-  readonly title: string;
-  readonly reference: string;
-  readonly typeKey: string;
-  readonly icon: IconNode;
+  readonly labelKey: string;
   readonly route: string;
+  readonly permission: string;
 }
 
-/** Ventes, livraisons et fournisseurs de démonstration en attendant l'API de recherche. */
-const RECORDS: readonly RecordEntry[] = [
+const CREATE_ACTIONS: readonly CreateAction[] = [
+  { id: 'new-sale', labelKey: 'search.action.newSale', route: '/pos', permission: 'sales.read' },
   {
-    id: 's1',
-    title: 'Vente Miora A. · 54 000 Ar',
-    reference: 'VTE-2451',
-    typeKey: 'search.type.sale',
-    icon: ShoppingCart,
-    route: '/sales',
+    id: 'new-article',
+    labelKey: 'search.action.createArticle',
+    route: '/articles/new',
+    permission: 'articles.create',
   },
   {
-    id: 'd1',
-    title: 'Livraison Analakely',
-    reference: 'LIV-0318',
-    typeKey: 'search.type.delivery',
-    icon: Truck,
-    route: '/deliveries',
+    id: 'new-supplier',
+    labelKey: 'search.action.createSupplier',
+    route: '/suppliers/new',
+    permission: 'suppliers.create',
   },
   {
-    id: 'f1',
-    title: 'Huilerie Sambava',
-    reference: 'FRS-0012',
-    typeKey: 'search.type.supplier',
-    icon: Handshake,
-    route: '/suppliers',
+    id: 'new-user',
+    labelKey: 'search.action.createUser',
+    route: '/users/new',
+    permission: 'users.create',
   },
 ];
 
-const MAX_ARTICLES = 5;
+/** Saisie normalisée (espaces rognés, minuscules) ; vide si elle est trop courte pour chercher. */
+export function normalizeTerm(rawTerm: string): string {
+  const term = rawTerm.trim().toLowerCase();
+  return term.length < MIN_TERM_LENGTH ? '' : term;
+}
 
 export function matches(text: string, term: string): boolean {
   return text.toLowerCase().includes(term);
@@ -88,52 +92,47 @@ export function highlightParts(
   ].filter((part) => part.text);
 }
 
-function articleItems(term: string, ctx: SearchContext): readonly SearchItem[] {
-  return ARTICLES_FIXTURE.filter((a) => matches(`${a.name} ${a.reference}`, term))
+/**
+ * Articles renvoyés par le serveur (nom, code, code-barres) : filtrés à nouveau sur la saisie courante pour
+ * que la liste suive la frappe sans attendre la réponse suivante.
+ */
+function articleItems(
+  articles: readonly ArticleRDto[],
+  term: string,
+  ctx: SearchContext,
+): readonly SearchItem[] {
+  return articles
+    .filter((a) => matches(`${a.name} ${a.code} ${a.barcode ?? ''}`, term))
     .slice(0, MAX_ARTICLES)
     .map((a) => ({
       id: `article-${a.id}`,
       icon: Package,
       title: a.name,
-      meta: ctx.t('search.articleMeta', {
-        reference: a.reference,
-        stock: a.totalStock,
-        price: a.price,
-      }),
-      range: a.range,
-      aside: a.range ? '' : ctx.t('search.type.material'),
+      meta:
+        a.price === null
+          ? a.code
+          : ctx.t('search.articleMeta', { reference: a.code, price: formatAriary(a.price) }),
+      range: null,
+      aside: ctx.t(`article.type.${a.type}`),
       route: `/articles/${a.id}`,
       highlight: true,
     }));
 }
 
-function recordItems(term: string, ctx: SearchContext): readonly SearchItem[] {
-  return RECORDS.filter((r) => matches(`${r.title} ${r.reference}`, term)).map((r) => ({
-    id: r.id,
-    icon: r.icon,
-    title: r.title,
-    meta: r.reference,
-    range: null,
-    aside: ctx.t(r.typeKey),
-    route: r.route,
-    highlight: true,
-  }));
-}
-
-function action(id: string, title: string, route: string): SearchItem {
-  return { id, icon: Plus, title, meta: '', range: null, aside: '', route, highlight: false };
-}
-
-function actionItems(articles: readonly SearchItem[], ctx: SearchContext): readonly SearchItem[] {
-  const items: SearchItem[] = [];
-  if (articles.length > 0 && ctx.hasPermission('sales.read')) {
-    const title = ctx.t('search.action.newSale', { name: articles[0].title });
-    items.push(action('new-sale', title, '/pos'));
-  }
-  if (ctx.hasPermission('articles.create')) {
-    items.push(action('new-article', ctx.t('search.action.createArticle'), '/articles/new'));
-  }
-  return items;
+function actionItems(term: string, ctx: SearchContext): readonly SearchItem[] {
+  return CREATE_ACTIONS.filter((action) => ctx.hasPermission(action.permission))
+    .map((action) => ({ action, title: ctx.t(action.labelKey) }))
+    .filter(({ title }) => matches(title, term))
+    .map(({ action, title }) => ({
+      id: action.id,
+      icon: Plus,
+      title,
+      meta: '',
+      range: null,
+      aside: '',
+      route: action.route,
+      highlight: true,
+    }));
 }
 
 function gotoItems(term: string, ctx: SearchContext): readonly SearchItem[] {
@@ -153,17 +152,25 @@ function gotoItems(term: string, ctx: SearchContext): readonly SearchItem[] {
   );
 }
 
-/** Résultats groupés pour une saisie (≥ 2 caractères) ; les groupes vides sont omis. */
-export function buildGroups(rawTerm: string, ctx: SearchContext): readonly SearchGroup[] {
-  const term = rawTerm.trim().toLowerCase();
-  if (term.length < 2) {
+/**
+ * Résultats groupés pour une saisie (≥ 2 caractères) : articles (lus sur l'API), créations puis pages,
+ * filtrés par les permissions de l'utilisateur. Les groupes vides sont omis.
+ */
+export function buildGroups(
+  rawTerm: string,
+  ctx: SearchContext,
+  articles: readonly ArticleRDto[] = [],
+): readonly SearchGroup[] {
+  const term = normalizeTerm(rawTerm);
+  if (!term) {
     return [];
   }
-  const articles = articleItems(term, ctx);
   const groups: SearchGroup[] = [
-    { key: 'articles', items: articles },
-    { key: 'records', items: recordItems(term, ctx) },
-    { key: 'actions', items: actionItems(articles, ctx) },
+    {
+      key: 'articles',
+      items: ctx.hasPermission('articles.read') ? articleItems(articles, term, ctx) : [],
+    },
+    { key: 'actions', items: actionItems(term, ctx) },
     { key: 'goto', items: gotoItems(term, ctx) },
   ];
   return groups.filter((group) => group.items.length > 0);

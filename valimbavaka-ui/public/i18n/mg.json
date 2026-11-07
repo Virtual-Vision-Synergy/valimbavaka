@@ -247,29 +247,25 @@
     "total": "Totaly"
   },
   "search": {
-    "placeholder": "Hitady entana, varotra…",
-    "open": "Hitady entana, varotra… (Ctrl K)",
+    "placeholder": "Hitady entana, pejy, hetsika…",
+    "open": "Hitady entana, pejy, hetsika… (Ctrl K)",
     "title": "Fikarohana ankapobeny",
-    "hint": "Soraty litera 2 farafahakeliny : entana, laharana, varotra, fanaterana, mpamatsy.",
+    "hint": "Soraty litera 2 farafahakeliny : entana (anarana, kaody, kaody bara), pejy na hetsika.",
     "results": "Valiny {{count}}",
-    "type": {
-      "article": "Entana",
-      "sale": "Varotra",
-      "delivery": "Fanaterana",
-      "supplier": "Mpamatsy",
-      "material": "Akora"
-    },
+    "loading": "Mitady entana…",
+    "articlesUnavailable": "Tsy azo jerena aloha ny entana : mbola misokatra ny pejy sy ny hetsika.",
     "none": "Tsy misy valiny ho an'ny « {{query}} ».",
-    "articleMeta": "{{reference}} · {{stock}} ao amin'ny tahiry · {{price}} Ar",
+    "articleMeta": "{{reference}} · {{price}}",
     "group": {
       "articles": "Entana",
-      "records": "Varotra, fanaterana, mpamatsy",
-      "actions": "Hetsika",
+      "actions": "Hamorona",
       "goto": "Handeha any"
     },
     "action": {
-      "newSale": "Varotra vaovao miaraka amin'ny « {{name}} »",
-      "createArticle": "Hamorona entana"
+      "newSale": "Varotra vaovao",
+      "createArticle": "Hamorona entana",
+      "createSupplier": "Hamorona mpamatsy",
+      "createUser": "Hamorona mpampiasa"
     },
     "navigate": "hihetsika",
     "openKey": "hanokatra"

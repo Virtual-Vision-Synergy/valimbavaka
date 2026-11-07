@@ -247,29 +247,25 @@
     "total": "Total"
   },
   "search": {
-    "placeholder": "Rechercher un article, une vente…",
-    "open": "Rechercher un article, une vente… (Ctrl K)",
+    "placeholder": "Rechercher un article, une page, une action…",
+    "open": "Rechercher un article, une page, une action… (Ctrl K)",
     "title": "Recherche globale",
-    "hint": "Saisissez au moins 2 caractères : article, référence, vente, livraison, fournisseur.",
+    "hint": "Saisissez au moins 2 caractères : article (nom, code, code-barres), page ou action.",
     "results": "{{count}} résultat(s)",
-    "type": {
-      "article": "Article",
-      "sale": "Vente",
-      "delivery": "Livraison",
-      "supplier": "Fournisseur",
-      "material": "Matière"
-    },
+    "loading": "Recherche des articles…",
+    "articlesUnavailable": "Articles indisponibles pour le moment : pages et actions restent accessibles.",
     "none": "Aucun résultat pour « {{query}} ».",
-    "articleMeta": "{{reference}} · {{stock}} en stock · {{price}} Ar",
+    "articleMeta": "{{reference}} · {{price}}",
     "group": {
       "articles": "Articles",
-      "records": "Ventes, livraisons, fournisseurs",
-      "actions": "Actions",
+      "actions": "Créer",
       "goto": "Aller à"
     },
     "action": {
-      "newSale": "Nouvelle vente avec « {{name}} »",
-      "createArticle": "Créer un article"
+      "newSale": "Nouvelle vente",
+      "createArticle": "Créer un article",
+      "createSupplier": "Créer un fournisseur",
+      "createUser": "Créer un utilisateur"
     },
     "navigate": "naviguer",
     "openKey": "ouvrir"
