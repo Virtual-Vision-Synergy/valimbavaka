@@ -1,6 +1,6 @@
 # Guide d'intégration — SRV-02 · Enregistrement d'une prestation
 
-Statut : ✅ rédigé — tests : voir « Résultat de l'exécution » du [scénario](scenario-test.md) · Ticket : [#82](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/82) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 2026-11-08 — tests exécutés en CI, tous verts (voir « Résultat de l'exécution » du [scénario](scenario-test.md)) · Ticket : [#82](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/82) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -80,7 +80,7 @@ Ajouts à d'autres features : `ReferentialService.findSalesChannelId(String code
 
 **Migration** : `valimbavaka-core/src/main/resources/db/changelog/changes/2026_11_08-92-changelog.sql` (+ `db.changelog-master.yaml`).
 
-**Frontend** (`valimbavaka-ui/src/app/`) : `features/services/data-access/service-record-models.ts`, `service-record-service.ts`, `service-record-mapping.ts`, `service-service.ts`, `service-models.ts`, `service-fixtures.ts` ; `features/services/components/salon-form/*` ; `features/services/pages/services-page/*` ; `features/services/services.routes.ts` (commentaire) ; `core/auth/auth-testing.ts` ; `public/i18n/fr.json`, `mg.json`.
+**Frontend** (`valimbavaka-ui/src/app/`) : `features/services/data-access/service-record-models.ts`, `service-record-service.ts`, `service-record-mapping.ts`, `service-service.ts`, `service-models.ts`, `service-fixtures.ts` ; `features/services/components/salon-form/*` ; `features/services/pages/services-page/*` ; `features/services/services.routes.ts` (commentaire) ; `core/auth/auth-testing.ts` ; `features/demo-pages.a11y.spec.ts` ; `public/i18n/fr.json`, `mg.json`.
 
 **Tests** : voir [scénario](scenario-test.md#tests-existants).
 
@@ -131,5 +131,5 @@ inject(ServiceRecordService).create({ salonServiceId, customerName: 'Hanta', pro
 - L'écran lit au plus 100 articles (stock) et 100 prestations récentes : au-delà, les prestations du jour peuvent être tronquées un jour très chargé (SRV-03 ajoutera un filtre de date serveur).
 - Un article de la recette désactivé depuis n'est plus pré-rempli à l'écran (l'API, elle, l'accepte si `products` est `null`).
 - Conflit attendu avec la PR de SHO-01 (`feature/SHO-01-enregistrement-sortie-shooting`) sur `service-models.ts`, `service-service.ts` et `services-page.*` : les deux PR modifient la page « Salon & shooting ». À résoudre au second merge (garder les deux branchements).
-- La page `/services` reste dans `demo-pages.a11y.spec.ts` : sans réponse HTTP, le test vérifie l'état de chargement ; l'accessibilité du formulaire réel se vérifie en recette.
+- La page `/services` reste dans `demo-pages.a11y.spec.ts` : les appels API y reçoivent une page vide (`answerApiCalls`, même aide que dans les PR de SHO-01 et PRD-01), donc le formulaire réel est contrôlé sans service ni produit ; un formulaire rempli se vérifie en recette.
 - PR empilée sur SRV-01 (lui-même sur COM-01) : à merger après la PR de `feature/SRV-01-catalogue-services-salon`.
