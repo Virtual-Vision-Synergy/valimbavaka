@@ -1,9 +1,13 @@
 @let p = promotion();
-<article class="promo" [attr.data-status]="status()">
+<article class="promo" [attr.data-status]="status()" [class.selected]="selected()">
   <header class="head">
     <span class="discount" [attr.data-status]="status()">{{ badge() }}</span>
     <div class="title">
-      <h3>{{ p.name }}</h3>
+      <h3>
+        <button class="open" type="button" [attr.aria-pressed]="selected()" (click)="opened.emit()">
+          {{ p.name }}
+        </button>
+      </h3>
       @if (p.description) {
         <p class="muted">{{ p.description }}</p>
       }
