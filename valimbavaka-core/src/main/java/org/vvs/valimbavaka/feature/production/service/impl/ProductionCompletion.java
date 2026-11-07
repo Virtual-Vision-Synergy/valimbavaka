@@ -52,7 +52,10 @@ class ProductionCompletion {
         batch.getInputs().stream()
                 .sorted(Comparator.comparing(ProductionInput::getArticleId))
                 .forEach(input -> move(
-                        batch, input.getArticleId(), warehouseId, input.getQuantity().negate()));
+                        batch,
+                        input.getArticleId(),
+                        warehouseId,
+                        input.getQuantity().negate()));
         move(batch, batch.getOutputArticleId(), warehouseId, batch.getQuantity());
     }
 
