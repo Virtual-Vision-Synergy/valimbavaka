@@ -142,7 +142,8 @@ class ProductionStatusIT extends ProductionApiTestSupport {
         inProgress(batchNumber(started), admin)
                 .andExpect(jsonPath("$.totalCount").value(1))
                 .andExpect(jsonPath("$.items[0].status").value("IN_PROGRESS"));
-        inProgress(batchNumber(planned), admin).andExpect(jsonPath("$.totalCount").value(0));
+        inProgress(batchNumber(planned), admin)
+                .andExpect(jsonPath("$.totalCount").value(0));
     }
 
     private ResultActions start(UUID batchId, String authorization) throws Exception {

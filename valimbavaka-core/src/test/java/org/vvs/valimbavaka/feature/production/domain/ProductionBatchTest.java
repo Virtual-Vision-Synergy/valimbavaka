@@ -123,9 +123,7 @@ class ProductionBatchTest {
         sut.start();
 
         // Act + Assert
-        assertThatThrownBy(sut::start)
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("déjà en cours");
+        assertThatThrownBy(sut::start).isInstanceOf(ConflictException.class).hasMessageContaining("déjà en cours");
         assertThat(sut.getStatus()).isEqualTo(ProductionBatchStatus.IN_PROGRESS);
     }
 
@@ -136,9 +134,7 @@ class ProductionBatchTest {
         sut.complete(Map.of(), Instant.parse("2026-11-08T10:00:00Z"));
 
         // Act + Assert
-        assertThatThrownBy(sut::start)
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("déjà terminé");
+        assertThatThrownBy(sut::start).isInstanceOf(ConflictException.class).hasMessageContaining("déjà terminé");
         assertThat(sut.getStatus()).isEqualTo(ProductionBatchStatus.COMPLETED);
     }
 
