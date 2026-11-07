@@ -1169,6 +1169,25 @@
     "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
     "previous": "Sessions précédentes",
     "previousEmpty": "Aucune session clôturée à afficher pour l'instant.",
+    "gapCount": "{{count}} écart(s)",
+    "historyLink": "Voir l'historique des sessions",
+    "history": {
+      "title": "Historique des sessions d'inventaire",
+      "subtitle": "{{count}} session(s)",
+      "back": "← Retour à l'inventaire",
+      "listLabel": "Sessions d'inventaire",
+      "statusFilter": "Filtrer par statut",
+      "allStatuses": "Toutes",
+      "empty": "Aucune session d'inventaire pour ce filtre.",
+      "col": {
+        "session": "Session",
+        "countDate": "Comptage prévu",
+        "closedOn": "Clôturée le",
+        "status": "Statut",
+        "lines": "Articles",
+        "gaps": "Écarts"
+      }
+    },
     "confirmTitle": "Clôturer la session ?",
     "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée.",
     "scope": {

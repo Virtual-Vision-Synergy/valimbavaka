@@ -43,6 +43,7 @@ const SESSION: InventorySessionRDto = {
   openedBy: 'user-1',
   closedAt: null,
   lineCount: 1,
+  gapCount: 0,
   version: 0,
 };
 const LINE: InventoryLineRDto = {
@@ -58,6 +59,8 @@ const LINE: InventoryLineRDto = {
   reason: null,
 };
 
+const CLOSED: InventorySessionRDto = { ...SESSION, id: 'closed-1', status: 'CLOSED', gapCount: 3 };
+
 /** Ligne déjà comptée avec un écart de −2 (10 comptés pour 12 attendus). */
 const LINE_WITH_GAP: InventoryLineRDto = { ...LINE, countedQuantity: 10, gap: -2 };
 
@@ -65,6 +68,7 @@ const LINE_WITH_GAP: InventoryLineRDto = { ...LINE, countedQuantity: 10, gap: -2
  * INV-02 : la saisie d'une quantité met à jour immédiatement l'écart affiché, puis est enregistrée.
  * INV-03 : un motif est sélectionnable, et enregistré, pour toute ligne en écart.
  * INV-04 : la clôture est envoyée au serveur, qui ajuste le stock ; la feuille est alors verrouillée.
+ * INV-05 : les dernières sessions clôturées sont listées avec leur nombre d'écarts et un lien vers l'historique.
  */
 describe('InventoryPage', () => {
   let fixture: ComponentFixture<InventoryPage>;
@@ -74,6 +78,7 @@ describe('InventoryPage', () => {
   const load = async (
     sessions: InventorySessionRDto[],
     line: InventoryLineRDto = LINE,
+    previous: InventorySessionRDto[] = [],
   ): Promise<void> => {
     await TestBed.configureTestingModule({
       imports: [InventoryPage],
@@ -92,6 +97,7 @@ describe('InventoryPage', () => {
     fixture.detectChanges();
     httpMock.expectOne((req) => req.url === INVENTORIES_URL).flush(page(sessions));
     if (sessions.length) {
+      httpMock.expectOne((req) => req.params.get('status') === 'CLOSED').flush(page(previous));
       httpMock
         .expectOne((req) => req.url === `${INVENTORIES_URL}/${SESSION_ID}/lines`)
         .flush(page([line]));
@@ -129,20 +135,22 @@ describe('InventoryPage', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('invite à ouvrir une session quand aucune n’est en cours', async () => {
+  it('invite à ouvrir une session, ou à consulter l’historique, quand aucune n’est en cours', async () => {
     await load([]);
 
     expect(element.textContent).toContain("Aucune session d'inventaire en cours");
     expect(element.querySelector('a[href="/inventory/new"]')).not.toBeNull();
+    expect(element.querySelector('a[href="/inventory/history"]')).not.toBeNull();
   });
 
-  it('affiche la session en cours avec le théorique du serveur', async () => {
-    await load([SESSION]);
+  it('affiche la session en cours, son théorique et les sessions précédentes (INV-05)', async () => {
+    await load([SESSION], LINE, [CLOSED]);
 
     expect(element.querySelector('h1')?.textContent).toContain('Inventaire · Boutique');
     expect(element.textContent).toContain('Hanta Rakoto');
     expect(theoreticalCell()).toBe('12');
     expect(gapCell()).toBe('—');
+    expect(element.querySelector('ul.previous')?.textContent).toContain('3 écart(s)');
   });
 
   it('met à jour l’écart dès la saisie, avant tout enregistrement', async () => {
@@ -346,7 +354,7 @@ describe('InventoryPage', () => {
   });
 
   it('ne présente aucune violation d’accessibilité détectable', async () => {
-    await load([SESSION], LINE_WITH_GAP);
+    await load([SESSION], LINE_WITH_GAP, [CLOSED]);
     document.body.appendChild(element);
 
     const results = await axe.run(element, {
