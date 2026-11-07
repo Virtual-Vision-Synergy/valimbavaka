@@ -101,4 +101,4 @@ Retrouver les ajustements d'une session (INV-05, SQL) : `select * from stock_mov
 - **Pas de réouverture ni d'annulation** d'une session close (JNL-02) ; un ajustement erroné se corrige par un nouveau mouvement de stock.
 - Le bandeau « en construction » de `/inventory` reste affiché jusqu'à INV-05 (liste « Sessions précédentes » encore vide).
 - Traductions malgaches `inventory.closedToast` / `inventory.closeFailed` rédigées sans relecture native.
-- Branche empilée sur `feature/INV-03-motif-ecart-ligne` : à merger après INV-03 (et INV-02, INV-01).
+- Branche créée sur `feature/INV-03-motif-ecart-ligne`, puis `develop` fusionné une fois INV-01 à INV-03 mergés : PR vers `develop`.
