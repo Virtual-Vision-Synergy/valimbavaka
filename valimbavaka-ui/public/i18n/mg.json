@@ -1135,6 +1135,7 @@
     "empty": "Tsy misy entana amin'io sivana io.",
     "noSession": "Tsy misy fanisana entana mandeha amin'izao. Manokafa iray hanombohana ny fanisana.",
     "countFailed": "Tsy voatahiry ny isa {{article}} : {{reason}}",
+    "reasonFailed": "Tsy voatahiry ny antony nahatonga ny elanelana {{article}} : {{reason}}",
     "balance": "Famintinana vonjimaika",
     "gapUnits": "Elanelana amin'ny isa",
     "gapValue": "Elanelana amin'ny sanda",

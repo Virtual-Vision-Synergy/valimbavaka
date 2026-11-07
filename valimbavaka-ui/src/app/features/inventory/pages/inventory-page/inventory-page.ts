@@ -22,14 +22,18 @@ import { errorMessage } from '../../../../core/http/problem-detail';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
 import { InventoryFilter, InventoryState } from '../../data-access/inventory-state';
-import { INVENTORY_REASONS, InventorySheetLine } from '../../data-access/inventory-models';
+import {
+  INVENTORY_REASONS,
+  InventoryReason,
+  InventorySheetLine,
+} from '../../data-access/inventory-models';
 import { parseQuantity } from '../../data-access/inventory-sheet';
 import { InventoryService } from '../../data-access/inventory-service';
 
 /**
  * Session d'inventaire en cours (INV-01 à INV-05) : comptage article par article enregistré sur le serveur
- * (INV-02), écart calculé en direct, motif obligatoire pour chaque écart, clôture quand tout est compté et expliqué.
- * Motifs (INV-03) et clôture (INV-04) restent locaux en attendant leurs tickets.
+ * (INV-02), écart calculé en direct, motif de chaque écart enregistré sur le serveur (INV-03), clôture quand tout
+ * est compté et expliqué. La clôture (INV-04) reste simulée en attendant son ticket.
  */
 @Component({
   selector: 'vvs-inventory-page',
@@ -120,11 +124,33 @@ export class InventoryPage {
       next: (result) => {
         if (result.body) {
           this.state.applyCount(line.articleId, result.body.theoreticalQuantity);
+          this.state.setReason(line.articleId, result.body.reason ?? '');
         }
       },
       error: (error: unknown) =>
         this.toast.show(
           'inventory.countFailed',
+          { article: line.reference, reason: errorMessage(error) },
+          'danger',
+        ),
+    });
+  }
+
+  /**
+   * Motif choisi : affiché tout de suite, puis enregistré (INV-03). Revenir sur « Choisir un motif… »
+   * n'envoie rien : le serveur garde le dernier motif, qui revient au rechargement.
+   */
+  protected saveReason(line: InventorySheetLine, raw: string): void {
+    this.state.setReason(line.articleId, raw);
+    const sessionId = this.inventory.value()?.session?.id;
+    if (!sessionId || !raw) {
+      return;
+    }
+    const reason = raw as InventoryReason;
+    this.inventoryService.qualify(sessionId, line.lineId, { reason }).subscribe({
+      error: (error: unknown) =>
+        this.toast.show(
+          'inventory.reasonFailed',
           { article: line.reference, reason: errorMessage(error) },
           'danger',
         ),

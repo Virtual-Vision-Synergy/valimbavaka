@@ -1135,6 +1135,7 @@
     "empty": "Aucun article dans ce filtre.",
     "noSession": "Aucune session d'inventaire en cours. Ouvrez-en une pour commencer le comptage.",
     "countFailed": "Comptage de {{article}} non enregistré : {{reason}}",
+    "reasonFailed": "Motif de l'écart de {{article}} non enregistré : {{reason}}",
     "balance": "Bilan provisoire",
     "gapUnits": "Écart en unités",
     "gapValue": "Écart en valeur",
