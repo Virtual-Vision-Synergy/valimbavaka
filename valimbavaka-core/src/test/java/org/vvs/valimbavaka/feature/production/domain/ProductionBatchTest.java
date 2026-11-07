@@ -101,6 +101,56 @@ class ProductionBatchTest {
         assertThat(sut.getInputs().getFirst().getUnitCost()).isEqualByComparingTo("10");
     }
 
+    @Test
+    void start_plannedBatch_becomesInProgressWithoutCompletionDate() {
+        // Arrange
+        var sut = plannedBatch();
+
+        // Act
+        sut.start();
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(ProductionBatchStatus.IN_PROGRESS);
+        assertThat(sut.getCompletedAt()).isNull();
+    }
+
+    @Test
+    void start_inProgressBatch_throwsConflict() {
+        // Arrange
+        var sut = plannedBatch();
+        sut.start();
+
+        // Act + Assert
+        assertThatThrownBy(sut::start).isInstanceOf(ConflictException.class).hasMessageContaining("déjà en cours");
+        assertThat(sut.getStatus()).isEqualTo(ProductionBatchStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void start_completedBatch_throwsConflictAndStaysCompleted() {
+        // Arrange
+        var sut = plannedBatch();
+        sut.complete(Map.of(), Instant.parse("2026-11-08T10:00:00Z"));
+
+        // Act + Assert
+        assertThatThrownBy(sut::start).isInstanceOf(ConflictException.class).hasMessageContaining("déjà terminé");
+        assertThat(sut.getStatus()).isEqualTo(ProductionBatchStatus.COMPLETED);
+    }
+
+    @Test
+    void complete_inProgressBatch_becomesCompleted() {
+        // Arrange
+        var sut = plannedBatch();
+        sut.start();
+        var at = Instant.parse("2026-11-08T16:00:00Z");
+
+        // Act
+        sut.complete(Map.of(OIL_ID, BigDecimal.TEN), at);
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(ProductionBatchStatus.COMPLETED);
+        assertThat(sut.getCompletedAt()).isEqualTo(at);
+    }
+
     private static ProductionBatch plannedBatch() {
         var oil = new ProductionInput(OIL_ID, new BigDecimal("0.45"));
         return ProductionBatch.plan(
