@@ -1400,8 +1400,11 @@
     "total": "Fitambarany",
     "save": "Tehirizo ny asa",
     "registeredToast": "Voasoratra ny asa {{number}} « {{name}} » : nohavaozina ny tahiry salon",
-    "today": "Androany",
+    "today": "Ny asako androany",
     "todaySummary": "{{count}} · {{total}}",
+    "noCustomer": "Tsy voalaza ny mpanjifa",
+    "withoutProduct": "Tsy nisy vokatra lany",
+    "noServiceToday": "Tsy mbola nisy asa voarakitra androany.",
     "shooting": {
       "title": "Fampiasana shooting",
       "hint": "Vokatra nalaina tao amin'ny tahiry ho an'ny sary, averina rehefa tapitra.",

@@ -1400,8 +1400,11 @@
     "total": "Total",
     "save": "Enregistrer la prestation",
     "registeredToast": "Prestation {{number}} « {{name}} » enregistrée : stock salon mis à jour",
-    "today": "Aujourd'hui",
+    "today": "Mes prestations du jour",
     "todaySummary": "{{count}} · {{total}}",
+    "noCustomer": "Cliente non renseignée",
+    "withoutProduct": "Aucun produit consommé",
+    "noServiceToday": "Aucune prestation enregistrée aujourd'hui.",
     "shooting": {
       "title": "Sorties shooting",
       "hint": "Produits sortis du stock pour une séance photo, à réintégrer au retour.",

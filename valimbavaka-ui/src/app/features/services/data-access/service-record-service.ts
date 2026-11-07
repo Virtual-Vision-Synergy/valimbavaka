@@ -6,6 +6,7 @@ import { OutboxService } from '../../../core/offline/outbox-service';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageResponse } from '../../../shared/models/page-response';
 import {
+  ServiceRecordDayQuery,
   ServiceRecordListQuery,
   ServiceRecordRDto,
   ServiceRecordWDto,
@@ -13,7 +14,8 @@ import {
 
 /**
  * Prestations salon (SRV-02) : l'enregistrement déduit les produits consommés du stock salon côté serveur. Lecture
- * avec `services.read`, enregistrement avec `service-records.create` ; pas de modification ni de suppression.
+ * avec `services.read` (dont l'historique du jour du compte connecté, SRV-03), enregistrement avec
+ * `service-records.create` ; pas de modification ni de suppression.
  * L'écriture passe par la file hors ligne (`OutboxService`, SYS-07) : `queued` vaut vrai si elle attend le réseau.
  */
 @Injectable({ providedIn: 'root' })
@@ -26,6 +28,15 @@ export class ServiceRecordService {
     return this.http.get<PageResponse<ServiceRecordRDto>>(this.baseUrl, {
       params: toHttpParams(query),
     });
+  }
+
+  /** Prestations du compte connecté sur un jour (aujourd'hui par défaut), les plus récentes d'abord (SRV-03). */
+  mine(query: ServiceRecordDayQuery): Observable<PageResponse<ServiceRecordRDto>> {
+    let params = toHttpParams(query);
+    if (query.date) {
+      params = params.set('date', query.date);
+    }
+    return this.http.get<PageResponse<ServiceRecordRDto>>(`${this.baseUrl}/mine`, { params });
   }
 
   getById(id: string): Observable<ServiceRecordRDto> {

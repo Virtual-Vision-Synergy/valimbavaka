@@ -9,12 +9,8 @@ import { SalonServiceListQuery } from './salon-catalog-models';
 import { SalonCatalogService } from './salon-catalog-service';
 import { SERVICES_FIXTURE } from './service-fixtures';
 import { ServicesContextRDto } from './service-models';
-import {
-  isSameLocalDay,
-  toSalonProduct,
-  toServiceRow,
-  toTreatment,
-} from './service-record-mapping';
+import { toSalonProduct, toServiceRow, toTreatment } from './service-record-mapping';
+import { ServiceRecordDayQuery } from './service-record-models';
 import { ServiceRecordService } from './service-record-service';
 
 const ACTIVE_SERVICES: SalonServiceListQuery = {
@@ -25,7 +21,7 @@ const ACTIVE_SERVICES: SalonServiceListQuery = {
   sortDirection: 'ASC',
 };
 const ALL_ARTICLES: PageQuery = { page: 1, size: 100, sortBy: 'name', sortDirection: 'ASC' };
-const LATEST_RECORDS: PageQuery = {
+const MY_DAY: ServiceRecordDayQuery = {
   page: 1,
   size: 100,
   sortBy: 'createdAt',
@@ -33,8 +29,9 @@ const LATEST_RECORDS: PageQuery = {
 };
 
 /**
- * Salon et shooting. Le salon lit l'API (SRV-02) : services actifs du catalogue, stock salon de chaque article actif
- * et prestations du jour (les 100 plus récentes). Les sorties shooting restent en démonstration (SHO-01 à SHO-03).
+ * Salon et shooting. Le salon lit l'API : services actifs du catalogue, stock salon de chaque article actif (SRV-02)
+ * et prestations du jour du compte connecté, filtrées par le serveur (SRV-03, les 100 plus récentes). Les sorties
+ * shooting restent en démonstration (SHO-01 à SHO-03).
  */
 @Injectable({ providedIn: 'root' })
 export class SalonService {
@@ -48,18 +45,16 @@ export class SalonService {
       stocks: this.http.get<PageResponse<StockRDto>>('/api/v1/stocks', {
         params: toHttpParams(ALL_ARTICLES),
       }),
-      records: this.records.list(LATEST_RECORDS),
+      records: this.records.mine(MY_DAY),
     }).pipe(
       map(({ services, stocks, records }) => {
         const products = stocks.items.map(toSalonProduct);
-        const known = new Set(products.map((product) => product.id));
-        const now = new Date();
+        const units = new Map(products.map((product) => [product.id, product.unit]));
+        const known = new Set(units.keys());
         return {
           treatments: services.items.map((service) => toTreatment(service, known)),
           products,
-          today: records.items
-            .filter((record) => isSameLocalDay(record.performedAt, now))
-            .map(toServiceRow),
+          today: records.items.map((record) => toServiceRow(record, units)),
           shootings: SERVICES_FIXTURE.shootings,
         };
       }),
