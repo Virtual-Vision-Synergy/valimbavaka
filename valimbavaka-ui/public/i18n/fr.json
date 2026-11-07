@@ -1133,12 +1133,15 @@
       "OTHER": "Autre motif"
     },
     "empty": "Aucun article dans ce filtre.",
+    "noSession": "Aucune session d'inventaire en cours. Ouvrez-en une pour commencer le comptage.",
+    "countFailed": "Comptage de {{article}} non enregistré : {{reason}}",
     "balance": "Bilan provisoire",
     "gapUnits": "Écart en unités",
     "gapValue": "Écart en valeur",
     "gapArticles": "Articles avec écart",
     "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
     "previous": "Sessions précédentes",
+    "previousEmpty": "Aucune session clôturée à afficher pour l'instant.",
     "confirmTitle": "Clôturer la session ?",
     "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée.",
     "scope": {

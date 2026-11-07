@@ -1,4 +1,3 @@
-import { StockLocation } from '../../../shared/data-access/demo-catalog';
 import { PageQuery } from '../../../shared/models/page-response';
 
 export type InventoryStatus = 'IN_PROGRESS' | 'CLOSED' | 'CANCELLED';
@@ -17,24 +16,28 @@ export const INVENTORY_REASONS: readonly InventoryReason[] = [
   'OTHER',
 ];
 
-/** Ligne de la feuille de comptage affichée (maquette INV-02 à INV-04, encore alimentée par les fixtures). */
+/** Ligne de la feuille de comptage affichée, construite à partir d'un `InventoryLineRDto` (INV-02). */
 export interface InventorySheetLine {
+  readonly lineId: string;
   readonly articleId: string;
   readonly reference: string;
   readonly barcode: string;
   readonly name: string;
+  /** Théorique du serveur : figé au comptage, sinon stock actuel de l'emplacement. */
   readonly theoretical: number;
-  readonly unitCost: number;
+  readonly unitCost: number | null;
   readonly counted: number | null;
   readonly reason: InventoryReason | null;
 }
 
-/** Feuille de comptage affichée par la page d'inventaire (maquette, à brancher par INV-02). */
+/** Feuille de comptage affichée par la page d'inventaire : la session en cours et toutes ses lignes. */
 export interface InventorySheet {
+  readonly id: string;
   readonly number: string;
-  readonly location: StockLocation;
+  readonly locationLabel: string;
   /** Horodatage local `AAAA-MM-JJTHH:MM`. */
   readonly openedAt: string;
+  /** Responsable du comptage choisi à l'ouverture. */
   readonly openedBy: string;
   readonly status: InventoryStatus;
   readonly lines: readonly InventorySheetLine[];
@@ -42,13 +45,14 @@ export interface InventorySheet {
 
 export interface PreviousSessionRDto {
   readonly number: string;
-  readonly location: StockLocation;
+  readonly locationLabel: string;
   readonly closedOn: string;
   readonly gapUnits: number;
 }
 
 export interface InventoryContextRDto {
-  readonly session: InventorySheet;
+  /** Null quand aucune session n'est en cours. */
+  readonly session: InventorySheet | null;
   readonly previous: readonly PreviousSessionRDto[];
 }
 
@@ -111,4 +115,9 @@ export interface InventoryLineRDto {
 export interface InventorySessionQuery extends PageQuery {
   readonly status?: InventoryStatus;
   readonly locationId?: string;
+}
+
+/** Comptage physique d'une ligne (INV-02) : le serveur fige le théorique et calcule l'écart. */
+export interface InventoryCountWDto {
+  readonly countedQuantity: number;
 }
