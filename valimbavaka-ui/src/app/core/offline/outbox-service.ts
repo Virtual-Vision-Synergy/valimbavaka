@@ -46,9 +46,11 @@ export class OutboxService {
   readonly failed = computed(() =>
     this.accountEntries().filter((entry) => entry.status === 'FAILED'),
   );
-  readonly pendingCount = computed(
-    () => this.accountEntries().filter((entry) => entry.status === 'PENDING').length,
+  /** Saisies du compte encore à envoyer, dans l'ordre de la file (SYS-09 : affichées en lecture seule). */
+  readonly pending = computed(() =>
+    this.accountEntries().filter((entry) => entry.status === 'PENDING'),
   );
+  readonly pendingCount = computed(() => this.pending().length);
   readonly failedCount = computed(() => this.failed().length);
 
   constructor() {
@@ -109,8 +111,12 @@ export class OutboxService {
     }
   }
 
+  /**
+   * Remet une saisie FAILED en attente (compteur remis à zéro) puis lance le rejeu. L'état est rechargé avant
+   * le rejeu pour que l'écran la montre « en attente » même hors ligne ou pendant une synchronisation (SYS-09).
+   */
   async retry(id: string): Promise<void> {
-    const entry = this.accountEntries().find((candidate) => candidate.id === id);
+    const entry = this.failed().find((candidate) => candidate.id === id);
     if (entry) {
       await this.storage.put({
         ...entry,
@@ -118,10 +124,12 @@ export class OutboxService {
         status: 'PENDING',
         errorMessage: undefined,
       });
+      await this.reload();
       await this.flush();
     }
   }
 
+  /** Supprime définitivement une saisie du compte ; l'écran demande une confirmation avant (SYS-09). */
   async discard(id: string): Promise<void> {
     if (this.accountEntries().some((entry) => entry.id === id)) {
       await this.storage.remove(id);
