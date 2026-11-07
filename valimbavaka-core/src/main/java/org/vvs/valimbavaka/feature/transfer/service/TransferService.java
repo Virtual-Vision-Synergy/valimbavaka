@@ -1,5 +1,9 @@
 package org.vvs.valimbavaka.feature.transfer.service;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
 import org.jspecify.annotations.Nullable;
 
 import org.vvs.valimbavaka.feature.transfer.domain.TransferCommand;
@@ -32,4 +36,10 @@ public interface TransferService {
      * {@code origin} and {@code status}, searchable on the number, filtered by origin when {@code origin} is set.
      */
     PageResponse<TransferSummaryRDto> getTransfers(PageQuery query, @Nullable TransferOrigin origin);
+
+    /**
+     * Transfers with their lines, read by id (morning transfers of the previous day, JR-02); unknown ids are ignored,
+     * the order is not guaranteed. Reserved to the other features: no endpoint, no permission check.
+     */
+    List<TransferRDto> getTransfersByIds(Collection<UUID> ids);
 }

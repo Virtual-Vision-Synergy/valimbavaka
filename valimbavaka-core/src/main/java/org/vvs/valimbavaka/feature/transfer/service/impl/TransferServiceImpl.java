@@ -1,6 +1,9 @@
 package org.vvs.valimbavaka.feature.transfer.service.impl;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -72,6 +75,14 @@ public class TransferServiceImpl implements TransferService {
     public PageResponse<TransferSummaryRDto> getTransfers(PageQuery query, @Nullable TransferOrigin origin) {
         var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
         return history.toRDtos(transferRepository.search(query.searchTerm(), origin, pageable));
+    }
+
+    @Override
+    public List<TransferRDto> getTransfersByIds(Collection<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return transferRepository.findAllByIdIn(Set.copyOf(ids)).stream().map(transferMapper::toRDto).toList();
     }
 
     private String nextNumber(TransferOrigin origin) {
