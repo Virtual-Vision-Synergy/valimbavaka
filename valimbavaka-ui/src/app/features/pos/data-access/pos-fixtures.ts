@@ -27,6 +27,9 @@ const GOMMAGE = demoArticle('ART-0087').id;
 export const POS_FIXTURE: PosContextRDto = {
   location: 'Boutique Analakely',
   cashierName: 'Miora A.',
+  sellers: [{ id: 'seller-miora', name: 'Miora A.' }],
+  defaultSellerId: 'seller-miora',
+  channelIds: { SHOP: 'channel-store', FACEBOOK: 'channel-facebook', PHONE: 'channel-phone' },
   ticketNumber: 2452,
   openedAt: '10:52',
   heldTickets: 2,

@@ -471,7 +471,9 @@
       "invoiceNote": "Une facture numérotée est générée à l'encaissement.",
       "added": "{{name}} ajouté · quantité {{quantity}}",
       "decreased": "{{name}} · quantité {{quantity}}",
-      "removed": "{{name}} retiré du ticket"
+      "removed": "{{name}} retiré du ticket",
+      "sellerLabel": "Vendeuse",
+      "sellerPlaceholder": "Choisir la vendeuse"
     },
     "shortcuts": {
       "label": "Raccourcis clavier",
@@ -485,7 +487,9 @@
       "paid": "Vente {{ticket}} encaissée · {{amount}}",
       "held": "Ticket {{ticket}} mis en attente",
       "cannotCheckout": "Montant reçu insuffisant pour encaisser",
-      "outOfStock": "Stock insuffisant pour {{name}}"
+      "outOfStock": "Stock insuffisant pour {{name}}",
+      "sellerRequired": "Choisissez la vendeuse avant d’encaisser",
+      "failed": "Vente refusée : {{message}}"
     }
   },
   "sales": {

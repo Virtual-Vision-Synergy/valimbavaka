@@ -16,6 +16,25 @@
       [options]="channels"
       [(value)]="channel"
     />
+    <div class="field seller">
+      <label for="pos-seller">{{ 'pos.ticket.sellerLabel' | translate }}</label>
+      <select
+        #sellerField
+        id="pos-seller"
+        class="input"
+        required
+        (change)="selectSeller(sellerField.value)"
+      >
+        <option value="" [selected]="cart.seller() === null">
+          {{ 'pos.ticket.sellerPlaceholder' | translate }}
+        </option>
+        @for (seller of sellers(); track seller.id) {
+          <option [value]="seller.id" [selected]="seller.id === cart.seller()">
+            {{ seller.name }}
+          </option>
+        }
+      </select>
+    </div>
     <button class="customer" type="button" (click)="customer.emit()">
       <svg [vvsIcon]="icons.UserRound" [size]="18"></svg>
       {{ 'pos.ticket.customer' | translate }}

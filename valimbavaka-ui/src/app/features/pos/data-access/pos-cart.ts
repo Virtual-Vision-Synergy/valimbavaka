@@ -36,6 +36,8 @@ export class PosCart {
 
   readonly channel = signal<SaleChannel>('SHOP');
   readonly payment = signal<PaymentMethod>('CASH');
+  /** Vendeuse créditée de la vente (VTE-01) ; conservée d'un ticket à l'autre. */
+  readonly seller = signal<string | null>(null);
   readonly received = signal(0);
   readonly announcement = signal<CartAnnouncement | null>(null);
 
@@ -57,7 +59,10 @@ export class PosCart {
   readonly change = computed(() => this.received() - this.total());
   readonly appliedPromotion = computed(() => (this.discount() > 0 ? this.promotion() : null));
   readonly canCheckout = computed(
-    () => !this.isEmpty() && (this.payment() !== 'CASH' || this.change() >= 0),
+    () =>
+      !this.isEmpty() &&
+      this.seller() !== null &&
+      (this.payment() !== 'CASH' || this.change() >= 0),
   );
 
   /** Ouvre le poste : promotion active et éventuel ticket repris. */
