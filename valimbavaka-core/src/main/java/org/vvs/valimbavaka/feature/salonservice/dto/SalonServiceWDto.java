@@ -37,9 +37,9 @@ public record SalonServiceWDto(
         @Digits(integer = 3, fraction = 2, message = "Le taux de commission accepte 2 décimales au maximum")
         @Nullable BigDecimal commissionRate,
 
-        // Optional: absent or empty = no product usually consumed.
+        // Optional: absent or empty = no product usually consumed; a null line is ignored.
         @Size(max = 20, message = "Un service ne peut pas lister plus de {max} produits consommés")
-        @Nullable List<@Valid @NotNull(message = "Ligne de produit consommé vide") ConsumedProductWDto> products,
+        @Nullable List<@Valid ConsumedProductWDto> products,
 
         // Version read by the client (SalonServiceRDto.version): a stale value is refused with 409. Optional.
         @Nullable Long version) {}

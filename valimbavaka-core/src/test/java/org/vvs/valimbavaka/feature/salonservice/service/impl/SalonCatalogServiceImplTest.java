@@ -164,7 +164,8 @@ class SalonCatalogServiceImplTest {
         // Arrange
         var service = existing(List.of(new ConsumedProduct(CLAY_MASK, BigDecimal.ONE)));
         when(serviceRepository.findById(SERVICE_ID)).thenReturn(Optional.of(service));
-        when(serviceRepository.existsByNameIgnoreCaseAndIdNot("Soin visage", SERVICE_ID)).thenReturn(false);
+        when(serviceRepository.existsByNameIgnoreCaseAndIdNot("Soin visage", SERVICE_ID))
+                .thenReturn(false);
 
         // Act
         sut.updateService(SERVICE_ID, request("Soin visage", "8", List.of(line(CLAY_MASK, "2")), 0L));
@@ -181,7 +182,8 @@ class SalonCatalogServiceImplTest {
         // Arrange
         var service = existing(List.of());
         when(serviceRepository.findById(SERVICE_ID)).thenReturn(Optional.of(service));
-        when(serviceRepository.existsByNameIgnoreCaseAndIdNot("Soin visage", SERVICE_ID)).thenReturn(false);
+        when(serviceRepository.existsByNameIgnoreCaseAndIdNot("Soin visage", SERVICE_ID))
+                .thenReturn(false);
 
         // Act
         sut.updateService(SERVICE_ID, request(" Soin visage ", null, List.of(), null));
@@ -221,8 +223,7 @@ class SalonCatalogServiceImplTest {
     }
 
     private static SalonService existing(List<ConsumedProduct> products) {
-        return SalonService.create(
-                new SalonServiceDetails("Soin visage", 45, new BigDecimal("35000"), null, products));
+        return SalonService.create(new SalonServiceDetails("Soin visage", 45, new BigDecimal("35000"), null, products));
     }
 
     private static ConsumedProductWDto line(UUID articleId, String quantity) {

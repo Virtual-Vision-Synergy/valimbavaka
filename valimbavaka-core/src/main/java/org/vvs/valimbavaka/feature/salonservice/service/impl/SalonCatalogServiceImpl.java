@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.salonservice.service.impl;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -137,7 +138,10 @@ public class SalonCatalogServiceImpl implements SalonCatalogService {
 
     private static SalonServiceDetails toDetails(SalonServiceWDto request) {
         var lines = request.products() == null ? List.<ConsumedProductWDto>of() : request.products();
-        var products = lines.stream().map(line -> new ConsumedProduct(line.articleId(), line.quantity())).toList();
+        var products = lines.stream()
+                .filter(Objects::nonNull)
+                .map(line -> new ConsumedProduct(line.articleId(), line.quantity()))
+                .toList();
         return new SalonServiceDetails(
                 request.name(), request.durationMinutes(), request.price(), request.commissionRate(), products);
     }
