@@ -85,7 +85,8 @@ public class RestockOrderServiceImpl implements RestockOrderService {
     @Override
     public PageResponse<RestockOrderRDto> getRestockOrders(PageQuery query) {
         var page = restockOrderRepository.findAll(query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC));
-        var lines = linesByOrder(page.getContent().stream().map(RestockOrder::getId).toList());
+        var lines =
+                linesByOrder(page.getContent().stream().map(RestockOrder::getId).toList());
         return PageResponse.from(
                 page.map(order -> restockOrderMapper.toRDto(order, lines.getOrDefault(order.getId(), List.of()))));
     }
@@ -106,7 +107,9 @@ public class RestockOrderServiceImpl implements RestockOrderService {
             return alerts;
         }
         var requested = Set.copyOf(articleIds);
-        return alerts.stream().filter(alert -> requested.contains(alert.articleId())).toList();
+        return alerts.stream()
+                .filter(alert -> requested.contains(alert.articleId()))
+                .toList();
     }
 
     /** Lines of the given orders in one query, kept in line number order. */

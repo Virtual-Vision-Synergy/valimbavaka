@@ -136,7 +136,9 @@ class RestockOrderIT extends StockApiTestSupport {
 
     @Test
     void generate_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(RESTOCK_ORDERS).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post(RESTOCK_ORDERS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }

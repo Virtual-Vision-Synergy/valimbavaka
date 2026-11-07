@@ -16,4 +16,4 @@ import org.jspecify.annotations.Nullable;
  */
 public record RestockOrderWDto(
         @Nullable @Size(max = 500, message = "Un bon ne peut pas viser plus de {max} articles")
-                List<@NotNull(message = "Identifiant d'article manquant") UUID> articleIds) {}
+        List<@NotNull(message = "Identifiant d'article manquant") UUID> articleIds) {}
