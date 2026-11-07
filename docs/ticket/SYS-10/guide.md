@@ -1,6 +1,6 @@
 # Guide d'intégration — SYS-10 · Règle d'ordre de synchronisation en cas de blocage
 
-Statut : ✅ écrit le 2026-11-08 — **tests non exécutés** (voir « Résultat de l'exécution » du scénario) · Ticket : [#136](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/136) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests exécutés en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#136](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/136) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
