@@ -62,9 +62,8 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
     @Override
     public PageResponse<ServiceRecordRDto> getServiceRecords(PageQuery query) {
         var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
-        return PageResponse.from(serviceRecordRepository
-                .search(query.searchTerm(), pageable)
-                .map(serviceRecordMapper::toRDto));
+        return PageResponse.from(
+                serviceRecordRepository.search(query.searchTerm(), pageable).map(serviceRecordMapper::toRDto));
     }
 
     @Override

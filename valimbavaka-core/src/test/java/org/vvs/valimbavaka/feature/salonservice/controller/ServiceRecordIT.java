@@ -225,7 +225,10 @@ class ServiceRecordIT extends ServiceRecordApiTestSupport {
                 .toList();
         assertThat(totals).hasSize(1);
         assertThat(totals.getFirst()).isEqualByComparingTo("0.025");
-        var performed = records.stream().map(ServiceRecordRDto::salonServiceId).filter(serviceId::equals).count();
+        var performed = records.stream()
+                .map(ServiceRecordRDto::salonServiceId)
+                .filter(serviceId::equals)
+                .count();
         assertThat(performed).isEqualTo(2);
         assertThat(balance(oil, SALON)).isEqualByComparingTo("0.975");
     }

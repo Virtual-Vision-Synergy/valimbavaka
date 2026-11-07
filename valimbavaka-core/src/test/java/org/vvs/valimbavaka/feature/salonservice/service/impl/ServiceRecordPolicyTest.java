@@ -89,7 +89,8 @@ class ServiceRecordPolicyTest {
         assertThat(draft.customerName()).isEqualTo("Hanta");
         assertThat(draft.note()).isNull();
         var products = draft.products().stream()
-                .map(product -> product.getArticleCode() + " " + product.getQuantity().toPlainString())
+                .map(product ->
+                        product.getArticleCode() + " " + product.getQuantity().toPlainString())
                 .toList();
         assertThat(products).containsExactly("ART-0001 0.015", "ART-0002 1");
     }
