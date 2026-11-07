@@ -16,12 +16,15 @@ import org.jspecify.annotations.Nullable;
  * the authenticated account).
  */
 public record ShootingWDto(
-        @NotNull(message = "L'emplacement de sortie est obligatoire") UUID locationId,
+        @NotNull(message = "L'emplacement de sortie est obligatoire")
+        UUID locationId,
 
         @NotEmpty(message = "Ajoutez au moins un article")
         @Size(max = 50, message = "Une sortie compte {max} articles au maximum")
         List<@Valid @NotNull ShootingItemWDto> items,
 
-        @NotNull(message = "Le retour prévu est obligatoire") Instant expectedReturnAt,
+        @NotNull(message = "Le retour prévu est obligatoire")
+        Instant expectedReturnAt,
 
-        @Size(max = 255, message = "La note ne doit pas dépasser {max} caractères") @Nullable String note) {}
+        @Size(max = 255, message = "La note ne doit pas dépasser {max} caractères") @Nullable
+        String note) {}

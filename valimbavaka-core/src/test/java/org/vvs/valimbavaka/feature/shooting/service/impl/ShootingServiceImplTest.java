@@ -94,8 +94,7 @@ class ShootingServiceImplTest {
             assertThat(command.locationId()).isEqualTo(LOCATION_ID);
             assertThat(command.referenceId()).isEqualTo(SHOOTING_ID);
         });
-        verify(journalService)
-                .record(eq(JournalAction.CREATE), eq("SHOOTING"), eq(SHOOTING_ID), contains("SHO-0042"));
+        verify(journalService).record(eq(JournalAction.CREATE), eq("SHOOTING"), eq(SHOOTING_ID), contains("SHO-0042"));
     }
 
     @Test

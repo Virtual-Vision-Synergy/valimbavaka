@@ -57,7 +57,8 @@ public class ShootingServiceImpl implements ShootingService {
     @Override
     public PageResponse<ShootingRDto> getShootings(PageQuery query, @Nullable ShootingStatus status) {
         var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
-        return PageResponse.from(shootingRepository.search(query.searchTerm(), status, pageable).map(this::toRDto));
+        return PageResponse.from(
+                shootingRepository.search(query.searchTerm(), status, pageable).map(this::toRDto));
     }
 
     @Override
