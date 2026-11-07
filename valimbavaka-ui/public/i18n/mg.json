@@ -223,6 +223,10 @@
     "current": "an-dalana",
     "upcoming": "ho avy"
   },
+  "stockGauge": {
+    "label": "Fizarana ny tahiry isaky ny toerana",
+    "total": "Totaly"
+  },
   "search": {
     "placeholder": "Hitady entana, varotra…",
     "open": "Hitady entana, varotra… (Ctrl K)",
