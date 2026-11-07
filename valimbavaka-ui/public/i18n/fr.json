@@ -1110,20 +1110,19 @@
       "issuer": "Émetteur"
     },
     "status": {
-      "IN_TRANSIT": "En transit",
-      "RECEIVED": "Reçu",
-      "DISCREPANCY": "Écart",
       "RETURN": "Retour",
       "VALIDATED": "Validé"
     },
     "detailLabel": "Bon de transfert {{number}}",
-    "detailPending": "Détail du bon bientôt disponible",
     "from": "De",
     "to": "Vers",
-    "pending": "en transit",
-    "receivedLine": "reçu",
-    "gapLine": "reçu {{received}} sur {{sent}}",
-    "moreLines": "+ {{count}} autres lignes",
+    "note": "Note",
+    "linesLabel": "{{count}} article(s) transféré(s)",
+    "unit": {
+      "PIECE": "u.",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
     "print": "Imprimer le bon",
     "createReturn": "Créer un retour",
     "return": {

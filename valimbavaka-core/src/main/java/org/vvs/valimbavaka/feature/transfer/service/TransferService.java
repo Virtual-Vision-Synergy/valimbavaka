@@ -1,10 +1,13 @@
 package org.vvs.valimbavaka.feature.transfer.service;
 
+import java.util.UUID;
+
 import org.jspecify.annotations.Nullable;
 
 import org.vvs.valimbavaka.feature.transfer.domain.TransferCommand;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferOrigin;
 import org.vvs.valimbavaka.feature.transfer.dto.StockReturnWDto;
+import org.vvs.valimbavaka.feature.transfer.dto.TransferDetailRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferSummaryRDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -32,4 +35,10 @@ public interface TransferService {
      * {@code origin} and {@code status}, searchable on the number, filtered by origin when {@code origin} is set.
      */
     PageResponse<TransferSummaryRDto> getTransfers(PageQuery query, @Nullable TransferOrigin origin);
+
+    /**
+     * Full sheet of a transfer (TRF-04): route, status, issuer, note and every line with its article (code, name,
+     * unit) and quantity, in the order entered. 404 if the transfer is unknown.
+     */
+    TransferDetailRDto getTransfer(UUID transferId);
 }
