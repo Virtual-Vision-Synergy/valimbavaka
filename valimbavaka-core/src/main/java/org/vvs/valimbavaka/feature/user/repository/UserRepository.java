@@ -47,6 +47,26 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """)
     Page<User> search(String search, Pageable pageable);
 
+    /** Active accounts of one role, searched on first and last name (production operators, PRD-01). */
+    @Query(value = """
+            select u from User u join fetch u.role r
+            where r.name = :roleName and u.active = true
+              and (lower(u.firstName) like lower(concat('%', :search, '%'))
+                   or lower(u.lastName) like lower(concat('%', :search, '%')))
+            """, countQuery = """
+            select count(u) from User u
+            where u.role.name = :roleName and u.active = true
+              and (lower(u.firstName) like lower(concat('%', :search, '%'))
+                   or lower(u.lastName) like lower(concat('%', :search, '%')))
+            """)
+    Page<User> searchActiveByRoleName(RoleName roleName, String search, Pageable pageable);
+
+    @Query("""
+            select case when count(u) > 0 then true else false end from User u
+            where u.id = :userId and u.active = true and u.role.name = :roleName
+            """)
+    boolean isActiveWithRole(UUID userId, RoleName roleName);
+
     boolean existsByEmail(String email);
 
     boolean existsByEmailAndIdNot(String email, UUID id);
