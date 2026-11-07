@@ -48,6 +48,7 @@ class DeliveryOrderIT extends DeliveryApiTestSupport {
                 .getContentAsString();
 
         // Assert
+        var orderId = JsonPath.<String>read(content, "$.id");
         mockMvc.perform(get(DELIVERIES)
                         .param("driverId", driverId.toString())
                         .param("date", day.toString())
@@ -56,7 +57,7 @@ class DeliveryOrderIT extends DeliveryApiTestSupport {
                         .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCount").value(1))
-                .andExpect(jsonPath("$.items[0].id").value(JsonPath.<String>read(content, "$.id")));
+                .andExpect(jsonPath("$.items[0].id").value(orderId));
     }
 
     @Test
@@ -99,9 +100,8 @@ class DeliveryOrderIT extends DeliveryApiTestSupport {
 
     @Test
     void createOrder_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(DELIVERIES)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body(UUID.randomUUID(), tomorrow(), line(UUID.randomUUID(), "1"))))
+        var body = body(UUID.randomUUID(), tomorrow(), line(UUID.randomUUID(), "1"));
+        mockMvc.perform(post(DELIVERIES).contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
@@ -204,8 +204,8 @@ class DeliveryOrderIT extends DeliveryApiTestSupport {
 
     @Test
     void getOrder_unknownId_returns404() throws Exception {
-        mockMvc.perform(get(DELIVERIES + "/" + UUID.randomUUID())
-                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
+        var url = DELIVERIES + "/" + UUID.randomUUID();
+        mockMvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
@@ -277,8 +277,8 @@ class DeliveryOrderIT extends DeliveryApiTestSupport {
 
     @Test
     void getDrivers_withDeliveryDriverRole_returns403() throws Exception {
-        mockMvc.perform(get(DELIVERIES + "/drivers")
-                        .header(HttpHeaders.AUTHORIZATION, bearer(tokenOfDriver(createDriver()))))
+        var token = tokenOfDriver(createDriver());
+        mockMvc.perform(get(DELIVERIES + "/drivers").header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isForbidden());
     }
 

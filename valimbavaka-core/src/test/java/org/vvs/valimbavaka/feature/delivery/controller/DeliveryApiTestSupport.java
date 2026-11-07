@@ -42,7 +42,8 @@ abstract class DeliveryApiTestSupport extends StockApiTestSupport {
         var email = "livreur-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = driverRoleRepository.findByName(RoleName.DELIVERY_DRIVER).orElseThrow();
         var profile = new UserProfile(email, "Tojo", "Nirina");
-        return driverUserRepository.save(User.create(profile, driverPasswordEncoder.encode(PASSWORD), role)).getId();
+        var driver = User.create(profile, driverPasswordEncoder.encode(PASSWORD), role);
+        return driverUserRepository.save(driver).getId();
     }
 
     protected String tokenOfDriver(UUID driverId) throws Exception {

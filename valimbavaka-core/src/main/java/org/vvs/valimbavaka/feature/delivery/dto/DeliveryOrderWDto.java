@@ -34,8 +34,7 @@ public record DeliveryOrderWDto(
         @Size(max = 80, message = "Le quartier ne doit pas dépasser {max} caractères") @Nullable
         String district,
 
-        @NotNull(message = "Le livreur est obligatoire")
-        UUID driverId,
+        @NotNull(message = "Le livreur est obligatoire") UUID driverId,
 
         @NotNull(message = "La date de livraison est obligatoire")
         LocalDate scheduledDate,

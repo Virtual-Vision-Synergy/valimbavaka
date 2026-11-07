@@ -33,7 +33,7 @@ public interface DeliveryOrderRepository extends OperationRepository<DeliveryOrd
     @Query("""
             select d from DeliveryOrder d
             where (:driverId is null or d.driverId = :driverId)
-              and (:scheduledDate is null or d.scheduledDate = :scheduledDate)
+              and d.scheduledDate = coalesce(:scheduledDate, d.scheduledDate)
               and (:status is null or d.status = :status)
             """)
     Page<DeliveryOrder> search(

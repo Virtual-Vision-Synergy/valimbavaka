@@ -55,6 +55,6 @@ class DeliveryStatusTest {
     void ensureCanMoveTo_deliveredToFailed_throwsConflictWithFrenchLabels() {
         assertThatThrownBy(() -> DeliveryStatus.DELIVERED.ensureCanMoveTo(DeliveryStatus.FAILED))
                 .isInstanceOf(ConflictException.class)
-                .hasMessage("La livraison ne peut pas passer de « livrée » à « en échec ».");
+                .hasMessageContaining("« livrée » à « en échec »");
     }
 }

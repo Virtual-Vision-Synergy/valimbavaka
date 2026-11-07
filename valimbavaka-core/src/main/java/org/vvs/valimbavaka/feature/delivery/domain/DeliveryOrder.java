@@ -91,9 +91,7 @@ public class DeliveryOrder extends BaseEntity {
         order.stopNumber = stopNumber;
         order.note = command.note();
         command.lines().forEach(line -> order.lines.add(DeliveryOrderLine.of(line)));
-        order.amount = order.lines.stream()
-                .map(DeliveryOrderLine::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.amount = order.lines.stream().map(DeliveryOrderLine::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return order;
     }
 

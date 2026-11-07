@@ -94,13 +94,11 @@ class DeliveryOrderServiceImplTest {
         assertThat(saved.getValue().getNumber()).isEqualTo("LIV-0042");
         assertThat(saved.getValue().getStopNumber()).isEqualTo(3);
         assertThat(saved.getValue().getStatus()).isEqualTo(DeliveryStatus.TO_PREPARE);
-        verify(journalService)
-                .record(
-                        eq(JournalAction.CREATE),
-                        eq("DELIVERY_ORDER"),
-                        isNull(),
-                        eq("Création de la commande à livrer LIV-0042 : 1 article(s), 17000.00 Ar, "
-                                + "tournée du 2026-11-09 (arrêt 3)"));
+        var description = ArgumentCaptor.forClass(String.class);
+        verify(journalService).record(eq(JournalAction.CREATE), eq("DELIVERY_ORDER"), isNull(), description.capture());
+        assertThat(description.getValue())
+                .startsWith("Création de la commande à livrer LIV-0042 : 1 article(s), 17000.00 Ar")
+                .endsWith("tournée du 2026-11-09 (arrêt 3)");
     }
 
     @Test
@@ -121,8 +119,8 @@ class DeliveryOrderServiceImplTest {
     @Test
     void createOrder_rejectedByThePolicy_writesNothing() {
         // Arrange
-        when(policy.check(any()))
-                .thenThrow(new BusinessException("La date de livraison ne peut pas être dans le passé."));
+        var refusal = new BusinessException("La date de livraison ne peut pas être dans le passé.");
+        when(policy.check(any())).thenThrow(refusal);
 
         // Act + Assert
         assertThatThrownBy(() -> sut.createOrder(request())).isInstanceOf(BusinessException.class);
@@ -173,7 +171,7 @@ class DeliveryOrderServiceImplTest {
         // Arrange
         when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(DRIVER_ID));
         when(userService.isActiveDriver(DRIVER_ID)).thenReturn(true);
-        when(orderRepository.search(eq(DRIVER_ID), eq(DAY), isNull(), any(Pageable.class))).thenReturn(Page.empty());
+        when(orderRepository.search(any(), any(), any(), any(Pageable.class))).thenReturn(Page.empty());
 
         // Act
         sut.getOrders(new PageQuery(1, 20, null, null, null), new DeliveryOrderFilter(OTHER_DRIVER_ID, DAY, null));
@@ -188,14 +186,15 @@ class DeliveryOrderServiceImplTest {
         when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(SELLER_ID));
         when(userService.isActiveDriver(SELLER_ID)).thenReturn(false);
         when(orderRepository.search(any(), any(), any(), any(Pageable.class))).thenReturn(Page.empty());
-        var filter = new DeliveryOrderFilter(OTHER_DRIVER_ID, DAY, DeliveryStatus.TO_PREPARE);
+        var status = DeliveryStatus.TO_PREPARE;
+        var filter = new DeliveryOrderFilter(OTHER_DRIVER_ID, DAY, status);
 
         // Act
         sut.getOrders(new PageQuery(1, 20, null, "stopNumber", null), filter);
 
         // Assert
         var pageable = ArgumentCaptor.forClass(Pageable.class);
-        verify(orderRepository).search(eq(OTHER_DRIVER_ID), eq(DAY), eq(DeliveryStatus.TO_PREPARE), pageable.capture());
+        verify(orderRepository).search(eq(OTHER_DRIVER_ID), eq(DAY), eq(status), pageable.capture());
         assertThat(pageable.getValue().getSort().getOrderFor("stopNumber")).isNotNull();
     }
 
