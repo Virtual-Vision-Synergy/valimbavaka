@@ -1,6 +1,6 @@
 # Scénarios de test — INV-02 · Comptage physique avec calcul d'écart
 
-Statut : ✍ rédigé le 2026-11-08 — **tests écrits, non exécutés** · Ticket : [#78](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/78) · [description](description.md) · [guide](guide.md)
+Statut : ✅ exécuté le 2026-11-08 — **CI verte** · Ticket : [#78](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/78) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -18,42 +18,42 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 
 | # | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | La saisie met à jour l'écart affiché immédiatement | théorique 12, on tape `10` (événement `input`, sans valider) | la colonne « Écart » affiche `−2` (signe `minus`) avant tout appel serveur | `inventory-page.spec.ts` « met à jour l’écart dès la saisie, avant tout enregistrement » | ☐ |
-| 1b | Quantité validée enregistrée | `10` puis sortie du champ (`change`) | `PUT /api/v1/inventories/{id}/lines/{lineId}/count` avec `{"countedQuantity":10}` ; le théorique renvoyé par le serveur (11) remplace celui du chargement, écart `−1` | `inventory-page.spec.ts` « enregistre la quantité validée et reprend le théorique figé par le serveur » | ☐ |
-| 1c | Comptage côté serveur | `{"countedQuantity":10}`, stock `STORE` = 12 | 200, `theoreticalQuantity` 12, `countedQuantity` 10, `gap` −2 ; ligne tracée au journal (`UPDATE`, `INVENTORY_SESSION`) | `InventoryCountIT.countLine_quantityBelowStock_returns200WithNegativeGapAndTracesInJournal`, `InventoryCountServiceImplTest.countLine_quantityBelowStock_freezesTheoreticalReturnsNegativeGapAndJournals` | ☐ |
-| 1d | Théorique figé au comptage | comptage 10 sur 12, puis vente de 1 (`SALE` −1) | `GET …/lines` renvoie toujours théorique 12 et écart −2 | `InventoryCountIT.countLine_thenStockMoves_keepsTheGapFrozenInTheLines` | ☐ |
-| 1e | Recomptage | 10 puis 12 | le dernier comptage remplace le précédent, théorique refigé, écart 0 | `InventoryCountIT.countLine_recountEqualToStock_returnsZeroGap`, `InventoryCountServiceImplTest.countLine_recount_replacesCountedAndRefreezesTheoretical` | ☐ |
-| 1f | Article absent de l'emplacement | aucun mouvement, compté 3 | théorique 0, écart +3, coût unitaire nul accepté | `InventoryCountServiceImplTest.countLine_articleAbsentFromLocation_usesZeroAsTheoreticalAndReturnsPositiveGap` | ☐ |
-| 1g | Page sans session en cours | `GET /api/v1/inventories?status=IN_PROGRESS` vide | message « Aucune session d'inventaire en cours… » et lien vers `/inventory/new` | `inventory-page.spec.ts` « invite à ouvrir une session quand aucune n’est en cours » | ☐ |
-| 1h | Page avec session en cours | session `INV-0012` Boutique, 1 ligne théorique 12 | titre « Inventaire · Boutique », responsable « Hanta Rakoto », théorique 12, écart « — » | `inventory-page.spec.ts` « affiche la session en cours avec le théorique du serveur » | ☐ |
-| 1i | Chargement de toutes les lignes | 2 pages de lignes (size 100) | les deux pages sont lues et fusionnées dans l'ordre | `inventory-service.spec.ts` « charge toutes les pages de lignes de la session en cours » | ☐ |
+| 1 | La saisie met à jour l'écart affiché immédiatement | théorique 12, on tape `10` (événement `input`, sans valider) | la colonne « Écart » affiche `−2` (signe `minus`) avant tout appel serveur | `inventory-page.spec.ts` « met à jour l’écart dès la saisie, avant tout enregistrement » | ✅ auto |
+| 1b | Quantité validée enregistrée | `10` puis sortie du champ (`change`) | `PUT /api/v1/inventories/{id}/lines/{lineId}/count` avec `{"countedQuantity":10}` ; le théorique renvoyé par le serveur (11) remplace celui du chargement, écart `−1` | `inventory-page.spec.ts` « enregistre la quantité validée et reprend le théorique figé par le serveur » | ✅ auto |
+| 1c | Comptage côté serveur | `{"countedQuantity":10}`, stock `STORE` = 12 | 200, `theoreticalQuantity` 12, `countedQuantity` 10, `gap` −2 ; ligne tracée au journal (`UPDATE`, `INVENTORY_SESSION`) | `InventoryCountIT.countLine_quantityBelowStock_returns200WithNegativeGapAndTracesInJournal`, `InventoryCountServiceImplTest.countLine_quantityBelowStock_freezesTheoreticalReturnsNegativeGapAndJournals` | ✅ auto |
+| 1d | Théorique figé au comptage | comptage 10 sur 12, puis vente de 1 (`SALE` −1) | `GET …/lines` renvoie toujours théorique 12 et écart −2 | `InventoryCountIT.countLine_thenStockMoves_keepsTheGapFrozenInTheLines` | ✅ auto |
+| 1e | Recomptage | 10 puis 12 | le dernier comptage remplace le précédent, théorique refigé, écart 0 | `InventoryCountIT.countLine_recountEqualToStock_returnsZeroGap`, `InventoryCountServiceImplTest.countLine_recount_replacesCountedAndRefreezesTheoretical` | ✅ auto |
+| 1f | Article absent de l'emplacement | aucun mouvement, compté 3 | théorique 0, écart +3, coût unitaire nul accepté | `InventoryCountServiceImplTest.countLine_articleAbsentFromLocation_usesZeroAsTheoreticalAndReturnsPositiveGap` | ✅ auto |
+| 1g | Page sans session en cours | `GET /api/v1/inventories?status=IN_PROGRESS` vide | message « Aucune session d'inventaire en cours… » et lien vers `/inventory/new` | `inventory-page.spec.ts` « invite à ouvrir une session quand aucune n’est en cours » | ✅ auto |
+| 1h | Page avec session en cours | session `INV-0012` Boutique, 1 ligne théorique 12 | titre « Inventaire · Boutique », responsable « Hanta Rakoto », théorique 12, écart « — » | `inventory-page.spec.ts` « affiche la session en cours avec le théorique du serveur » | ✅ auto |
+| 1i | Chargement de toutes les lignes | 2 pages de lignes (size 100) | les deux pages sont lues et fusionnées dans l'ordre | `inventory-service.spec.ts` « charge toutes les pages de lignes de la session en cours » | ✅ auto |
 
 ## Sécurité et erreurs
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Sans jeton | `PUT …/count` | 401 `UNAUTHENTICATED` | `InventoryCountIT.countLine_withoutToken_returns401` | ☐ |
-| Mauvais rôle | jeton vendeuse | 403 `FORBIDDEN` | `InventoryCountIT.countLine_withSellerRole_returns403` | ☐ |
-| Mass assignment | `"id":"<uuid>","theoreticalQuantity":10,"gap":0` ajoutés | ignorés : ligne de l'URL, théorique 12 calculé par le serveur, écart −2 | `InventoryCountIT.countLine_massAssignmentOfIdAndTheoretical_isIgnored` | ☐ |
-| Données invalides | `-1`, `null`, `1.2345` | 422 `VALIDATION_FAILED` | `InventoryCountIT.countLine_invalidQuantity_returns422` (paramétré, 3 cas) | ☐ |
-| Ligne inconnue ou d'une autre session | `lineId` aléatoire | 404 `NOT_FOUND` | `InventoryCountIT.countLine_unknownLine_returns404`, `InventoryCountServiceImplTest.countLine_lineOfAnotherSession_throwsNotFound` | ☐ |
-| Session inconnue | `id` aléatoire | 404 | `InventoryCountIT.countLine_unknownSession_returns404`, `InventoryCountServiceImplTest.countLine_unknownSession_throwsNotFound` | ☐ |
-| Session close | session `CLOSED` | 409 `CONFLICT` (« La session INV-0012 n'est plus en cours. »), rien n'est écrit | `InventoryCountIT.countLine_closedSession_returns409`, `InventoryCountServiceImplTest.countLine_closedSession_throwsConflictAndChangesNothing` | ☐ |
-| Refus affiché à l'écran | 409 renvoyé au `PUT` | toast `danger` « Comptage de ART-0031 non enregistré : … » | `inventory-page.spec.ts` « prévient quand le serveur refuse le comptage (session clôturée) » | ☐ |
-| Journal | comptage 10 sur 12 | `UPDATE` · `INVENTORY_SESSION` · « Comptage de ART-0031 dans INV-0012 : 10 compté(s), 12 attendu(s), écart -2 » | `InventoryCountServiceImplTest.countLine_quantityBelowStock_freezesTheoreticalReturnsNegativeGapAndJournals` | ☐ |
+| Sans jeton | `PUT …/count` | 401 `UNAUTHENTICATED` | `InventoryCountIT.countLine_withoutToken_returns401` | ✅ auto |
+| Mauvais rôle | jeton vendeuse | 403 `FORBIDDEN` | `InventoryCountIT.countLine_withSellerRole_returns403` | ✅ auto |
+| Mass assignment | `"id":"<uuid>","theoreticalQuantity":10,"gap":0` ajoutés | ignorés : ligne de l'URL, théorique 12 calculé par le serveur, écart −2 | `InventoryCountIT.countLine_massAssignmentOfIdAndTheoretical_isIgnored` | ✅ auto |
+| Données invalides | `-1`, `null`, `1.2345` | 422 `VALIDATION_FAILED` | `InventoryCountIT.countLine_invalidQuantity_returns422` (paramétré, 3 cas) | ✅ auto |
+| Ligne inconnue ou d'une autre session | `lineId` aléatoire | 404 `NOT_FOUND` | `InventoryCountIT.countLine_unknownLine_returns404`, `InventoryCountServiceImplTest.countLine_lineOfAnotherSession_throwsNotFound` | ✅ auto |
+| Session inconnue | `id` aléatoire | 404 | `InventoryCountIT.countLine_unknownSession_returns404`, `InventoryCountServiceImplTest.countLine_unknownSession_throwsNotFound` | ✅ auto |
+| Session close | session `CLOSED` | 409 `CONFLICT` (« La session INV-0012 n'est plus en cours. »), rien n'est écrit | `InventoryCountIT.countLine_closedSession_returns409`, `InventoryCountServiceImplTest.countLine_closedSession_throwsConflictAndChangesNothing` | ✅ auto |
+| Refus affiché à l'écran | 409 renvoyé au `PUT` | toast `danger` « Comptage de ART-0031 non enregistré : … » | `inventory-page.spec.ts` « prévient quand le serveur refuse le comptage (session clôturée) » | ✅ auto |
+| Journal | comptage 10 sur 12 | `UPDATE` · `INVENTORY_SESSION` · « Comptage de ART-0031 dans INV-0012 : 10 compté(s), 12 attendu(s), écart -2 » | `InventoryCountServiceImplTest.countLine_quantityBelowStock_freezesTheoreticalReturnsNegativeGapAndJournals` | ✅ auto |
 
 ## Cas limites et hors ligne
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Borne basse | `0` compté, stock 0 | 200, écart 0 | `InventoryCountServiceImplTest.countLine_zeroCountedEqualToStock_returnsZeroGap` | ☐ |
-| Décimales | `12.000` tapé, théorique 12 | écart affiché `0` (arrondi à 3 décimales, pas de `0.0000001`) | `inventory-page.spec.ts` « accepte une quantité décimale et un écart nul » | ☐ |
-| 4 décimales | `1.2345` | 422 | `InventoryCountIT.countLine_invalidQuantity_returns422` | ☐ |
-| Champ vidé | `""` puis sortie du champ | rien n'est envoyé, écart « — » | `inventory-page.spec.ts` « n’envoie rien quand le champ est vidé » | ☐ |
-| Rejeu hors ligne (même quantité, même théorique) | `10.000` déjà enregistré, rejeu de `10` | aucune écriture, aucune ligne de journal, `countedAt` inchangé | `InventoryCountServiceImplTest.countLine_sameCountReplayed_changesNothingAndDoesNotJournal` | ☐ |
-| Hors ligne | écriture via `OutboxService.submit('PUT', …)` | clé `Idempotency-Key` envoyée, saisie mise en file si le réseau est coupé (écart local conservé) | `inventory-service.spec.ts` « enregistre le comptage d’une ligne par PUT avec une clé d’idempotence » | ☐ |
+| Borne basse | `0` compté, stock 0 | 200, écart 0 | `InventoryCountServiceImplTest.countLine_zeroCountedEqualToStock_returnsZeroGap` | ✅ auto |
+| Décimales | `12.000` tapé, théorique 12 | écart affiché `0` (arrondi à 3 décimales, pas de `0.0000001`) | `inventory-page.spec.ts` « accepte une quantité décimale et un écart nul » | ✅ auto |
+| 4 décimales | `1.2345` | 422 | `InventoryCountIT.countLine_invalidQuantity_returns422` | ✅ auto |
+| Champ vidé | `""` puis sortie du champ | rien n'est envoyé, écart « — » | `inventory-page.spec.ts` « n’envoie rien quand le champ est vidé » | ✅ auto |
+| Rejeu hors ligne (même quantité, même théorique) | `10.000` déjà enregistré, rejeu de `10` | aucune écriture, aucune ligne de journal, `countedAt` inchangé | `InventoryCountServiceImplTest.countLine_sameCountReplayed_changesNothingAndDoesNotJournal` | ✅ auto |
+| Hors ligne | écriture via `OutboxService.submit('PUT', …)` | clé `Idempotency-Key` envoyée, saisie mise en file si le réseau est coupé (écart local conservé) | `inventory-service.spec.ts` « enregistre le comptage d’une ligne par PUT avec une clé d’idempotence » | ✅ auto |
 | Deux administrateurs sur la même ligne | deux `PUT` simultanés | le dernier enregistré gagne (pas de version dans le corps) ; verrou optimiste JPA sur la ligne | — | 🔍 code (`BaseEntity.version`) |
-| Accessibilité de la page | page chargée avec une session | aucune violation axe (WCAG 2.2 AA, hors contraste) | `inventory-page.spec.ts` « ne présente aucune violation d’accessibilité détectable » | ☐ |
+| Accessibilité de la page | page chargée avec une session | aucune violation axe (WCAG 2.2 AA, hors contraste) | `inventory-page.spec.ts` « ne présente aucune violation d’accessibilité détectable » | ✅ auto |
 
 ## Tests existants
 
@@ -71,6 +71,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 
 ## Résultat de l'exécution
 
-- Date : 2026-11-08 — **à lancer (CI ou local)**.
-- Anomalies : aucune constatée à ce stade (tests non exécutés).
+- Date : 2026-11-08 — CI GitHub sur la branche `feature/INV-02-comptage-physique-ecart` (commit `bcc4139`) : workflow « CI » vert (run 42412614407 : backend `mvn verify`, frontend `ng test`) et « Convention VVS » vert (run 42412616862 : Spotless, Checkstyle, Prettier, ESLint, gitleaks).
+- Tests du ticket : `InventoryCountServiceImplTest` 8/8, `InventoryCountIT` 12/12 (dont le test paramétré à 3 cas), `inventory-page.spec.ts` 8/8, `inventory-service.spec.ts` 7/7 (dont 3 ajoutés). Ensemble : backend 271 tests unitaires et 297 tests d'intégration, frontend 304 tests (54 fichiers), 0 échec.
+- Anomalies : aucune.
 - Étapes 🧪 restantes : 4.

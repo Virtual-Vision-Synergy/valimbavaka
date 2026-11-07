@@ -1,6 +1,6 @@
 # Guide d'intégration — INV-02 · Comptage physique avec calcul d'écart
 
-Statut : ✅ écrit le 2026-11-08 — **tests non exécutés** (voir « Résultat de l'exécution » du scénario) · Ticket : [#78](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/78) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests exécutés en CI, verts (voir « Résultat de l'exécution » du scénario) · Ticket : [#78](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/78) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
