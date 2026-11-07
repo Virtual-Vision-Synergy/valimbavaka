@@ -29,7 +29,7 @@ describe('ProductionService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it("assemble l'écran : produits finis, entrants avec le stock de l'entrepôt, vendeuses, lots récents", () => {
+  it("assemble l'écran : produits finis, entrants avec le stock de l'entrepôt, vendeuses, lots récents, indicateurs", () => {
     let context: ProductionContextRDto | undefined;
     service.context().subscribe((value) => (context = value));
 
@@ -58,8 +58,11 @@ describe('ProductionService', () => {
         page([
           {
             articleId: 'mp-1',
+            threshold: 20,
+            total: 12.5,
             locations: [{ locationId: 'l1', code: 'WAREHOUSE', label: 'Entrepôt', quantity: 12.5 }],
           },
+          { articleId: 'pf-1', threshold: 50, total: 3, locations: [] },
         ]),
       );
     httpMock
@@ -82,6 +85,18 @@ describe('ProductionService', () => {
       ]),
     );
 
+    httpMock.expectOne('/api/v1/production/indicators').flush({
+      month: '2026-11',
+      completedBatches: 18,
+      inProgressBatches: 3,
+      unitsProduced: 864,
+      previousMonthUnits: 771,
+      unitsTrendPercent: 12,
+      materialCost: 2946240,
+      materialCostPerUnit: 3410,
+      uncostedBatches: 1,
+    });
+
     expect(context?.products[0].articleId).toBe('pf-1');
     expect(context?.materials[0]).toMatchObject({ id: 'mp-1', unit: 'kg', available: 12.5 });
     expect(context?.operators).toEqual([{ id: 'op-1', name: 'Soa Rakoto' }]);
@@ -91,7 +106,17 @@ describe('ProductionService', () => {
       operator: 'Soa Rakoto',
       status: 'DRAFT',
     });
-    expect(context?.kpis.lotsThisMonth).toBe(0);
+
+    // Le produit fini sous son seuil n'est pas une matière à racheter : seul l'entrant mp-1 compte.
+    expect(context?.kpis).toEqual({
+      lotsThisMonth: 18,
+      curing: 3,
+      unitsProduced: 864,
+      unitsTrendPercent: 12,
+      averageCost: 3410,
+      uncostedLots: 1,
+      materialsToRebuy: 1,
+    });
   });
 
   it('crée le lot par POST avec une clé d’idempotence et renvoie le lot planifié du serveur', () => {
@@ -175,6 +200,18 @@ describe('ProductionService', () => {
     });
 
     expect(created?.lot).toMatchObject({ number: 'LOT-00005', status: 'VALIDATED' });
+  });
+
+  it('démarre un lot planifié par POST sur /batches/{id}/start avec une clé d’idempotence', () => {
+    let status: string | undefined;
+    service.startLot('b2').subscribe((result) => (status = result.body?.status));
+
+    const request = httpMock.expectOne('/api/v1/production/batches/b2/start');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.has('Idempotency-Key')).toBe(true);
+    request.flush({ id: 'b2', status: 'IN_PROGRESS' });
+
+    expect(status).toBe('IN_PROGRESS');
   });
 
   it('valide un lot planifié existant par POST sur /batches/{id}/completion', () => {

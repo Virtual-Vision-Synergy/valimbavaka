@@ -1,5 +1,8 @@
 package org.vvs.valimbavaka.feature.production.repository;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,4 +44,18 @@ public interface ProductionBatchRepository extends OperationRepository<Productio
 
     /** Saves and flushes, so that the returned version and dates are those of the database (PRD-02). */
     ProductionBatch saveAndFlush(ProductionBatch batch);
+
+    /** Batches completed in [from, to) (PRD-04): {@code completed_at} is set only on COMPLETED batches (PRD-02). */
+    @Query("select b from ProductionBatch b where b.completedAt >= :from and b.completedAt < :to")
+    List<ProductionBatch> findCompletedBetween(Instant from, Instant to);
+
+    /** Units produced by the batches completed in [from, to) (PRD-04); zero when there is none. */
+    @Query("""
+            select coalesce(sum(b.quantity), 0) from ProductionBatch b
+            where b.completedAt >= :from and b.completedAt < :to
+            """)
+    BigDecimal sumCompletedQuantityBetween(Instant from, Instant to);
+
+    /** Number of batches in the given status, whatever their date (PRD-04: batches in progress). */
+    long countByStatus(ProductionBatchStatus status);
 }

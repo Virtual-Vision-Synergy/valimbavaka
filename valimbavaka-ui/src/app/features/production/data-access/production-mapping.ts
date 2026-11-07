@@ -10,6 +10,8 @@ import {
   ProductionBatchRDto,
   ProductionBatchStatus,
   ProductionBatchWDto,
+  ProductionIndicatorsRDto,
+  ProductionKpisRDto,
   ProductionOperatorRDto,
 } from './production-models';
 
@@ -68,6 +70,7 @@ export function toLot(
   operators: readonly OperatorOption[],
 ): LotRDto {
   return {
+    id: batch.id,
     number: batch.number,
     date: batch.createdAt.slice(0, 10),
     articleName: products.find((item) => item.articleId === batch.outputArticleId)?.name ?? '—',
@@ -86,5 +89,28 @@ export function toBatchWDto(lot: LotWDto): ProductionBatchWDto {
     inputs: lot.lines
       .filter((line) => line.quantity > 0)
       .map((line) => ({ articleId: line.materialId, quantity: line.quantity })),
+  };
+}
+
+/**
+ * Indicateurs de tête (PRD-04) : ceux du serveur, plus les entrants à racheter, c'est-à-dire les entrants dont le
+ * stock total est sous un seuil non nul (même règle que les alertes STK-04).
+ */
+export function toKpis(
+  indicators: ProductionIndicatorsRDto,
+  inputIds: readonly string[],
+  stocks: readonly StockRDto[],
+): ProductionKpisRDto {
+  return {
+    lotsThisMonth: indicators.completedBatches,
+    curing: indicators.inProgressBatches,
+    unitsProduced: indicators.unitsProduced,
+    unitsTrendPercent: indicators.unitsTrendPercent ?? null,
+    averageCost: indicators.materialCostPerUnit ?? null,
+    uncostedLots: indicators.uncostedBatches,
+    materialsToRebuy: stocks.filter(
+      (stock) =>
+        inputIds.includes(stock.articleId) && stock.threshold > 0 && stock.total < stock.threshold,
+    ).length,
   };
 }

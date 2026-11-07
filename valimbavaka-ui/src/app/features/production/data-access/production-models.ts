@@ -82,8 +82,9 @@ export interface ProducibleArticleRDto {
   readonly recipe: readonly RecipeLineRDto[];
 }
 
-/** Lot récent (PRD-03). */
+/** Lot récent (PRD-03) ; `id` sert aux changements de statut (démarrer, terminer). */
 export interface LotRDto {
+  readonly id: string;
   readonly number: string;
   readonly date: string;
   readonly articleName: string;
@@ -92,12 +93,39 @@ export interface LotRDto {
   readonly status: LotStatus;
 }
 
+/**
+ * Miroir de ProductionIndicatorsRDto (`GET /api/v1/production/indicators`, PRD-04) : mois en cours à l'heure de
+ * Madagascar, lots comptés à leur validation. Le coût matière ne couvre que les lots dont tous les entrants ont un
+ * coût figé ; les autres sont comptés dans `uncostedBatches`.
+ */
+export interface ProductionIndicatorsRDto {
+  /** Mois en cours, `2026-11`. */
+  readonly month: string;
+  readonly completedBatches: number;
+  readonly inProgressBatches: number;
+  readonly unitsProduced: number;
+  readonly previousMonthUnits: number;
+  /** Évolution arrondie des unités vs le mois précédent ; null si rien n'a été produit le mois précédent. */
+  readonly unitsTrendPercent: number | null;
+  readonly materialCost: number;
+  /** Coût matière moyen par unité ; null si aucun lot chiffré ce mois. */
+  readonly materialCostPerUnit: number | null;
+  readonly uncostedBatches: number;
+}
+
+/** Indicateurs affichés en tête de l'écran (PRD-04) ; voir `toKpis` dans `production-mapping.ts`. */
 export interface ProductionKpisRDto {
+  /** Lots terminés ce mois. */
   readonly lotsThisMonth: number;
+  /** Lots en cours (tous mois confondus). */
   readonly curing: number;
   readonly unitsProduced: number;
-  readonly unitsTrendPercent: number;
-  readonly averageCost: number;
+  readonly unitsTrendPercent: number | null;
+  /** Coût matière moyen par unité produite ce mois ; null si aucun lot chiffré. */
+  readonly averageCost: number | null;
+  /** Lots du mois laissés hors du coût matière (entrant sans coût). */
+  readonly uncostedLots: number;
+  /** Entrants dont le stock total est sous le seuil d'alerte (règle STK-04). */
   readonly materialsToRebuy: number;
 }
 

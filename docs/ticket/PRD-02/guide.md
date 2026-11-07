@@ -66,7 +66,7 @@ Ajouts aux DTO de sortie (PRD-01) : `ProductionBatchRDto.completedAt` (null tant
 - **Coût de revient (PRD-05)** : coût matière d'un lot = Σ `quantity × unit_cost` des entrants ; un entrant sans coût
   (`unit_cost` null) doit être signalé, pas compté pour 0. Le coût n'est figé qu'à la validation.
 - **Indicateurs (PRD-04)** : filtrer sur `status = 'COMPLETED'` et dater par `completed_at` (pas `created_at`).
-- La validation est réservée à l'administrateur (`production.complete`) ; la vendeuse crée des lots planifiés.
+- La validation exige `production.complete` : administrateur et, depuis PRD-03 (migration `2026_11_08-42`), vendeuse.
 
 ## Fichiers concernés
 
@@ -120,5 +120,5 @@ this.productionService.completeLot(lot.id).subscribe(({ queued, body }) => ...);
 - Le contrôle « matière disponible » de l'écran reste indicatif (stock lu au chargement) : le serveur tranche (409).
 - `ProductionBatchServiceImpl` a désormais 5 dépendances injectées (comme `JournalServiceImpl`) : la logique de
   mouvement est isolée dans `ProductionCompletion` pour garder le service court.
-- Pas encore d'écran pour valider un lot planifié existant : `completeLot` est prêt, le bouton relève de PRD-03.
+- Validation d'un lot planifié existant : bouton « Terminer » des lots récents, livré par [PRD-03](../PRD-03/guide.md).
 - Compilation Java et Spotless non vérifiés en local (Maven Central inaccessible) : la CI tranche.
