@@ -755,7 +755,6 @@
     },
     "detail": {
       "title": "Fiche article",
-      "manufactured": "fabriqué",
       "barcode": "Code-barres",
       "edit": "Modifier",
       "newLot": "Nouveau lot",
@@ -763,26 +762,47 @@
       "cost": "Coût de revient",
       "margin": "Marge {{rate}} %",
       "totalStock": "Stock total",
-      "threshold": "Seuil {{count}} u.",
-      "sold30": "Vendus (30 j)",
-      "perDay": "≈ {{count}} / jour",
-      "coverage": "Couverture",
-      "days": "{{count}} jours",
+      "threshold": "Seuil {{count}} {{unit}}",
       "byLocation": "Stock par emplacement",
-      "movements": "Mouvements",
-      "valueAtCost": "Valeur au coût de revient",
+      "valueAtCost": "Valeur au coût d'achat",
       "lots": "Lots de production",
       "allLots": "Tous les lots",
-      "noLots": "Article non fabriqué à l'atelier.",
-      "curing": "en cure · J-{{days}}",
-      "validated": "Validé",
-      "inProgress": "En cours",
+      "noLots": "Aucun lot de production pour cet article.",
       "promotions": "Promotions",
       "manage": "Gérer",
-      "promoMeta": "{{period}} · code {{code}} · utilisé {{uses}} fois",
+      "promoMeta": "Du {{from}} au {{to}} · utilisée {{uses}} fois",
       "active": "Active",
-      "endedPromotions": "{{count}} promotion(s) terminée(s)",
-      "journal": "Journal de l'article"
+      "journal": "Journal de l'article",
+      "allStocks": "Tous les stocks",
+      "inactive": "Désactivé",
+      "role": {
+        "OUTPUT": "Produit : {{quantity}} {{unit}}",
+        "INPUT": "Consommé : {{quantity}} {{unit}}"
+      },
+      "batchStatus": {
+        "PLANNED": "Planifié",
+        "IN_PROGRESS": "En cours",
+        "COMPLETED": "Terminé"
+      },
+      "promoCode": "code {{code}}",
+      "noPromotion": "Aucune promotion active ne vise cet article.",
+      "noMovement": "Aucun mouvement de stock pour cet article.",
+      "movementType": {
+        "RECEIPT": "Réception",
+        "RETURN": "Retour",
+        "SALE": "Vente",
+        "DELIVERY": "Livraison",
+        "SHOOTING": "Shooting",
+        "TRANSFER": "Transfert",
+        "TRADE_SHOW": "Salon",
+        "PRODUCTION": "Production",
+        "INVENTORY": "Inventaire"
+      },
+      "unit": {
+        "PIECE": "u.",
+        "KILOGRAM": "kg",
+        "LITER": "L"
+      }
     }
   },
   "deliveries": {
