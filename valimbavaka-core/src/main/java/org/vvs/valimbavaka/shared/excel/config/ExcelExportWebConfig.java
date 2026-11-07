@@ -8,11 +8,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import org.vvs.valimbavaka.shared.excel.ExcelExporter;
+import org.vvs.valimbavaka.shared.excel.PdfExporter;
 import org.vvs.valimbavaka.shared.excel.web.ExcelHttpMessageConverter;
 import org.vvs.valimbavaka.shared.excel.web.ExportAwareHandlerMapping;
+import org.vvs.valimbavaka.shared.excel.web.PdfHttpMessageConverter;
 
 /**
- * Branche l'export Excel dans Spring MVC. Une seule {@link WebMvcRegistrations} peut fournir le
+ * Branche l'export (xlsx et PDF) dans Spring MVC. Une seule {@link WebMvcRegistrations} peut fournir le
  * {@link RequestMappingHandlerMapping} : toute autre personnalisation du mapping doit être fusionnée ici.
  */
 @Configuration(proxyBeanMethods = false)
@@ -20,12 +22,17 @@ public class ExcelExportWebConfig implements WebMvcRegistrations, WebMvcConfigur
 
     private final ExcelProperties properties;
     private final ExcelExporter exporter;
+    private final PdfExporter pdfExporter;
     private final ApplicationEventPublisher eventPublisher;
 
     public ExcelExportWebConfig(
-            ExcelProperties properties, ExcelExporter exporter, ApplicationEventPublisher eventPublisher) {
+            ExcelProperties properties,
+            ExcelExporter exporter,
+            PdfExporter pdfExporter,
+            ApplicationEventPublisher eventPublisher) {
         this.properties = properties;
         this.exporter = exporter;
+        this.pdfExporter = pdfExporter;
         this.eventPublisher = eventPublisher;
     }
 
@@ -37,5 +44,6 @@ public class ExcelExportWebConfig implements WebMvcRegistrations, WebMvcConfigur
     @Override
     public void configureMessageConverters(HttpMessageConverters.ServerBuilder builder) {
         builder.addCustomConverter(new ExcelHttpMessageConverter(exporter, eventPublisher));
+        builder.addCustomConverter(new PdfHttpMessageConverter(pdfExporter, eventPublisher));
     }
 }

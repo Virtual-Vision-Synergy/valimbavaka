@@ -1478,5 +1478,11 @@
       "title": "Articles fournis",
       "empty": "Aucun article fourni par ce fournisseur."
     }
+  },
+  "export": {
+    "done": "Fichier {{filename}} généré.",
+    "failed": "Export impossible : réessayez.",
+    "tooLarge": "Trop de lignes à exporter : affinez les filtres.",
+    "forbidden": "Vous n'avez pas le droit d'exporter ces données."
   }
 }
