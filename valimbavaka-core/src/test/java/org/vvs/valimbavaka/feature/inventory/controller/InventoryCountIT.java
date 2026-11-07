@@ -104,8 +104,8 @@ class InventoryCountIT {
     void countLine_thenStockMoves_keepsTheGapFrozenInTheLines() throws Exception {
         // Arrange
         mockMvc.perform(asAdmin(put(countUrl())).content(count("10"))).andExpect(status().isOk());
-        var articleId = jdbcTemplate.queryForObject(
-                "select article_id from inventory_lines where id = ?", UUID.class, lineId);
+        var articleId =
+                jdbcTemplate.queryForObject("select article_id from inventory_lines where id = ?", UUID.class, lineId);
         jdbcTemplate.update(
                 "insert into stock_movements (id, article_id, location_id, type, quantity, occurred_at)"
                         + " values (gen_random_uuid(), ?, ?, 'SALE', -1, now())",
@@ -259,8 +259,9 @@ class InventoryCountIT {
 
     private String accessToken(String email, String password) throws Exception {
         var body = "{\"email\":\"%s\",\"password\":\"%s\"}".formatted(email, password);
-        var result = mockMvc.perform(
-                        post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
+        var result = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isOk())
                 .andReturn();
         return JsonPath.read(result.getResponse().getContentAsString(), "$.accessToken");
