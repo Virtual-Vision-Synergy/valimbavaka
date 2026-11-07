@@ -82,10 +82,10 @@ public class TransferServiceImpl implements TransferService {
 
     @Override
     public TransferDetailRDto getTransfer(UUID transferId) {
-        return transferRepository
+        var transfer = transferRepository
                 .findById(transferId)
-                .map(sheet::toRDto)
                 .orElseThrow(() -> new NotFoundException("Transfert introuvable : " + transferId));
+        return sheet.toRDto(transfer);
     }
 
     private String nextNumber(TransferOrigin origin) {

@@ -87,7 +87,9 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds) {
-        return articleRepository.findByIdIn(articleIds).stream().map(articleMapper::toRDto).toList();
+        return articleRepository.findByIdIn(articleIds).stream()
+                .map(articleMapper::toRDto)
+                .toList();
     }
 
     @Override

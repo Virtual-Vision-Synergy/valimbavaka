@@ -36,7 +36,9 @@ class TransferSheet {
     TransferDetailRDto toRDto(Transfer transfer) {
         var labels = history.locationLabels();
         var articles = articlesOf(transfer.getLines());
-        var lines = transfer.getLines().stream().map(line -> toLineRDto(line, articles)).toList();
+        var lines = transfer.getLines().stream()
+                .map(line -> toLineRDto(line, articles))
+                .toList();
         return new TransferDetailRDto(
                 transfer.getId(),
                 transfer.getNumber(),
