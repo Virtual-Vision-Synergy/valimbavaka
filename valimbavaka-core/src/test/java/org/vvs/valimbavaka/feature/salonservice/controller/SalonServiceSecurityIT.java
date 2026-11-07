@@ -271,7 +271,8 @@ class SalonServiceSecurityIT {
 
     private UUID createService(String token, String name, String rate) throws Exception {
         var request = postJson(SERVICES, body(name, 45, rate, "[]")).header(HttpHeaders.AUTHORIZATION, bearer(token));
-        MvcResult result = mockMvc.perform(request).andExpect(status().isCreated()).andReturn();
+        MvcResult result =
+                mockMvc.perform(request).andExpect(status().isCreated()).andReturn();
         return UUID.fromString(JsonPath.read(result.getResponse().getContentAsString(), "$.id"));
     }
 
