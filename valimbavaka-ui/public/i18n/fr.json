@@ -123,6 +123,7 @@
       "services": "Salon & shooting",
       "reports": "Rapports",
       "users": "Utilisateurs",
+      "commissionRules": "Règles de commission",
       "journal": "Journal",
       "dayOpen": "Ouverture",
       "dayClose": "Clôture",
@@ -1248,6 +1249,62 @@
       "CALCULATED": "Calculée",
       "VALIDATED": "Validée",
       "PAID": "Payée"
+    }
+  },
+  "commissionRule": {
+    "title": "Règles de commission",
+    "subtitle": "Taux et base de calcul par canal de vente ; une seule règle active par canal.",
+    "new": "Nouvelle règle",
+    "search": "Rechercher une règle",
+    "searchPlaceholder": "Nom de la règle…",
+    "count": "{{count}} règle(s)",
+    "unknownChannel": "Canal inactif",
+    "field": {
+      "name": "Nom",
+      "salesChannel": "Canal de vente",
+      "rate": "Taux (%)",
+      "base": "Base de calcul"
+    },
+    "base": {
+      "REVENUE": "Chiffre d'affaires",
+      "MARGIN": "Marge brute"
+    },
+    "col": {
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Modifier"
+    },
+    "status": {
+      "active": "ACTIVE",
+      "inactive": "INACTIVE",
+      "activate": "Activer",
+      "deactivate": "Désactiver"
+    },
+    "confirm": {
+      "activateTitle": "Activer cette règle ?",
+      "deactivateTitle": "Désactiver cette règle ?",
+      "activateMessage": "La règle {{name}} s'appliquera de nouveau aux ventes de son canal.",
+      "deactivateMessage": "La règle {{name}} ne s'appliquera plus : le taux de la vendeuse reprendra le relais."
+    },
+    "empty": {
+      "title": "Aucune règle de commission",
+      "message": "Créez une règle pour fixer le taux d'un canal de vente."
+    },
+    "form": {
+      "newTitle": "Nouvelle règle de commission",
+      "editTitle": "Modifier la règle de commission",
+      "back": "← Retour aux règles",
+      "chooseChannel": "Choisir un canal",
+      "baseHint": "Le taux s'applique au chiffre d'affaires de la vente (après remises) ou à sa marge brute.",
+      "nameRequired": "Le nom est obligatoire.",
+      "tooLong": "{{max}} caractères au maximum.",
+      "channelRequired": "Le canal de vente est obligatoire.",
+      "rateInvalid": "Le taux doit être compris entre 0 et 100, avec 2 décimales au plus.",
+      "baseRequired": "La base de calcul est obligatoire.",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
     }
   },
   "services": {

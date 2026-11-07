@@ -14,6 +14,7 @@ describe('visibleSections', () => {
     expect(labels).toContain('menu.item.suppliers');
     expect(labels).toContain('menu.item.reports');
     expect(labels).toContain('menu.item.journal');
+    expect(labels).toContain('menu.item.commissionRules');
   });
 
   it('should show sales and catalogue modules but no administration to a seller', () => {
@@ -30,6 +31,7 @@ describe('visibleSections', () => {
     );
     expect(labels).not.toContain('menu.item.users');
     expect(labels).not.toContain('menu.item.journal');
+    expect(labels).not.toContain('menu.item.commissionRules');
     expect(labels).not.toContain('menu.item.deliveries');
     expect(labels).not.toContain('menu.item.production');
   });

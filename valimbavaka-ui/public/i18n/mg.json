@@ -123,6 +123,7 @@
       "services": "Salon & sary",
       "reports": "Tatitra",
       "users": "Mpampiasa",
+      "commissionRules": "Fitsipiky ny kaomisiona",
       "journal": "Tahirin-kevitra",
       "dayOpen": "Fanokafana",
       "dayClose": "Fanakatonana",
@@ -1248,6 +1249,62 @@
       "CALCULATED": "Voakajy",
       "VALIDATED": "Voamarina",
       "PAID": "Voaloa"
+    }
+  },
+  "commissionRule": {
+    "title": "Fitsipiky ny kaomisiona",
+    "subtitle": "Tahan'ny kaomisiona sy fototra kajiana isaky ny fantsona fivarotana ; fitsipika iray mandeha isaky ny fantsona.",
+    "new": "Fitsipika vaovao",
+    "search": "Hikaroka fitsipika",
+    "searchPlaceholder": "Anaran'ny fitsipika…",
+    "count": "Fitsipika {{count}}",
+    "unknownChannel": "Fantsona tsy miasa",
+    "field": {
+      "name": "Anarana",
+      "salesChannel": "Fantsona fivarotana",
+      "rate": "Taha (%)",
+      "base": "Fototra kajiana"
+    },
+    "base": {
+      "REVENUE": "Vola niditra",
+      "MARGIN": "Tombony"
+    },
+    "col": {
+      "status": "Sata",
+      "actions": "Hetsika"
+    },
+    "actions": {
+      "edit": "Ovay"
+    },
+    "status": {
+      "active": "MIASA",
+      "inactive": "NATSAHATRA",
+      "activate": "Alefaso",
+      "deactivate": "Atsaharo"
+    },
+    "confirm": {
+      "activateTitle": "Hampandehanana ve ity fitsipika ity ?",
+      "deactivateTitle": "Hajanona ve ity fitsipika ity ?",
+      "activateMessage": "Hampiharina indray amin'ny varotra amin'ny fantsony ny fitsipika {{name}}.",
+      "deactivateMessage": "Tsy hampiharina intsony ny fitsipika {{name}} : ny tahan'ny mpivarotra no handray ny toerany."
+    },
+    "empty": {
+      "title": "Tsy misy fitsipiky ny kaomisiona",
+      "message": "Mamorona fitsipika hametrahana ny tahan'ny fantsona fivarotana iray."
+    },
+    "form": {
+      "newTitle": "Fitsipiky ny kaomisiona vaovao",
+      "editTitle": "Ovay ny fitsipiky ny kaomisiona",
+      "back": "← Hiverina amin'ny fitsipika",
+      "chooseChannel": "Misafidiana fantsona",
+      "baseHint": "Ampiharina amin'ny vola niditra tamin'ny varotra (aorian'ny fihenam-bidy) na amin'ny tombony ny taha.",
+      "nameRequired": "Tsy maintsy fenoina ny anarana.",
+      "tooLong": "Litera {{max}} farafahabetsany.",
+      "channelRequired": "Tsy maintsy fenoina ny fantsona fivarotana.",
+      "rateInvalid": "Tsy maintsy eo anelanelan'ny 0 sy 100 ny taha, ary isa 2 farafahabetsany aorian'ny faingo.",
+      "baseRequired": "Tsy maintsy fenoina ny fototra kajiana.",
+      "cancel": "Foano",
+      "save": "Tehirizo"
     }
   },
   "services": {
