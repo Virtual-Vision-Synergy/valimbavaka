@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -94,5 +96,28 @@ class StockMovementServiceImplTest {
         assertThatThrownBy(() -> sut.record(command)).isInstanceOf(ConflictException.class);
         verify(stockMovementRepository, never()).save(any());
         verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void recordAll_crossedMovements_locksEveryArticleAndLocationInSortedOrderBeforeRecording() {
+        // Arrange
+        var otherLocation = UUID.randomUUID();
+        var out = new StockMovementCommand(
+                ARTICLE_ID, otherLocation, StockMovementType.TRANSFER, new BigDecimal("-2"), null);
+        var in = new StockMovementCommand(
+                ARTICLE_ID, LOCATION_ID, StockMovementType.TRANSFER, new BigDecimal("2"), null);
+        when(policy.check(any())).thenReturn(StockTestData.article(ARTICLE_ID, "ART-0031"));
+        when(stockMovementRepository.save(any(StockMovement.class))).thenAnswer(call -> call.getArgument(0));
+        var keys = List.of(ARTICLE_ID + ":" + otherLocation, ARTICLE_ID + ":" + LOCATION_ID).stream().sorted().toList();
+
+        // Act
+        sut.recordAll(List.of(out, in));
+
+        // Assert
+        var order = inOrder(stockMovementRepository, policy);
+        order.verify(stockMovementRepository).lock(keys.get(0));
+        order.verify(stockMovementRepository).lock(keys.get(1));
+        order.verify(policy).check(out);
+        order.verify(policy).check(in);
     }
 }
