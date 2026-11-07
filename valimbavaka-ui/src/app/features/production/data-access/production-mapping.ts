@@ -1,12 +1,14 @@
 import { ArticleRDto, ArticleUnit } from '../../article/data-access/article-models';
 import { StockRDto } from '../../stocks/data-access/stock-models';
 import {
+  LotCostRDto,
   LotRDto,
   LotStatus,
   LotWDto,
   MaterialRDto,
   OperatorOption,
   ProducibleArticleRDto,
+  ProductionBatchCostRDto,
   ProductionBatchRDto,
   ProductionBatchStatus,
   ProductionBatchWDto,
@@ -112,5 +114,35 @@ export function toKpis(
       (stock) =>
         inputIds.includes(stock.articleId) && stock.threshold > 0 && stock.total < stock.threshold,
     ).length,
+  };
+}
+
+/**
+ * Détail et coût de revient d'un lot (PRD-05) : le serveur calcule tout à partir des entrants ; ici on normalise les
+ * champs absents à null et on traduit les unités.
+ */
+export function toLotCost(cost: ProductionBatchCostRDto): LotCostRDto {
+  return {
+    id: cost.id,
+    number: cost.number,
+    articleName: cost.outputArticleName,
+    quantity: cost.quantity,
+    status: toLotStatus(cost.status),
+    completedOn: cost.completedAt ? cost.completedAt.slice(0, 10) : null,
+    estimated: cost.estimated,
+    lines: cost.inputs.map((input) => ({
+      articleId: input.articleId,
+      code: input.articleCode,
+      name: input.articleName,
+      unit: UNIT_LABELS[input.unit],
+      quantity: input.quantity,
+      unitCost: input.unitCost ?? null,
+      lineCost: input.lineCost ?? null,
+    })),
+    materialCost: cost.materialCost ?? null,
+    unitCost: cost.unitCost ?? null,
+    uncosted: cost.uncostedInputs,
+    salePrice: cost.salePrice ?? null,
+    margin: cost.marginPercent ?? null,
   };
 }
