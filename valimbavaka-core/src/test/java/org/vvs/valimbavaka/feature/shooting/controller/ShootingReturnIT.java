@@ -74,8 +74,7 @@ class ShootingReturnIT extends ShootingApiTestSupport {
         // Arrange
         var articleId = createArticle();
         receive(articleId, "WAREHOUSE", "6");
-        var shootingId = createShooting(
-                shootingBody(location("WAREHOUSE"), tomorrow(), ITEM.formatted(articleId, 2)));
+        var shootingId = createShooting(shootingBody(location("WAREHOUSE"), tomorrow(), ITEM.formatted(articleId, 2)));
 
         // Act
         postReturn(adminToken(), shootingId).andExpect(status().isOk());
