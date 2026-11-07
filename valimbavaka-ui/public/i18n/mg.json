@@ -1065,7 +1065,8 @@
       "CURING": "Mahamaina",
       "VALIDATED": "Voamarina"
     },
-    "draftToast": "Voatahiry ho drafitra ny andiany {{number}} (fanandramana)",
+    "draftToast": "Voatahiry ho drafitra ny andiany {{number}}",
+    "saveError": "Tsy voatahiry ny andiany : {{message}}",
     "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry (fanandramana)"
   },
   "transfers": {
