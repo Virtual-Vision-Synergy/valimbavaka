@@ -18,4 +18,6 @@ public record InventorySessionWDto(
         @NotNull(message = "Le périmètre est obligatoire") InventoryScope scope,
         @Nullable UUID rangeId,
         @NotNull(message = "Le responsable est obligatoire") UUID responsibleId,
-        @NotNull(message = "La date de comptage est obligatoire") LocalDate countDate) {}
+
+        @NotNull(message = "La date de comptage est obligatoire")
+        LocalDate countDate) {}
