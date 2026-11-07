@@ -104,7 +104,8 @@ public class InventoryClosingServiceImpl implements InventoryClosingService {
 
     /** Example: "ART-0031, ART-0032 (2)"; empty when no line matches. */
     private static String codesOf(List<InventoryLine> lines, Predicate<InventoryLine> filter) {
-        var codes = lines.stream().filter(filter).map(InventoryLine::getArticleCode).toList();
+        var codes =
+                lines.stream().filter(filter).map(InventoryLine::getArticleCode).toList();
         if (codes.isEmpty()) {
             return "";
         }
