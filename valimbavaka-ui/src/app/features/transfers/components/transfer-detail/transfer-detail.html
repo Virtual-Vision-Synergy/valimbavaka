@@ -1,5 +1,7 @@
 <section class="detail">
-  @if (transfer.value(); as t) {
+  @if (transfer.error()) {
+    <vvs-list-state kind="error" (retry)="transfer.reload()" />
+  } @else if (transfer.value(); as t) {
     <header class="head">
       <div class="title-row">
         <h2 class="mono">{{ t.number }}</h2>
@@ -59,8 +61,6 @@
         {{ 'transfers.createReturn' | translate }}
       </button>
     </footer>
-  } @else if (transfer.error()) {
-    <vvs-list-state kind="error" (retry)="transfer.reload()" />
   } @else {
     <vvs-list-state kind="loading" [rows]="5" />
   }
