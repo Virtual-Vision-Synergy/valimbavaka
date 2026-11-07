@@ -74,7 +74,7 @@ Critère : « Après clôture, le stock système correspond aux quantités compt
 
 ## Résultat de l'exécution
 
-- Date : 2026-11-08 — CI GitHub sur la branche `feature/INV-04-cloture-session-inventaire` après merge de `develop` (commit `25f0eff`) : workflow « CI » vert (run 42415150967 : backend `mvn verify`, frontend `ng test`) et « Convention VVS » vert (run 42415152865 : Spotless, Checkstyle, Prettier, ESLint, gitleaks, commits et migrations).
+- Date : 2026-11-08 — CI GitHub sur la branche `feature/INV-04-cloture-session-inventaire` après merge de `develop` (commit `25f0eff`, puis `ef5af0d` avec la correction Qodana) : workflow « CI » vert (runs 42415150967 et 42415572144 : backend `mvn verify`, frontend `ng test`) et « Convention VVS » vert (runs 42415152865 et 42415574008 : Spotless, Checkstyle, Prettier, ESLint, gitleaks, commits et migrations).
 - Tests du ticket : `InventoryClosingServiceImplTest` 11/11, `InventoryClosingIT` 11/11, `ArchitectureTest` 16/16, `inventory-page.spec.ts` 16/16 (dont 3 ajoutés), `inventory-service.spec.ts` 9/9 (dont 1 ajouté). Ensemble : backend 347 tests unitaires et 344 tests d'intégration, frontend 373 tests (61 fichiers), 0 échec.
 - Premier passage : « Convention VVS » en échec sur Spotless (une ligne de `InventoryClosingServiceImpl.codesOf` à replier), corrigé par le commit `577e43e`.
 - Anomalies : aucune. Deux cas restent vérifiés par lecture du code seulement (faible) : clôtures simultanées (verrou `PESSIMISTIC_WRITE`) et annulation complète si un mouvement échoue ; un test concurrent reste à écrire.

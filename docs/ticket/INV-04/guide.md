@@ -100,5 +100,6 @@ Retrouver les ajustements d'une session (INV-05, SQL) : `select * from stock_mov
 - **Hors ligne** : une clôture mise en file laisse la feuille modifiable ; des saisies faites ensuite partent après la clôture et seront refusées en 409.
 - **Pas de réouverture ni d'annulation** d'une session close (JNL-02) ; un ajustement erroné se corrige par un nouveau mouvement de stock.
 - Le bandeau « en construction » de `/inventory` reste affiché jusqu'à INV-05 (liste « Sessions précédentes » encore vide).
+- Correction annexe (Qodana) : constructeur d'`InventoryServiceImpl` passé en package-private, pour ne plus exposer `InventoryOpeningPolicy` et `InventoryScopeResolver` hors de leur paquet.
 - Traductions malgaches `inventory.closedToast` / `inventory.closeFailed` rédigées sans relecture native.
 - Branche créée sur `feature/INV-03-motif-ecart-ligne`, puis `develop` fusionné une fois INV-01 à INV-03 mergés : PR vers `develop`.
