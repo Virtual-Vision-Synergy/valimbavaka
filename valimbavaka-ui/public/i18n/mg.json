@@ -1069,7 +1069,7 @@
     },
     "draftToast": "Voatahiry ho drafitra ny andiany {{number}}",
     "saveError": "Tsy voatahiry ny andiany : {{message}}",
-    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry (fanandramana)"
+    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry"
   },
   "transfers": {
     "title": "Famindrana tahiry",

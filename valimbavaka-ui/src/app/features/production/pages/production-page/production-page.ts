@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { Plus, TriangleAlert, X } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthStore } from '../../../../core/auth/auth-store';
 import { errorMessage } from '../../../../core/http/problem-detail';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -58,6 +59,7 @@ export class ProductionPage {
   private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authStore = inject(AuthStore);
 
   protected readonly icons = { Plus, TriangleAlert, X };
   protected readonly lotTones = LOT_STATUS_TONES;
@@ -106,11 +108,16 @@ export class ProductionPage {
   protected readonly numberFormat = computed(
     () => new Intl.NumberFormat(this.language.current(), { maximumFractionDigits: 3 }),
   );
+  /** Valider mouvemente le stock (PRD-02) : réservé à `production.complete` ; le serveur décide. */
+  protected readonly canComplete = computed(() =>
+    this.authStore.hasPermission('production.complete'),
+  );
   protected readonly canValidate = computed(
     () =>
       this.form.valid &&
       this.rows().length > 0 &&
       this.shortRows().length === 0 &&
+      this.canComplete() &&
       !this.submitting(),
   );
 
@@ -167,7 +174,7 @@ export class ProductionPage {
       });
   }
 
-  /** Le serveur crée toujours un lot planifié (PRD-01) : la validation et le stock relèvent de PRD-02. */
+  /** Lot validé (PRD-02) : stock mis à jour par le serveur ; sinon lot planifié (PRD-01). */
   private onCreated({ queued, lot }: CreatedLot): void {
     if (!lot) {
       this.toast.show('common.queuedSaved', {}, 'info');
