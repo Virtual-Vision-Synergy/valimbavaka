@@ -15,6 +15,12 @@ public interface UserService {
 
     UserRDto getUserById(UUID userId);
 
+    /** Active sellers, sorted by first name by default (responsible of a production batch, PRD-01). */
+    PageResponse<UserRDto> getActiveSellers(PageQuery query);
+
+    /** True if the account exists, is active and has the seller role. */
+    boolean isActiveSeller(UUID userId);
+
     UserRDto createUser(CreateUserWDto request);
 
     /**

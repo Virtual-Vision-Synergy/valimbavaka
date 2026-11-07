@@ -23,6 +23,19 @@ Pattern **outbox** côté Angular (`core/offline/`) :
   `OutboxService.clear()` vide la file. *(Mise à jour du 2026-10-23 : la version initiale indiquait une file vidée
   à la déconnexion, ce que le code ne fait plus.)*
 
+## Mise à jour du 2026-11-08 : ordre en cas de blocage (SYS-10)
+Décision PO du 07/11/2026 (Randy) : **ordre strict par type**. Le rejeu reste séquentiel (un envoi à la fois),
+mais une saisie en attente de relance ne retient plus que son « couloir » (`core/offline/sync-order.ts`) :
+- **opérations métier** (journal, ventes, factures, avoirs, stock, transferts, production, inventaire, livraisons,
+  tournées, journées, shootings) : un seul groupe en ordre strict. Elles attendent derrière une saisie du groupe
+  bloquée par le réseau, y compris quand ses 5 tentatives sont épuisées (`FAILED` avec `networkFailure`), jusqu'à
+  son renvoi ou son abandon ;
+- **fiches et référentiels** (fournisseurs, articles, utilisateurs, promotions, catalogues, services, gammes,
+  canaux, emplacements) : elles passent devant une saisie bloquée ; seules les saisies d'une même fiche restent
+  dans l'ordre entre elles ;
+- **adresse non classée** : file unique comme avant SYS-10.
+Un refus métier (`FAILED` sans `networkFailure`) ne retient toujours rien.
+
 ## Côté serveur
 `IdempotencyFilter` (`security/idempotency`, après l'authentification) traite les écritures
 (POST/PUT/PATCH/DELETE) portant `Idempotency-Key` :
