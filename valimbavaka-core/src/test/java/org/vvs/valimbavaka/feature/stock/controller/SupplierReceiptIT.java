@@ -254,9 +254,7 @@ class SupplierReceiptIT extends StockApiTestSupport {
 
     @Test
     void receive_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(RECEIPTS)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+        mockMvc.perform(post(RECEIPTS).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }

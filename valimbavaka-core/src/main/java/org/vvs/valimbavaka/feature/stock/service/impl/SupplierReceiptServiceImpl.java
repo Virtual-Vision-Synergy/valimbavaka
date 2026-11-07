@@ -67,7 +67,12 @@ public class SupplierReceiptServiceImpl implements SupplierReceiptService {
         var receipt = supplierReceiptRepository.save(SupplierReceipt.create(number, command));
         stockMovementService.recordAll(movements(receipt, UnaryOperator.identity()));
         var description = "Réception %s du fournisseur %s (%s) : %d article(s), %s unité(s)"
-                .formatted(number, receipt.getSupplierName(), origin, receipt.getLines().size(), units(receipt));
+                .formatted(
+                        number,
+                        receipt.getSupplierName(),
+                        origin,
+                        receipt.getLines().size(),
+                        units(receipt));
         journalService.record(JournalAction.CREATE, RESOURCE_TYPE, receipt.getId(), description);
         return supplierReceiptMapper.toRDto(receipt);
     }

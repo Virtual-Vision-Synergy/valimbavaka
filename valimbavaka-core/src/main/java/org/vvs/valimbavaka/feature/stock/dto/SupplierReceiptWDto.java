@@ -16,8 +16,7 @@ import org.jspecify.annotations.Nullable;
  * @param restockOrderId restock order taken back (STK-05), absent for a free entry
  */
 public record SupplierReceiptWDto(
-        @NotNull(message = "Le fournisseur est obligatoire")
-        UUID supplierId,
+        @NotNull(message = "Le fournisseur est obligatoire") UUID supplierId,
 
         @Nullable UUID locationId,
 
