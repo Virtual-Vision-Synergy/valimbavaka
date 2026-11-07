@@ -56,16 +56,6 @@ export interface InventoryContextRDto {
   readonly previous: readonly PreviousSessionRDto[];
 }
 
-/** Clôture de la session : comptages et motifs ; le serveur génère les ajustements de stock. */
-export interface InventoryCloseWDto {
-  readonly number: string;
-  readonly lines: readonly {
-    readonly articleId: string;
-    readonly counted: number;
-    readonly reason: InventoryReason | null;
-  }[];
-}
-
 /** Ouverture d'une session (INV-01) : les 4 informations obligatoires ; `rangeId` seulement si `RANGE`. */
 export interface InventorySessionWDto {
   readonly locationId: string;

@@ -135,6 +135,18 @@ describe('InventoryService', () => {
     await expect(result).resolves.toMatchObject({ queued: false, body: { reason: 'BREAKAGE' } });
   });
 
+  it('clôture une session par POST avec une clé d’idempotence et renvoie la session close', async () => {
+    const result = new Promise((resolve) => service.close('session-1').subscribe(resolve));
+
+    const request = await vi.waitFor(() =>
+      httpMock.expectOne('/api/v1/inventories/session-1/close'),
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
+    request.flush({ ...SESSION, status: 'CLOSED', closedAt: '2026-11-08T14:30:00Z' });
+    await expect(result).resolves.toMatchObject({ queued: false, body: { status: 'CLOSED' } });
+  });
+
   it('renvoie une feuille vide quand aucune session n’est en cours', async () => {
     const result = firstValueFrom(service.current());
 

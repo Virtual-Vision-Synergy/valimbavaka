@@ -19,6 +19,7 @@ const SESSION_ID = '0195f0a0-0000-7000-8000-0000000000c1';
 const LINE_ID = '0195f0a0-0000-7000-8000-0000000000d1';
 const COUNT_URL = `${INVENTORIES_URL}/${SESSION_ID}/lines/${LINE_ID}/count`;
 const REASON_URL = `${INVENTORIES_URL}/${SESSION_ID}/lines/${LINE_ID}/reason`;
+const CLOSE_URL = `${INVENTORIES_URL}/${SESSION_ID}/close`;
 const page = <T>(items: T[]) => ({
   items,
   page: 1,
@@ -63,6 +64,7 @@ const LINE_WITH_GAP: InventoryLineRDto = { ...LINE, countedQuantity: 10, gap: -2
 /**
  * INV-02 : la saisie d'une quantité met à jour immédiatement l'écart affiché, puis est enregistrée.
  * INV-03 : un motif est sélectionnable, et enregistré, pour toute ligne en écart.
+ * INV-04 : la clôture est envoyée au serveur, qui ajuste le stock ; la feuille est alors verrouillée.
  */
 describe('InventoryPage', () => {
   let fixture: ComponentFixture<InventoryPage>;
@@ -268,6 +270,79 @@ describe('InventoryPage', () => {
     await type('10', false);
 
     expect(reasonSelect()?.value).toBe('');
+  });
+
+  describe('clôture (INV-04)', () => {
+    /** Ligne comptée en écart et expliquée : la session peut être clôturée. */
+    const READY_LINE: InventoryLineRDto = { ...LINE_WITH_GAP, reason: 'BREAKAGE' };
+
+    const closeButton = (): HTMLButtonElement =>
+      element.querySelector<HTMLButtonElement>('.close button') as HTMLButtonElement;
+
+    const confirm = async (): Promise<void> => {
+      element.querySelector<HTMLButtonElement>('dialog .confirm-actions .btn-primary')?.click();
+      await fixture.whenStable();
+    };
+
+    // jsdom n'implémente pas HTMLDialogElement.close : la page le rappelle après la réponse.
+    beforeEach(() => {
+      Object.defineProperty(HTMLDialogElement.prototype, 'close', {
+        configurable: true,
+        value: vi.fn(),
+      });
+    });
+
+    it('n’autorise pas la clôture tant qu’un écart n’a pas de motif', async () => {
+      await load([SESSION], LINE_WITH_GAP);
+
+      expect(closeButton().disabled).toBe(true);
+      expect(element.querySelector('#close-hint')?.textContent).toContain('chaque écart expliqué');
+    });
+
+    it('clôture la session sur le serveur puis verrouille la feuille', async () => {
+      await load([SESSION], READY_LINE);
+      const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+      expect(closeButton().disabled).toBe(false);
+
+      await confirm();
+
+      const request = await vi.waitFor(() => httpMock.expectOne(CLOSE_URL));
+      expect(request.request.method).toBe('POST');
+      request.flush({ ...SESSION, status: 'CLOSED', closedAt: '2026-11-08T14:30:00Z' });
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(show).toHaveBeenCalledWith('inventory.closedToast', { number: 'INV-0012' });
+      expect(element.querySelector('h1')?.textContent).toContain('Clôturée');
+      expect(element.querySelector('.done')?.textContent).toContain('Session clôturée à');
+      expect(countInput().disabled).toBe(true);
+      expect(reasonSelect()?.disabled).toBe(true);
+    });
+
+    it('prévient et laisse la feuille ouverte quand le serveur refuse la clôture', async () => {
+      await load([SESSION], READY_LINE);
+      const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+
+      await confirm();
+
+      const request = await vi.waitFor(() => httpMock.expectOne(CLOSE_URL));
+      request.flush(
+        {
+          status: 422,
+          code: 'VALIDATION_FAILED',
+          detail: 'Clôture impossible : écart(s) sans motif ART-0031 (1).',
+        },
+        { status: 422, statusText: 'Unprocessable Content' },
+      );
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(show).toHaveBeenCalledWith(
+        'inventory.closeFailed',
+        expect.objectContaining({ number: 'INV-0012' }),
+        'danger',
+      );
+      expect(countInput().disabled).toBe(false);
+      expect(closeButton().disabled).toBe(false);
+    });
   });
 
   it('ne présente aucune violation d’accessibilité détectable', async () => {

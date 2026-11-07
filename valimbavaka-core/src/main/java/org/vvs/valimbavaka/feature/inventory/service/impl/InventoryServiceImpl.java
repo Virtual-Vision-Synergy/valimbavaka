@@ -56,7 +56,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final ArticleService articleService;
     private final JournalService journalService;
 
-    public InventoryServiceImpl(
+    InventoryServiceImpl(
             InventorySessionRepository sessionRepository,
             InventoryLineRepository lineRepository,
             InventoryOpeningPolicy openingPolicy,
