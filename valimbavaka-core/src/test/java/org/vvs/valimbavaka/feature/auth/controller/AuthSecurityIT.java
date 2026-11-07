@@ -140,7 +140,8 @@ class AuthSecurityIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("SELLER"))
                 .andExpect(jsonPath("$.permissions[?(@ == 'sales.read')]").isNotEmpty())
-                .andExpect(jsonPath("$.permissions[?(@ == 'deliveries.read')]").isEmpty())
+                .andExpect(jsonPath("$.permissions[?(@ == 'deliveries.create')]").isNotEmpty())
+                .andExpect(jsonPath("$.permissions[?(@ == 'journal.read')]").isEmpty())
                 .andExpect(jsonPath("$.permissions[?(@ == 'users.read')]").isEmpty());
     }
 
