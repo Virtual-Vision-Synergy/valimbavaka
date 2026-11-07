@@ -24,8 +24,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.vvs.valimbavaka.feature.production.domain.ProductionBatchStatus;
 import org.vvs.valimbavaka.feature.production.dto.ProductionBatchRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionBatchWDto;
+import org.vvs.valimbavaka.feature.production.dto.ProductionIndicatorsRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionOperatorRDto;
 import org.vvs.valimbavaka.feature.production.service.ProductionBatchService;
+import org.vvs.valimbavaka.feature.production.service.ProductionIndicatorService;
 import org.vvs.valimbavaka.feature.production.service.ProductionOperatorService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -33,7 +35,7 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
  * Production batches: administrator and seller plan them (PRD-01), start them (PRD-03) and complete them, which moves
- * the stock (PRD-02). Never deleted (JNL-02).
+ * the stock (PRD-02). Never deleted (JNL-02). Indicators of the month at the top of the screen (PRD-04).
  */
 @Tag(name = "Production")
 @ApiResponses({
@@ -48,11 +50,15 @@ public class ProductionController {
 
     private final ProductionBatchService productionBatchService;
     private final ProductionOperatorService productionOperatorService;
+    private final ProductionIndicatorService productionIndicatorService;
 
     public ProductionController(
-            ProductionBatchService productionBatchService, ProductionOperatorService productionOperatorService) {
+            ProductionBatchService productionBatchService,
+            ProductionOperatorService productionOperatorService,
+            ProductionIndicatorService productionIndicatorService) {
         this.productionBatchService = productionBatchService;
         this.productionOperatorService = productionOperatorService;
+        this.productionIndicatorService = productionIndicatorService;
     }
 
     @GetMapping("/batches")
@@ -125,5 +131,13 @@ public class ProductionController {
     @HasPermission("production.read")
     public PageResponse<ProductionOperatorRDto> getOperators(@Valid PageQuery query) {
         return productionOperatorService.getOperators(query);
+    }
+
+    @GetMapping("/indicators")
+    @Operation(summary = "Indicators of the current month: completed batches, units produced, material cost per unit")
+    @ApiResponse(responseCode = "200", description = "Indicators of the month (Madagascar time)")
+    @HasPermission("production.read")
+    public ProductionIndicatorsRDto getIndicators() {
+        return productionIndicatorService.getIndicators();
     }
 }

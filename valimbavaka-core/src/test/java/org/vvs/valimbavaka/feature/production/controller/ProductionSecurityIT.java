@@ -16,7 +16,7 @@ import org.vvs.valimbavaka.feature.user.domain.RoleName;
 /**
  * PRD-01: production.read and production.create for administrator and seller, never for the delivery driver.
  * PRD-02 / PRD-03: production.complete and production.update for administrator and seller, never for the delivery
- * driver.
+ * driver. PRD-04: the indicators follow production.read.
  */
 class ProductionSecurityIT extends ProductionApiTestSupport {
 
@@ -142,5 +142,23 @@ class ProductionSecurityIT extends ProductionApiTestSupport {
 
         mockMvc.perform(delete(BATCHES + "/" + UUID.randomUUID()).header(HttpHeaders.AUTHORIZATION, auth))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void getIndicators_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/production/indicators"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void getIndicators_withDeliveryDriverRole_returns403() throws Exception {
+        // Arrange
+        var token = tokenOf(createUser(RoleName.DELIVERY_DRIVER));
+
+        // Act + Assert
+        mockMvc.perform(get("/api/v1/production/indicators").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
 }
