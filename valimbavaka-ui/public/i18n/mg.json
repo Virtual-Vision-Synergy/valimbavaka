@@ -1103,7 +1103,8 @@
       "IN_TRANSIT": "Eny an-dalana",
       "RECEIVED": "Voaray",
       "DISCREPANCY": "Elanelana",
-      "RETURN": "Famerenana"
+      "RETURN": "Famerenana",
+      "VALIDATED": "Voamarina"
     },
     "detailLabel": "Taratasy famindrana {{number}}",
     "from": "Avy any",
@@ -1113,7 +1114,26 @@
     "gapLine": "voaray {{received}} amin'ny {{sent}}",
     "moreLines": "+ andalana {{count}} hafa",
     "print": "Hanonta ny taratasy",
-    "createReturn": "Hamorona famerenana"
+    "createReturn": "Hamorona famerenana",
+    "return": {
+      "title": "Fampiverenana tahiry",
+      "subtitle": "Avereno any amin'ny toerana hafa ny entana tsy lafo, ohatra avy any amin'ny fivarotana mankany amin'ny trano fitehirizana.",
+      "back": "← Hiverina",
+      "lines": "Entana averina",
+      "noStock": "Tsy misy entana amin'ity toerana ity.",
+      "article": "Entana",
+      "chooseArticle": "Mifidiana entana",
+      "articleRequired": "Mifidiana entana iray.",
+      "quantity": "Isa",
+      "available": "Misy : {{count}}",
+      "quantityInvalid": "Isa mihoatra ny aotra, desimaly 3 farafahabetsany.",
+      "removeLine": "Esory ny andalana {{index}}",
+      "addLine": "Hanampy entana",
+      "note": "Fanamarihana",
+      "submit": "Hitahiry ny famerenana",
+      "saved": "Voatahiry ny famerenana {{number}}.",
+      "sameLocation": "Tsy maintsy samy hafa ny niaviana sy ny alehany."
+    }
   },
   "inventory": {
     "pageTitle": "Fanisana",

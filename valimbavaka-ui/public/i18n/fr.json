@@ -1103,7 +1103,8 @@
       "IN_TRANSIT": "En transit",
       "RECEIVED": "Reçu",
       "DISCREPANCY": "Écart",
-      "RETURN": "Retour"
+      "RETURN": "Retour",
+      "VALIDATED": "Validé"
     },
     "detailLabel": "Bon de transfert {{number}}",
     "from": "De",
@@ -1113,7 +1114,26 @@
     "gapLine": "reçu {{received}} sur {{sent}}",
     "moreLines": "+ {{count}} autres lignes",
     "print": "Imprimer le bon",
-    "createReturn": "Créer un retour"
+    "createReturn": "Créer un retour",
+    "return": {
+      "title": "Retour de stock",
+      "subtitle": "Renvoyer les articles non écoulés vers un autre emplacement, par exemple de la boutique vers l'entrepôt.",
+      "back": "← Retour",
+      "lines": "Articles retournés",
+      "noStock": "Aucun article en stock à cet emplacement.",
+      "article": "Article",
+      "chooseArticle": "Choisir un article",
+      "articleRequired": "Choisissez un article.",
+      "quantity": "Quantité",
+      "available": "Disponible : {{count}}",
+      "quantityInvalid": "Quantité positive, 3 décimales au maximum.",
+      "removeLine": "Retirer la ligne {{index}}",
+      "addLine": "Ajouter un article",
+      "note": "Note",
+      "submit": "Enregistrer le retour",
+      "saved": "Retour {{number}} enregistré.",
+      "sameLocation": "L'origine et la destination doivent être différentes."
+    }
   },
   "inventory": {
     "pageTitle": "Inventaire",

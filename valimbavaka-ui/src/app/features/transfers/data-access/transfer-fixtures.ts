@@ -2,10 +2,10 @@ import { DEMO_ARTICLES, StockLocation } from '../../../shared/data-access/demo-c
 import { isoDay } from '../../../shared/data-access/demo-dates';
 import {
   TransferDetailRDto,
-  TransferLineRDto,
+  TransferDetailLineRDto,
   TransferOrigin,
-  TransferRDto,
-  TransferStatus,
+  TransferRowRDto,
+  TransferRowStatus,
 } from './transfer-models';
 
 /** [n°, de, vers, origine, lignes, unités, jours avant aujourd'hui, heure, statut]. */
@@ -18,7 +18,7 @@ type TransferRow = readonly [
   number,
   number,
   string,
-  TransferStatus,
+  TransferRowStatus,
 ];
 
 const ROWS: readonly TransferRow[] = [
@@ -50,7 +50,7 @@ function toTransfer([
   ago,
   time,
   status,
-]: TransferRow): TransferRDto {
+]: TransferRow): TransferRowRDto {
   return {
     id: number.toLowerCase(),
     number,
@@ -64,10 +64,10 @@ function toTransfer([
   };
 }
 
-export const TRANSFERS_FIXTURE: readonly TransferRDto[] = ROWS.map(toTransfer);
+export const TRANSFERS_FIXTURE: readonly TransferRowRDto[] = ROWS.map(toTransfer);
 
 /** Répartit les unités du bon sur ses premières lignes (les plus grosses d'abord). */
-function linesOf(transfer: TransferRDto, offset: number): readonly TransferLineRDto[] {
+function linesOf(transfer: TransferRowRDto, offset: number): readonly TransferDetailLineRDto[] {
   const finished = DEMO_ARTICLES.filter((article) => article.type === 'FINISHED' && !article.box);
   const shown = Math.min(SHOWN_LINES, transfer.lineCount);
   const weights = Array.from({ length: shown }, (_, rank) => shown - rank);
