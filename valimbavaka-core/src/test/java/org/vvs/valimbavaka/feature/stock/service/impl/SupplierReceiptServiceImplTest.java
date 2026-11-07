@@ -156,8 +156,8 @@ class SupplierReceiptServiceImplTest {
         assertThat(movements.getValue())
                 .allSatisfy(movement -> assertThat(movement.type()).isEqualTo(StockMovementType.RECEIPT))
                 .allSatisfy(movement -> assertThat(movement.referenceId()).isEqualTo(RECEIPT_ID));
-        var description = "Contre-passation de la réception %s : Livraison saisie deux fois"
-                .formatted(receipt.getNumber());
+        var description =
+                "Contre-passation de la réception %s : Livraison saisie deux fois".formatted(receipt.getNumber());
         verify(journalService).record(JournalAction.REVERSE, "SUPPLIER_RECEIPT", RECEIPT_ID, description);
     }
 

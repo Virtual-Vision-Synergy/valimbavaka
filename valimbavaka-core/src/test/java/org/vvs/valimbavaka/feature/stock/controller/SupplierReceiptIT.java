@@ -208,8 +208,7 @@ class SupplierReceiptIT extends StockApiTestSupport {
         assertThat(balance(articleId, "WAREHOUSE")).isEqualByComparingTo("0");
         assertThat(movements(receiptId, StockMovementType.RECEIPT)).isEqualTo(2L);
         assertThat(traces(receiptId, "REVERSE")).isEqualTo(1L);
-        mockMvc.perform(reverse(receiptId, "{\"reason\":\"Encore\"}", token))
-                .andExpect(status().isConflict());
+        mockMvc.perform(reverse(receiptId, "{\"reason\":\"Encore\"}", token)).andExpect(status().isConflict());
     }
 
     @Test
@@ -234,8 +233,7 @@ class SupplierReceiptIT extends StockApiTestSupport {
         var token = adminToken();
         var receiptId = createReceipt(createArticle(uniqueName()), "3", token);
 
-        mockMvc.perform(reverse(receiptId, "{\"reason\":\"  \"}", token))
-                .andExpect(status().isUnprocessableContent());
+        mockMvc.perform(reverse(receiptId, "{\"reason\":\"  \"}", token)).andExpect(status().isUnprocessableContent());
     }
 
     @Test
@@ -256,7 +254,9 @@ class SupplierReceiptIT extends StockApiTestSupport {
 
     @Test
     void receive_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(RECEIPTS).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post(RECEIPTS)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }

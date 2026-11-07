@@ -83,8 +83,7 @@ public class SupplierReceiptController {
     @ApiResponse(responseCode = "409", description = "Already reversed or goods no longer in stock (CONFLICT)")
     @ApiResponse(responseCode = "422", description = "Missing reason (VALIDATION_FAILED)")
     @HasPermission("stocks.receive")
-    public SupplierReceiptRDto reverse(
-            @PathVariable UUID id, @Valid @RequestBody SupplierReceiptReversalWDto request) {
+    public SupplierReceiptRDto reverse(@PathVariable UUID id, @Valid @RequestBody SupplierReceiptReversalWDto request) {
         return supplierReceiptService.reverse(id, request.reason());
     }
 }

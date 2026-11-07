@@ -114,19 +114,7 @@ class SupplierReceiptPolicyTest {
     private void givenSupplier(boolean active) {
         var now = Instant.parse("2026-11-08T08:00:00Z");
         var supplier = new SupplierRDto(
-                SUPPLIER_ID,
-                "Huiles Ravo",
-                SupplierType.LOCAL,
-                null,
-                null,
-                null,
-                null,
-                null,
-                7,
-                active,
-                now,
-                now,
-                0);
+                SUPPLIER_ID, "Huiles Ravo", SupplierType.LOCAL, null, null, null, null, null, 7, active, now, now, 0);
         when(supplierService.getSupplierById(SUPPLIER_ID)).thenReturn(supplier);
     }
 
