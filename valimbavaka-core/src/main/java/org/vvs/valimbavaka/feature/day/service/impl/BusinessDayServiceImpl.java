@@ -75,8 +75,10 @@ public class BusinessDayServiceImpl implements BusinessDayService {
         var date = policy.today();
         var plan = policy.check(date, request);
         var day = BusinessDay.open(date);
+        var note = morningNote(date);
         plan.byDestination().forEach((destinationId, quantities) -> {
-            var transfer = transferService.record(morningTransfer(plan.warehouseId(), destinationId, quantities));
+            var command = morningTransfer(plan.warehouseId(), destinationId, quantities, note);
+            var transfer = transferService.record(command);
             day.addTransfer(transfer.id(), transfer.number(), destinationId, List.copyOf(quantities.values()));
         });
         var saved = dayRepository.saveAndFlush(day);
@@ -99,11 +101,16 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     }
 
     private static TransferCommand morningTransfer(
-            UUID warehouseId, UUID destinationId, Map<UUID, BigDecimal> quantities) {
+            UUID warehouseId, UUID destinationId, Map<UUID, BigDecimal> quantities, String note) {
         var lines = quantities.entrySet().stream()
                 .map(entry -> new TransferLineCommand(entry.getKey(), entry.getValue()))
                 .toList();
-        return new TransferCommand(TransferOrigin.MORNING, warehouseId, destinationId, lines, null);
+        return new TransferCommand(TransferOrigin.MORNING, warehouseId, destinationId, lines, note);
+    }
+
+    /** TRF-02: a morning transfer names its day, e.g. {@code Ouverture de la journée du 08/11/2026}. */
+    private static String morningNote(LocalDate date) {
+        return "Ouverture de la journée du %s".formatted(format(date));
     }
 
     /** E.g. {@code Ouverture de la journée du 08/11/2026 : 2 transfert(s) du matin (TRF-0093, TRF-0094)}. */
