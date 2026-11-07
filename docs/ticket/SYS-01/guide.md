@@ -1,6 +1,6 @@
 # Guide d'intégration — SYS-01 · Export PDF/Excel généralisé
 
-Statut : ✅ mis à jour le 2026-11-08 (ajout du PDF et du service d'export front) — **tests à lancer** (voir « Résultat de l'exécution » du scénario) · Ticket : [#105](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/105) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ mis à jour le 2026-11-08 (ajout du PDF et du service d'export front) — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#105](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/105) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
