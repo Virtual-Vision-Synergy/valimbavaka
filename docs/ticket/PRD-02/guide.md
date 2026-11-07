@@ -1,6 +1,6 @@
 # Guide d'intégration — PRD-02 · Cohérence stock lors de la validation d'un lot
 
-Statut : ✅ rédigé le 2026-11-08 — **tests écrits, non exécutés** (voir le [scénario](scenario-test.md)) · Ticket : [#39](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/39) · [description](description.md)
+Statut : ✅ rédigé le 2026-11-08 — **tests exécutés en CI, verts** (voir le [scénario](scenario-test.md)) · Ticket : [#39](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/39) · [description](description.md)
 
 ## En bref
 
