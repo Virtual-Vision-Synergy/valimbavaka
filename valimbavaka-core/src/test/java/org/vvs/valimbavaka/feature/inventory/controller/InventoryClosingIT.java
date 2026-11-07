@@ -283,6 +283,13 @@ class InventoryClosingIT {
                 .andExpect(jsonPath("$.gapCount").value(0));
     }
 
+    @Test
+    void getSessions_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(INVENTORIES + "?status=CLOSED"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
     private void countAllWithoutGap() throws Exception {
         count(soapId, "12");
         count(oilId, "5");
