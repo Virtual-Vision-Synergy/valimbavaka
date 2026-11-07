@@ -12,6 +12,7 @@ import {
   InventoryContextRDto,
   InventoryCountWDto,
   InventoryLineRDto,
+  InventoryReasonWDto,
   InventorySessionQuery,
   InventorySessionRDto,
   InventorySessionWDto,
@@ -22,8 +23,8 @@ const LINE_PAGE_SIZE = 100;
 
 /**
  * Sessions d'inventaire branchées sur `/api/v1/inventories` : ouverture (INV-01), feuille de comptage et saisie
- * du comptage (INV-02). Les écritures passent par la file hors ligne (SYS-07). La clôture (`close`) reste en
- * démonstration jusqu'à INV-04.
+ * du comptage (INV-02), motif d'écart par ligne (INV-03). Les écritures passent par la file hors ligne (SYS-07).
+ * La clôture (`close`) reste en démonstration jusqu'à INV-04.
  */
 @Injectable({ providedIn: 'root' })
 export class InventoryService {
@@ -83,6 +84,16 @@ export class InventoryService {
     body: InventoryCountWDto,
   ): Observable<SubmitResult<InventoryLineRDto>> {
     const url = `${this.baseUrl}/${sessionId}/lines/${lineId}/count`;
+    return this.outbox.submit<InventoryLineRDto>('PUT', url, body);
+  }
+
+  /** Enregistre le motif de l'écart d'une ligne comptée : `queued` s'il attend le réseau. */
+  qualify(
+    sessionId: string,
+    lineId: string,
+    body: InventoryReasonWDto,
+  ): Observable<SubmitResult<InventoryLineRDto>> {
+    const url = `${this.baseUrl}/${sessionId}/lines/${lineId}/reason`;
     return this.outbox.submit<InventoryLineRDto>('PUT', url, body);
   }
 
