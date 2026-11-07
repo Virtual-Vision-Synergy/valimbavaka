@@ -65,10 +65,16 @@ describe('RestockDraft', () => {
       'Huiles Ravo · délai 7 j',
       'Fabrication interne (atelier)',
     ]);
-    expect(text('.lines li')).toEqual([
-      'Savon noir 100 g 30 u.',
-      'Huile de coco 20 u.',
-      'Baume karité 10 u.',
+    // Angular retire les espaces entre balises : nom et quantité sont séparés par « | ».
+    const lines = Array.from(element.querySelectorAll('.lines li')).map((li) =>
+      Array.from(li.children)
+        .map((child) => child.textContent?.trim())
+        .join(' | '),
+    );
+    expect(lines).toEqual([
+      'Savon noir 100 g | 30 u.',
+      'Huile de coco | 20 u.',
+      'Baume karité | 10 u.',
     ]);
     expect(text('.hint')).toEqual(["Livraison prévue le 15 nov. si la commande part aujourd'hui."]);
     expect(text('.subtitle')[0]).toContain('3 article(s) sous le seuil');
