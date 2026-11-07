@@ -1,4 +1,5 @@
 import { STOCK_LOCATIONS, StockLocation } from '../../../shared/data-access/demo-catalog';
+import { StockGaugeSegment } from '../../../shared/components/stock-gauge/stock-gauge';
 import { StockRowRDto } from './stock-models';
 
 export type LocationFilter = 'ALL' | StockLocation;
@@ -22,4 +23,13 @@ export function levelAt(row: StockRowRDto, location: LocationFilter): StockLevel
     return 'OUT';
   }
   return quantity < thresholdAt(row, location) ? 'LOW' : 'OK';
+}
+
+/** Répartition de la jauge (STK-02) : une part par emplacement, dans l'ordre des colonnes, zéro compris. */
+export function segmentsOf(row: StockRowRDto): readonly StockGaugeSegment[] {
+  return STOCK_LOCATIONS.map((item) => ({
+    key: item,
+    labelKey: `stocks.location.${item}`,
+    quantity: row.quantities[item],
+  }));
 }

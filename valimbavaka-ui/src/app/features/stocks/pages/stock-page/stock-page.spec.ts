@@ -143,6 +143,45 @@ describe('StockPage', () => {
     expect(element.querySelector('vvs-threshold-alerts')).toBeNull();
   });
 
+  it('affiche au survol de la jauge le détail chiffré par emplacement (STK-02)', async () => {
+    await open('SELLER');
+    await settle();
+
+    const gauge = element.querySelector('tbody vvs-stock-gauge .track') as HTMLElement;
+    gauge.dispatchEvent(new MouseEvent('mouseenter'));
+    await settle();
+
+    const detail = Array.from(gauge.querySelectorAll('.tip-row')).map((row) =>
+      Array.from(row.children)
+        .map((cell) => cell.textContent?.trim() ?? '')
+        .filter((text) => text !== '')
+        .join(' '),
+    );
+    expect(gauge.querySelector('[role="tooltip"]')?.classList).toContain('open');
+    expect(detail).toEqual([
+      'Entrepôt 10 100 %',
+      'Boutique 0 0 %',
+      'Livraison 0 0 %',
+      'Salon 0 0 %',
+      'Total 10',
+    ]);
+  });
+
+  it('revient à la jauge simple quand un seul emplacement est choisi (STK-02)', async () => {
+    await open('SELLER');
+    await settle();
+
+    Array.from(element.querySelectorAll<HTMLButtonElement>('vvs-location-cards button'))
+      .find((button) => button.querySelector('.label')?.textContent?.trim() === 'Entrepôt')
+      ?.click();
+    await settle();
+
+    expect(element.querySelector('tbody vvs-stock-gauge [role="tooltip"]')).toBeNull();
+    expect(element.querySelector('tbody vvs-stock-gauge')?.getAttribute('aria-hidden')).toBe(
+      'true',
+    );
+  });
+
   it('ne demande pas la valorisation pour une vendeuse (permission stocks.value)', async () => {
     await open('SELLER');
     await settle();
