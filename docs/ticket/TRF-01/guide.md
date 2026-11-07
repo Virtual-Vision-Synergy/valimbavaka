@@ -1,6 +1,6 @@
 # Guide d'intégration — TRF-01 · Historique des transferts de stock
 
-Statut : ✅ écrit le 2026-11-08 — tests à lancer en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#35](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/35) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#35](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/35) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -102,5 +102,5 @@ transferService.getTransfers(new PageQuery(1, 100, null, null, null), TransferOr
 - **Emplacement désactivé** : le référentiel n'expose que les emplacements actifs ; un transfert vers un emplacement désactivé depuis garde son UUID mais son libellé vaut `null` (« Emplacement désactivé » à l'écran). Aucune route ne désactive d'emplacement aujourd'hui.
 - **Détail (TRF-04)** : le panneau latéral reste la maquette ; pour un transfert réel il affiche « Détail du bon bientôt disponible ». Plus de présélection de `TRF-0092` à l'ouverture.
 - **Compteurs des puces retirés** : la maquette affichait le nombre de transferts par origine ; le serveur ne le calcule pas (à ajouter par un endpoint de synthèse si le client le demande).
-- **PR empilée** sur `feature/TRF-03-retour-stock` : à merger après TRF-03.
+- TRF-03 est mergée dans `develop` : la branche a été fusionnée avec `develop` (base de la PR).
 - Recette manuelle (🧪) à passer après le merge.
