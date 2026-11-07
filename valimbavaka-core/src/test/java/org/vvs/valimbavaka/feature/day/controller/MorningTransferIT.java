@@ -110,7 +110,8 @@ class MorningTransferIT extends StockApiTestSupport {
         var before = morningTransferCount();
 
         // Act
-        submit(body(line(soap, "STORE", "3") + "," + line(soap, "DELIVERY", "3"))).andExpect(status().isConflict());
+        submit(body(line(soap, "STORE", "3") + "," + line(soap, "DELIVERY", "3")))
+                .andExpect(status().isConflict());
 
         // Assert
         assertThat(morningTransferCount()).isEqualTo(before);
