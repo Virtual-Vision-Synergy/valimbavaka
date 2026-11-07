@@ -1,6 +1,6 @@
 # Scénarios de test — LIV-02 · Consultation de la tournée du jour
 
-Statut : ☐ tests écrits, à lancer (CI) · Ticket : [#47](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/47) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests automatiques exécutés (CI verte), recette 🧪 à passer · Ticket : [#47](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/47) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -23,12 +23,12 @@ La tournée du jour = les commandes du livreur connecté pour aujourd'hui à Ant
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| 1 · API : tournée du jour du livreur | Tojo : 2 commandes aujourd'hui (2 et 1 savons), 1 demain ; Ando : 1 aujourd'hui ; lecture avec le jeton de Tojo | 200, `totalCount` 2 ; arrêt 1 puis arrêt 2 ; arrêt 1 : `customerName` « Rakoto Be », `address` « Lot II J 45, rue Pasteur », `district` « Ivandry », `customerPhone` « 034 12 345 67 », `amount` 17 000 ; arrêt 2 : 8 500. Ni la commande de demain ni celle d'Ando | `DeliveryDriverRoundIT.getOrders_driverRoundOfToday_returnsHisStopsInOrderWithContactAndAmount` | ☐ |
-| 1b · Appel du service front | `myRound('2026-11-09')`, livreur connecté Hanta Rasolofoson | `GET /api/v1/deliveries` avec `driverId` = id du livreur, `date` 2026-11-09, `size` 100, `sortBy` `stopNumber`, `sortDirection` `ASC` ; tournée « Hanta R. » du 2026-11-09 | `delivery-service.spec.ts` (« lit la tournée du jour du livreur connecté, arrêt par arrêt ») | ☐ |
-| 1c · Conversion en arrêts | commandes arrêt 3 (`ON_ROUND`, Ivandry), arrêt 2 (`CANCELLED`), arrêt 1 (`TO_PREPARE`, sans quartier, 8 500) | arrêts dans l'ordre 1 puis 3, l'annulée écartée ; arrêt 1 : « Rakoto Be », « Lot II J 45, rue Pasteur », 034 12 345 67, 8 500, non payée d'avance ; arrêt 3 : adresse « Ivandry, Lot II J 45, rue Pasteur » | `delivery-mapping.spec.ts` (« range la tournée du livreur par arrêt… ») | ☐ |
-| 1d · Arrêt mis en avant | arrêts 1 « Rakoto Be » livrée, 2 « Rasoa Vola » à préparer (17 000), 3 « Hery Andry » en tournée | « Prochain arrêt » = Rasoa Vola, adresse « Ivandry, Lot II J 2, rue Pasteur », téléphone affiché « 034 12 345 62 », bouton Appeler `tel:0341234562`, montant à encaisser 17 000 Ar | `driver-round-page.spec.ts` (« met en avant le premier arrêt à faire… ») | ☐ |
-| 1e · Arrêts suivants | même tournée | « Ensuite » liste Hery Andry avec son adresse, son téléphone (lien `tel:0341234563`) et 25 500 Ar (montant complet, plus en « k ») ; compteur « 1/3 » | `driver-round-page.spec.ts` (« liste les arrêts suivants dans l'ordre… ») | ☐ |
-| 1f · Arrêt « à préparer » compté comme à faire | statuts `TO_PREPARE`, `ON_ROUND`, `DELIVERED`, `FAILED` | à faire : `TO_PREPARE` et `ON_ROUND` ; faits : `DELIVERED` et `FAILED` (une commande de LIV-01 naît `TO_PREPARE` et doit apparaître) | `delivery-mapping.spec.ts` (« compte comme à faire les arrêts à préparer ou en tournée… ») | ☐ |
+| 1 · API : tournée du jour du livreur | Tojo : 2 commandes aujourd'hui (2 et 1 savons), 1 demain ; Ando : 1 aujourd'hui ; lecture avec le jeton de Tojo | 200, `totalCount` 2 ; arrêt 1 puis arrêt 2 ; arrêt 1 : `customerName` « Rakoto Be », `address` « Lot II J 45, rue Pasteur », `district` « Ivandry », `customerPhone` « 034 12 345 67 », `amount` 17 000 ; arrêt 2 : 8 500. Ni la commande de demain ni celle d'Ando | `DeliveryDriverRoundIT.getOrders_driverRoundOfToday_returnsHisStopsInOrderWithContactAndAmount` | ✅ auto |
+| 1b · Appel du service front | `myRound('2026-11-09')`, livreur connecté Hanta Rasolofoson | `GET /api/v1/deliveries` avec `driverId` = id du livreur, `date` 2026-11-09, `size` 100, `sortBy` `stopNumber`, `sortDirection` `ASC` ; tournée « Hanta R. » du 2026-11-09 | `delivery-service.spec.ts` (« lit la tournée du jour du livreur connecté, arrêt par arrêt ») | ✅ auto |
+| 1c · Conversion en arrêts | commandes arrêt 3 (`ON_ROUND`, Ivandry), arrêt 2 (`CANCELLED`), arrêt 1 (`TO_PREPARE`, sans quartier, 8 500) | arrêts dans l'ordre 1 puis 3, l'annulée écartée ; arrêt 1 : « Rakoto Be », « Lot II J 45, rue Pasteur », 034 12 345 67, 8 500, non payée d'avance ; arrêt 3 : adresse « Ivandry, Lot II J 45, rue Pasteur » | `delivery-mapping.spec.ts` (« range la tournée du livreur par arrêt… ») | ✅ auto |
+| 1d · Arrêt mis en avant | arrêts 1 « Rakoto Be » livrée, 2 « Rasoa Vola » à préparer (17 000), 3 « Hery Andry » en tournée | « Prochain arrêt » = Rasoa Vola, adresse « Ivandry, Lot II J 2, rue Pasteur », téléphone affiché « 034 12 345 62 », bouton Appeler `tel:0341234562`, montant à encaisser 17 000 Ar | `driver-round-page.spec.ts` (« met en avant le premier arrêt à faire… ») | ✅ auto |
+| 1e · Arrêts suivants | même tournée | « Ensuite » liste Hery Andry avec son adresse, son téléphone (lien `tel:0341234563`) et 25 500 Ar (montant complet, plus en « k ») ; compteur « 1/3 » | `driver-round-page.spec.ts` (« liste les arrêts suivants dans l'ordre… ») | ✅ auto |
+| 1f · Arrêt « à préparer » compté comme à faire | statuts `TO_PREPARE`, `ON_ROUND`, `DELIVERED`, `FAILED` | à faire : `TO_PREPARE` et `ON_ROUND` ; faits : `DELIVERED` et `FAILED` (une commande de LIV-01 naît `TO_PREPARE` et doit apparaître) | `delivery-mapping.spec.ts` (« compte comme à faire les arrêts à préparer ou en tournée… ») | ✅ auto |
 
 ## Sécurité et erreurs
 
@@ -36,7 +36,7 @@ Endpoint lu : `GET /api/v1/deliveries` (écrit par LIV-01, permission `deliverie
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Sans jeton | `GET /api/v1/deliveries?date=<aujourd'hui>` sans `Authorization` | 401 `UNAUTHENTICATED` | `DeliveryDriverRoundIT.getOrders_driverRoundWithoutToken_returns401` | ☐ |
+| Sans jeton | `GET /api/v1/deliveries?date=<aujourd'hui>` sans `Authorization` | 401 `UNAUTHENTICATED` | `DeliveryDriverRoundIT.getOrders_driverRoundWithoutToken_returns401` | ✅ auto |
 | Livreur qui demande la tournée d'un autre | jeton de Tojo, `driverId` d'Ando | seulement les commandes de Tojo (le serveur remplace `driverId`) | `DeliveryOrderIT.getOrders_driverAskingForAnotherRound_onlyGetsHisOwnOrders` (LIV-01) | ✅ auto (CI de LIV-01) |
 | Mauvais rôle | — | ⏭ sans objet : les 3 rôles ont `deliveries.read` ; un administrateur ou une vendeuse qui ouvre `/round` voit sa propre tournée, vide (le front envoie son `driverId`) | — | ⏭ hors périmètre |
 | Mass assignment, 409, journal | — | ⏭ sans objet : lecture seule, aucune écriture ni ligne de journal | — | ⏭ hors périmètre |
@@ -46,15 +46,15 @@ Endpoint lu : `GET /api/v1/deliveries` (écrit par LIV-01, permission `deliverie
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Journée sans arrêt (API) | livreur créé sans commande | 200, `totalCount` 0, `items` vide | `DeliveryDriverRoundIT.getOrders_driverWithoutStopToday_returnsAnEmptyRound` | ☐ |
-| Journée sans arrêt (écran) | tournée vide | « Aucun arrêt aujourd'hui » au lieu de « Tournée terminée » (qui annonçait « Bravo ! 0 Ar encaissés ») | `driver-round-page.spec.ts` (« annonce une journée sans arrêt… ») | ☐ |
-| Tournée vide (conversion) | aucune commande | `stops` = `[]` | `delivery-mapping.spec.ts` (« donne une tournée vide… ») | ☐ |
-| Tri hors liste blanche | `sortBy=customerPhone` | 200, les arrêts du livreur quand même (tri par défaut `createdAt`) ; l'écran envoie toujours `stopNumber` | `DeliveryDriverRoundIT.getOrders_driverRoundSortedOutsideTheWhitelist_stillReturnsHisStops` | ☐ |
+| Journée sans arrêt (API) | livreur créé sans commande | 200, `totalCount` 0, `items` vide | `DeliveryDriverRoundIT.getOrders_driverWithoutStopToday_returnsAnEmptyRound` | ✅ auto |
+| Journée sans arrêt (écran) | tournée vide | « Aucun arrêt aujourd'hui » au lieu de « Tournée terminée » (qui annonçait « Bravo ! 0 Ar encaissés ») | `driver-round-page.spec.ts` (« annonce une journée sans arrêt… ») | ✅ auto |
+| Tournée vide (conversion) | aucune commande | `stops` = `[]` | `delivery-mapping.spec.ts` (« donne une tournée vide… ») | ✅ auto |
+| Tri hors liste blanche | `sortBy=customerPhone` | 200, les arrêts du livreur quand même (tri par défaut `createdAt`) ; l'écran envoie toujours `stopNumber` | `DeliveryDriverRoundIT.getOrders_driverRoundSortedOutsideTheWhitelist_stillReturnsHisStops` | ✅ auto |
 | Minuit | 22:30 UTC le 08/11 | jour de tournée 2026-11-09 (Antananarivo, UTC+3) | `delivery-mapping.spec.ts` (« donne le jour d'Antananarivo… », LIV-01) | ✅ auto (CI de LIV-01) |
 | Plus de 100 arrêts | 101 commandes un même jour | seule la 1ʳᵉ page (100 arrêts) est lue : limite connue, voir guide | — | ⏭ hors périmètre (pas de pagination sur l'écran mobile) |
-| Commande annulée | `CANCELLED` à l'arrêt 2 | n'apparaît pas ; les numéros d'arrêt ne sont pas renumérotés (1 puis 3) | `delivery-mapping.spec.ts` (« range la tournée du livreur par arrêt… ») | ☐ |
+| Commande annulée | `CANCELLED` à l'arrêt 2 | n'apparaît pas ; les numéros d'arrêt ne sont pas renumérotés (1 puis 3) | `delivery-mapping.spec.ts` (« range la tournée du livreur par arrêt… ») | ✅ auto |
 | Hors ligne | réseau coupé à l'ouverture | état d'erreur avec « Réessayer » (`ListState`) ; la tournée n'est pas mise en cache (LIV-08) | — | 🧪 recette |
-| Accessibilité | tournée de 3 arrêts | aucune violation axe (WCAG 2.2 AA, hors contraste) | `driver-round-page.spec.ts` (« n'a aucune violation d'accessibilité détectable ») | ☐ |
+| Accessibilité | tournée de 3 arrêts | aucune violation axe (WCAG 2.2 AA, hors contraste) | `driver-round-page.spec.ts` (« n'a aucune violation d'accessibilité détectable ») | ✅ auto |
 
 ## Tests existants
 
@@ -75,8 +75,8 @@ Endpoint lu : `GET /api/v1/deliveries` (écrit par LIV-01, permission `deliverie
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI)
-- Environnement : CI GitHub (`ci.yml`, `conventions.yml`)
-- Résultat : à lancer (CI ou local)
+- Date : 08/11/2026
+- Environnement : CI GitHub lancée à la main sur la branche (`ci.yml` et `conventions.yml`, commit `254a538`)
+- Résultat : vert. Backend `mvn verify` : 394 tests, 0 échec (dont `DeliveryDriverRoundIT` 4/4, `DeliveryOrderIT` 22/22) ; frontend `ng test` : 407 tests, 68 fichiers, 0 échec (dont `driver-round-page.spec.ts` 4/4, `delivery-mapping.spec.ts` 7/7) ; Spotless, Checkstyle, Prettier, ESLint, gitleaks verts. Qodana tourne seulement sur la PR : à vérifier à son ouverture
 - Anomalies ouvertes : aucune
 - Étapes 🧪 restantes : 4 (R1 à R4)

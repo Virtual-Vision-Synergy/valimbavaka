@@ -1,6 +1,6 @@
 # Guide d'intégration — LIV-02 · Consultation de la tournée du jour
 
-Statut : ✅ rédigé, tests à lancer (CI) · Ticket : [#47](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/47) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé, tests verts en CI (commit `254a538`) · Ticket : [#47](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/47) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
