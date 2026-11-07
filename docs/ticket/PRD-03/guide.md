@@ -104,4 +104,4 @@ this.productionService.startLot(lot.id).subscribe(({ queued, body }) => ...); //
   boutons. Une page liste paginée relèverait d'un ticket à part.
 - Libellé « En cure » de la maquette remplacé par « En cours » (vocabulaire de la user story) ; la note KPI
   « dont … en cours de cure » attend PRD-04.
-- Compilation, tests, Spotless et Checkstyle vérifiés en CI (run 42414235707 / 42414237395).
+- Compilation, tests, Spotless et Checkstyle vérifiés en CI (runs 42414631257 / 42414633613).

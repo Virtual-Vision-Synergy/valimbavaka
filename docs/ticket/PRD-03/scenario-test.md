@@ -72,10 +72,10 @@ planifié peut aussi être terminé directement (PRD-02).
 
 ## Résultat de l'exécution
 
-- Date : 2026-11-08 (CI GitHub `ci.yml`, run 42414235707, et `conventions.yml`, run 42414237395, commit `c4e88ce`)
-- Environnement : CI GitHub — backend `mvn verify` : 305 tests unitaires et 299 tests d'intégration, 0 échec (dont
+- Date : 2026-11-08 (CI GitHub `ci.yml`, run 42414631257, et `conventions.yml`, run 42414633613, commit `cc57bf6`, après fusion de `develop`)
+- Environnement : CI GitHub — backend `mvn verify` : 332 tests unitaires et 328 tests d'intégration, 0 échec (dont
   `ProductionBatchTest` 9, `ProductionBatchServiceImplTest` 11, `ProductionStatusIT` 7, `ProductionSecurityIT` 13,
-  `ProductionCompletionIT` 7) ; frontend `ng test` : 59 fichiers, 349 tests, 0 échec (dont
+  `ProductionCompletionIT` 7) ; frontend `ng test` : 62 fichiers, 370 tests, 0 échec (dont
   `production-page-status.spec.ts` 6, `production-service.spec.ts` 5, `production-mapping.spec.ts` 7,
   `demo-pages.a11y.spec.ts`) ; Spotless, Checkstyle, Prettier, ESLint verts
 - Anomalies ouvertes : aucune ; lignes 🔍 code : concurrence sur le même lot, double clic (pas de test dédié) ; 4 étapes 🧪 restantes
