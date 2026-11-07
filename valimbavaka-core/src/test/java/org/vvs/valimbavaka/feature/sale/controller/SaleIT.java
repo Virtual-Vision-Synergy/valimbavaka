@@ -93,7 +93,8 @@ class SaleIT extends StockApiTestSupport {
         // Act
         createSale(sellerToken, body(channel("FACEBOOK"), seller.getId(), "MVOLA", line(soap, "2")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.salesChannelId").value(channel("FACEBOOK").toString()))
+                .andExpect(
+                        jsonPath("$.salesChannelId").value(channel("FACEBOOK").toString()))
                 .andExpect(jsonPath("$.stockLocationId").value(location("STORE").toString()));
 
         // Assert
@@ -109,7 +110,8 @@ class SaleIT extends StockApiTestSupport {
         // Act
         createSale(adminToken(), body(channel("DELIVERY"), seller.getId(), "ON_DELIVERY", line(soap, "1")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.stockLocationId").value(location("DELIVERY").toString()));
+                .andExpect(
+                        jsonPath("$.stockLocationId").value(location("DELIVERY").toString()));
 
         // Assert
         assertThat(balance(soap, "DELIVERY")).isEqualByComparingTo("3");
@@ -130,9 +132,7 @@ class SaleIT extends StockApiTestSupport {
                         + "and action = 'CREATE'",
                 String.class,
                 saleId);
-        assertThat(description)
-                .startsWith("Vente VTE-")
-                .endsWith(" · Boutique · 1 article(s) · 17000.00 Ar · Carte");
+        assertThat(description).startsWith("Vente VTE-").endsWith(" · Boutique · 1 article(s) · 17000.00 Ar · Carte");
         var movements = jdbcTemplate.queryForObject(
                 "select count(*) from stock_movements where reference_id = ? and type = 'SALE' and quantity = -2",
                 Integer.class,
@@ -226,9 +226,8 @@ class SaleIT extends StockApiTestSupport {
         var soap = createArticle(uniqueName());
         assertValidationFailed(storeSale("CASH", ""));
         assertValidationFailed(storeSale("CASH", line(soap, "0")));
-        assertValidationFailed(
-                "{\"salesChannelId\":\"%s\",\"sellerId\":\"%s\",\"lines\":[%s]}"
-                        .formatted(channel("STORE"), seller.getId(), line(soap, "1")));
+        assertValidationFailed("{\"salesChannelId\":\"%s\",\"sellerId\":\"%s\",\"lines\":[%s]}"
+                .formatted(channel("STORE"), seller.getId(), line(soap, "1")));
     }
 
     @Test
@@ -292,15 +291,16 @@ class SaleIT extends StockApiTestSupport {
         move(soap, "STORE", StockMovementType.RECEIPT, "6");
         var store = location("STORE").toString();
         var article = "$.articles[?(@.id == '%s')]".formatted(soap);
+        var channelPath = "$.channels[?(@.code == '%s')].stockLocationId";
+        var sellerName = "$.sellers[?(@.id == '%s')].firstName".formatted(seller.getId());
 
         // Act + Assert
         mockMvc.perform(get(SALES + "/form").header(HttpHeaders.AUTHORIZATION, bearer(sellerToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nextNumber").isNumber())
-                .andExpect(jsonPath("$.channels[?(@.code == 'STORE')].stockLocationId").value(store))
-                .andExpect(jsonPath("$.channels[?(@.code == 'PHONE')].stockLocationId").value(store))
-                .andExpect(jsonPath("$.sellers[?(@.id == '%s')].firstName".formatted(seller.getId()))
-                        .value("Miora"))
+                .andExpect(jsonPath(channelPath.formatted("STORE")).value(store))
+                .andExpect(jsonPath(channelPath.formatted("PHONE")).value(store))
+                .andExpect(jsonPath(sellerName).value("Miora"))
                 .andExpect(jsonPath("$.sellers[0].email").doesNotExist())
                 .andExpect(jsonPath(article + ".price").value(8500.0))
                 .andExpect(jsonPath(article + ".stock['" + store + "']").value(6.0));
