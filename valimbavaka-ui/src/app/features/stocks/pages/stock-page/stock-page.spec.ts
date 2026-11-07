@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { StockPage } from './stock-page';
 
 const page = (items: unknown[]) => ({
@@ -142,6 +143,45 @@ describe('StockPage', () => {
     expect(element.querySelector('vvs-threshold-alerts')).toBeNull();
   });
 
+  it('affiche au survol de la jauge le détail chiffré par emplacement (STK-02)', async () => {
+    await open('SELLER');
+    await settle();
+
+    const gauge = element.querySelector('tbody vvs-stock-gauge .track') as HTMLElement;
+    gauge.dispatchEvent(new MouseEvent('mouseenter'));
+    await settle();
+
+    const detail = Array.from(gauge.querySelectorAll('.tip-row')).map((row) =>
+      Array.from(row.children)
+        .map((cell) => cell.textContent?.trim() ?? '')
+        .filter((text) => text !== '')
+        .join(' '),
+    );
+    expect(gauge.querySelector('[role="tooltip"]')?.classList).toContain('open');
+    expect(detail).toEqual([
+      'Entrepôt 10 100 %',
+      'Boutique 0 0 %',
+      'Livraison 0 0 %',
+      'Salon 0 0 %',
+      'Total 10',
+    ]);
+  });
+
+  it('revient à la jauge simple quand un seul emplacement est choisi (STK-02)', async () => {
+    await open('SELLER');
+    await settle();
+
+    Array.from(element.querySelectorAll<HTMLButtonElement>('vvs-location-cards button'))
+      .find((button) => button.querySelector('.label')?.textContent?.trim() === 'Entrepôt')
+      ?.click();
+    await settle();
+
+    expect(element.querySelector('tbody vvs-stock-gauge [role="tooltip"]')).toBeNull();
+    expect(element.querySelector('tbody vvs-stock-gauge')?.getAttribute('aria-hidden')).toBe(
+      'true',
+    );
+  });
+
   it('ne demande pas la valorisation pour une vendeuse (permission stocks.value)', async () => {
     await open('SELLER');
     await settle();
@@ -149,5 +189,65 @@ describe('StockPage', () => {
     httpMock.expectNone('/api/v1/stocks/valuation');
     expect(card('Entrepôt')).toMatch(/10 unités/);
     expect(card('Entrepôt')).not.toContain('sans coût');
+  });
+
+  const startButton = (): HTMLButtonElement | undefined =>
+    Array.from(element.querySelectorAll<HTMLButtonElement>('vvs-page-header button')).find(
+      (button) => button.textContent?.trim() === 'Bon de réapprovisionnement',
+    );
+
+  /** Administrateur : ouvre le brouillon depuis l'en-tête puis valide le bon (STK-05). */
+  const validateDraft = async (): Promise<void> => {
+    await open('ADMIN', [ALERT]);
+    httpMock.expectOne('/api/v1/stocks/valuation').flush(VALUATION);
+    await settle();
+    startButton()?.click();
+    await settle();
+    element.querySelectorAll<HTMLButtonElement>('vvs-restock-draft .actions button')[1].click();
+  };
+
+  it('génère le bon à partir des articles sous le seuil et confirme sa référence (STK-05)', async () => {
+    await validateDraft();
+
+    const request = httpMock.expectOne('/api/v1/stocks/restock-orders');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ articleIds: ['art-1'] });
+    request.flush({
+      id: 'ro-1',
+      reference: 'BR-000012',
+      status: 'PENDING',
+      createdAt: '2026-11-08T07:00:00Z',
+      lines: [{ ...ALERT, lineNumber: 1, articleCode: 'ART-0031', quantity: 30 }],
+    });
+    await settle();
+
+    expect(TestBed.inject(ToastService).toasts()).toContainEqual(
+      expect.objectContaining({
+        messageKey: 'stocks.restock.generated',
+        params: { reference: 'BR-000012', count: 1 },
+      }),
+    );
+    expect(element.querySelector('vvs-restock-draft')).toBeNull();
+  });
+
+  it('garde le brouillon et signale le refus quand plus aucun article n’est sous le seuil (409)', async () => {
+    await validateDraft();
+
+    httpMock
+      .expectOne('/api/v1/stocks/restock-orders')
+      .flush({ status: 409, code: 'CONFLICT' }, { status: 409, statusText: 'Conflict' });
+    await settle();
+
+    expect(TestBed.inject(ToastService).toasts()).toContainEqual(
+      expect.objectContaining({ messageKey: 'stocks.restock.failed', tone: 'danger' }),
+    );
+    expect(element.querySelector('vvs-restock-draft')).not.toBeNull();
+  });
+
+  it('ne propose pas le bon de réapprovisionnement à une vendeuse (permission stocks.restock)', async () => {
+    await open('SELLER', [ALERT]);
+    await settle();
+
+    expect(startButton()).toBeUndefined();
   });
 });

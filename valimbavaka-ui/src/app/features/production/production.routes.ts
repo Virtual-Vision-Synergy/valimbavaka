@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Production : données de démonstration tant que le module backend n'existe pas. */
+/** Production : création d'un lot branchée (PRD-01) ; validation, statuts et indicateurs à venir (PRD-02 à PRD-05). */
 export const PRODUCTION_ROUTES: Routes = [
   {
     path: '',

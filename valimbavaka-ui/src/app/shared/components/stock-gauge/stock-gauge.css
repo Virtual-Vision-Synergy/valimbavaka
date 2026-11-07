@@ -22,6 +22,98 @@
 .fill[data-level='out'] {
   background: var(--danger);
 }
+/* Répartition par emplacement (STK-02) : une couleur par position, reprise dans la bulle. */
+.track[tabindex] {
+  cursor: help;
+}
+.track[tabindex]:focus-visible {
+  outline: 2px solid var(--secondary-strong);
+  outline-offset: 3px;
+}
+.track[data-level='low'] {
+  box-shadow: 0 0 0 1px var(--warning-dark);
+}
+.track[data-level='out'] {
+  box-shadow: 0 0 0 1px var(--danger);
+}
+.stack {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.segment {
+  display: block;
+  height: 100%;
+}
+.segment[data-index='0'],
+.swatch[data-index='0'] {
+  background: var(--secondary-strong);
+}
+.segment[data-index='1'],
+.swatch[data-index='1'] {
+  background: var(--primary);
+}
+.segment[data-index='2'],
+.swatch[data-index='2'] {
+  background: var(--info);
+}
+.segment[data-index='3'],
+.swatch[data-index='3'] {
+  background: var(--brun-light);
+}
+.segment[data-index='4'],
+.swatch[data-index='4'] {
+  background: var(--range-zezika);
+}
+/* Bulle en position fixe : elle n'est pas coupée par le défilement horizontal du tableau. */
+.tip {
+  display: none;
+  position: fixed;
+  z-index: 50;
+  min-width: 180px;
+  padding: var(--space-2) 12px;
+  border-radius: var(--radius-md);
+  background: var(--gris-anthracite);
+  box-shadow: var(--shadow-md);
+  color: var(--blanc);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 8px));
+}
+.tip.open {
+  display: grid;
+  gap: 4px;
+}
+/* Pont invisible entre la jauge et la bulle : le pointeur peut passer sur la bulle sans la fermer. */
+.tip::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 8px;
+}
+.tip-row {
+  display: grid;
+  grid-template-columns: 10px 1fr auto 40px;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tip-row.total {
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+}
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.share {
+  opacity: 0.75;
+  text-align: right;
+}
 .marker {
   position: absolute;
   top: -4px;

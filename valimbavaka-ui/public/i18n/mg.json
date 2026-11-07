@@ -31,6 +31,7 @@
       "show": "Asehoy ny teny miafina",
       "hide": "Afeno ny teny miafina",
       "capsLock": "Mihidy ny litera lehibe.",
+      "sessionExpired": "Tapitra ny fotoam-pidiranao. Midira indray amin'ny kaonty ihany : voatahiry ato amin'ity fitaovana ity ny fampidirana miandry ary halefa aorian'ny fidirana.",
       "noAccount": "Tsy manana kaonty ? Ny mpitantana ihany no afaka mamorona."
     },
     "password": {
@@ -59,9 +60,27 @@
       "reason": "Antony nanoloana",
       "actions": "Hetsika",
       "retry": "Alefaso indray",
-      "discard": "Foano"
+      "discard": "Foano",
+      "failedTitle": "Fampidirana nolavina",
+      "pendingTitle": "Fampidirana miandry halefa",
+      "savedAt": "Daty nampidirana",
+      "state": "Toe-javatra",
+      "waiting": "Miandry",
+      "lastError": "Fanandramana farany : {{message}}",
+      "noReason": "Tsy nomen'ny mpizara ny antony.",
+      "retried": "Nalefa indray ny fampidirana.",
+      "retriedOffline": "Naverina anaty filaharana : halefa rehefa miverina ny tambajotra.",
+      "discarded": "Nofoanana ny fampidirana.",
+      "discardTitle": "Hofoanana ve ity fampidirana ity ?",
+      "discardMessage": "Ho voafafa tanteraka amin'ity fitaovana ity ny fampidirana « {{request}} » ary tsy halefa mihitsy."
     },
-    "synced": "Mifanaraka"
+    "synced": "Mifanaraka",
+    "method": {
+      "POST": "Famoronana",
+      "PUT": "Fanovana",
+      "PATCH": "Fanavaozana",
+      "DELETE": "Famafana"
+    }
   },
   "layout": {
     "navigation": "Fandehanana lehibe",
@@ -222,6 +241,10 @@
     "done": "vita",
     "current": "an-dalana",
     "upcoming": "ho avy"
+  },
+  "stockGauge": {
+    "label": "Fizarana ny tahiry isaky ny toerana",
+    "total": "Totaly"
   },
   "search": {
     "placeholder": "Hitady entana, varotra…",
@@ -571,13 +594,14 @@
     "restock": {
       "start": "Baiko famenoana",
       "title": "Baiko famenoana · drafitra",
-      "subtitle": "Entana {{count}} voafantina · isa natolotra handrakotra varotra {{days}} andro",
+      "subtitle": "Entana {{count}} latsaky ny fetra · isa natolotra = tsy ampy boriborina amin'ny folo manaraka",
       "exportPdf": "Hamoaka PDF",
       "validate": "Hanamarina ny baiko",
       "leadTime": "faharetana {{days}} andro",
       "inHouse": "Vita an-trano (atelier)",
-      "orderBefore": "Mandefasa baiko alohan'ny {{date}} mba tsy ho lany ela.",
-      "validated": "Voamarina ny baiko famenoana · entana {{count}} (fanandramana)"
+      "expectedDelivery": "Ho tonga ny {{date}} raha alefa androany ny baiko.",
+      "generated": "Vita ny baiko famenoana {{reference}} · entana {{count}}",
+      "failed": "Tsy vita ny baiko : {{message}}"
     }
   },
   "articles": {
@@ -1043,8 +1067,9 @@
       "CURING": "Mahamaina",
       "VALIDATED": "Voamarina"
     },
-    "draftToast": "Voatahiry ho drafitra ny andiany {{number}} (fanandramana)",
-    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry (fanandramana)"
+    "draftToast": "Voatahiry ho drafitra ny andiany {{number}}",
+    "saveError": "Tsy voatahiry ny andiany : {{message}}",
+    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry"
   },
   "transfers": {
     "title": "Famindrana tahiry",

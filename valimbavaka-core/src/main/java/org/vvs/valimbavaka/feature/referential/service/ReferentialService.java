@@ -25,4 +25,12 @@ public interface ReferentialService {
 
     /** Vrai si l'emplacement de stock existe et est actif (contrôle de référence pour les mouvements de stock). */
     boolean isActiveStockLocation(UUID stockLocationId);
+
+    /**
+     * Identifiant de l'emplacement actif portant ce code stable (ex. {@code WAREHOUSE}), pour les features qui
+     * mouvementent un emplacement fixe (production PRD-02).
+     *
+     * @throws org.vvs.valimbavaka.core.exception.BusinessException si l'emplacement est inconnu ou inactif (422)
+     */
+    UUID requireActiveStockLocationId(String code);
 }
