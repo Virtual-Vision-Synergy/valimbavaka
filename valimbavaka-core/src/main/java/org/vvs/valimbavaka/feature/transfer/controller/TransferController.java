@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.transfer.controller;
 
 import java.net.URI;
+import java.util.UUID;
 
 import jakarta.validation.Valid;
 
@@ -8,6 +9,7 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +23,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.transfer.domain.TransferOrigin;
 import org.vvs.valimbavaka.feature.transfer.dto.StockReturnWDto;
+import org.vvs.valimbavaka.feature.transfer.dto.TransferDetailRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferSummaryRDto;
 import org.vvs.valimbavaka.feature.transfer.service.TransferService;
@@ -29,8 +32,8 @@ import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
- * Transfers of stock between locations: history for the administrator (TRF-01); a stock return is entered by a seller
- * or the administrator (TRF-03).
+ * Transfers of stock between locations: history and sheet of a transfer for the administrator (TRF-01, TRF-04); a
+ * stock return is entered by a seller or the administrator (TRF-03).
  */
 @Tag(name = "Transfers")
 @ApiResponses({
@@ -57,6 +60,15 @@ public class TransferController {
     public PageResponse<TransferSummaryRDto> getTransfers(
             @Valid PageQuery query, @RequestParam(required = false) @Nullable TransferOrigin origin) {
         return transferService.getTransfers(query, origin);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Full sheet of a transfer: route, status, issuer, note, articles and quantities")
+    @ApiResponse(responseCode = "200", description = "Transfer with all its lines")
+    @ApiResponse(responseCode = "404", description = "Transfer not found (NOT_FOUND)")
+    @HasPermission("transfers.read")
+    public TransferDetailRDto getTransfer(@PathVariable UUID id) {
+        return transferService.getTransfer(id);
     }
 
     @PostMapping("/returns")
