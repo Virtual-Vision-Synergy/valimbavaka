@@ -147,7 +147,7 @@ describe('CommissionRuleFormPage', () => {
       expect(element.querySelector('#rate-error')?.textContent).toContain('entre 0 et 100');
     });
 
-    it('should accept the bounds 0 and 100', async () => {
+    it('should accept a rate of exactly 100', async () => {
       await type('name', 'Boutique standard');
       await type('salesChannelId', SHOP_ID);
       await type('rate', '100');
