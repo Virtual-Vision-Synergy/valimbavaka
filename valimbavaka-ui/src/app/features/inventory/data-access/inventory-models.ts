@@ -121,3 +121,8 @@ export interface InventorySessionQuery extends PageQuery {
 export interface InventoryCountWDto {
   readonly countedQuantity: number;
 }
+
+/** Motif de l'écart d'une ligne comptée (INV-03) : refusé par le serveur si la ligne n'est pas en écart. */
+export interface InventoryReasonWDto {
+  readonly reason: InventoryReason;
+}

@@ -4,10 +4,10 @@
     [subtitle]="'transfers.subtitle' | translate"
     [codes]="['TRF-01', 'TRF-04']"
   >
-    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+    <a class="btn btn-secondary" routerLink="/transfers/return">
       <svg [vvsIcon]="icons.Undo2" [size]="18"></svg>
       {{ 'transfers.stockReturn' | translate }}
-    </button>
+    </a>
     <button class="btn btn-primary" type="button" (click)="demoAction()">
       <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
       {{ 'transfers.new' | translate }}
@@ -19,11 +19,11 @@
       <div class="filters">
         <vvs-filter-chips
           [label]="'transfers.originFilter' | translate"
-          [options]="originOptions()"
+          [options]="originOptions"
           [(value)]="origin"
         />
         @if (transfers.value()) {
-          <span class="week">{{ 'transfers.week' | translate: { count: filtered().length } }}</span>
+          <span class="week">{{ 'transfers.total' | translate: { count: total() } }}</span>
         }
       </div>
 
@@ -31,7 +31,7 @@
         <vvs-list-state kind="error" (retry)="transfers.reload()" />
       } @else if (!transfers.value()) {
         <vvs-list-state kind="loading" [rows]="8" />
-      } @else if (!filtered().length) {
+      } @else if (!rows().length) {
         <vvs-list-state kind="empty" titleKey="transfers.empty" />
       } @else {
         <div class="table-wrap">
@@ -44,10 +44,11 @@
                 <th scope="col" class="cell-num">{{ 'transfers.col.lines' | translate }}</th>
                 <th scope="col" class="c-date">{{ 'transfers.col.date' | translate }}</th>
                 <th scope="col">{{ 'transfers.col.status' | translate }}</th>
+                <th scope="col" class="c-issuer">{{ 'transfers.col.issuer' | translate }}</th>
               </tr>
             </thead>
             <tbody>
-              @for (transfer of pageRows(); track transfer.id) {
+              @for (transfer of rows(); track transfer.id) {
                 <tr class="row" [class.selected]="transfer.id === selectedId()">
                   <th scope="row">
                     <button
@@ -62,30 +63,37 @@
                   <td>
                     <span class="route">
                       <span class="place">{{
-                        'stocks.location.' + transfer.from | translate
+                        transfer.fromLocationLabel ?? ('transfers.locationUnknown' | translate)
                       }}</span>
                       <svg [vvsIcon]="icons.MoveRight" [size]="16" aria-hidden="true"></svg>
-                      <span class="place">{{ 'stocks.location.' + transfer.to | translate }}</span>
+                      <span class="place">{{
+                        transfer.toLocationLabel ?? ('transfers.locationUnknown' | translate)
+                      }}</span>
                     </span>
                   </td>
                   <td class="c-origin">{{ 'transfers.origin.' + transfer.origin | translate }}</td>
                   <td class="cell-num">
                     <strong class="num">{{ transfer.lineCount }}</strong>
-                    <span class="units num">· {{ transfer.unitCount }} u.</span>
+                    <span class="units num">· {{ transfer.quantity }} u.</span>
                   </td>
-                  <td class="c-date num">{{ transfer.when | when }}</td>
+                  <td class="c-date num">
+                    <time [attr.datetime]="transfer.createdAt">{{
+                      transfer.createdAt | when
+                    }}</time>
+                  </td>
                   <td>
                     <vvs-status-badge
                       [tone]="tones[transfer.status]"
                       [label]="'transfers.status.' + transfer.status | translate"
                     />
                   </td>
+                  <td class="c-issuer">{{ transfer.createdByName }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="total()" />
       }
     </section>
 
