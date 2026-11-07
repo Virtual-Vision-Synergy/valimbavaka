@@ -331,7 +331,10 @@ class SaleIT extends StockApiTestSupport {
     }
 
     private static UUID createdId(ResultActions actions) throws Exception {
-        var json = actions.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        var json = actions.andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
         return UUID.fromString(JsonPath.read(json, "$.id"));
     }
 

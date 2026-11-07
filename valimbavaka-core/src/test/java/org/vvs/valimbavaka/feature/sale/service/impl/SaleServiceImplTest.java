@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.sale.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -78,9 +79,9 @@ class SaleServiceImplTest {
         var channel = new SaleChannelOptionRDto(CHANNEL, "FACEBOOK", "Facebook", STORE);
         when(policy.check(any())).thenReturn(new CheckedSale(channel, List.of(line)));
         when(saleRepository.nextNumber()).thenReturn(42L);
-        when(saleRepository.save(any(Sale.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        var request = new SaleWDto(
-                CHANNEL, SELLER, PaymentMethod.CARD, List.of(new SaleLineWDto(SOAP, new BigDecimal("2"))));
+        when(saleRepository.save(any(Sale.class))).then(returnsFirstArg());
+        var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));
+        var request = new SaleWDto(CHANNEL, SELLER, PaymentMethod.CARD, lines);
 
         // Act
         sut.createSale(request);
@@ -104,8 +105,8 @@ class SaleServiceImplTest {
     @Test
     void record_dayNotOpened_throwsConflictAndRecordsNothing() {
         // Arrange
-        when(businessDayService.requireOpenDay())
-                .thenThrow(new ConflictException("La journée du 08/11/2026 n'est pas ouverte."));
+        var closed = new ConflictException("La journée du 08/11/2026 n'est pas ouverte.");
+        when(businessDayService.requireOpenDay()).thenThrow(closed);
         var command = new SaleCommand(CHANNEL, SELLER, PaymentMethod.CASH, List.of());
 
         // Act + Assert

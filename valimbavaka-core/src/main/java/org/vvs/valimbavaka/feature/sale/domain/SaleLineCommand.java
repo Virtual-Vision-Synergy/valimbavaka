@@ -13,6 +13,4 @@ import org.jspecify.annotations.Nullable;
  *     current sale price of the article, which is always the case for a sale entered at the counter
  */
 public record SaleLineCommand(
-        UUID articleId,
-        BigDecimal quantity,
-        @Nullable BigDecimal unitPrice) {}
+        UUID articleId, BigDecimal quantity, @Nullable BigDecimal unitPrice) {}

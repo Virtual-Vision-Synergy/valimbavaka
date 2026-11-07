@@ -79,7 +79,10 @@ class SaleFormAssembler {
     /** Article id → (location id → quantity), for the distinct locations of the channels. */
     private Map<UUID, Map<UUID, BigDecimal>> stock(List<SaleChannelOptionRDto> options, List<UUID> articleIds) {
         var stock = new HashMap<UUID, Map<UUID, BigDecimal>>();
-        var locationIds = options.stream().map(SaleChannelOptionRDto::stockLocationId).distinct().toList();
+        var locationIds = options.stream()
+                .map(SaleChannelOptionRDto::stockLocationId)
+                .distinct()
+                .toList();
         for (var locationId : locationIds) {
             for (var entry : stockService.getQuantities(locationId, articleIds).entrySet()) {
                 stock.computeIfAbsent(entry.getKey(), id -> new HashMap<>()).put(locationId, entry.getValue());
