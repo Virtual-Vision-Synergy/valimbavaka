@@ -51,3 +51,5 @@ databaseChangeLog:
       file: db/changelog/changes/2026_11_08-81-changelog.sql
   - include:
       file: db/changelog/changes/2026_11_08-64-changelog.sql
+  - include:
+      file: db/changelog/changes/2026_11_08-65-changelog.sql

@@ -69,6 +69,16 @@ public class DeliveryOrder extends BaseEntity {
     @Column(name = "note", length = 500)
     private @Nullable String note;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "failure_reason", length = 30)
+    private @Nullable DeliveryFailureReason failureReason;
+
+    @Column(name = "failure_note", length = 280)
+    private @Nullable String failureNote;
+
+    @Column(name = "return_transfer_id")
+    private @Nullable UUID returnTransferId;
+
     @ElementCollection
     @CollectionTable(name = "delivery_order_lines", joinColumns = @JoinColumn(name = "delivery_order_id"))
     @OrderColumn(name = "line_number")
@@ -99,6 +109,17 @@ public class DeliveryOrder extends BaseEntity {
     public void moveTo(DeliveryStatus target) {
         status.ensureCanMoveTo(target);
         status = target;
+    }
+
+    /**
+     * Failure of the delivery (LIV-04): {@link DeliveryStatus#FAILED} with its reason, the driver's comment and the
+     * stock return that brought the articles back; 409 if the order is already delivered, failed or cancelled.
+     */
+    public void fail(DeliveryFailure failure, UUID returnTransferId) {
+        moveTo(DeliveryStatus.FAILED);
+        this.failureReason = failure.reason();
+        this.failureNote = failure.note();
+        this.returnTransferId = returnTransferId;
     }
 
     /** Lines in the order they were entered; they never change once recorded. */
