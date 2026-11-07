@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -102,22 +103,25 @@ class StockMovementServiceImplTest {
     void recordAll_crossedMovements_locksEveryArticleAndLocationInSortedOrderBeforeRecording() {
         // Arrange
         var otherLocation = UUID.randomUUID();
-        var out = new StockMovementCommand(
-                ARTICLE_ID, otherLocation, StockMovementType.TRANSFER, new BigDecimal("-2"), null);
-        var in = new StockMovementCommand(
-                ARTICLE_ID, LOCATION_ID, StockMovementType.TRANSFER, new BigDecimal("2"), null);
+        var out = transferLeg(otherLocation, "-2");
+        var in = transferLeg(LOCATION_ID, "2");
         when(policy.check(any())).thenReturn(StockTestData.article(ARTICLE_ID, "ART-0031"));
         when(stockMovementRepository.save(any(StockMovement.class))).thenAnswer(call -> call.getArgument(0));
-        var keys = List.of(ARTICLE_ID + ":" + otherLocation, ARTICLE_ID + ":" + LOCATION_ID).stream().sorted().toList();
+        var keys = new TreeSet<>(List.of(ARTICLE_ID + ":" + otherLocation, ARTICLE_ID + ":" + LOCATION_ID));
 
         // Act
         sut.recordAll(List.of(out, in));
 
         // Assert
         var order = inOrder(stockMovementRepository, policy);
-        order.verify(stockMovementRepository).lock(keys.get(0));
-        order.verify(stockMovementRepository).lock(keys.get(1));
+        order.verify(stockMovementRepository).lock(keys.first());
+        order.verify(stockMovementRepository).lock(keys.last());
         order.verify(policy).check(out);
         order.verify(policy).check(in);
+    }
+
+    private static StockMovementCommand transferLeg(UUID locationId, String quantity) {
+        return new StockMovementCommand(
+                ARTICLE_ID, locationId, StockMovementType.TRANSFER, new BigDecimal(quantity), null);
     }
 }

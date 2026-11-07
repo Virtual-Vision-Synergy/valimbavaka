@@ -34,13 +34,13 @@ class TransferLedger {
     void post(Transfer transfer, String route) {
         var movements = new ArrayList<StockMovementCommand>();
         for (var line : transfer.getLines()) {
-            movements.add(movement(line, transfer.getFromLocationId(), line.getQuantity().negate(), transfer));
+            movements.add(movement(
+                    line, transfer.getFromLocationId(), line.getQuantity().negate(), transfer));
             movements.add(movement(line, transfer.getToLocationId(), line.getQuantity(), transfer));
         }
         stockMovementService.recordAll(movements);
-        var units = transfer.getLines().stream()
-                .map(TransferLine::getQuantity)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        var units =
+                transfer.getLines().stream().map(TransferLine::getQuantity).reduce(BigDecimal.ZERO, BigDecimal::add);
         journalService.record(
                 JournalAction.CREATE,
                 RESOURCE_TYPE,

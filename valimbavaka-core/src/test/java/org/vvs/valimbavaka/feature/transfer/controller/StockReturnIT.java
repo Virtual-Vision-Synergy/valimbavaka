@@ -41,7 +41,8 @@ class StockReturnIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.origin").value("RETURN"))
                 .andExpect(jsonPath("$.number").value(matchesPattern("RET-\\d{4,}")))
                 .andExpect(jsonPath("$.fromLocationId").value(location("STORE").toString()))
-                .andExpect(jsonPath("$.toLocationId").value(location("WAREHOUSE").toString()))
+                .andExpect(
+                        jsonPath("$.toLocationId").value(location("WAREHOUSE").toString()))
                 .andExpect(jsonPath("$.lines[0].articleId").value(articleId.toString()))
                 .andExpect(jsonPath("$.lines[0].quantity").value(4.0))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
@@ -275,8 +276,8 @@ class StockReturnIT extends StockApiTestSupport {
     }
 
     private static String numberOf(ResultActions result) throws Exception {
-        return JsonPath.read(
-                result.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString(), "$.number");
+        result.andExpect(status().isCreated());
+        return JsonPath.read(result.andReturn().getResponse().getContentAsString(), "$.number");
     }
 
     private BigDecimal balance(UUID articleId, String locationCode) {

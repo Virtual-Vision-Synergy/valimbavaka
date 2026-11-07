@@ -11,13 +11,16 @@ import org.jspecify.annotations.Nullable;
 
 /** Stock return entered by a seller or the administrator; number, origin and status are set by the server. */
 public record StockReturnWDto(
-        @NotNull(message = "L'emplacement d'origine est obligatoire") UUID fromLocationId,
+        @NotNull(message = "L'emplacement d'origine est obligatoire")
+        UUID fromLocationId,
 
-        @NotNull(message = "L'emplacement de destination est obligatoire") UUID toLocationId,
+        @NotNull(message = "L'emplacement de destination est obligatoire")
+        UUID toLocationId,
 
         @NotNull(message = "Les lignes sont obligatoires")
         @Size(min = 1, max = 100, message = "Un retour compte de {min} à {max} lignes")
         @Valid
         List<@NotNull(message = "Une ligne vide n'est pas acceptée") TransferLineWDto> lines,
 
-        @Size(max = 500, message = "La note ne doit pas dépasser {max} caractères") @Nullable String note) {}
+        @Size(max = 500, message = "La note ne doit pas dépasser {max} caractères") @Nullable
+        String note) {}
