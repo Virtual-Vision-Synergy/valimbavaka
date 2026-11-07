@@ -1,6 +1,6 @@
 # Guide d'intégration — SHO-01 · Enregistrement d'une sortie shooting
 
-Statut : ✅ écrit le 2026-11-08 — **tests non exécutés** (voir « Résultat de l'exécution » du scénario) · Ticket : [#43](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/43) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests exécutés en CI, tous verts (voir « Résultat de l'exécution » du scénario) · Ticket : [#43](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/43) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -74,7 +74,7 @@ Une **sortie shooting** retire des produits d'un emplacement de stock pour une s
 
 **Tests**
 - Backend : `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/shooting/` (`domain/ShootingTest`, `service/impl/ShootingPolicyTest`, `service/impl/ShootingServiceImplTest`, `controller/ShootingCreationIT`, `controller/ShootingSecurityIT`, support `controller/ShootingApiTestSupport`)
-- Frontend : `data-access/shooting-mapping.spec.ts`, `data-access/shooting-service.spec.ts`, `components/shooting-form/shooting-form.spec.ts`
+- Frontend : `data-access/shooting-mapping.spec.ts`, `data-access/shooting-service.spec.ts`, `components/shooting-form/shooting-form.spec.ts` ; `src/app/features/demo-pages.a11y.spec.ts` répond désormais par une page vide aux requêtes HTTP des pages en partie branchées (sinon `whenStable` attend sans fin)
 
 ## Dépendances
 
@@ -100,4 +100,4 @@ Côté interface : `inject(ShootingService).list()` pour les lignes affichables,
 - Le formulaire propose les **100 premiers articles actifs** par nom (limite de `GET /api/v1/stocks`), comme la page des stocks ; les emplacements viennent du détail de stock du premier article.
 - La réintégration (« Réintégrer ») reste **simulée** côté interface jusqu'à SHO-02.
 - Pas d'annulation de sortie en file hors ligne : si le serveur la refuse au rejeu (stock vendu entre-temps → 409), elle reste en échec dans la file (SYS-07).
-- Tests non exécutés : voir le scénario avant de s'appuyer sur ce contrat.
+- Tests exécutés en CI le 2026-11-08 (29 backend, 13 frontend, tous verts) ; recette manuelle 🧪 à passer.
