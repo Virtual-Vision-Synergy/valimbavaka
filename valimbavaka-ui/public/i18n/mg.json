@@ -1377,7 +1377,8 @@
       "expected": "{{who}} · averina {{when}}",
       "return": "Averina",
       "none": "Tsy misy mbola any ivelany.",
-      "returnedToast": "Naverina tao amin'ny tahiry ny {{number}} (fanandramana)",
+      "returnedToast": "Naverina tao amin'ny tahiry ny {{number}}",
+      "returnFailed": "Tsy nekena ny famerenana ny {{number}} : {{message}}",
       "status": {
         "OUT": "Nivoaka",
         "LATE": "Tara",

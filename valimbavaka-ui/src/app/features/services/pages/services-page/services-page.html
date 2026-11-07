@@ -55,7 +55,11 @@
                   <span class="code-chip" aria-hidden="true">SHO-03</span>
                 </h2>
               </header>
-              <vvs-shooting-list [shootings]="active()" (returned)="returnShooting($event)" />
+              <vvs-shooting-list
+                [shootings]="active()"
+                [canReturn]="canReturnShooting()"
+                (returned)="returnShooting($event)"
+              />
             </section>
           </aside>
         </div>
@@ -84,7 +88,11 @@
           @if (shootingRows.error()) {
             <vvs-list-state kind="error" (retry)="shootingRows.reload()" />
           } @else {
-            <vvs-shooting-list [shootings]="shootings()" (returned)="returnShooting($event)" />
+            <vvs-shooting-list
+              [shootings]="shootings()"
+              [canReturn]="canReturnShooting()"
+              (returned)="returnShooting($event)"
+            />
           }
         </section>
       }

@@ -29,7 +29,10 @@ import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Administrator and seller: reading with {@code services.read}, recording an exit with {@code shootings.create}. */
+/**
+ * Administrator and seller: reading with {@code services.read}, recording an exit with {@code shootings.create};
+ * administrator only: returning the products with {@code shootings.return}.
+ */
 @Tag(name = "Shootings")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -76,5 +79,16 @@ public class ShootingController {
         var created = shootingService.createShooting(request);
         return ResponseEntity.created(URI.create("/api/v1/shootings/" + created.id()))
                 .body(created);
+    }
+
+    @PostMapping("/{id}/return")
+    @Operation(summary = "Returns the products of a shooting exit to the stock of the location they came from")
+    @ApiResponse(responseCode = "200", description = "Shooting exit returned, status RETURNED")
+    @ApiResponse(responseCode = "404", description = "Shooting exit not found (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Shooting exit already returned (CONFLICT)")
+    @ApiResponse(responseCode = "422", description = "Location of the exit inactive (VALIDATION_FAILED)")
+    @HasPermission("shootings.return")
+    public ShootingRDto returnShooting(@PathVariable UUID id) {
+        return shootingService.returnShooting(id);
     }
 }

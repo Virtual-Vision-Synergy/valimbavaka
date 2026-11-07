@@ -6,9 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -137,6 +139,55 @@ class ShootingServiceImplTest {
 
         // Act + Assert
         assertThatThrownBy(() -> sut.getShootingById(SHOOTING_ID)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void returnShooting_outExit_recordsOnePositiveReturnMovementPerArticleIntoItsLocationAndJournal() {
+        // Arrange
+        var shooting = withId(Shooting.open("SHO-0042", draft()));
+        when(shootingRepository.findByIdForUpdate(SHOOTING_ID)).thenReturn(Optional.of(shooting));
+
+        // Act
+        sut.returnShooting(SHOOTING_ID);
+
+        // Assert
+        verify(policy).markReturned(shooting);
+        var commands = ArgumentCaptor.forClass(StockMovementCommand.class);
+        verify(stockMovementService, times(2)).record(commands.capture());
+        var legs = commands.getAllValues().stream()
+                .map(command -> command.articleId() + " " + command.quantity().toPlainString())
+                .toList();
+        assertThat(legs).containsExactly(SOAP_ID + " 1", SCRUB_ID + " 2.5");
+        assertThat(commands.getAllValues()).allSatisfy(command -> {
+            assertThat(command.type()).isEqualTo(StockMovementType.RETURN);
+            assertThat(command.locationId()).isEqualTo(LOCATION_ID);
+            assertThat(command.referenceId()).isEqualTo(SHOOTING_ID);
+        });
+        verify(journalService).record(eq(JournalAction.UPDATE), eq("SHOOTING"), eq(SHOOTING_ID), contains("SHO-0042"));
+    }
+
+    @Test
+    void returnShooting_alreadyReturned_propagatesConflictWithoutMovementNorJournal() {
+        // Arrange
+        var shooting = withId(Shooting.open("SHO-0042", draft()));
+        when(shootingRepository.findByIdForUpdate(SHOOTING_ID)).thenReturn(Optional.of(shooting));
+        doThrow(new ConflictException("La sortie shooting SHO-0042 est déjà réintégrée."))
+                .when(policy)
+                .markReturned(shooting);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.returnShooting(SHOOTING_ID)).isInstanceOf(ConflictException.class);
+        verifyNoInteractions(stockMovementService, journalService);
+    }
+
+    @Test
+    void returnShooting_unknownId_throwsNotFoundException() {
+        // Arrange
+        when(shootingRepository.findByIdForUpdate(SHOOTING_ID)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.returnShooting(SHOOTING_ID)).isInstanceOf(NotFoundException.class);
+        verifyNoInteractions(policy, stockMovementService, journalService);
     }
 
     private static ShootingWDto request() {

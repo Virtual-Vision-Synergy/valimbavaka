@@ -22,6 +22,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.shared.domain.BaseEntity;
 
 /**
@@ -54,6 +55,13 @@ public class Shooting extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private ShootingStatus status;
 
+    /** Set once, by the return of the products (SHO-02). */
+    @Column(name = "returned_at")
+    private @Nullable Instant returnedAt;
+
+    @Column(name = "returned_by_name")
+    private @Nullable String returnedByName;
+
     @ElementCollection
     @CollectionTable(name = "shooting_items", joinColumns = @JoinColumn(name = "shooting_id"))
     @OrderColumn(name = "line_no")
@@ -70,6 +78,20 @@ public class Shooting extends BaseEntity {
         shooting.status = ShootingStatus.OUT;
         shooting.items.addAll(draft.items());
         return shooting;
+    }
+
+    /**
+     * Products back in stock (SHO-02): {@code RETURNED} is final, an exit is returned once (409 otherwise).
+     *
+     * @param returnedByName full name of the account that records the return
+     */
+    public void markReturned(Instant returnedAt, String returnedByName) {
+        if (status != ShootingStatus.OUT) {
+            throw new ConflictException("La sortie shooting %s est déjà réintégrée.".formatted(number));
+        }
+        this.status = ShootingStatus.RETURNED;
+        this.returnedAt = returnedAt;
+        this.returnedByName = returnedByName;
     }
 
     /** Still out after its expected return (shown as late, counted by SHO-03). */

@@ -31,7 +31,7 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 import org.vvs.valimbavaka.support.IntegrationTest;
 
-/** Shared fixtures of the SHO-01 integration tests: users, articles created through the API, stock received. */
+/** Shared fixtures of the SHO-01 and SHO-02 integration tests: users, articles created through the API, stock. */
 @IntegrationTest
 @AutoConfigureMockMvc
 abstract class ShootingApiTestSupport {
@@ -113,6 +113,21 @@ abstract class ShootingApiTestSupport {
                 .header(HttpHeaders.AUTHORIZATION, bearer(token))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
+    }
+
+    /** Exit recorded by the administrator; returns its id. */
+    protected UUID createShooting(String body) throws Exception {
+        var response = postShooting(adminToken(), body)
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return UUID.fromString(JsonPath.read(response, "$.id"));
+    }
+
+    protected ResultActions postReturn(String token, UUID shootingId) throws Exception {
+        return mockMvc.perform(
+                post(SHOOTINGS + "/" + shootingId + "/return").header(HttpHeaders.AUTHORIZATION, bearer(token)));
     }
 
     protected static String bearer(String token) {
