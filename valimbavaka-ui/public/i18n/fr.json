@@ -31,6 +31,7 @@
       "show": "Afficher le mot de passe",
       "hide": "Masquer le mot de passe",
       "capsLock": "Verrouillage des majuscules activé.",
+      "sessionExpired": "Votre session a expiré. Reconnectez-vous avec le même compte : vos saisies en attente sont conservées sur cet appareil et seront envoyées après la connexion.",
       "noAccount": "Pas de compte ? Seul un administrateur peut en créer un."
     },
     "password": {
@@ -593,13 +594,14 @@
     "restock": {
       "start": "Bon de réapprovisionnement",
       "title": "Bon de réapprovisionnement · brouillon",
-      "subtitle": "{{count}} article(s) sélectionné(s) · quantités proposées pour couvrir {{days}} jours de ventes",
+      "subtitle": "{{count}} article(s) sous le seuil · quantité suggérée = manque arrondi à la dizaine supérieure",
       "exportPdf": "Exporter PDF",
       "validate": "Valider le bon",
       "leadTime": "délai {{days}} j",
       "inHouse": "Fabrication interne (atelier)",
-      "orderBefore": "Commander avant le {{date}} pour éviter une rupture prolongée.",
-      "validated": "Bon de réapprovisionnement validé · {{count}} article(s) (démonstration)"
+      "expectedDelivery": "Livraison prévue le {{date}} si la commande part aujourd'hui.",
+      "generated": "Bon de réapprovisionnement {{reference}} généré · {{count}} article(s)",
+      "failed": "Le bon n'a pas été généré : {{message}}"
     }
   },
   "articles": {
@@ -1061,12 +1063,13 @@
     "recent": "Lots récents",
     "all": "Tous →",
     "status": {
-      "DRAFT": "Brouillon",
+      "DRAFT": "Planifié",
       "CURING": "En cure",
       "VALIDATED": "Validé"
     },
-    "draftToast": "Lot {{number}} enregistré en brouillon (démonstration)",
-    "validatedToast": "Lot {{number}} validé : stock mis à jour (démonstration)"
+    "draftToast": "Lot {{number}} enregistré : planifié, le stock n'a pas bougé",
+    "saveError": "Le lot n'a pas été enregistré : {{message}}",
+    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt"
   },
   "transfers": {
     "title": "Transferts de stock",
@@ -1140,7 +1143,8 @@
     "title": "Inventaire · {{location}}",
     "status": {
       "IN_PROGRESS": "En cours",
-      "CLOSED": "Clôturée"
+      "CLOSED": "Clôturée",
+      "CANCELLED": "Annulée"
     },
     "openedBy": "Session {{number}} ouverte le {{date}} à {{time}} par {{who}}",
     "salesBlocked": "Ventes bloquées sur cet emplacement pendant le comptage.",
@@ -1177,14 +1181,39 @@
       "OTHER": "Autre motif"
     },
     "empty": "Aucun article dans ce filtre.",
+    "noSession": "Aucune session d'inventaire en cours. Ouvrez-en une pour commencer le comptage.",
+    "countFailed": "Comptage de {{article}} non enregistré : {{reason}}",
+    "reasonFailed": "Motif de l'écart de {{article}} non enregistré : {{reason}}",
     "balance": "Bilan provisoire",
     "gapUnits": "Écart en unités",
     "gapValue": "Écart en valeur",
     "gapArticles": "Articles avec écart",
     "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
     "previous": "Sessions précédentes",
+    "previousEmpty": "Aucune session clôturée à afficher pour l'instant.",
     "confirmTitle": "Clôturer la session ?",
-    "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée."
+    "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée.",
+    "scope": {
+      "ALL": "Tout l'emplacement",
+      "RANGE": "Une gamme"
+    },
+    "open": {
+      "link": "Ouvrir une session",
+      "back": "← Retour à l'inventaire",
+      "title": "Ouvrir une session d'inventaire",
+      "hint": "Les articles du périmètre sont figés à l'ouverture ; une seule session en cours par emplacement.",
+      "location": "Emplacement",
+      "countDate": "Date du comptage",
+      "scope": "Périmètre",
+      "range": "Gamme",
+      "responsible": "Responsable du comptage",
+      "choose": "Choisir…",
+      "required": "Ce champ est obligatoire.",
+      "rangeRequired": "Choisissez la gamme à inventorier.",
+      "pastDate": "La date du comptage ne peut pas être passée.",
+      "submit": "Ouvrir la session",
+      "opened": "Session {{number}} ouverte"
+    }
   },
   "promotions": {
     "title": "Promotions",

@@ -1,10 +1,18 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FilePlus, Truck, Undo2 } from 'lucide';
-import { of } from 'rxjs';
+import { finalize, of } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthStore } from '../../../../core/auth/auth-store';
+import { errorMessage } from '../../../../core/http/problem-detail';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -54,6 +62,7 @@ export class StockPage {
   private readonly stockService = inject(StockService);
   private readonly authStore = inject(AuthStore);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly icons = { FilePlus, Truck, Undo2 };
   /** Retour de stock (TRF-03) : administrateur et vendeuse. */
@@ -108,8 +117,12 @@ export class StockPage {
       },
     ];
   });
-  protected readonly selectedRows = computed(() =>
-    (this.stock.value() ?? []).filter((row) => this.selection().has(row.articleId)),
+  /** Bon de réappro (STK-05) : réservé à `stocks.restock` (administrateur), le serveur décide. */
+  protected readonly canRestock = computed(() => this.authStore.hasPermission('stocks.restock'));
+  protected readonly generating = signal(false);
+  /** Lignes du brouillon : alertes du serveur parmi les articles cochés ; un article au-dessus du seuil n'y est pas. */
+  protected readonly selectedAlerts = computed(() =>
+    (this.alerts.value()?.items ?? []).filter((alert) => this.selection().has(alert.articleId)),
   );
 
   protected toggle(id: string): void {
@@ -122,11 +135,9 @@ export class StockPage {
     });
   }
 
-  /** Bon de réappro : par défaut, tous les articles sous le seuil de la vue courante. */
+  /** Bon de réappro : par défaut, tous les articles sous leur seuil selon le serveur (STK-04). */
   protected startRestock(): void {
-    const ids = this.rows()
-      .filter((row) => row.level !== 'OK')
-      .map((row) => row.articleId);
+    const ids = (this.alerts.value()?.items ?? []).map((alert) => alert.articleId);
     this.selection.set(new Set(ids));
   }
 
@@ -134,8 +145,28 @@ export class StockPage {
     this.toast.show('common.demoAction', {}, 'info');
   }
 
+  /** Le serveur génère le bon à partir des articles encore sous le seuil et confirme sa référence (STK-05). */
   protected validateRestock(): void {
-    this.toast.show('stocks.restock.validated', { count: this.selection().size });
-    this.selection.set(new Set());
+    const ids = this.selectedAlerts().map((alert) => alert.articleId);
+    this.generating.set(true);
+    this.stockService
+      .generateRestockOrder(ids)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.generating.set(false)),
+      )
+      .subscribe({
+        next: (result) => {
+          if (result.body) {
+            const { reference, lines } = result.body;
+            this.toast.show('stocks.restock.generated', { reference, count: lines.length });
+          } else {
+            this.toast.show('common.queuedSaved', {}, 'info');
+          }
+          this.selection.set(new Set());
+        },
+        error: (error: unknown) =>
+          this.toast.show('stocks.restock.failed', { message: errorMessage(error) }, 'danger'),
+      });
   }
 }
