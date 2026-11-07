@@ -1,9 +1,9 @@
 import { DEMO_ARTICLES } from '../../../shared/data-access/demo-catalog';
 import { isoDay } from '../../../shared/data-access/demo-dates';
 import {
-  PromotionContextRDto,
+  PromotionCardView,
+  PromotionContext,
   PromotionKind,
-  PromotionRDto,
   PromotionScope,
   PromotionScopeRDto,
 } from './promotion-models';
@@ -56,7 +56,7 @@ const ROWS: readonly PromotionRow[] = [
   ['Pack découverte', 'Coffret Botanika', 'AMOUNT', 5000, 'DECOUV', -170, -140, 18, 50, 90000],
 ];
 
-function toPromotion(row: PromotionRow, index: number): PromotionRDto {
+function toPromotion(row: PromotionRow, index: number): PromotionCardView {
   const [name, description, kind, value, code, from, to, uses, limit, discountGranted] = row;
   return {
     id: `pro-${String(index + 1).padStart(2, '0')}`,
@@ -85,7 +85,8 @@ const SCOPES: readonly PromotionScopeRDto[] = (
       : finished.filter((article) => article.range === value).length,
 }));
 
-export const PROMOTIONS_FIXTURE: PromotionContextRDto = {
+/** Liste de démonstration (PRO-04 la remplacera) ; les gammes et canaux viennent du référentiel. */
+export const PROMOTIONS_FIXTURE: Pick<PromotionContext, 'promotions' | 'scopes'> = {
   promotions: ROWS.map(toPromotion),
   scopes: SCOPES,
 };

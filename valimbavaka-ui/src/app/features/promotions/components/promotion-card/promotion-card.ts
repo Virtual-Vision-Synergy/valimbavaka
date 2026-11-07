@@ -3,7 +3,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { AriaryPipe, formatAriary } from '../../../../shared/pipes/ariary-pipe';
 import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
-import { PromotionRDto, PromotionStatus } from '../../data-access/promotion-models';
+import { PromotionCardView, PromotionStatus } from '../../data-access/promotion-models';
 import { Tone } from '../../../../shared/models/tone';
 
 const STATUS_TONES: Readonly<Record<PromotionStatus, Tone>> = {
@@ -21,7 +21,7 @@ const STATUS_TONES: Readonly<Record<PromotionStatus, Tone>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PromotionCard {
-  readonly promotion = input.required<PromotionRDto>();
+  readonly promotion = input.required<PromotionCardView>();
   readonly status = input.required<PromotionStatus>();
 
   protected readonly tone = computed(() => STATUS_TONES[this.status()]);

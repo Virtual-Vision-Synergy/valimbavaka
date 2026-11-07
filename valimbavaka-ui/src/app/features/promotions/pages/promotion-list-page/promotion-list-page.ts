@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
+import { errorMessage } from '../../../../core/http/problem-detail';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
@@ -9,10 +10,11 @@ import { PromotionCard } from '../../components/promotion-card/promotion-card';
 import { PromotionForm } from '../../components/promotion-form/promotion-form';
 import {
   PROMOTION_STATUSES,
-  PromotionRDto,
+  PromotionCardView,
+  PromotionDraft,
   PromotionStatus,
-  PromotionWDto,
 } from '../../data-access/promotion-models';
+import { toCardView } from '../../data-access/promotion-request';
 import { PromotionService } from '../../data-access/promotion-service';
 import { statusOf } from '../../data-access/promotion-status';
 
@@ -29,7 +31,7 @@ export class PromotionListPage {
   private readonly toast = inject(ToastService);
 
   protected readonly context = rxResource({ stream: () => this.promotionService.context() });
-  protected readonly created = signal<readonly PromotionRDto[]>([]);
+  protected readonly created = signal<readonly PromotionCardView[]>([]);
   protected readonly status = signal<PromotionStatus | 'ALL'>('ALL');
   protected readonly formKey = signal(0);
 
@@ -51,11 +53,25 @@ export class PromotionListPage {
     this.all().filter((item) => this.status() === 'ALL' || item.status === this.status()),
   );
 
-  protected create(request: PromotionWDto): void {
-    this.promotionService.create(request).subscribe((promotion) => {
-      this.created.update((all) => [{ ...promotion, description: request.name }, ...all]);
-      this.formKey.update((key) => key + 1);
-      this.toast.show('promotions.scheduledToast', { name: request.name });
+  /** Le serveur décide (422, 409) ; hors connexion, la saisie part en file et sera rejouée. */
+  protected create(draft: PromotionDraft): void {
+    const refs = this.context.value();
+    if (!refs) {
+      return;
+    }
+    this.promotionService.create(draft, refs).subscribe({
+      next: (result) => {
+        this.formKey.update((key) => key + 1);
+        if (result.queued || !result.body) {
+          this.toast.show('common.queuedSaved', {}, 'info');
+          return;
+        }
+        const created = toCardView(result.body);
+        this.created.update((all) => [created, ...all]);
+        this.toast.show('promotions.scheduledToast', { name: created.name });
+      },
+      error: (error: unknown) =>
+        this.toast.show('promotions.createFailed', { reason: errorMessage(error) }, 'danger'),
     });
   }
 }
