@@ -76,6 +76,21 @@ public class ProductionBatchServiceImpl implements ProductionBatchService {
 
     @Override
     @Transactional
+    public ProductionBatchRDto startBatch(UUID batchId) {
+        var batch = productionBatchRepository.findByIdForUpdate(batchId).orElseThrow(() -> notFound(batchId));
+        batch.start();
+        var saved = productionBatchRepository.saveAndFlush(batch);
+        journalService.record(
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                saved.getId(),
+                "Démarrage du lot %s : planifié → en cours".formatted(saved.getNumber()));
+        log.info("Lot de production {} démarré", saved.getId());
+        return productionMapper.toRDto(saved);
+    }
+
+    @Override
+    @Transactional
     public ProductionBatchRDto completeBatch(UUID batchId) {
         var batch = productionBatchRepository.findByIdForUpdate(batchId).orElseThrow(() -> notFound(batchId));
         return productionMapper.toRDto(complete(batch));

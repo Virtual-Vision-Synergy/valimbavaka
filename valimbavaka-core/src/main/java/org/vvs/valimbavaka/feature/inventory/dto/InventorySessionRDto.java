@@ -9,7 +9,10 @@ import org.jspecify.annotations.Nullable;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryScope;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryStatus;
 
-/** Inventory session; {@code openedAt} / {@code openedBy} are the creation audit, {@code lineCount} the articles. */
+/**
+ * Inventory session; {@code openedAt} / {@code openedBy} are the creation audit, {@code lineCount} the articles and
+ * {@code gapCount} the counted lines whose count differs from the theoretical stock (INV-05).
+ */
 public record InventorySessionRDto(
         UUID id,
         String number,
@@ -26,4 +29,5 @@ public record InventorySessionRDto(
         @Nullable UUID openedBy,
         @Nullable Instant closedAt,
         long lineCount,
+        long gapCount,
         long version) {}

@@ -126,6 +126,16 @@ class ExcelExporterTest {
     }
 
     @Test
+    void export_emptyStream_writesHeaderRowOnly() throws IOException {
+        // Act
+        XSSFSheet sheet = export(ChildRow.class, Stream.empty());
+
+        // Assert
+        assertThat(sheet.getLastRowNum()).isZero();
+        assertThat(texts(sheet.getRow(0))).containsExactly("Ville", "Nom", "Code", "Pays");
+    }
+
+    @Test
     void export_moreThanMaxRows_failsWithoutConsumingTheRestOfTheStream() {
         // Arrange
         var produced = new AtomicInteger();

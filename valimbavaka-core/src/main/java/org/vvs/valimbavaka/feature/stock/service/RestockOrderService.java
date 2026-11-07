@@ -22,4 +22,13 @@ public interface RestockOrderService {
 
     /** 404 if the order is unknown. */
     RestockOrderRDto getRestockOrderById(UUID restockOrderId);
+
+    /**
+     * Receipt of the order by a supplier receipt (STK-06): {@code PENDING} to {@code RECEIVED}, traced in the journal
+     * ({@code UPDATE}). Must be called in the receipt transaction. 404 if unknown, 409 if already received.
+     *
+     * @param receiptNumber number of the receipt taking the order back, written in the journal
+     * @return the order reference ({@code BR-000007})
+     */
+    String markReceived(UUID restockOrderId, String receiptNumber);
 }

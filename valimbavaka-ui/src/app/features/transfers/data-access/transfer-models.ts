@@ -1,42 +1,12 @@
-import { StockLocation } from '../../../shared/data-access/demo-catalog';
 import { PageQuery } from '../../../shared/models/page-response';
+import { ArticleUnit } from '../../article/data-access/article-models';
 
 /** Origine d'un transfert, miroir de `TransferOrigin` côté serveur. */
 export type TransferOrigin = 'MORNING' | 'MANUAL' | 'RETURN';
 /** Statut d'un transfert côté serveur (TRF-03) : `RETURN` pour un retour de stock, `VALIDATED` sinon. */
 export type TransferStatus = 'VALIDATED' | 'RETURN';
-/** Statuts de la maquette du détail (TRF-04, données de démonstration) ; la liste utilise `TransferStatus`. */
-export type TransferRowStatus = 'IN_TRANSIT' | 'RECEIVED' | 'DISCREPANCY' | 'RETURN';
 
 export const TRANSFER_ORIGINS: readonly TransferOrigin[] = ['MORNING', 'MANUAL', 'RETURN'];
-
-/** Ligne d'un bon : quantité envoyée et quantité reçue (écart si elles diffèrent). */
-export interface TransferDetailLineRDto {
-  readonly reference: string;
-  readonly name: string;
-  readonly quantity: number;
-  readonly received: number;
-}
-
-/** Bon de la maquette du détail (TRF-04), données de démonstration. */
-export interface TransferRowRDto {
-  readonly id: string;
-  readonly number: string;
-  readonly from: StockLocation;
-  readonly to: StockLocation;
-  readonly origin: TransferOrigin;
-  readonly lineCount: number;
-  readonly unitCount: number;
-  readonly when: string;
-  readonly status: TransferRowStatus;
-}
-
-/** Bon de transfert (TRF-04) : les premières lignes, le reste résumé. */
-export interface TransferDetailRDto extends TransferRowRDto {
-  readonly operator: string;
-  readonly lines: readonly TransferDetailLineRDto[];
-  readonly hiddenLines: number;
-}
 
 /** Ligne saisie d'un transfert : quantité positive, 3 décimales au maximum (`TransferLineWDto`). */
 export interface TransferLineWDto {
@@ -98,4 +68,34 @@ export interface TransferSummaryRDto {
 /** Paramètres de l'historique : pagination commune et filtre facultatif par origine. */
 export interface TransferListQuery extends PageQuery {
   readonly origin?: TransferOrigin;
+}
+
+/** Ligne du détail (`TransferDetailLineRDto`) : l'article (code, nom et unité actuels) et la quantité déplacée. */
+export interface TransferDetailLineRDto {
+  readonly articleId: string;
+  readonly articleCode: string;
+  readonly articleName: string;
+  readonly unit: ArticleUnit;
+  readonly quantity: number;
+}
+
+/**
+ * Détail d'un transfert (`GET /api/v1/transfers/{id}`, permission `transfers.read`, TRF-04) : la ligne de
+ * l'historique, la note et toutes les lignes dans l'ordre de saisie ; `quantity` est la somme des lignes.
+ */
+export interface TransferDetailRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly origin: TransferOrigin;
+  readonly status: TransferStatus;
+  readonly fromLocationId: string;
+  readonly fromLocationLabel: string | null;
+  readonly toLocationId: string;
+  readonly toLocationLabel: string | null;
+  readonly note: string | null;
+  readonly lines: readonly TransferDetailLineRDto[];
+  readonly quantity: number;
+  readonly createdAt: string;
+  readonly createdBy: string | null;
+  readonly createdByName: string;
 }
