@@ -10,10 +10,12 @@
         {{ 'transfers.stockReturn' | translate }}
       </a>
     }
-    <button class="btn btn-secondary" type="button" (click)="demoAction()">
-      <svg [vvsIcon]="icons.Truck" [size]="18"></svg>
-      {{ 'stocks.reception' | translate }}
-    </button>
+    @if (canReceive) {
+      <a class="btn btn-secondary" routerLink="/stocks/receipt">
+        <svg [vvsIcon]="icons.Truck" [size]="18"></svg>
+        {{ 'stocks.reception' | translate }}
+      </a>
+    }
     @if (canRestock()) {
       <button class="btn btn-primary" type="button" (click)="startRestock()">
         <svg [vvsIcon]="icons.FilePlus" [size]="18"></svg>
