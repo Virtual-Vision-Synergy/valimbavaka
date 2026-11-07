@@ -1039,11 +1039,12 @@
     "recent": "Lots récents",
     "all": "Tous →",
     "status": {
-      "DRAFT": "Brouillon",
+      "DRAFT": "Planifié",
       "CURING": "En cure",
       "VALIDATED": "Validé"
     },
-    "draftToast": "Lot {{number}} enregistré en brouillon (démonstration)",
+    "draftToast": "Lot {{number}} enregistré : planifié, le stock n'a pas bougé",
+    "saveError": "Le lot n'a pas été enregistré : {{message}}",
     "validatedToast": "Lot {{number}} validé : stock mis à jour (démonstration)"
   },
   "transfers": {
