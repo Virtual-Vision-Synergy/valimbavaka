@@ -8,6 +8,11 @@ import { ApiError } from './problem-detail';
 
 const API_PREFIX = '/api/';
 const HTTP_UNAUTHORIZED = 401;
+/** Échecs du refresh qui ne disent rien de la session (réseau, surcharge) : elle est conservée (SYS-11). */
+const TRANSIENT_REFRESH_STATUSES = new Set([0, 408, 429]);
+
+/** Paramètre ajouté à `/login` quand la session a expiré : la page invite à se reconnecter (SYS-11). */
+export const SESSION_EXPIRED_QUERY_PARAMS = { session: 'expired' } as const;
 
 interface SessionRetryContext {
   readonly authService: AuthService;
@@ -22,7 +27,8 @@ interface SessionRetryContext {
 
 /**
  * Sur 401 d'un appel d'API, tente un seul refresh puis rejoue la requête ;
- * si le refresh échoue, la session est fermée et l'utilisateur renvoyé vers la connexion (§10.4).
+ * si le serveur refuse le refresh, la session est fermée et l'utilisateur renvoyé vers la connexion (§10.4).
+ * Un refresh qui échoue faute de réseau ou de serveur garde la session : elle sera renouvelée au prochain essai.
  * Doit être placé avant errorInterceptor dans la liste : il reçoit des ApiError.
  * Le Router est résolu à la demande pour éviter une dépendance circulaire au démarrage.
  */
@@ -90,11 +96,20 @@ function refreshAndReplay(context: SessionRetryContext): Observable<HttpEvent<un
 }
 
 function handleRefreshFailure(context: SessionRetryContext, error: unknown): Observable<never> {
-  if (isSameSession(context)) {
+  if (isSameSession(context) && !isTransientRefreshFailure(error)) {
     context.authStore.signOut();
-    void context.injector.get(Router).navigate(['/login']);
+    void context.injector
+      .get(Router)
+      .navigate(['/login'], { queryParams: SESSION_EXPIRED_QUERY_PARAMS });
   }
   return throwError(() => error);
+}
+
+function isTransientRefreshFailure(error: unknown): boolean {
+  return (
+    error instanceof ApiError &&
+    (TRANSIENT_REFRESH_STATUSES.has(error.status) || error.status >= 500)
+  );
 }
 
 function isSameAccount(context: SessionRetryContext): boolean {
