@@ -1,6 +1,6 @@
 # Scénarios de test — TRF-02 · Génération automatique des transferts du matin
 
-Statut : ☐ tests écrits, à lancer (CI) ; recette manuelle (🧪) à passer · Ticket : [#55](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/55) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests verts en CI le 2026-11-08 ; recette manuelle (🧪) à passer · Ticket : [#55](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/55) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -30,11 +30,11 @@ La génération elle-même est livrée par JR-01 : `POST /api/v1/days` crée un 
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| 1 · Visible aussitôt dans l'historique | ouverture : Savon 12 → Boutique, Savon 5 → Livraison ; puis `GET /api/v1/transfers?origin=MORNING&search=<numéro>` pour chaque bon renvoyé | 200, 1 ligne par numéro : `origin` = `MORNING`, `status` = `VALIDATED`, départ = entrepôt, `createdBy` = id de l'administrateur, `createdByName` = son prénom et nom | `MorningTransferIT.openDay_twoDestinations_listsEachMorningTransferAtOnceAsValidatedAndIssuedByTheAdmin` | ☐ |
+| 1 · Visible aussitôt dans l'historique | ouverture : Savon 12 → Boutique, Savon 5 → Livraison ; puis `GET /api/v1/transfers?origin=MORNING&search=<numéro>` pour chaque bon renvoyé | 200, 1 ligne par numéro : `origin` = `MORNING`, `status` = `VALIDATED`, départ = entrepôt, `createdBy` = id de l'administrateur, `createdByName` = son prénom et nom | `MorningTransferIT.openDay_twoDestinations_listsEachMorningTransferAtOnceAsValidatedAndIssuedByTheAdmin` | ✅ auto |
 | 1b · Statut fixé à la création (rappel JR-01) | même ouverture, lecture de `transfers` | chaque bon `MORNING` / `VALIDATED` | `BusinessDayIT.openDay_twoDestinations_returns201WithOneValidatedMorningTransferPerDestination` (JR-01) | ✅ auto (CI JR-01) |
-| 1c · Le bon nomme sa journée | ouverture : Savon 2 → Boutique, Savon 3 → Salon | `transfers.note` de chaque bon = `Ouverture de la journée du 08/11/2026` (date du jour renvoyée par l'ouverture) | `MorningTransferIT.openDay_validDispatch_notesTheOpeningDayOnEachMorningTransfer`, `BusinessDayServiceImplTest.openDay_twoDestinations_notesTheOpeningDayOnEachMorningTransfer` | ☐ |
-| 1d · Écran : statut sur la carte de fin | administrateur ; ouverture Boutique 12, Livraison 5 → `TRF-0093`, `TRF-0094` ; l'historique renvoie ces deux bons `VALIDATED` | une requête `list({ page: 1, size: 20, origin: 'MORNING' })` ; chaque bon de la carte porte la pastille « Validé » ; lien « Voir les transferts du matin » → `/transfers?origin=MORNING` | `day-open-page.spec.ts` « relit les bons générés dans l’historique : statut Validé et lien vers les transferts du matin » | ☐ |
-| 1e · Écran : historique ouvert sur les transferts du matin | `/transfers?origin=MORNING` | requête `origin=MORNING`, `page=1` ; puce « Répartition matinale » pressée | `transfer-list-page.spec.ts` « should open on the origin given in the address (link from the opening of the day) » | ☐ |
+| 1c · Le bon nomme sa journée | ouverture : Savon 2 → Boutique, Savon 3 → Salon | `transfers.note` de chaque bon = `Ouverture de la journée du 08/11/2026` (date du jour renvoyée par l'ouverture) | `MorningTransferIT.openDay_validDispatch_notesTheOpeningDayOnEachMorningTransfer`, `BusinessDayServiceImplTest.openDay_twoDestinations_notesTheOpeningDayOnEachMorningTransfer` | ✅ auto |
+| 1d · Écran : statut sur la carte de fin | administrateur ; ouverture Boutique 12, Livraison 5 → `TRF-0093`, `TRF-0094` ; l'historique renvoie ces deux bons `VALIDATED` | une requête `list({ page: 1, size: 20, origin: 'MORNING' })` ; chaque bon de la carte porte la pastille « Validé » ; lien « Voir les transferts du matin » → `/transfers?origin=MORNING` | `day-open-page.spec.ts` « relit les bons générés dans l’historique : statut Validé et lien vers les transferts du matin » | ✅ auto |
+| 1e · Écran : historique ouvert sur les transferts du matin | `/transfers?origin=MORNING` | requête `origin=MORNING`, `page=1` ; puce « Répartition matinale » pressée | `transfer-list-page.spec.ts` « should open on the origin given in the address (link from the opening of the day) » | ✅ auto |
 
 ## Sécurité et erreurs
 
@@ -44,10 +44,10 @@ TRF-02 n'ajoute **aucun endpoint** : il s'appuie sur `POST /api/v1/days` (JR-01)
 |---|---|---|---|---|
 | Ouverture sans jeton / mauvais rôle | `POST /api/v1/days` sans `Authorization` ; jeton vendeuse | 401 `UNAUTHENTICATED` ; 403 `FORBIDDEN`, aucun bon | `BusinessDayIT.openDay_withoutToken_returns401`, `BusinessDayIT.openDay_withSellerRole_returns403` (JR-01) | ⏭ hors périmètre (JR-01) |
 | Historique sans `transfers.read` | `GET /api/v1/transfers` avec un jeton vendeuse / livreur | 403 `FORBIDDEN` | `TransferHistoryIT.getTransfers_withSellerRole_returns403`, `getTransfers_withDeliveryDriverRole_returns403` (TRF-01) | ⏭ hors périmètre (TRF-01) |
-| Écran sans `transfers.read` | ouverture affichée à un utilisateur sans `transfers.read` | aucune lecture de l'historique, ni pastille ni lien (le serveur refuserait de toute façon) | `day-open-page.spec.ts` « sans accès à l’historique, ne relit pas les bons et ne propose pas le lien » | ☐ |
+| Écran sans `transfers.read` | ouverture affichée à un utilisateur sans `transfers.read` | aucune lecture de l'historique, ni pastille ni lien (le serveur refuserait de toute façon) | `day-open-page.spec.ts` « sans accès à l’historique, ne relit pas les bons et ne propose pas le lien » | ✅ auto |
 | Mass assignment | `status`, `id`, `businessDate` glissés dans le corps de l'ouverture | ignorés ; les bons restent `VALIDATED` | `BusinessDayIT.openDay_massAssignmentOfIdDateAndStatus_isIgnored` (JR-01) | ⏭ hors périmètre (JR-01) |
-| Refus 409 : aucun bon du matin | Savon 5 à l'entrepôt ; demandé 3 → Boutique + 3 → Livraison | 409 ; le nombre de transferts `MORNING` est inchangé (tout ou rien) | `MorningTransferIT.openDay_aboveWarehouseStock_generatesNoMorningTransfer` | ☐ |
-| Journal | ouverture : Savon 4 → Boutique | une ligne `TRANSFER` / `CREATE` par bon, libellé `Transfert du matin TRF-… · …` ; la ligne `BUSINESS_DAY` liste les numéros (JR-01) | `MorningTransferIT.openDay_validDispatch_tracesEachMorningTransferInTheJournal`, `BusinessDayIT.openDay_validDispatch_isTracedInTheJournal` | ☐ |
+| Refus 409 : aucun bon du matin | Savon 5 à l'entrepôt ; demandé 3 → Boutique + 3 → Livraison | 409 ; le nombre de transferts `MORNING` est inchangé (tout ou rien) | `MorningTransferIT.openDay_aboveWarehouseStock_generatesNoMorningTransfer` | ✅ auto |
+| Journal | ouverture : Savon 4 → Boutique | une ligne `TRANSFER` / `CREATE` par bon, libellé `Transfert du matin TRF-… · …` ; la ligne `BUSINESS_DAY` liste les numéros (JR-01) | `MorningTransferIT.openDay_validDispatch_tracesEachMorningTransferInTheJournal`, `BusinessDayIT.openDay_validDispatch_isTracedInTheJournal` | ✅ auto |
 
 ## Cas limites
 
@@ -76,6 +76,9 @@ TRF-02 n'ajoute **aucun endpoint** : il s'appuie sur `POST /api/v1/days` (JR-01)
 
 ## Résultat de l'exécution
 
-- À lancer (CI) : workflows « CI » et « Convention VVS » sur `feature/TRF-02-generation-transferts-matin`.
-- Anomalies : aucune connue.
+- Date : 2026-11-08, CI GitHub Actions sur `feature/TRF-02-generation-transferts-matin` (commit `aca4d37`) : workflows « CI » (backend `mvn verify` avec Testcontainers, frontend `ng test`) et « Convention VVS » (Spotless, Checkstyle, Prettier, ESLint, commits et migrations), tous deux verts. « Qodana for JVM » : 2 problèmes « Class is exposed outside of its visibility scope », les mêmes que sur la base JR-01 (aucun dans les fichiers de TRF-02).
+- Backend : 373 tests unitaires et 390 d'intégration, 0 échec ; dont TRF-02 : `MorningTransferIT` 4, `BusinessDayServiceImplTest` 5 (1 ajouté).
+- Frontend : 66 fichiers, 0 échec ; dont `day-open-page.spec.ts` 9 (2 ajoutés), `transfer-list-page.spec.ts` 8 (1 ajouté).
+- Premier passage : formatage Spotless d'une ligne de `MorningTransferIT` ; corrigé (`style(day)`).
+- Anomalies : aucune.
 - Étapes 🧪 restantes : 4.
