@@ -124,6 +124,7 @@
       "reports": "Tatitra",
       "users": "Mpampiasa",
       "commissionRules": "Fitsipiky ny kaomisiona",
+      "salonCatalog": "Katalaogin'ny salon",
       "journal": "Tahirin-kevitra",
       "dayOpen": "Fanokafana",
       "dayClose": "Fanakatonana",
@@ -1305,6 +1306,74 @@
       "baseRequired": "Tsy maintsy fenoina ny fototra kajiana.",
       "cancel": "Foano",
       "save": "Tehirizo"
+    }
+  },
+  "salonCatalog": {
+    "title": "Katalaogin'ny salon",
+    "subtitle": "Fikarakarana atolotra ao amin'ny salon : faharetana, vidiny, kaomisiona ary vokatra ampiasaina matetika.",
+    "new": "Asa vaovao",
+    "search": "Hikaroka asa",
+    "searchPlaceholder": "Anaran'ny asa…",
+    "count": "Asa {{count}}",
+    "minutes": "{{count}} min",
+    "products": "Vokatra {{count}}",
+    "noRate": "Fantsona na mpivarotra",
+    "field": {
+      "name": "Anarana",
+      "duration": "Faharetana (min)",
+      "price": "Vidiny (Ar)",
+      "commissionRate": "Kaomisiona (%)",
+      "products": "Vokatra lany"
+    },
+    "col": {
+      "status": "Toetra",
+      "actions": "Hetsika"
+    },
+    "actions": {
+      "edit": "Hanova"
+    },
+    "status": {
+      "active": "MIASA",
+      "inactive": "TSY MIASA",
+      "activate": "Ampiasaina",
+      "deactivate": "Atsahatra"
+    },
+    "confirm": {
+      "activateTitle": "Hampiasa ity asa ity ?",
+      "deactivateTitle": "Hampiato ity asa ity ?",
+      "activateMessage": "Hatolotra indray ny asa {{name}} rehefa misoratra fikarakarana.",
+      "deactivateMessage": "Tsy hatolotra intsony ny asa {{name}} ; voatahiry ny tantarany."
+    },
+    "empty": {
+      "title": "Tsy misy asa salon",
+      "message": "Mamorona asa hamaritana ny tolotra."
+    },
+    "unit": {
+      "PIECE": "isa",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
+    "form": {
+      "newTitle": "Asa salon vaovao",
+      "editTitle": "Hanova ny asa salon",
+      "back": "← Hiverina amin'ny katalaogy",
+      "rateHint": "Tsy voatery. Raha misy, io no soloin'ny tahan'ny fantsona sy ny an'ny mpivarotra (tsy atambatra).",
+      "productsHint": "Hofenoina mialoha rehefa misoratra fikarakarana ; ny habetsahana dia amin'ny refin'ny entana.",
+      "article": "Entana",
+      "quantity": "Habetsahana",
+      "chooseArticle": "Misafidiana entana",
+      "inactiveArticle": "Entana tsy miasa",
+      "addProduct": "Hanampy vokatra",
+      "removeProduct": "Hanala ny vokatra",
+      "noProducts": "Tsy misy vokatra lany.",
+      "nameRequired": "Tsy maintsy misy ny anarana.",
+      "tooLong": "Litera {{max}} farafahabetsany.",
+      "durationInvalid": "Isa feno 1 ka hatramin'ny 600 minitra ny faharetana.",
+      "priceInvalid": "Tsy maintsy tsara ny vidiny, desimaly 2 farafahabetsany.",
+      "rateInvalid": "Eo anelanelan'ny 0 sy 100 ny taha, desimaly 2 farafahabetsany.",
+      "productInvalid": "Entana iray isaky ny andalana ary habetsahana mihoatra ny aotra (desimaly 3 farafahabetsany).",
+      "cancel": "Hanafoana",
+      "save": "Hitahiry"
     }
   },
   "services": {

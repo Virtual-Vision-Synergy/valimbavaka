@@ -7,7 +7,11 @@ import { ToastService } from '../../../../shared/components/toast/toast-service'
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { SalonForm } from '../../components/salon-form/salon-form';
 import { ShootingList } from '../../components/shooting-list/shooting-list';
-import { SalonServiceRDto, SalonServiceWDto, ShootingRDto } from '../../data-access/service-models';
+import {
+  ServiceRecordRDto,
+  ServiceRecordWDto,
+  ShootingRDto,
+} from '../../data-access/service-models';
 import { SalonService } from '../../data-access/service-service';
 import { isoDay } from '../../../../shared/data-access/demo-dates';
 
@@ -27,7 +31,7 @@ export class ServicesPage {
 
   protected readonly context = rxResource({ stream: () => this.salonService.context() });
   protected readonly tab = signal<ServicesTab>('salon');
-  protected readonly created = signal<readonly SalonServiceRDto[]>([]);
+  protected readonly created = signal<readonly ServiceRecordRDto[]>([]);
   protected readonly returnedNumbers = signal<readonly string[]>([]);
 
   protected readonly shootings = computed<readonly ShootingRDto[]>(() =>
@@ -52,7 +56,7 @@ export class ServicesPage {
     this.today().reduce((sum, service) => sum + service.price, 0),
   );
 
-  protected register(request: SalonServiceWDto): void {
+  protected register(request: ServiceRecordWDto): void {
     const treatment = this.context
       .value()
       ?.treatments.find((item) => item.id === request.treatmentId);

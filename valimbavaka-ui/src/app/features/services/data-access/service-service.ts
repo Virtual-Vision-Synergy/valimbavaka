@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { demo } from '../../../shared/data-access/demo';
 import { SERVICES_FIXTURE } from './service-fixtures';
-import { SalonServiceWDto, ServicesContextRDto } from './service-models';
+import { ServiceRecordWDto, ServicesContextRDto } from './service-models';
 
 /**
  * Salon et shooting. Provisoire ; à terme `GET /api/v1/services/context`, `POST /api/v1/services`
@@ -14,7 +14,7 @@ export class SalonService {
     return demo(SERVICES_FIXTURE);
   }
 
-  register(service: SalonServiceWDto): Observable<SalonServiceWDto> {
+  register(service: ServiceRecordWDto): Observable<ServiceRecordWDto> {
     return demo(service);
   }
 
