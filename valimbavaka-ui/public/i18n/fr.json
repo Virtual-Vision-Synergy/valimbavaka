@@ -1089,15 +1089,17 @@
       "MANUAL": "Manuels",
       "RETURN": "Retours"
     },
-    "week": "Cette semaine · {{count}} transferts",
+    "total": "{{count}} transfert(s)",
     "empty": "Aucun transfert",
+    "locationUnknown": "Emplacement désactivé",
     "col": {
       "number": "N°",
       "route": "Trajet",
       "origin": "Origine",
       "lines": "Lignes",
       "date": "Date",
-      "status": "Statut"
+      "status": "Statut",
+      "issuer": "Émetteur"
     },
     "status": {
       "IN_TRANSIT": "En transit",
@@ -1107,6 +1109,7 @@
       "VALIDATED": "Validé"
     },
     "detailLabel": "Bon de transfert {{number}}",
+    "detailPending": "Détail du bon bientôt disponible",
     "from": "De",
     "to": "Vers",
     "pending": "en transit",

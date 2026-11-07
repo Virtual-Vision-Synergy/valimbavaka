@@ -64,7 +64,9 @@
     </footer>
   } @else if (transfer.error()) {
     <vvs-list-state kind="error" (retry)="transfer.reload()" />
-  } @else {
+  } @else if (transfer.isLoading()) {
     <vvs-list-state kind="loading" [rows]="5" />
+  } @else {
+    <vvs-list-state kind="empty" titleKey="transfers.detailPending" />
   }
 </section>

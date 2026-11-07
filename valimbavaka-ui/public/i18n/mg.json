@@ -1089,15 +1089,17 @@
       "MANUAL": "Amin'ny tanana",
       "RETURN": "Famerenana"
     },
-    "week": "Tamin'ity herinandro ity · famindrana {{count}}",
+    "total": "Famindrana {{count}}",
     "empty": "Tsy misy famindrana",
+    "locationUnknown": "Toerana tsy ampiasaina intsony",
     "col": {
       "number": "N°",
       "route": "Lalana",
       "origin": "Niaviana",
       "lines": "Andalana",
       "date": "Daty",
-      "status": "Sata"
+      "status": "Sata",
+      "issuer": "Nandefa"
     },
     "status": {
       "IN_TRANSIT": "Eny an-dalana",
@@ -1107,6 +1109,7 @@
       "VALIDATED": "Voamarina"
     },
     "detailLabel": "Taratasy famindrana {{number}}",
+    "detailPending": "Ho hita tsy ho ela ny antsipirian'ny taratasy",
     "from": "Avy any",
     "to": "Mankany",
     "pending": "eny an-dalana",
