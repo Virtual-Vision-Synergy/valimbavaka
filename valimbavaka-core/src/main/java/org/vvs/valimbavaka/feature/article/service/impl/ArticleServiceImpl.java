@@ -86,19 +86,16 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds) {
-        return articleRepository.findCosts(articleIds).stream()
-                .collect(Collectors.toMap(ArticleCost::articleId, ArticleCost::cost));
+    public List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds) {
+        return articleRepository.findByIdIn(articleIds).stream()
+                .map(articleMapper::toRDto)
+                .toList();
     }
 
     @Override
-    public List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds) {
-        if (articleIds.isEmpty()) {
-            return List.of();
-        }
-        return articleRepository.findAllByIdIn(Set.copyOf(articleIds)).stream()
-                .map(articleMapper::toRDto)
-                .toList();
+    public Map<UUID, BigDecimal> getCosts(Collection<UUID> articleIds) {
+        return articleRepository.findCosts(articleIds).stream()
+                .collect(Collectors.toMap(ArticleCost::articleId, ArticleCost::cost));
     }
 
     @Override

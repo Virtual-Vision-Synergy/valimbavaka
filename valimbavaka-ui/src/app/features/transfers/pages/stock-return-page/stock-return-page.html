@@ -1,0 +1,126 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" [routerLink]="backLink">{{ 'transfers.return.back' | translate }}</a>
+    <h1>{{ 'transfers.return.title' | translate }}</h1>
+    <p class="muted">{{ 'transfers.return.subtitle' | translate }}</p>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="grid">
+      <div class="field">
+        <label for="fromLocationId">{{ 'transfers.from' | translate }} *</label>
+        <select id="fromLocationId" class="input" formControlName="fromLocationId">
+          @for (location of locations(); track location.id) {
+            <option [value]="location.id">{{ location.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="toLocationId">{{ 'transfers.to' | translate }} *</label>
+        <select
+          id="toLocationId"
+          class="input"
+          formControlName="toLocationId"
+          aria-describedby="route-error"
+        >
+          @for (location of locations(); track location.id) {
+            <option [value]="location.id">{{ location.label }}</option>
+          }
+        </select>
+        @if (form.hasError('sameLocation')) {
+          <span id="route-error" class="field-error" aria-live="polite">{{
+            'transfers.return.sameLocation' | translate
+          }}</span>
+        }
+      </div>
+    </div>
+
+    <fieldset class="lines" formArrayName="lines">
+      <legend>{{ 'transfers.return.lines' | translate }}</legend>
+      @if (!articles().length) {
+        <p class="muted">{{ 'transfers.return.noStock' | translate }}</p>
+      }
+      @for (line of lines.controls; track line; let i = $index) {
+        <div class="line" [formGroupName]="i">
+          <div class="field article">
+            <label [for]="'article-' + i">{{ 'transfers.return.article' | translate }} *</label>
+            <select
+              class="input"
+              formControlName="articleId"
+              [id]="'article-' + i"
+              [attr.aria-describedby]="'article-error-' + i"
+            >
+              <option value="">{{ 'transfers.return.chooseArticle' | translate }}</option>
+              @for (article of articles(); track article.articleId) {
+                <option [value]="article.articleId">
+                  {{ article.code }} · {{ article.name }} ({{ article.available }})
+                </option>
+              }
+            </select>
+            @if (line.controls.articleId.touched && line.controls.articleId.invalid) {
+              <span [id]="'article-error-' + i" class="field-error" aria-live="polite">{{
+                'transfers.return.articleRequired' | translate
+              }}</span>
+            }
+          </div>
+
+          <div class="field quantity">
+            <label [for]="'quantity-' + i">{{ 'transfers.return.quantity' | translate }} *</label>
+            <input
+              class="input num"
+              inputmode="decimal"
+              formControlName="quantity"
+              [id]="'quantity-' + i"
+              [attr.aria-describedby]="'quantity-hint-' + i + ' quantity-error-' + i"
+            />
+            @if (available(i); as stock) {
+              <span class="field-hint" [id]="'quantity-hint-' + i">{{
+                'transfers.return.available' | translate: { count: stock }
+              }}</span>
+            }
+            @if (line.controls.quantity.touched && line.controls.quantity.invalid) {
+              <span [id]="'quantity-error-' + i" class="field-error" aria-live="polite">{{
+                'transfers.return.quantityInvalid' | translate
+              }}</span>
+            }
+          </div>
+
+          <button
+            class="btn btn-ghost remove"
+            type="button"
+            [disabled]="lines.length === 1"
+            [attr.aria-label]="'transfers.return.removeLine' | translate: { index: i + 1 }"
+            (click)="removeLine(i)"
+          >
+            ✕
+          </button>
+        </div>
+      }
+      <button
+        class="btn btn-secondary add"
+        type="button"
+        [disabled]="lines.length >= maxLines"
+        (click)="addLine()"
+      >
+        {{ 'transfers.return.addLine' | translate }}
+      </button>
+    </fieldset>
+
+    <div class="field">
+      <label for="note">{{ 'transfers.return.note' | translate }}</label>
+      <textarea id="note" class="input" rows="2" formControlName="note"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" [routerLink]="backLink">{{ 'common.cancel' | translate }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="isSaving()">
+        {{ 'transfers.return.submit' | translate }}
+      </button>
+    </div>
+  </form>
+</section>

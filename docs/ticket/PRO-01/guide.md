@@ -25,7 +25,7 @@ L'administrateur crée une promotion : type de remise (`PERCENT`, `AMOUNT`, `BUY
 - `PromotionRDto getPromotionById(UUID promotionId)` — 404 si inconnue.
 - `PromotionRDto createPromotion(PromotionWDto request)` — contrôles, enregistrement, journal.
 
-Ajout dans ART-01 : `ArticleService.getArticlesByIds(Collection<UUID>)` (`…/feature/article/service/ArticleService.java:36`), articles actifs ou non, identifiants inconnus absents. Il évite d'appeler `getArticleById` dans une transaction d'écriture (son 404 marquerait la transaction en échec).
+Réutilise `ArticleService.getArticlesByIds(Collection<UUID>)` livré par TRF-04 (`…/feature/article/service/ArticleService.java:33`), articles actifs ou non, identifiants inconnus absents. Il évite d'appeler `getArticleById` dans une transaction d'écriture (son 404 marquerait la transaction en échec).
 
 ### Frontend (`valimbavaka-ui/src/app/features/promotions`)
 
@@ -66,7 +66,7 @@ Hypothèses fixées par PRO-01, à respecter (ou à changer en mettant ce guide 
 ## Fichiers concernés
 
 - Backend : `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/promotion/` — `controller/PromotionController.java`, `domain/{Promotion,PromotionDetails,PromotionPeriod,PromotionKind,PromotionScope,PromotionStatus}.java`, `dto/{PromotionWDto,PromotionRDto}.java`, `mapper/PromotionMapper.java`, `repository/PromotionRepository.java`, `service/PromotionService.java`, `service/impl/{PromotionServiceImpl,PromotionRules}.java`.
-- Article : `feature/article/service/ArticleService.java`, `service/impl/ArticleServiceImpl.java:95`, `repository/ArticleRepository.java` (`findAllByIdIn`).
+- Article : `feature/article/service/ArticleService.java`, `service/impl/ArticleServiceImpl.java:89`, `repository/ArticleRepository.java` (`findByIdIn`, TRF-04).
 - Migration : `valimbavaka-core/src/main/resources/db/changelog/changes/2026_11_08-60-changelog.sql` (déclarée dans `db.changelog-master.yaml`).
 - Frontend : `valimbavaka-ui/src/app/features/promotions/data-access/{promotion-models,promotion-request,promotion-service,promotion-fixtures,promotion-status}.ts`, `components/promotion-form/promotion-form.ts`, `components/promotion-card/promotion-card.ts`, `pages/promotion-list-page/promotion-list-page.ts`, `public/i18n/{fr,mg}.json`.
 - Tests : voir [scénario](scenario-test.md#tests-existants).

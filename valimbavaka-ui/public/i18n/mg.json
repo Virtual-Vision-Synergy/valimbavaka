@@ -31,6 +31,7 @@
       "show": "Asehoy ny teny miafina",
       "hide": "Afeno ny teny miafina",
       "capsLock": "Mihidy ny litera lehibe.",
+      "sessionExpired": "Tapitra ny fotoam-pidiranao. Midira indray amin'ny kaonty ihany : voatahiry ato amin'ity fitaovana ity ny fampidirana miandry ary halefa aorian'ny fidirana.",
       "noAccount": "Tsy manana kaonty ? Ny mpitantana ihany no afaka mamorona."
     },
     "password": {
@@ -59,9 +60,27 @@
       "reason": "Antony nanoloana",
       "actions": "Hetsika",
       "retry": "Alefaso indray",
-      "discard": "Foano"
+      "discard": "Foano",
+      "failedTitle": "Fampidirana nolavina",
+      "pendingTitle": "Fampidirana miandry halefa",
+      "savedAt": "Daty nampidirana",
+      "state": "Toe-javatra",
+      "waiting": "Miandry",
+      "lastError": "Fanandramana farany : {{message}}",
+      "noReason": "Tsy nomen'ny mpizara ny antony.",
+      "retried": "Nalefa indray ny fampidirana.",
+      "retriedOffline": "Naverina anaty filaharana : halefa rehefa miverina ny tambajotra.",
+      "discarded": "Nofoanana ny fampidirana.",
+      "discardTitle": "Hofoanana ve ity fampidirana ity ?",
+      "discardMessage": "Ho voafafa tanteraka amin'ity fitaovana ity ny fampidirana « {{request}} » ary tsy halefa mihitsy."
     },
-    "synced": "Mifanaraka"
+    "synced": "Mifanaraka",
+    "method": {
+      "POST": "Famoronana",
+      "PUT": "Fanovana",
+      "PATCH": "Fanavaozana",
+      "DELETE": "Famafana"
+    }
   },
   "layout": {
     "navigation": "Fandehanana lehibe",
@@ -222,6 +241,10 @@
     "done": "vita",
     "current": "an-dalana",
     "upcoming": "ho avy"
+  },
+  "stockGauge": {
+    "label": "Fizarana ny tahiry isaky ny toerana",
+    "total": "Totaly"
   },
   "search": {
     "placeholder": "Hitady entana, varotra…",
@@ -571,13 +594,14 @@
     "restock": {
       "start": "Baiko famenoana",
       "title": "Baiko famenoana · drafitra",
-      "subtitle": "Entana {{count}} voafantina · isa natolotra handrakotra varotra {{days}} andro",
+      "subtitle": "Entana {{count}} latsaky ny fetra · isa natolotra = tsy ampy boriborina amin'ny folo manaraka",
       "exportPdf": "Hamoaka PDF",
       "validate": "Hanamarina ny baiko",
       "leadTime": "faharetana {{days}} andro",
       "inHouse": "Vita an-trano (atelier)",
-      "orderBefore": "Mandefasa baiko alohan'ny {{date}} mba tsy ho lany ela.",
-      "validated": "Voamarina ny baiko famenoana · entana {{count}} (fanandramana)"
+      "expectedDelivery": "Ho tonga ny {{date}} raha alefa androany ny baiko.",
+      "generated": "Vita ny baiko famenoana {{reference}} · entana {{count}}",
+      "failed": "Tsy vita ny baiko : {{message}}"
     }
   },
   "articles": {
@@ -999,12 +1023,14 @@
     "title": "Famokarana",
     "subtitle": "Hanova akora ho vokatra vita, miaraka amin'ny vidin'ny famokarana.",
     "kpi": {
-      "lots": "Andiany tamin'ity volana ity",
-      "lotsNote": "{{count}} amin'izany no mbola mahamaina",
+      "lots": "Andiany vita tamin'ity volana ity",
+      "lotsNote": "andiany {{count}} mbola an-dalana",
       "units": "Isa novokarina",
-      "unitsNote": "+{{percent}} % raha oharina amin'ny volana teo",
-      "cost": "Salan'ny vidin'ny famokarana",
-      "costNote": "isaky ny iray, karazana rehetra",
+      "unitsNote": "{{trend}} % raha oharina amin'ny volana teo",
+      "unitsNoTrend": "tsy nisy famokarana tamin'ny volana teo",
+      "cost": "Salan'ny vidin'ny akora",
+      "costNote": "isaky ny iray, andiany vita tamin'ity volana ity",
+      "uncosted": "andiany {{count}} tsy misy vidin'akora, tsy tafiditra",
       "rebuy": "Akora hovidiana",
       "rebuyNote": "manakana ny andiany manaraka"
     },
@@ -1040,11 +1066,31 @@
     "all": "Rehetra →",
     "status": {
       "DRAFT": "Drafitra",
-      "CURING": "Mahamaina",
-      "VALIDATED": "Voamarina"
+      "CURING": "Eo am-panaovana",
+      "VALIDATED": "Vita"
     },
-    "draftToast": "Voatahiry ho drafitra ny andiany {{number}} (fanandramana)",
-    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry (fanandramana)"
+    "draftToast": "Voatahiry ho drafitra ny andiany {{number}}",
+    "saveError": "Tsy voatahiry ny andiany : {{message}}",
+    "validatedToast": "Voamarina ny andiany {{number}} : havaozina ny tahiry",
+    "start": "Atombohy",
+    "startLot": "Atombohy ny andiany {{number}}",
+    "finish": "Vita",
+    "finishLot": "Vita ny andiany {{number}} (mivoaka ny akora, miditra ny vokatra)",
+    "startedToast": "Eo am-panaovana ny andiany {{number}}",
+    "statusError": "Tsy niova ny satan'ny andiany {{number}} : {{message}}",
+    "detail": {
+      "pageTitle": "Antsipirian'ny andiany",
+      "title": "Andiany {{number}}",
+      "back": "Hiverina amin'ny famokarana",
+      "open": "Antsipirian'ny andiany {{number}}",
+      "completedOn": "vita ny {{date}}",
+      "frozen": "Raikitra tamin'ny fanamarinana ny andiany ny vidiny : tsy manova azy intsony ny fiovan'ny vidin'ny fividianana.",
+      "estimated": "Andiany mbola tsy vita : vinavina amin'ny vidin'ny fividianana ankehitriny, raikitra rehefa voamarina.",
+      "inputs": "Akora ampiasain'ny andiany",
+      "unitCost": "Vidiny isaky ny iray",
+      "uncosted": "Akora {{count}} tsy misy vidin'ny fividianana : tsy azo kajiana ny vidin'ny famokarana, fenoy ny vidin'ilay entana.",
+      "margin": "Tombony amin'ny vidin'ny varotra"
+    }
   },
   "transfers": {
     "title": "Famindrana tahiry",
@@ -1064,38 +1110,61 @@
       "MANUAL": "Amin'ny tanana",
       "RETURN": "Famerenana"
     },
-    "week": "Tamin'ity herinandro ity · famindrana {{count}}",
+    "total": "Famindrana {{count}}",
     "empty": "Tsy misy famindrana",
+    "locationUnknown": "Toerana tsy ampiasaina intsony",
     "col": {
       "number": "N°",
       "route": "Lalana",
       "origin": "Niaviana",
       "lines": "Andalana",
       "date": "Daty",
-      "status": "Sata"
+      "status": "Sata",
+      "issuer": "Nandefa"
     },
     "status": {
-      "IN_TRANSIT": "Eny an-dalana",
-      "RECEIVED": "Voaray",
-      "DISCREPANCY": "Elanelana",
-      "RETURN": "Famerenana"
+      "RETURN": "Famerenana",
+      "VALIDATED": "Voamarina"
     },
     "detailLabel": "Taratasy famindrana {{number}}",
     "from": "Avy any",
     "to": "Mankany",
-    "pending": "eny an-dalana",
-    "receivedLine": "voaray",
-    "gapLine": "voaray {{received}} amin'ny {{sent}}",
-    "moreLines": "+ andalana {{count}} hafa",
+    "note": "Fanamarihana",
+    "linesLabel": "Entana {{count}} nafindra",
+    "unit": {
+      "PIECE": "u.",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
     "print": "Hanonta ny taratasy",
-    "createReturn": "Hamorona famerenana"
+    "createReturn": "Hamorona famerenana",
+    "return": {
+      "title": "Fampiverenana tahiry",
+      "subtitle": "Avereno any amin'ny toerana hafa ny entana tsy lafo, ohatra avy any amin'ny fivarotana mankany amin'ny trano fitehirizana.",
+      "back": "← Hiverina",
+      "lines": "Entana averina",
+      "noStock": "Tsy misy entana amin'ity toerana ity.",
+      "article": "Entana",
+      "chooseArticle": "Mifidiana entana",
+      "articleRequired": "Mifidiana entana iray.",
+      "quantity": "Isa",
+      "available": "Misy : {{count}}",
+      "quantityInvalid": "Isa mihoatra ny aotra, desimaly 3 farafahabetsany.",
+      "removeLine": "Esory ny andalana {{index}}",
+      "addLine": "Hanampy entana",
+      "note": "Fanamarihana",
+      "submit": "Hitahiry ny famerenana",
+      "saved": "Voatahiry ny famerenana {{number}}.",
+      "sameLocation": "Tsy maintsy samy hafa ny niaviana sy ny alehany."
+    }
   },
   "inventory": {
     "pageTitle": "Fanisana",
     "title": "Fanisana · {{location}}",
     "status": {
       "IN_PROGRESS": "Mandeha",
-      "CLOSED": "Voakatona"
+      "CLOSED": "Voakatona",
+      "CANCELLED": "Nofoanana"
     },
     "openedBy": "Nosokafan'i {{who}} ny fotoana {{number}} tamin'ny {{date}} tamin'ny {{time}}",
     "salesBlocked": "Voasakana ny varotra amin'ity toerana ity mandritra ny fanisana.",
@@ -1105,7 +1174,8 @@
     "closeHint": "Azo atao rehefa voaisa daholo ary voazava ny elanelana rehetra.",
     "closeReady": "Voaisa daholo : azonao akatona.",
     "closedAt": "Voakatona tamin'ny {{time}} ny fotoana.",
-    "closedToast": "Voakatona ny fotoana {{number}} : voasitrana ny tahiry (fanandramana)",
+    "closedToast": "Voakatona ny fotoana {{number}} : nampifanarahina tamin'ny isa voaisa ny tahiry",
+    "closeFailed": "Tsy nekena ny fanakatonana ny fotoana {{number}} : {{reason}}",
     "listLabel": "Entana hosaina",
     "filterLabel": "Sivano ny entana",
     "filter": {
@@ -1132,14 +1202,58 @@
       "OTHER": "Antony hafa"
     },
     "empty": "Tsy misy entana amin'io sivana io.",
+    "noSession": "Tsy misy fanisana entana mandeha amin'izao. Manokafa iray hanombohana ny fanisana.",
+    "countFailed": "Tsy voatahiry ny isa {{article}} : {{reason}}",
+    "reasonFailed": "Tsy voatahiry ny antony nahatonga ny elanelana {{article}} : {{reason}}",
     "balance": "Famintinana vonjimaika",
     "gapUnits": "Elanelana amin'ny isa",
     "gapValue": "Elanelana amin'ny sanda",
     "gapArticles": "Entana misy elanelana",
     "missingReasons": "Elanelana {{count}} tsy misy antony : azo akatona rehefa voasoratra ny antony.",
     "previous": "Fotoana teo aloha",
+    "previousEmpty": "Mbola tsy misy fanisana vita haseho.",
+    "gapCount": "Elanelana {{count}}",
+    "historyLink": "Hijery ny tantaran'ny fotoam-panisana",
+    "history": {
+      "title": "Tantaran'ny fotoam-panisana entana",
+      "subtitle": "Fotoana {{count}}",
+      "back": "← Hiverina amin'ny fanisana entana",
+      "listLabel": "Fotoam-panisana entana",
+      "statusFilter": "Sivanina araka ny sata",
+      "allStatuses": "Rehetra",
+      "empty": "Tsy misy fotoam-panisana amin'ity sivana ity.",
+      "col": {
+        "session": "Fotoana",
+        "countDate": "Daty fanisana",
+        "closedOn": "Nakatona tamin'ny",
+        "status": "Sata",
+        "lines": "Entana",
+        "gaps": "Elanelana"
+      }
+    },
     "confirmTitle": "Hakatona ve ny fotoana ?",
-    "confirmText": "Hampitoviana amin'ny fanisana ny tahiry ({{count}} entana misy elanelana). Tsy azo averina io hetsika io."
+    "confirmText": "Hampitoviana amin'ny fanisana ny tahiry ({{count}} entana misy elanelana). Tsy azo averina io hetsika io.",
+    "scope": {
+      "ALL": "Ny toerana manontolo",
+      "RANGE": "Karazana vokatra iray"
+    },
+    "open": {
+      "link": "Hanokatra fotoam-panisana",
+      "back": "← Hiverina amin'ny fanisana entana",
+      "title": "Hanokatra fotoam-panisana entana",
+      "hint": "Raikitra amin'ny fanokafana ny lahatahiry ao anatin'ny sehatra ; fotoana iray monja mandeha isaky ny toerana.",
+      "location": "Toerana",
+      "countDate": "Daty fanisana",
+      "scope": "Sehatra",
+      "range": "Karazana vokatra",
+      "responsible": "Tompon'andraikitra amin'ny fanisana",
+      "choose": "Mifidiana…",
+      "required": "Tsy maintsy fenoina ity saha ity.",
+      "rangeRequired": "Fidio ny karazana vokatra hisaina.",
+      "pastDate": "Tsy azo atao amin'ny daty efa lasa ny fanisana.",
+      "submit": "Sokafy ny fotoana",
+      "opened": "Voasokatra ny fotoana {{number}}"
+    }
   },
   "promotions": {
     "title": "Fampiroboroboana",
@@ -1278,6 +1392,22 @@
         "OUT": "Nivoaka",
         "LATE": "Tara",
         "RETURNED": "Naverina"
+      },
+      "form": {
+        "title": "Famoahana shooting vaovao",
+        "hint": "Mivoaka amin'ny tahirin'ny toerana voafidy ny vokatra fa tsy isaina ho very.",
+        "location": "Toerana ivoahana",
+        "expectedReturn": "Fotoana hamerenana",
+        "returnInPast": "Tokony ho amin'ny ho avy ny fotoana hamerenana.",
+        "items": "Entana nivoaka",
+        "available": "misy {{count}}",
+        "remove": "Esory",
+        "noItem": "Ampio entana iray farafahakeliny.",
+        "add": "Hanampy entana",
+        "shortage": "Tsy ampy ny tahiry amin'ity toerana ity ho an'ny entana iray : ovay ny isa.",
+        "note": "Fanamarihana",
+        "save": "Raketo ny famoahana",
+        "savedToast": "Voaraketa ny famoahana {{number}} : Nivoaka"
       }
     }
   },
@@ -1415,5 +1545,11 @@
       "title": "Entana omena",
       "empty": "Tsy misy entana omen'ity mpamatsy ity."
     }
+  },
+  "export": {
+    "done": "Vita ny rakitra {{filename}}.",
+    "failed": "Tsy tafita ny famoahana : andramo indray.",
+    "tooLarge": "Be loatra ny andalana hamoahana : ahenoy ny sivana.",
+    "forbidden": "Tsy manana alalana hamoaka ireo angona ireo ianao."
   }
 }

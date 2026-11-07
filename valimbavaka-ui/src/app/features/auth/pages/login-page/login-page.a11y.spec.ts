@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import axe from 'axe-core';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { LoginPage } from './login-page';
@@ -10,7 +11,12 @@ describe('LoginPage accessibility', () => {
   it('should have no detectable accessibility violation', async () => {
     await TestBed.configureTestingModule({
       imports: [LoginPage],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideTestTranslations()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        provideTestTranslations(),
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(LoginPage);
     await fixture.whenStable();

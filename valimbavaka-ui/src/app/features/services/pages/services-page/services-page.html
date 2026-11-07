@@ -71,7 +71,21 @@
             <h2>{{ 'services.shooting.title' | translate }}</h2>
             <p class="muted">{{ 'services.shooting.hint' | translate }}</p>
           </header>
-          <vvs-shooting-list [shootings]="shootings()" (returned)="returnShooting($event)" />
+          @if (canRecordShooting() && shootingStock.value(); as stock) {
+            <vvs-shooting-form
+              [stock]="stock"
+              [saving]="savingShooting()"
+              (submitted)="recordShooting($event)"
+            />
+            @if (shootingError(); as message) {
+              <p class="alert alert-danger shooting-error" role="alert">{{ message }}</p>
+            }
+          }
+          @if (shootingRows.error()) {
+            <vvs-list-state kind="error" (retry)="shootingRows.reload()" />
+          } @else {
+            <vvs-shooting-list [shootings]="shootings()" (returned)="returnShooting($event)" />
+          }
         </section>
       }
     }

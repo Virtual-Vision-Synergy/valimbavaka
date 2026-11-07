@@ -1,4 +1,14 @@
+.card + .card {
+  margin-top: var(--space-4);
+}
+
 .request {
+  display: block;
   font-family: monospace;
   word-break: break-all;
+}
+
+.reason {
+  display: block;
+  white-space: pre-line;
 }

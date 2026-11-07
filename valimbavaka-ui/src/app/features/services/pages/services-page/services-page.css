@@ -69,3 +69,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.shooting-error {
+  margin: 0 var(--space-5) var(--space-4);
+}

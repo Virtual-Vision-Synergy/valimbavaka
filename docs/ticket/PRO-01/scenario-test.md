@@ -74,7 +74,7 @@ Classes de test :
 
 - Backend : `PromotionRulesTest` (12 tests), `PromotionServiceImplTest` (5 tests), `PromotionSecurityIT` (10 tests).
 - Frontend : `promotion-request.spec.ts` (4 tests), `promotion-service.spec.ts` (1 test).
-- `ArticleService.getArticlesByIds` (ajouté pour ce ticket) n'a pas de test direct : il est simulé dans `PromotionRulesTest` (voir Anomalies).
+- `ArticleService.getArticlesByIds` (livré par TRF-04, réutilisé ici) n'a pas de test direct : il est simulé dans `PromotionRulesTest` (voir Anomalies).
 
 ## Recette manuelle (🧪)
 
