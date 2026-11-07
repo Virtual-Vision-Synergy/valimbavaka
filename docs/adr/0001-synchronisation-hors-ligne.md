@@ -23,6 +23,28 @@ Pattern **outbox** côté Angular (`core/offline/`) :
   `OutboxService.clear()` vide la file. *(Mise à jour du 2026-10-23 : la version initiale indiquait une file vidée
   à la déconnexion, ce que le code ne fait plus.)*
 
+## Mise à jour du 2026-11-08 : ordre en cas de blocage (SYS-10)
+Décision PO du 07/11/2026 (Randy) : **ordre strict par type**. Le rejeu reste séquentiel (un envoi à la fois),
+mais une saisie en attente de relance ne retient plus que son « couloir » (`core/offline/sync-order.ts`) :
+- **opérations métier** (journal, ventes, factures, avoirs, stock, transferts, production, inventaire, livraisons,
+  tournées, journées, shootings) : un seul groupe en ordre strict. Elles attendent derrière une saisie du groupe
+  bloquée par le réseau, y compris quand ses 5 tentatives sont épuisées (`FAILED` avec `networkFailure`), jusqu'à
+  son renvoi ou son abandon ;
+- **fiches et référentiels** (fournisseurs, articles, utilisateurs, promotions, catalogues, services, gammes,
+  canaux, emplacements) : elles passent devant une saisie bloquée ; seules les saisies d'une même fiche restent
+  dans l'ordre entre elles ;
+- **adresse non classée** : file unique comme avant SYS-10.
+Un refus métier (`FAILED` sans `networkFailure`) ne retient toujours rien.
+
+## Mise à jour du 2026-11-08 : session expirée avec des saisies en attente (SYS-11)
+- Une saisie part toujours avec le jeton du compte créateur. Au retour du réseau, un 401 déclenche un seul refresh
+  (`core/http/session-interceptor.ts`) puis le rejeu avec le nouveau jeton et la **même** `Idempotency-Key`.
+- Refresh **refusé par le serveur** (401, 403, compte différent) : la session est fermée et l'utilisateur renvoyé
+  vers `/login?session=expired`, qui l'invite à se reconnecter ; la saisie n'est ni comptée comme un échec ni
+  envoyée. Elle part dès que le **même** compte se reconnecte ; un autre compte ne la voit pas et ne l'envoie pas.
+- Refresh **impossible** (réseau 0, 408, 429, 5xx) : la session est conservée, l'essai compte comme une erreur
+  transitoire et la relance suivante retente le refresh.
+
 ## Côté serveur
 `IdempotencyFilter` (`security/idempotency`, après l'authentification) traite les écritures
 (POST/PUT/PATCH/DELETE) portant `Idempotency-Key` :

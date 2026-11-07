@@ -48,6 +48,12 @@
       <h1>{{ 'auth.login.title' | translate }}</h1>
       <p class="subtitle">{{ 'auth.login.subtitle' | translate }}</p>
 
+      @if (sessionExpired) {
+        <div class="alert alert-info" role="status">
+          {{ 'auth.login.sessionExpired' | translate }}
+        </div>
+      }
+
       @if (errorMessage(); as message) {
         <div class="alert alert-danger" role="alert">{{ message }}</div>
       }
