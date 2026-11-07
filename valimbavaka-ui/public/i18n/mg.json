@@ -31,6 +31,7 @@
       "show": "Asehoy ny teny miafina",
       "hide": "Afeno ny teny miafina",
       "capsLock": "Mihidy ny litera lehibe.",
+      "sessionExpired": "Tapitra ny fotoam-pidiranao. Midira indray amin'ny kaonty ihany : voatahiry ato amin'ity fitaovana ity ny fampidirana miandry ary halefa aorian'ny fidirana.",
       "noAccount": "Tsy manana kaonty ? Ny mpitantana ihany no afaka mamorona."
     },
     "password": {
