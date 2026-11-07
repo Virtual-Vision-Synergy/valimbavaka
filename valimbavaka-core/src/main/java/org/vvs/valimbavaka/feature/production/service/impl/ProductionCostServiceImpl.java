@@ -42,7 +42,9 @@ public class ProductionCostServiceImpl implements ProductionCostService {
     public ProductionBatchCostRDto getBatchCost(UUID batchId) {
         var batch = productionBatchRepository.findById(batchId).orElseThrow(() -> notFound(batchId));
         var estimated = batch.getStatus() != ProductionBatchStatus.COMPLETED;
-        var lines = batch.getInputs().stream().map(input -> lineOf(input, estimated)).toList();
+        var lines = batch.getInputs().stream()
+                .map(input -> lineOf(input, estimated))
+                .toList();
         var materialCost = materialCostOf(lines);
         var unitCost = perUnit(materialCost, batch.getQuantity());
         var output = articleService.getArticleById(batch.getOutputArticleId());
