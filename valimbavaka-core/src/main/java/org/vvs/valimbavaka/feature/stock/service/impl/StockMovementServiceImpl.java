@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.stock.service.impl;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,5 +52,12 @@ public class StockMovementServiceImpl implements StockMovementService {
                                 article.name(),
                                 command.quantity().toPlainString()));
         return stockMovementMapper.toRDto(movement);
+    }
+
+    @Override
+    @Transactional
+    public List<StockMovementRDto> recordAll(List<StockMovementCommand> commands) {
+        commands.stream().map(StockMovementPolicy::lockKey).distinct().sorted().forEach(stockMovementRepository::lock);
+        return commands.stream().map(this::record).toList();
     }
 }

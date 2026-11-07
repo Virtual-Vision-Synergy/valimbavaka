@@ -31,6 +31,7 @@ import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryArticle;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryLine;
+import org.vvs.valimbavaka.feature.inventory.domain.InventoryReason;
 import org.vvs.valimbavaka.feature.inventory.domain.InventorySession;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryStatus;
 import org.vvs.valimbavaka.feature.inventory.dto.InventoryCountWDto;
@@ -154,6 +155,40 @@ class InventoryCountServiceImplTest {
         assertThat(result.theoreticalQuantity()).isEqualByComparingTo("11");
         assertThat(result.gap()).isEqualByComparingTo("0");
         assertThat(line.getCountedAt()).isEqualTo(NOW);
+    }
+
+    @Test
+    void countLine_recountWithoutGap_clearsTheReason() {
+        // Arrange
+        givenSessionAndLine();
+        line.count(new BigDecimal("10"), new BigDecimal("12"), NOW.minusSeconds(600));
+        line.qualify(InventoryReason.BREAKAGE);
+        givenStock("12");
+        when(articleService.getCosts(anyCollection())).thenReturn(Map.of());
+
+        // Act
+        var result = sut.countLine(SESSION_ID, LINE_ID, count("12"));
+
+        // Assert
+        assertThat(result.gap()).isEqualByComparingTo("0");
+        assertThat(result.reason()).isNull();
+    }
+
+    @Test
+    void countLine_recountStillWithGap_keepsTheReason() {
+        // Arrange
+        givenSessionAndLine();
+        line.count(new BigDecimal("10"), new BigDecimal("12"), NOW.minusSeconds(600));
+        line.qualify(InventoryReason.BREAKAGE);
+        givenStock("12");
+        when(articleService.getCosts(anyCollection())).thenReturn(Map.of());
+
+        // Act
+        var result = sut.countLine(SESSION_ID, LINE_ID, count("9"));
+
+        // Assert
+        assertThat(result.gap()).isEqualByComparingTo("-3");
+        assertThat(result.reason()).isEqualTo(InventoryReason.BREAKAGE);
     }
 
     @Test

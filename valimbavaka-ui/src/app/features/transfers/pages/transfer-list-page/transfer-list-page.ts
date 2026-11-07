@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { MoveRight, Plus, Undo2 } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
@@ -29,6 +30,7 @@ export const TRANSFER_PAGE_SIZE = 9;
 @Component({
   selector: 'vvs-transfer-list-page',
   imports: [
+    RouterLink,
     TranslatePipe,
     WhenPipe,
     Icon,
