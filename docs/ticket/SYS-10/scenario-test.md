@@ -75,6 +75,6 @@ Aucun endpoint écrit : 401/403/422/404/409 et mass assignment relèvent des tic
 ## Résultat de l'exécution
 
 - Date : 2026-11-08
-- Environnement : CI GitHub `ci.yml` lancée sur la branche (run 42411980274) : jobs Backend et Frontend verts ; 53 fichiers de tests frontend passés, dont `outbox-service.spec.ts` (17 tests), `outbox-order.spec.ts` (6) et `sync-order.spec.ts` (9)
+- Environnement : CI GitHub `ci.yml` lancée sur la branche (run 42411980274) : jobs Backend et Frontend verts ; 53 fichiers et 307 tests frontend passés, dont `outbox-service.spec.ts` (17 tests), `outbox-order.spec.ts` (6) et `sync-order.spec.ts` (9)
 - Anomalies ouvertes : aucune
 - Étapes 🧪 restantes : 2 (R1, R2)
