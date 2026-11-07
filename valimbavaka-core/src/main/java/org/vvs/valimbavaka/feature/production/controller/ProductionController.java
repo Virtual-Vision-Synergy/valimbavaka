@@ -32,8 +32,8 @@ import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
- * Production batches (PRD-01): administrator and seller plan them; only the administrator completes them and moves the
- * stock (PRD-02). Never deleted (JNL-02).
+ * Production batches: administrator and seller plan them (PRD-01), start them (PRD-03) and complete them, which moves
+ * the stock (PRD-02). Never deleted (JNL-02).
  */
 @Tag(name = "Production")
 @ApiResponses({
@@ -83,6 +83,16 @@ public class ProductionController {
         var created = productionBatchService.createBatch(request);
         return ResponseEntity.created(URI.create("/api/v1/production/batches/" + created.id()))
                 .body(created);
+    }
+
+    @PostMapping("/batches/{id}/start")
+    @Operation(summary = "Starts a planned batch: status IN_PROGRESS, the stock does not move")
+    @ApiResponse(responseCode = "200", description = "Batch IN_PROGRESS")
+    @ApiResponse(responseCode = "404", description = "Batch not found (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Batch already in progress or completed (CONFLICT)")
+    @HasPermission("production.update")
+    public ProductionBatchRDto startBatch(@PathVariable UUID id) {
+        return productionBatchService.startBatch(id);
     }
 
     @PostMapping("/batches/{id}/completion")
