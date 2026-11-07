@@ -1,6 +1,6 @@
 # Guide d'intégration — TRF-04 · Détail d'un transfert
 
-Statut : ✅ écrit le 2026-11-08 · Ticket : [#37](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/37) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#37](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/37) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
