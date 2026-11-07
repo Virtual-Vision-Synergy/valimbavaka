@@ -1,6 +1,6 @@
 # Guide d'intégration — PRO-04 · Liste et détail des promotions
 
-Statut : ☐ rédigé le 2026-11-08 sur le code livré, tests à exécuter (CI) · Ticket : [#61](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/61) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 2026-11-08 sur le code livré, tests verts en CI · Ticket : [#61](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/61) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
