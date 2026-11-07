@@ -21,6 +21,7 @@ public interface ShootingMapper {
     /** @param late computed by the service with its clock ({@link Shooting#isLateAt}) */
     @Mapping(target = "takenById", source = "shooting.createdBy")
     @Mapping(target = "takenBy", source = "shooting.takenByName")
+    @Mapping(target = "returnedBy", source = "shooting.returnedByName")
     @Mapping(target = "late", source = "late")
     ShootingRDto toRDto(Shooting shooting, boolean late);
 

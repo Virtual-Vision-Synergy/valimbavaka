@@ -16,7 +16,10 @@ import com.jayway.jsonpath.JsonPath;
 
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 
-/** SHO-01: reading with services.read, recording with shootings.create (administrator and seller only). */
+/**
+ * SHO-01: reading with services.read, recording with shootings.create (administrator and seller only). SHO-02:
+ * returning with shootings.return (administrator only).
+ */
 class ShootingSecurityIT extends ShootingApiTestSupport {
 
     @Test
@@ -94,5 +97,57 @@ class ShootingSecurityIT extends ShootingApiTestSupport {
         assertThat((String) JsonPath.read(response, "$.status")).isEqualTo("OUT");
         assertThat((String) JsonPath.read(response, "$.takenBy")).isEqualTo("Rasoa Rakoto");
         assertThat((Boolean) JsonPath.read(response, "$.late")).isFalse();
+    }
+
+    @Test
+    void returnShooting_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post(SHOOTINGS + "/" + UUID.randomUUID() + "/return"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void returnShooting_withSellerRole_returns403AndKeepsTheExitOut() throws Exception {
+        // Arrange
+        var articleId = createArticle();
+        receive(articleId, "STORE", "2");
+        var shootingId = createShooting(shootingBody(articleId, "1"));
+        var token = tokenOf(RoleName.SELLER);
+
+        // Act + Assert
+        postReturn(token, shootingId)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        assertThat(balance(articleId, "STORE")).isEqualByComparingTo("1");
+        var stored = jdbcTemplate.queryForObject("select status from shootings where id = ?", String.class, shootingId);
+        assertThat(stored).isEqualTo("OUT");
+    }
+
+    @Test
+    void returnShooting_massAssignmentOfStatusLocationAndAuthor_isIgnored() throws Exception {
+        // Arrange
+        var articleId = createArticle();
+        receive(articleId, "STORE", "2");
+        var shootingId = createShooting(shootingBody(articleId, "1"));
+        var body = """
+                {"status":"OUT","locationId":"%s","returnedBy":"Quelqu'un d'autre","returnedAt":"2020-01-01T00:00:00Z"}
+                """.formatted(location("WAREHOUSE"));
+
+        // Act
+        var response = mockMvc.perform(post(SHOOTINGS + "/" + shootingId + "/return")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Assert
+        assertThat((String) JsonPath.read(response, "$.status")).isEqualTo("RETURNED");
+        assertThat((String) JsonPath.read(response, "$.returnedBy")).isEqualTo("Rasoa Rakoto");
+        assertThat((String) JsonPath.read(response, "$.returnedAt")).doesNotStartWith("2020");
+        assertThat(balance(articleId, "STORE")).isEqualByComparingTo("2");
+        assertThat(balance(articleId, "WAREHOUSE")).isEqualByComparingTo("0");
     }
 }

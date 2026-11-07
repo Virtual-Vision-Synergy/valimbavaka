@@ -1376,7 +1376,8 @@
       "expected": "{{who}} · retour prévu {{when}}",
       "return": "Réintégrer",
       "none": "Aucune sortie en cours.",
-      "returnedToast": "Sortie {{number}} réintégrée au stock (démonstration)",
+      "returnedToast": "Sortie {{number}} réintégrée : statut Réintégré, stock remis à jour",
+      "returnFailed": "Réintégration de {{number}} refusée : {{message}}",
       "status": {
         "OUT": "Sorti",
         "LATE": "En retard",

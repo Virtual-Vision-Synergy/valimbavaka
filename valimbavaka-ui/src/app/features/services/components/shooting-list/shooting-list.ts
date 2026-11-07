@@ -21,6 +21,8 @@ const TONES: Readonly<Record<ShootingStatus, Tone>> = {
 })
 export class ShootingList {
   readonly shootings = input.required<readonly ShootingRowRDto[]>();
+  /** Bouton « Réintégrer » affiché seulement avec la permission `shootings.return` (SHO-02). */
+  readonly canReturn = input(true);
   readonly returned = output<string>();
   protected readonly tones = TONES;
 }

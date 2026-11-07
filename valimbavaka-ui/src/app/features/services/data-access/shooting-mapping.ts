@@ -20,6 +20,7 @@ export function displayStatus(shooting: ShootingRDto): ShootingStatus {
 /** Convertit la sortie du serveur en ligne de `ShootingList` (composant inchangé). */
 export function toShootingRow(shooting: ShootingRDto): ShootingRowRDto {
   return {
+    id: shooting.id,
     number: shooting.number,
     items: shooting.items.map((item) => ({ name: item.articleName, quantity: item.quantity })),
     takenBy: shooting.takenBy,
