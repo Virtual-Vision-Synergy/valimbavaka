@@ -147,7 +147,7 @@ describe('TransferListPage', () => {
   it('should load the next page from the server', async () => {
     await respond(nextRequest(), pageOf([sellerReturn, morningTransfer], 20));
 
-    element.querySelector<HTMLButtonElement>('button[aria-label="Suivant"]')?.click();
+    element.querySelector<HTMLButtonElement>('button[aria-label="Page suivante"]')?.click();
     await refresh();
 
     const request = nextRequest();
