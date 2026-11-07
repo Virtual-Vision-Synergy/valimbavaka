@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { Lock, ScanBarcode } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../../../core/i18n/language-service';
@@ -29,7 +30,16 @@ import { InventoryService } from '../../data-access/inventory-service';
  */
 @Component({
   selector: 'vvs-inventory-page',
-  imports: [TranslatePipe, AriaryPipe, ShortDatePipe, Icon, ListState, FilterChips, StatusBadge],
+  imports: [
+    RouterLink,
+    TranslatePipe,
+    AriaryPipe,
+    ShortDatePipe,
+    Icon,
+    ListState,
+    FilterChips,
+    StatusBadge,
+  ],
   templateUrl: './inventory-page.html',
   styleUrl: './inventory-page.css',
   providers: [InventoryState],

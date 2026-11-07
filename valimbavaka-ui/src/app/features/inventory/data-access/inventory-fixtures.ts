@@ -2,7 +2,7 @@ import { demoArticle } from '../../../shared/data-access/demo-catalog';
 import { isoDay } from '../../../shared/data-access/demo-dates';
 import {
   InventoryContextRDto,
-  InventoryLineRDto,
+  InventorySheetLine,
   InventoryReason,
   PreviousSessionRDto,
 } from './inventory-models';
@@ -25,7 +25,7 @@ const ROWS: readonly CountRow[] = [
   ['ART-0162', 15, null, null],
 ];
 
-function toLine([reference, theoretical, counted, reason]: CountRow): InventoryLineRDto {
+function toLine([reference, theoretical, counted, reason]: CountRow): InventorySheetLine {
   const article = demoArticle(reference);
   return {
     articleId: article.id,

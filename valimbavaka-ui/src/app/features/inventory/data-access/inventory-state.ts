@@ -1,15 +1,15 @@
 import { Injectable, computed, linkedSignal, signal } from '@angular/core';
 import {
   InventoryCloseWDto,
-  InventoryLineRDto,
+  InventorySheetLine,
   InventoryReason,
-  InventorySessionRDto,
+  InventorySheet,
 } from './inventory-models';
 
 export type InventoryFilter = 'ALL' | 'TO_COUNT' | 'GAP' | 'NO_REASON';
 
 export interface InventoryRow {
-  readonly line: InventoryLineRDto;
+  readonly line: InventorySheetLine;
   readonly counted: number | null;
   /** Écart compté − théorique ; null tant que l'article n'est pas compté. */
   readonly gap: number | null;
@@ -19,7 +19,7 @@ export interface InventoryRow {
 /** Saisies de la session d'inventaire, dérivées de la session du serveur. */
 @Injectable()
 export class InventoryState {
-  readonly session = signal<InventorySessionRDto | undefined>(undefined);
+  readonly session = signal<InventorySheet | undefined>(undefined);
   readonly filter = signal<InventoryFilter>('ALL');
 
   readonly counts = linkedSignal<Readonly<Record<string, number | null>>>(() =>
