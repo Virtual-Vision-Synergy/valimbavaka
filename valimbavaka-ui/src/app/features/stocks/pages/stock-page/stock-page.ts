@@ -67,6 +67,8 @@ export class StockPage {
   protected readonly icons = { FilePlus, Truck, Undo2 };
   /** Retour de stock (TRF-03) : administrateur et vendeuse. */
   protected readonly canRecordReturn = this.authStore.hasPermission('transfers.return');
+  /** Réception d'une livraison fournisseur (STK-06) : administrateur seulement. */
+  protected readonly canReceive = this.authStore.hasPermission('stocks.receive');
   protected readonly locations = STOCK_LOCATIONS;
   protected readonly stock = rxResource({ stream: () => this.stockService.list() });
   /** Valorisation de tout le stock par emplacement (STK-03) : administrateur seulement, sinon calcul local. */
