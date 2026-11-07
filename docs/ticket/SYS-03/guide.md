@@ -1,6 +1,6 @@
 # Guide d'intégration — SYS-03 · Recherche globale (palette de commandes)
 
-Statut : ✅ écrit le 2026-11-08 — **tests à lancer** (voir « Résultat de l'exécution » du scénario) · Ticket : [#106](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/106) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08 — tests automatiques verts en CI le 2026-11-08 (voir « Résultat de l'exécution » du scénario) · Ticket : [#106](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/106) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
