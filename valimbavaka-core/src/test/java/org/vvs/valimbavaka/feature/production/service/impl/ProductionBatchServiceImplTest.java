@@ -86,10 +86,9 @@ class ProductionBatchServiceImplTest {
 
         // Assert
         var description = ArgumentCaptor.forClass(String.class);
-        verify(journalService)
-                .record(eq(JournalAction.CREATE), eq("PRODUCTION_BATCH"), any(), description.capture());
-        assertThat(description.getValue()).isEqualTo("Création du lot LOT-00012 : 30 × ART-0031 · Savon noir 100 g "
-                + "(2 entrant(s))");
+        verify(journalService).record(eq(JournalAction.CREATE), eq("PRODUCTION_BATCH"), any(), description.capture());
+        assertThat(description.getValue())
+                .isEqualTo("Création du lot LOT-00012 : 30 × ART-0031 · Savon noir 100 g " + "(2 entrant(s))");
     }
 
     @Test
