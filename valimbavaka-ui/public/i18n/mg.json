@@ -1102,20 +1102,19 @@
       "issuer": "Nandefa"
     },
     "status": {
-      "IN_TRANSIT": "Eny an-dalana",
-      "RECEIVED": "Voaray",
-      "DISCREPANCY": "Elanelana",
       "RETURN": "Famerenana",
       "VALIDATED": "Voamarina"
     },
     "detailLabel": "Taratasy famindrana {{number}}",
-    "detailPending": "Ho hita tsy ho ela ny antsipirian'ny taratasy",
     "from": "Avy any",
     "to": "Mankany",
-    "pending": "eny an-dalana",
-    "receivedLine": "voaray",
-    "gapLine": "voaray {{received}} amin'ny {{sent}}",
-    "moreLines": "+ andalana {{count}} hafa",
+    "note": "Fanamarihana",
+    "linesLabel": "Entana {{count}} nafindra",
+    "unit": {
+      "PIECE": "u.",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
     "print": "Hanonta ny taratasy",
     "createReturn": "Hamorona famerenana",
     "return": {
