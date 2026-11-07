@@ -1,6 +1,6 @@
 # Guide d'intégration — PRD-05 · Détail et coût de revient d'un lot
 
-Statut : ✅ rédigé le 2026-11-08 — tests à lancer (voir le [scénario](scenario-test.md)) · Ticket : [#42](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/42) · [description](description.md)
+Statut : ✅ rédigé le 2026-11-08 — **tests exécutés en CI, verts** (voir le [scénario](scenario-test.md)) · Ticket : [#42](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/42) · [description](description.md)
 
 ## En bref
 
@@ -118,4 +118,4 @@ this.productionService.cost(lotId).subscribe(({ unitCost, estimated }) => ...);
 - Une lecture d'article par entrant (`ArticleService.getArticleById`, au plus 50 entrants par lot) : suffisant pour un
   détail ; à remplacer par une lecture groupée si un rapport parcourt de nombreux lots.
 - Le détail n'est accessible que depuis les 10 « Lots récents » (pas de liste complète, voir PRD-03).
-- Compilation Java et Spotless non vérifiés en local (Maven Central inaccessible) : la CI tranche.
+- Compilation, tests, Spotless et Checkstyle vérifiés en CI (runs 42418133221 / 42418135044).
