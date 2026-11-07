@@ -1,6 +1,6 @@
 import { Type } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import axe from 'axe-core';
@@ -58,6 +58,9 @@ const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
   ],
 ];
 
+/** Réponse vide aux pages déjà branchées en partie sur l'API (services : sorties shooting, SHO-01). */
+const EMPTY_PAGE = { items: [], page: 1, pageSize: 100, totalCount: 0, totalPages: 0 };
+
 const settle = (): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, DEMO_LATENCY_MS + 100));
 
@@ -77,6 +80,11 @@ describe('Demo pages accessibility', () => {
       }).compileComponents();
       TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
       const fixture = TestBed.createComponent(component);
+      fixture.detectChanges();
+      TestBed.tick();
+      TestBed.inject(HttpTestingController)
+        .match(() => true)
+        .forEach((request) => request.flush(EMPTY_PAGE));
       await fixture.whenStable();
       await settle();
       await fixture.whenStable();
