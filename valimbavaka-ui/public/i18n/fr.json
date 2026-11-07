@@ -31,6 +31,7 @@
       "show": "Afficher le mot de passe",
       "hide": "Masquer le mot de passe",
       "capsLock": "Verrouillage des majuscules activé.",
+      "sessionExpired": "Votre session a expiré. Reconnectez-vous avec le même compte : vos saisies en attente sont conservées sur cet appareil et seront envoyées après la connexion.",
       "noAccount": "Pas de compte ? Seul un administrateur peut en créer un."
     },
     "password": {
@@ -59,9 +60,27 @@
       "reason": "Motif du refus",
       "actions": "Actions",
       "retry": "Renvoyer",
-      "discard": "Abandonner"
+      "discard": "Abandonner",
+      "failedTitle": "Saisies refusées",
+      "pendingTitle": "Saisies en attente d'envoi",
+      "savedAt": "Saisie le",
+      "state": "État",
+      "waiting": "En attente",
+      "lastError": "Dernière tentative : {{message}}",
+      "noReason": "Motif non communiqué par le serveur.",
+      "retried": "Saisie renvoyée.",
+      "retriedOffline": "Saisie remise en file : elle partira au retour du réseau.",
+      "discarded": "Saisie abandonnée.",
+      "discardTitle": "Abandonner cette saisie ?",
+      "discardMessage": "La saisie « {{request}} » sera supprimée définitivement de cet appareil et ne sera jamais envoyée."
     },
-    "synced": "Synchronisé"
+    "synced": "Synchronisé",
+    "method": {
+      "POST": "Création",
+      "PUT": "Modification",
+      "PATCH": "Mise à jour",
+      "DELETE": "Suppression"
+    }
   },
   "layout": {
     "navigation": "Navigation principale",
@@ -222,6 +241,10 @@
     "done": "terminée",
     "current": "en cours",
     "upcoming": "à venir"
+  },
+  "stockGauge": {
+    "label": "Répartition du stock par emplacement",
+    "total": "Total"
   },
   "search": {
     "placeholder": "Rechercher un article, une vente…",
@@ -571,13 +594,14 @@
     "restock": {
       "start": "Bon de réapprovisionnement",
       "title": "Bon de réapprovisionnement · brouillon",
-      "subtitle": "{{count}} article(s) sélectionné(s) · quantités proposées pour couvrir {{days}} jours de ventes",
+      "subtitle": "{{count}} article(s) sous le seuil · quantité suggérée = manque arrondi à la dizaine supérieure",
       "exportPdf": "Exporter PDF",
       "validate": "Valider le bon",
       "leadTime": "délai {{days}} j",
       "inHouse": "Fabrication interne (atelier)",
-      "orderBefore": "Commander avant le {{date}} pour éviter une rupture prolongée.",
-      "validated": "Bon de réapprovisionnement validé · {{count}} article(s) (démonstration)"
+      "expectedDelivery": "Livraison prévue le {{date}} si la commande part aujourd'hui.",
+      "generated": "Bon de réapprovisionnement {{reference}} généré · {{count}} article(s)",
+      "failed": "Le bon n'a pas été généré : {{message}}"
     }
   },
   "articles": {

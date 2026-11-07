@@ -1,6 +1,55 @@
-<span class="track">
-  <span class="fill" [attr.data-level]="level()" [style.width.%]="fill()"></span>
-  @if (showThreshold()) {
-    <span class="marker" [style.left.%]="marker()"></span>
-  }
-</span>
+@if (detailed()) {
+  <span
+    #track
+    class="track"
+    tabindex="0"
+    role="img"
+    [attr.data-level]="level()"
+    [attr.aria-label]="'stockGauge.label' | translate"
+    [attr.aria-describedby]="tipId"
+    (mouseenter)="open()"
+    (mouseleave)="close()"
+    (focus)="open()"
+    (blur)="close()"
+    (keydown.escape)="close()"
+  >
+    <span class="stack">
+      @for (bar of bars(); track bar.key) {
+        <span class="segment" [attr.data-index]="$index" [style.width.%]="bar.width"></span>
+      }
+    </span>
+    @if (showThreshold()) {
+      <span class="marker" [style.left.%]="marker()"></span>
+    }
+    <span
+      class="tip"
+      role="tooltip"
+      [id]="tipId"
+      [class.open]="position() !== null"
+      [style.top.px]="position()?.top"
+      [style.left.px]="position()?.left"
+    >
+      @for (bar of bars(); track bar.key) {
+        <span class="tip-row">
+          <span class="swatch" [attr.data-index]="$index"></span>
+          <span class="tip-label">{{ bar.labelKey | translate }}</span>
+          <span class="num">{{ bar.quantity }}</span>
+          <span class="num share">{{ bar.share }} %</span>
+        </span>
+      }
+      <span class="tip-row total">
+        <span class="swatch"></span>
+        <span class="tip-label">{{ 'stockGauge.total' | translate }}</span>
+        <span class="num">{{ total() }}</span>
+        <span class="num share"></span>
+      </span>
+    </span>
+  </span>
+} @else {
+  <span class="track">
+    <span class="fill" [attr.data-level]="level()" [style.width.%]="fill()"></span>
+    @if (showThreshold()) {
+      <span class="marker" [style.left.%]="marker()"></span>
+    }
+  </span>
+}

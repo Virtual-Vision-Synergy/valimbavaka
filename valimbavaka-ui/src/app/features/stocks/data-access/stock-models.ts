@@ -46,6 +46,37 @@ export interface StockAlertRDto {
   readonly expectedDeliveryDate: string | null;
 }
 
+/** `POST /api/v1/stocks/restock-orders` (STK-05) : articles à commander ; vide = tous les articles sous le seuil. */
+export interface RestockOrderWDto {
+  readonly articleIds: readonly string[];
+}
+
+/** Ligne d'un bon de réapprovisionnement, copiée de l'alerte de seuil au moment de la génération (STK-05). */
+export interface RestockOrderLineRDto {
+  readonly lineNumber: number;
+  readonly articleId: string;
+  readonly articleCode: string;
+  readonly articleName: string;
+  readonly unit: string;
+  readonly stockQuantity: number;
+  readonly threshold: number;
+  /** Quantité à commander : la quantité suggérée de l'alerte (STK-04). */
+  readonly quantity: number;
+  readonly supplierId: string | null;
+  readonly supplierName: string | null;
+  readonly leadTimeDays: number | null;
+  readonly expectedDeliveryDate: string | null;
+}
+
+/** Bon de réapprovisionnement généré par le serveur (`BR-000001`), en attente de réception (STK-06). */
+export interface RestockOrderRDto {
+  readonly id: string;
+  readonly reference: string;
+  readonly status: 'PENDING' | 'RECEIVED';
+  readonly createdAt: string;
+  readonly lines: readonly RestockOrderLineRDto[];
+}
+
 /** Stock d'un emplacement, tous articles confondus : valeur au coût d'achat en ariary (STK-03). */
 export interface StockLocationValueRDto {
   readonly locationId: string;
