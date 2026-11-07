@@ -49,7 +49,7 @@ public class InventoryController {
     }
 
     @GetMapping
-    @Operation(summary = "Paged inventory sessions, filterable by status and location")
+    @Operation(summary = "Paged inventory sessions with their gap count, filterable by status and location")
     @ApiResponse(responseCode = "200", description = "Page of sessions, most recent first")
     @ApiResponse(responseCode = "422", description = "Invalid paging (VALIDATION_FAILED)")
     @HasPermission("inventory.read")
