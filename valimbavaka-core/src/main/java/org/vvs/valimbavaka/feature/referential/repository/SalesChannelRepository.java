@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.referential.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -12,4 +13,6 @@ public interface SalesChannelRepository extends JpaRepository<SalesChannel, UUID
     Page<SalesChannel> findByActiveTrue(Pageable pageable);
 
     boolean existsByIdAndActiveTrue(UUID id);
+
+    Optional<SalesChannel> findByCode(String code);
 }
