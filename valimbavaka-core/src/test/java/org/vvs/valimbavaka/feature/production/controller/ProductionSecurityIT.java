@@ -16,7 +16,7 @@ import org.vvs.valimbavaka.feature.user.domain.RoleName;
 /**
  * PRD-01: production.read and production.create for administrator and seller, never for the delivery driver.
  * PRD-02 / PRD-03: production.complete and production.update for administrator and seller, never for the delivery
- * driver. PRD-04: the indicators follow production.read.
+ * driver. PRD-04 and PRD-05: the indicators and the cost price of a batch follow production.read.
  */
 class ProductionSecurityIT extends ProductionApiTestSupport {
 
@@ -158,6 +158,25 @@ class ProductionSecurityIT extends ProductionApiTestSupport {
 
         // Act + Assert
         mockMvc.perform(get("/api/v1/production/indicators").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    void getBatchCost_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(BATCHES + "/" + UUID.randomUUID() + "/cost"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void getBatchCost_withDeliveryDriverRole_returns403() throws Exception {
+        // Arrange
+        var token = tokenOf(createUser(RoleName.DELIVERY_DRIVER));
+        var url = BATCHES + "/" + UUID.randomUUID() + "/cost";
+
+        // Act + Assert
+        mockMvc.perform(get(url).header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
     }
