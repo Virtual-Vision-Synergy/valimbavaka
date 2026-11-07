@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
-import { FilePlus, Truck } from 'lucide';
+import { RouterLink } from '@angular/router';
+import { FilePlus, Truck, Undo2 } from 'lucide';
 import { of } from 'rxjs';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthStore } from '../../../../core/auth/auth-store';
@@ -32,6 +33,7 @@ type LevelFilter = 'ALL' | Exclude<StockLevel, 'OK'>;
 @Component({
   selector: 'vvs-stock-page',
   imports: [
+    RouterLink,
     TranslatePipe,
     AriaryPipe,
     Icon,
@@ -53,7 +55,9 @@ export class StockPage {
   private readonly authStore = inject(AuthStore);
   private readonly toast = inject(ToastService);
 
-  protected readonly icons = { FilePlus, Truck };
+  protected readonly icons = { FilePlus, Truck, Undo2 };
+  /** Retour de stock (TRF-03) : administrateur et vendeuse. */
+  protected readonly canRecordReturn = this.authStore.hasPermission('transfers.return');
   protected readonly locations = STOCK_LOCATIONS;
   protected readonly stock = rxResource({ stream: () => this.stockService.list() });
   /** Valorisation de tout le stock par emplacement (STK-03) : administrateur seulement, sinon calcul local. */

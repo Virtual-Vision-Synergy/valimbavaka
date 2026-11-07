@@ -4,10 +4,10 @@
     [subtitle]="'transfers.subtitle' | translate"
     [codes]="['TRF-01', 'TRF-04']"
   >
-    <button class="btn btn-secondary" type="button" (click)="demoAction()">
+    <a class="btn btn-secondary" routerLink="/transfers/return">
       <svg [vvsIcon]="icons.Undo2" [size]="18"></svg>
       {{ 'transfers.stockReturn' | translate }}
-    </button>
+    </a>
     <button class="btn btn-primary" type="button" (click)="demoAction()">
       <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
       {{ 'transfers.new' | translate }}
