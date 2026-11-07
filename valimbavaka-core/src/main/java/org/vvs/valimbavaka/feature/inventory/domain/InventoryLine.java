@@ -21,7 +21,7 @@ import org.vvs.valimbavaka.shared.domain.BaseEntity;
 /**
  * Article to count in a session, created when the session is opened (INV-01). The count (INV-02) fills
  * {@code countedQuantity}, {@code expectedQuantity} (theoretical stock frozen at the count) and {@code countedAt};
- * the gap reason is qualified by INV-03. The session is referenced by id.
+ * the gap reason is qualified by INV-03 and only exists while the line has a gap. The session is referenced by id.
  */
 @Entity
 @Table(name = "inventory_lines")
@@ -69,7 +69,8 @@ public class InventoryLine extends BaseEntity {
 
     /**
      * Records the physical count (INV-02) and freezes the theoretical stock of the location at this instant, so
-     * that later sales do not move the gap. A recount replaces both quantities.
+     * that later sales do not move the gap. A recount replaces both quantities; a recount without gap clears the
+     * reason (INV-03).
      *
      * @return false when the same count is sent again (offline replay): nothing changes
      */
@@ -80,6 +81,30 @@ public class InventoryLine extends BaseEntity {
         countedQuantity = counted;
         expectedQuantity = expected;
         countedAt = at;
+        if (!hasGap()) {
+            reason = null;
+        }
+        return true;
+    }
+
+    /** True when the line is counted and its count differs from the theoretical stock frozen at the count. */
+    public boolean hasGap() {
+        var counted = countedQuantity;
+        var expected = expectedQuantity;
+        return counted != null && expected != null && counted.compareTo(expected) != 0;
+    }
+
+    /**
+     * Qualifies the origin of the gap (INV-03); the caller checks {@link #hasGap()} first. Choosing another reason
+     * replaces the previous one.
+     *
+     * @return false when the same reason is sent again (offline replay): nothing changes
+     */
+    public boolean qualify(InventoryReason newReason) {
+        if (newReason == reason) {
+            return false;
+        }
+        reason = newReason;
         return true;
     }
 
