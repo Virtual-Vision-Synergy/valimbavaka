@@ -1,6 +1,6 @@
 # Guide d'intégration — STK-05 · Génération d'un bon de réapprovisionnement
 
-Statut : ✅ rédigé (tests à exécuter) · Ticket : [#34](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/34) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé (tests verts en CI) · Ticket : [#34](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/34) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -140,4 +140,4 @@ inject(StockService).generateRestockOrder([]); // [] = toutes les alertes ; Obse
 - `StockRowRDto` garde ses champs provisoires `supplierName`, `leadTimeDays`, `dailySales` (`stock-mapping.ts`,
   `PENDING_RESTOCK_FIELDS`) : ils ne servent plus au bon et pourront être retirés avec les fixtures.
 - `getRestockOrders` charge les lignes des bons de la page en une requête (`findLinesOf`), pas de N+1.
-- Le back n'a pas été compilé localement (Maven indisponible) : la CI fait foi. Les tests n'ont pas encore été exécutés.
+- Tests automatiques verts en CI le 07/11/2026 ; la recette manuelle reste à passer (voir le scénario).
