@@ -1040,12 +1040,18 @@
     "all": "Tous →",
     "status": {
       "DRAFT": "Planifié",
-      "CURING": "En cure",
-      "VALIDATED": "Validé"
+      "CURING": "En cours",
+      "VALIDATED": "Terminé"
     },
     "draftToast": "Lot {{number}} enregistré : planifié, le stock n'a pas bougé",
     "saveError": "Le lot n'a pas été enregistré : {{message}}",
-    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt"
+    "validatedToast": "Lot {{number}} validé : matières sorties et produit fini entré à l'entrepôt",
+    "start": "Démarrer",
+    "startLot": "Démarrer le lot {{number}}",
+    "finish": "Terminer",
+    "finishLot": "Terminer le lot {{number}} (sort les matières, entre le produit fini)",
+    "startedToast": "Lot {{number}} en cours : le stock bougera quand il sera terminé",
+    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}"
   },
   "transfers": {
     "title": "Transferts de stock",
