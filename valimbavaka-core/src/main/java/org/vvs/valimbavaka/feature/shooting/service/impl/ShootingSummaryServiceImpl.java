@@ -58,7 +58,8 @@ public class ShootingSummaryServiceImpl implements ShootingSummaryService {
 
     /** Purchase cost of the articles still out; an article without cost is absent (not valued). */
     private Map<UUID, BigDecimal> costsOf(List<ShootingArticleQuantity> quantities) {
-        var articleIds = quantities.stream().map(ShootingArticleQuantity::articleId).collect(Collectors.toSet());
+        var articleIds =
+                quantities.stream().map(ShootingArticleQuantity::articleId).collect(Collectors.toSet());
         return articleIds.isEmpty() ? Map.of() : articleService.getCosts(articleIds);
     }
 }

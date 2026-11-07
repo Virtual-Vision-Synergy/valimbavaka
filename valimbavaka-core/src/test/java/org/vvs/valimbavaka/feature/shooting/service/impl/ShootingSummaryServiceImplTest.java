@@ -48,7 +48,8 @@ class ShootingSummaryServiceImplTest {
     void getSummary_exitsOut_countsOutAndLateExitsAndValuesTheQuantitiesAtCost() {
         // Arrange
         when(shootingRepository.countByStatus(ShootingStatus.OUT)).thenReturn(3L);
-        when(shootingRepository.countByStatusAndExpectedReturnAtBefore(ShootingStatus.OUT, NOW)).thenReturn(1L);
+        when(shootingRepository.countByStatusAndExpectedReturnAtBefore(ShootingStatus.OUT, NOW))
+                .thenReturn(1L);
         var quantities = List.of(
                 new ShootingArticleQuantity(SOAP_ID, new BigDecimal("2")),
                 new ShootingArticleQuantity(SCRUB_ID, new BigDecimal("1.5")));
