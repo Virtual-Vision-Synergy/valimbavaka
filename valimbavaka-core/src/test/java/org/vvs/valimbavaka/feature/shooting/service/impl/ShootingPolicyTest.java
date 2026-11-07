@@ -22,11 +22,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.AuditorAware;
 
 import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.core.exception.UnauthorizedException;
 import org.vvs.valimbavaka.feature.article.domain.ArticleType;
 import org.vvs.valimbavaka.feature.article.domain.ArticleUnit;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
+import org.vvs.valimbavaka.feature.shooting.domain.Shooting;
+import org.vvs.valimbavaka.feature.shooting.domain.ShootingDraft;
+import org.vvs.valimbavaka.feature.shooting.domain.ShootingItem;
+import org.vvs.valimbavaka.feature.shooting.domain.ShootingStatus;
 import org.vvs.valimbavaka.feature.shooting.dto.ShootingItemWDto;
 import org.vvs.valimbavaka.feature.shooting.dto.ShootingWDto;
 import org.vvs.valimbavaka.security.AuthenticatedUser;
@@ -138,6 +143,39 @@ class ShootingPolicyTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("une fois");
         verifyNoInteractions(articleService);
+    }
+
+    @Test
+    void markReturned_outExit_setsNowAndTheAuthenticatedFullName() {
+        // Arrange
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(USER_ID));
+        when(authenticatedUserLoader.findById(USER_ID)).thenReturn(Optional.of(user()));
+        var shooting = outShooting();
+
+        // Act
+        sut.markReturned(shooting);
+
+        // Assert
+        assertThat(shooting.getStatus()).isEqualTo(ShootingStatus.RETURNED);
+        assertThat(shooting.getReturnedAt()).isEqualTo(NOW);
+        assertThat(shooting.getReturnedByName()).isEqualTo("Miora Andria");
+    }
+
+    @Test
+    void markReturned_withoutSession_throwsUnauthorizedExceptionAndKeepsTheExitOut() {
+        // Arrange
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.empty());
+        var shooting = outShooting();
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.markReturned(shooting)).isInstanceOf(UnauthorizedException.class);
+        assertThat(shooting.getStatus()).isEqualTo(ShootingStatus.OUT);
+    }
+
+    private static Shooting outShooting() {
+        var item = ShootingItem.of(ARTICLE_ID, "ART-0031", "Gommage café 200 g", BigDecimal.ONE);
+        var draft = new ShootingDraft(LOCATION_ID, "Miora Andria", NOW.plusSeconds(3600), null, List.of(item));
+        return Shooting.open("SHO-0001", draft);
     }
 
     private static ShootingWDto request(Instant expectedReturnAt, String note, ShootingItemWDto... items) {
