@@ -11,6 +11,9 @@
 .note.up {
   color: var(--succes-dark);
 }
+.note.down {
+  color: var(--danger-dark);
+}
 .note.warn {
   color: var(--warning-dark);
 }

@@ -1,7 +1,14 @@
 import { ArticleRDto } from '../../article/data-access/article-models';
 import { StockRDto } from '../../stocks/data-access/stock-models';
-import { toBatchWDto, toLot, toLotStatus, toMaterial, toProducible } from './production-mapping';
-import { ProductionBatchRDto } from './production-models';
+import {
+  toBatchWDto,
+  toKpis,
+  toLot,
+  toLotStatus,
+  toMaterial,
+  toProducible,
+} from './production-mapping';
+import { ProductionBatchRDto, ProductionIndicatorsRDto } from './production-models';
 
 const article = (overrides: Partial<ArticleRDto>): ArticleRDto => ({
   id: 'art-1',
@@ -124,6 +131,36 @@ describe('production-mapping', () => {
       quantity: 30,
       operatorId: 'op-1',
       inputs: [{ articleId: 'art-1', quantity: 2.4 }],
+    });
+  });
+
+  describe('toKpis (PRD-04)', () => {
+    const indicators: ProductionIndicatorsRDto = {
+      month: '2026-11',
+      completedBatches: 0,
+      inProgressBatches: 0,
+      unitsProduced: 0,
+      previousMonthUnits: 0,
+      unitsTrendPercent: null,
+      materialCost: 0,
+      materialCostPerUnit: null,
+      uncostedBatches: 0,
+    };
+
+    it('garde « pas de tendance » et « pas de coût moyen » quand le serveur les renvoie à null', () => {
+      const kpis = toKpis(indicators, [], []);
+
+      expect(kpis).toMatchObject({ lotsThisMonth: 0, unitsTrendPercent: null, averageCost: null });
+    });
+
+    it('compte un entrant à racheter sous son seuil, jamais à son seuil ni avec un seuil à zéro', () => {
+      const under = { ...stock, articleId: 'mp-1', threshold: 5, total: 4.999 };
+      const atThreshold = { ...stock, articleId: 'mp-2', threshold: 5, total: 5 };
+      const noThreshold = { ...stock, articleId: 'mp-3', threshold: 0, total: 0 };
+
+      const kpis = toKpis(indicators, ['mp-1', 'mp-2', 'mp-3'], [under, atThreshold, noThreshold]);
+
+      expect(kpis.materialsToRebuy).toBe(1);
     });
   });
 });

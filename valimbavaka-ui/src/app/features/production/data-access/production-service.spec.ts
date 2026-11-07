@@ -29,7 +29,7 @@ describe('ProductionService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it("assemble l'écran : produits finis, entrants avec le stock de l'entrepôt, vendeuses, lots récents", () => {
+  it("assemble l'écran : produits finis, entrants avec le stock de l'entrepôt, vendeuses, lots récents, indicateurs", () => {
     let context: ProductionContextRDto | undefined;
     service.context().subscribe((value) => (context = value));
 
@@ -58,8 +58,11 @@ describe('ProductionService', () => {
         page([
           {
             articleId: 'mp-1',
+            threshold: 20,
+            total: 12.5,
             locations: [{ locationId: 'l1', code: 'WAREHOUSE', label: 'Entrepôt', quantity: 12.5 }],
           },
+          { articleId: 'pf-1', threshold: 50, total: 3, locations: [] },
         ]),
       );
     httpMock
@@ -91,7 +94,28 @@ describe('ProductionService', () => {
       operator: 'Soa Rakoto',
       status: 'DRAFT',
     });
-    expect(context?.kpis.lotsThisMonth).toBe(0);
+    httpMock.expectOne('/api/v1/production/indicators').flush({
+      month: '2026-11',
+      completedBatches: 18,
+      inProgressBatches: 3,
+      unitsProduced: 864,
+      previousMonthUnits: 771,
+      unitsTrendPercent: 12,
+      materialCost: 2946240,
+      materialCostPerUnit: 3410,
+      uncostedBatches: 1,
+    });
+
+    // Le produit fini sous son seuil n'est pas une matière à racheter : seul l'entrant mp-1 compte.
+    expect(context?.kpis).toEqual({
+      lotsThisMonth: 18,
+      curing: 3,
+      unitsProduced: 864,
+      unitsTrendPercent: 12,
+      averageCost: 3410,
+      uncostedLots: 1,
+      materialsToRebuy: 1,
+    });
   });
 
   it('crée le lot par POST avec une clé d’idempotence et renvoie le lot planifié du serveur', () => {

@@ -148,6 +148,7 @@ export const PRODUCTION_FIXTURE: ProductionContextRDto = {
     unitsProduced: 864,
     unitsTrendPercent: 12,
     averageCost: 3410,
+    uncostedLots: 0,
     materialsToRebuy: 2,
   },
 };
