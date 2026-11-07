@@ -21,6 +21,8 @@ const shooting = (overrides: Partial<ShootingRDto>): ShootingRDto => ({
   status: 'OUT',
   late: false,
   createdAt: '2026-11-08T07:00:00Z',
+  returnedAt: null,
+  returnedBy: null,
   ...overrides,
 });
 
@@ -38,9 +40,10 @@ describe('shooting-mapping', () => {
     expect(displayStatus(shooting({ status: 'RETURNED', late: true }))).toBe('RETURNED');
   });
 
-  it('reprend numéro, auteur, articles et quantités, et le retour prévu en heure locale', () => {
+  it('reprend identifiant, numéro, auteur, articles et quantités, et le retour prévu en heure locale', () => {
     const row = toShootingRow(shooting({}));
 
+    expect(row.id).toBe('sho-1');
     expect(row.number).toBe('SHO-0042');
     expect(row.takenBy).toBe('Miora Andria');
     expect(row.items).toEqual([

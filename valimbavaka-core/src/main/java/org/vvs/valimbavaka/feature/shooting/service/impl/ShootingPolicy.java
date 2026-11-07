@@ -21,7 +21,10 @@ import org.vvs.valimbavaka.feature.shooting.dto.ShootingWDto;
 import org.vvs.valimbavaka.security.AuthenticatedUser;
 import org.vvs.valimbavaka.security.AuthenticatedUserLoader;
 
-/** Rules of a new exit (return in the future, active location, each article once) and the late computation. */
+/**
+ * Rules of a new exit (return in the future, active location, each article once), of its return (now, by the
+ * authenticated account) and the late computation.
+ */
 @Component
 class ShootingPolicy {
 
@@ -59,6 +62,11 @@ class ShootingPolicy {
         List<ShootingItem> items = request.items().stream().map(this::item).toList();
         return new ShootingDraft(
                 request.locationId(), currentUserName(), request.expectedReturnAt(), note(request.note()), items);
+    }
+
+    /** Return recorded now, by the authenticated account (409 if the exit is already returned). */
+    void markReturned(Shooting shooting) {
+        shooting.markReturned(clock.instant(), currentUserName());
     }
 
     boolean isLate(Shooting shooting) {

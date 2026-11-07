@@ -46,6 +46,8 @@ describe('ShootingService', () => {
           status: 'OUT',
           late: true,
           createdAt: '2026-11-08T07:00:00Z',
+          returnedAt: null,
+          returnedBy: null,
         },
       ],
       page: 1,
@@ -79,6 +81,16 @@ describe('ShootingService', () => {
     const request = httpMock.expectOne('/api/v1/shootings');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual(body);
+    expect(request.request.headers.has('Idempotency-Key')).toBe(true);
+    request.flush({});
+  });
+
+  it('réintègre une sortie par POST /{id}/return, sans corps et avec une clé d’idempotence (SHO-02)', () => {
+    service.returnShooting('sho-1').subscribe();
+
+    const request = httpMock.expectOne('/api/v1/shootings/sho-1/return');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeNull();
     expect(request.request.headers.has('Idempotency-Key')).toBe(true);
     request.flush({});
   });

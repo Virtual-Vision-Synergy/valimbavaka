@@ -10,7 +10,10 @@ import org.vvs.valimbavaka.feature.shooting.dto.ShootingWDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Shooting exits (SHO-01): products taken out of the stock for a photo shooting, not counted as losses. */
+/**
+ * Shooting exits (SHO-01): products taken out of the stock for a photo shooting, not counted as losses, then returned
+ * to the stock (SHO-02).
+ */
 public interface ShootingService {
 
     /** Most recent first; {@code status} null = every status. */
@@ -24,4 +27,11 @@ public interface ShootingService {
      * not in the future or an article appears twice, 409 if a location would end up with a negative stock.
      */
     ShootingRDto createShooting(ShootingWDto request);
+
+    /**
+     * Returns the products (SHO-02): status {@code RETURNED} and one positive {@code RETURN} stock movement per
+     * article into the location the exit was taken from, in one transaction. 404 if the exit is unknown, 409 if it is
+     * already returned, 422 if its location has become inactive.
+     */
+    ShootingRDto returnShooting(UUID shootingId);
 }

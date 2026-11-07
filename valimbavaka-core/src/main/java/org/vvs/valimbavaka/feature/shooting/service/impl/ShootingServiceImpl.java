@@ -63,9 +63,7 @@ public class ShootingServiceImpl implements ShootingService {
 
     @Override
     public ShootingRDto getShootingById(UUID shootingId) {
-        var shooting = shootingRepository
-                .findById(shootingId)
-                .orElseThrow(() -> new NotFoundException("Sortie shooting introuvable : " + shootingId));
+        var shooting = shootingRepository.findById(shootingId).orElseThrow(() -> notFound(shootingId));
         return toRDto(shooting);
     }
 
@@ -91,6 +89,33 @@ public class ShootingServiceImpl implements ShootingService {
                         .formatted(number, shooting.getItems().size(), shooting.getExpectedReturnAt()));
         log.info("Sortie shooting {} enregistrée", shooting.getId());
         return toRDto(shooting);
+    }
+
+    @Override
+    @Transactional
+    public ShootingRDto returnShooting(UUID shootingId) {
+        var shooting = shootingRepository.findByIdForUpdate(shootingId).orElseThrow(() -> notFound(shootingId));
+        policy.markReturned(shooting);
+        for (var item : shooting.getItems()) {
+            stockMovementService.record(new StockMovementCommand(
+                    item.getArticleId(),
+                    shooting.getLocationId(),
+                    StockMovementType.RETURN,
+                    item.getQuantity(),
+                    shooting.getId()));
+        }
+        journalService.record(
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                shooting.getId(),
+                "Réintégration shooting %s : %d article(s) remis en stock"
+                        .formatted(shooting.getNumber(), shooting.getItems().size()));
+        log.info("Sortie shooting {} réintégrée", shooting.getId());
+        return toRDto(shooting);
+    }
+
+    private static NotFoundException notFound(UUID shootingId) {
+        return new NotFoundException("Sortie shooting introuvable : " + shootingId);
     }
 
     private ShootingRDto toRDto(Shooting shooting) {

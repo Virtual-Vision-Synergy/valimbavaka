@@ -14,6 +14,8 @@ import org.vvs.valimbavaka.feature.shooting.domain.ShootingStatus;
  *
  * @param takenById account that recorded the exit
  * @param takenBy full name of that account when the exit was recorded
+ * @param returnedAt when the products were returned (SHO-02), null while the exit is out
+ * @param returnedBy full name of the account that recorded the return, null while the exit is out
  */
 public record ShootingRDto(
         UUID id,
@@ -26,4 +28,6 @@ public record ShootingRDto(
         @Nullable String note,
         ShootingStatus status,
         boolean late,
-        Instant createdAt) {}
+        Instant createdAt,
+        @Nullable Instant returnedAt,
+        @Nullable String returnedBy) {}

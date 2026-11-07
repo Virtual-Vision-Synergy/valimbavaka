@@ -1,10 +1,14 @@
 package org.vvs.valimbavaka.feature.shooting.repository;
 
+import java.util.Optional;
 import java.util.UUID;
+
+import jakarta.persistence.LockModeType;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import org.vvs.valimbavaka.feature.shooting.domain.Shooting;
@@ -17,6 +21,11 @@ public interface ShootingRepository extends OperationRepository<Shooting, UUID> 
     /** Next number of the shooting sequence (gaps are possible, a number is never reused). */
     @Query(value = "select nextval('shooting_number_seq')", nativeQuery = true)
     long nextNumber();
+
+    /** Exit locked in writing until the end of the transaction: two returns of one exit run one after the other. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from Shooting s where s.id = :id")
+    Optional<Shooting> findByIdForUpdate(UUID id);
 
     /** Search on number and author; empty {@code search} = all, null {@code status} = every status. */
     @Query(value = """

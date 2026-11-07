@@ -21,8 +21,8 @@ const RECENT_SHOOTINGS: PageQuery = {
 const STOCK_BY_NAME: PageQuery = { page: 1, size: 100, sortBy: 'name', sortDirection: 'ASC' };
 
 /**
- * Sorties shooting (SHO-01) : lecture de `GET /api/v1/shootings`, enregistrement par la file hors ligne
- * (`OutboxService`, SYS-07) : `queued` vaut vrai si la saisie attend le réseau.
+ * Sorties shooting (SHO-01) et réintégration (SHO-02) : lecture de `GET /api/v1/shootings`, écritures par la file
+ * hors ligne (`OutboxService`, SYS-07) : `queued` vaut vrai si la saisie attend le réseau.
  */
 @Injectable({ providedIn: 'root' })
 export class ShootingService {
@@ -45,5 +45,10 @@ export class ShootingService {
 
   create(body: ShootingWDto): Observable<SubmitResult<ShootingRDto>> {
     return this.outbox.submit<ShootingRDto>('POST', this.baseUrl, body);
+  }
+
+  /** Réintégration (SHO-02) : les produits reviennent dans l'emplacement de sortie, statut `RETURNED`. */
+  returnShooting(id: string): Observable<SubmitResult<ShootingRDto>> {
+    return this.outbox.submit<ShootingRDto>('POST', `${this.baseUrl}/${id}/return`);
   }
 }
