@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.inventory.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -17,4 +18,7 @@ public interface InventoryLineRepository extends OperationRepository<InventoryLi
     Page<InventoryLine> findBySessionId(UUID sessionId, Pageable pageable);
 
     long countBySessionId(UUID sessionId);
+
+    /** A line is only reachable through its own session (INV-02). */
+    Optional<InventoryLine> findByIdAndSessionId(UUID id, UUID sessionId);
 }

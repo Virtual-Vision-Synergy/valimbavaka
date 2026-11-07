@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Inventaire. `new` : ouverture d'une session branchée sur l'API (INV-01) ; la page de comptage reste en
- * démonstration jusqu'à INV-02 (comptage) et INV-04 (clôture).
+ * Inventaire. `new` : ouverture d'une session (INV-01) ; la page de comptage lit la session en cours et enregistre
+ * les quantités (INV-02) ; motifs (INV-03) et clôture (INV-04) restent en démonstration.
  */
 export const INVENTORY_ROUTES: Routes = [
   {

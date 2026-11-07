@@ -1158,12 +1158,15 @@
       "OTHER": "Antony hafa"
     },
     "empty": "Tsy misy entana amin'io sivana io.",
+    "noSession": "Tsy misy fanisana entana mandeha amin'izao. Manokafa iray hanombohana ny fanisana.",
+    "countFailed": "Tsy voatahiry ny isa {{article}} : {{reason}}",
     "balance": "Famintinana vonjimaika",
     "gapUnits": "Elanelana amin'ny isa",
     "gapValue": "Elanelana amin'ny sanda",
     "gapArticles": "Entana misy elanelana",
     "missingReasons": "Elanelana {{count}} tsy misy antony : azo akatona rehefa voasoratra ny antony.",
     "previous": "Fotoana teo aloha",
+    "previousEmpty": "Mbola tsy misy fanisana vita haseho.",
     "confirmTitle": "Hakatona ve ny fotoana ?",
     "confirmText": "Hampitoviana amin'ny fanisana ny tahiry ({{count}} entana misy elanelana). Tsy azo averina io hetsika io.",
     "scope": {
