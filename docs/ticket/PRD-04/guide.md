@@ -1,6 +1,6 @@
 # Guide d'intégration — PRD-04 · Indicateurs de production
 
-Statut : ✅ rédigé le 2026-11-08 — **tests écrits, non exécutés** (voir le [scénario](scenario-test.md)) · Ticket : [#41](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/41) · [description](description.md)
+Statut : ✅ rédigé le 2026-11-08 — **tests exécutés en CI, verts** (voir le [scénario](scenario-test.md)) · Ticket : [#41](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/41) · [description](description.md)
 
 ## En bref
 
@@ -114,4 +114,4 @@ this.productionService.indicators().subscribe(({ completedBatches, materialCostP
 - Le calcul charge les lots validés du mois (entrants par lots de 100, `@BatchSize`) : quelques dizaines de lots par
   mois, sans souci ; si le volume grossissait, passer à une agrégation SQL.
 - Pas de choix du mois (pas de paramètre `month`) : à ajouter si un rapport mensuel en a besoin.
-- Compilation Java et Spotless non vérifiés en local (Maven Central inaccessible) : la CI tranche.
+- Compilation, tests, Spotless et Checkstyle vérifiés en CI (runs 42416628836 / 42416630737).
