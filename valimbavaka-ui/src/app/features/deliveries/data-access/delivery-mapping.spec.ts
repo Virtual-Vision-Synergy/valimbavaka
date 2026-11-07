@@ -1,4 +1,10 @@
-import { businessToday, driverLabel, toBoard } from './delivery-mapping';
+import {
+  businessToday,
+  driverLabel,
+  isPendingStop,
+  toBoard,
+  toDriverRound,
+} from './delivery-mapping';
 import { DeliveryDriverRDto, DeliveryOrderRDto, DeliveryOrderStatus } from './delivery-models';
 
 const TOJO: DeliveryDriverRDto = { id: 'tojo', firstName: 'Tojo', lastName: 'Nirina' };
@@ -66,5 +72,39 @@ describe('delivery-mapping', () => {
 
     expect(board.deliveries.map((delivery) => delivery.number)).toEqual(['LIV-0002']);
     expect(board.rounds).toEqual([{ id: 'gone', name: '—', driverName: '—' }]);
+  });
+
+  it('range la tournée du livreur par arrêt, avec client, adresse, téléphone et montant à encaisser', () => {
+    const third = { ...order('LIV-0003', 'tojo', 'ON_ROUND'), stopNumber: 3 };
+    const first = { ...order('LIV-0001', 'tojo'), stopNumber: 1, district: null, amount: 8500 };
+    const cancelled = { ...order('LIV-0002', 'tojo', 'CANCELLED'), stopNumber: 2 };
+
+    const round = toDriverRound([third, cancelled, first], TOJO, '2026-11-09');
+
+    expect(round.round).toEqual({ id: 'tojo', name: 'Tojo N.', driverName: 'Tojo N.' });
+    expect(round.date).toBe('2026-11-09');
+    expect(round.stops.map((stop) => [stop.number, stop.stop])).toEqual([
+      ['LIV-0001', 1],
+      ['LIV-0003', 3],
+    ]);
+    expect(round.stops[0]).toMatchObject({
+      customerName: 'Rakoto Be',
+      address: 'Lot II J 45, rue Pasteur',
+      phone: '034 12 345 67',
+      amount: 8500,
+      prepaid: false,
+    });
+    expect(round.stops[1].address).toBe('Ivandry, Lot II J 45, rue Pasteur');
+  });
+
+  it('donne une tournée vide quand le livreur n’a aucun arrêt ce jour-là', () => {
+    expect(toDriverRound([], TOJO, '2026-11-09').stops).toEqual([]);
+  });
+
+  it('compte comme à faire les arrêts à préparer ou en tournée, pas les livrés ni les échecs', () => {
+    expect(isPendingStop('TO_PREPARE')).toBe(true);
+    expect(isPendingStop('ON_ROUND')).toBe(true);
+    expect(isPendingStop('DELIVERED')).toBe(false);
+    expect(isPendingStop('FAILED')).toBe(false);
   });
 });
