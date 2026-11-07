@@ -217,6 +217,10 @@ tr[data-gap='plus'] > * {
 .previous li + li {
   border-top: 1px solid var(--border-subtle);
 }
+.history-link {
+  display: inline-block;
+  margin-top: var(--space-3);
+}
 .confirm {
   width: min(100% - 2 * var(--space-4), 460px);
   padding: var(--space-6);
@@ -268,4 +272,10 @@ tr[data-gap='plus'] > * {
   .aside {
     position: static;
   }
+}
+
+.no-session {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
 }

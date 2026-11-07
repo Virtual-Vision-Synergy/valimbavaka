@@ -16,7 +16,7 @@ describe('visibleSections', () => {
     expect(labels).toContain('menu.item.journal');
   });
 
-  it('should show sales and catalogue modules but no administration to a seller', () => {
+  it('should show sales, catalogue and production modules but no administration to a seller', () => {
     const labels = labelsFor('SELLER');
 
     expect(labels).toEqual(
@@ -24,6 +24,7 @@ describe('visibleSections', () => {
         'menu.item.dashboard',
         'menu.item.articles',
         'menu.item.stocks',
+        'menu.item.production',
         'menu.item.sales',
         'menu.item.commissions',
       ]),
@@ -31,7 +32,6 @@ describe('visibleSections', () => {
     expect(labels).not.toContain('menu.item.users');
     expect(labels).not.toContain('menu.item.journal');
     expect(labels).not.toContain('menu.item.deliveries');
-    expect(labels).not.toContain('menu.item.production');
   });
 
   it('should show only the dashboard and deliveries to a delivery driver', () => {

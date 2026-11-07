@@ -1,54 +1,79 @@
 # Scénarios de test — SYS-11 · Session expirée avec des saisies en attente
 
-> **À compléter par le traiteur du ticket**, avant de passer en revue. Le scénario sert de base au QA (Njara) et de référence aux tickets liés.
+Statut : ✅ rédigé et exécuté le 2026-11-08 (CI verte) · Ticket : [#137](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/137) · [description](description.md) · [guide](guide.md)
 
-Statut : ☐ à compléter · Ticket : [#137](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/137) · [description](description.md) · [guide](guide.md)
+Convention (VVS V2.1) : tests frontend Vitest sur le comportement visible. Ticket frontend seul (file hors ligne, intercepteur de session, page de connexion), aucun endpoint ni migration.
 
-Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
+## Règle retenue
+
+| Situation au retour du réseau | Comportement |
+|---|---|
+| Jeton d'accès expiré (15 min), cookie de refresh valide | 401 → un seul `POST /api/v1/auth/refresh` → rejeu avec le nouveau jeton et la **même** `Idempotency-Key` |
+| Refresh **refusé** par le serveur (401, 403, cookie d'un autre compte) | session fermée, redirection `/login?session=expired` avec le message « Votre session a expiré… » ; la saisie reste `PENDING` (tentatives inchangées) et part après la reconnexion du **même** compte |
+| Refresh **impossible** (réseau 0, 408, 429, 5xx) | session conservée, pas de redirection ; l'essai compte comme erreur transitoire et la relance suivante retente le refresh |
+| Autre compte connecté sur le poste | ne voit pas les saisies du compte expiré et ne les envoie jamais |
 
 ## Pré-requis
 
 | Élément | Valeur |
 |---|---|
-| Rôle(s) utilisé(s) | _(à compléter)_ |
-| Données de départ | _(à compléter)_ |
-| Tickets à avoir déployés avant | SYS-02, AUTH-01 |
+| Rôle(s) utilisé(s) | `SELLER` « Hanta » (`0195f0a0-…-0001`) créatrice des saisies ; `ADMIN` (`0195f0a0-…-0002`) second compte sur le même poste |
+| Données de départ | file vide ; jeton d'accès `jeton-expire` ; saisie faite hors ligne : `POST /api/v1/suppliers` `{ "name": "Huiles Ravo" }` |
+| Tickets à avoir déployés avant | SYS-02 (file hors ligne), AUTH-01 (connexion, refresh), SYS-09 et SYS-10 (base de la branche, PR empilée) |
 
 ## Scénarios issus des critères d'acceptation
 
-| # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+| # | Critère | Exemple (Étant donné / Quand / Alors) | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | Si la session expire pendant la coupure, les saisies en attente ne sont ni perdues ni envoyées sans authentification. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
-| 2 | Au retour du réseau, la session est renouvelée automatiquement, ou l'utilisateur est invité à se reconnecter, puis les saisies en attente sont synchronisées. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
-| 3 | Les saisies en attente ne sont envoyées qu'avec le compte qui les a créées (pas par un autre utilisateur qui se connecte sur le même poste). | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+| 1 | Ni perdues ni envoyées sans authentification | Hanta saisit le fournisseur hors ligne, son jeton expire, le réseau revient, le refresh répond 401 | aucun nouvel envoi de `/api/v1/suppliers` ; la saisie reste `PENDING`, `attempts: 0` ; session fermée | `outbox-session.spec.ts` « should keep the entry and invite to sign in again when the refresh is refused, then send it after the same account signs in » | ✅ auto |
+| 1b | Envoi sans session refusé | `submit` sans compte connecté | 401 `UNAUTHENTICATED`, rien en file | `outbox-service.spec.ts` « should reject a submission without an authenticated account » | ✅ auto |
+| 2 | Session renouvelée automatiquement puis synchronisation | réseau revenu, `/suppliers` répond 401, refresh renvoie `jeton-neuf` | rejeu avec `Bearer jeton-neuf` et la même `Idempotency-Key` ; file vide ; pas de redirection | `outbox-session.spec.ts` « should renew the expired session on reconnection and send the queued entry with the new token » | ✅ auto |
+| 2b | Invitation à se reconnecter puis synchronisation | refresh refusé (401) | redirection `/login` avec `session=expired` ; après connexion de Hanta, envoi avec `Bearer jeton-reconnexion` et la même clé | `outbox-session.spec.ts` « should keep the entry and invite to sign in again when the refresh is refused, then send it after the same account signs in » ; `session-interceptor.spec.ts` « should sign out and go to the login page when the refresh fails » | ✅ auto |
+| 2c | Message sur la page de connexion | `/login?session=expired` | encadré `role="status"` : « Votre session a expiré. Reconnectez-vous avec le même compte : vos saisies en attente sont conservées… » | `login-page.spec.ts` « should invite the user to sign in again and say the pending entries are kept » | ✅ auto |
+| 2d | Pas de message sur une visite normale | `/login` | aucun encadré `role="status"` | `login-page.spec.ts` « should not show the expired session message on a normal visit » | ✅ auto |
+| 3 | Seul le compte créateur envoie | session de Hanta refusée, l'administrateur se connecte sur le poste | 0 saisie en attente ou refusée affichée pour lui ; sa propre saisie `/api/v1/articles` part avec `Bearer jeton-b` ; `/api/v1/suppliers` n'est pas envoyé ; il part au retour de Hanta avec son jeton | `outbox-session.spec.ts` « should not send the expired account entries when another account signs in on the same device » | ✅ auto |
+| 3b | Idem, sans expiration | saisie hors ligne de Hanta, connexion d'un autre compte | non envoyée tant que Hanta n'est pas reconnectée | `outbox-service.spec.ts` « should not send one account’s queued requests while another account is connected » | ✅ auto |
 
 ## Sécurité et erreurs
 
-| Cas | Résultat attendu | Test auto | OK |
-|---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | _(à compléter)_ | ☐ |
-| Appel avec un mauvais rôle | 403 `FORBIDDEN` | _(à compléter)_ | ☐ |
-| Champ interdit dans le corps (`role`, `id`) | ignoré (mass assignment) | _(à compléter)_ | ☐ |
-| Données invalides | 422 `VALIDATION_FAILED` | _(à compléter)_ | ☐ |
-| Ressource introuvable | 404 `NOT_FOUND` | _(à compléter)_ | ☐ |
-| Conflit / doublon | 409 `CONFLICT` | _(à compléter)_ | ☐ |
+Aucun endpoint écrit : 403/404/409/422 et mass assignment relèvent des tickets propriétaires des endpoints. Comportement de la session :
 
-_Supprimer les lignes qui ne s'appliquent pas (ticket frontend seul, pas d'écriture, etc.)._
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Refresh refusé | `/refresh` → 401 `UNAUTHENTICATED` | déconnexion + `/login?session=expired`, erreur `ApiError` relancée | `session-interceptor.spec.ts` « should sign out and go to the login page when the refresh fails » | ✅ auto |
+| Réseau coupé pendant le refresh | `/refresh` → statut 0 | session conservée, pas de redirection, erreur `ApiError` 0 | `session-interceptor.spec.ts` « should keep the session when the refresh fails because the network is down » | ✅ auto |
+| Serveur indisponible pendant le refresh | `/refresh` → 503 | jeton conservé (`ancien-jeton`), pas de redirection | `session-interceptor.spec.ts` « should keep the session when the server is unavailable during the refresh » | ✅ auto |
+| 403 sur un appel métier | `/api/v1/users` → 403 | ni refresh ni déconnexion | `session-interceptor.spec.ts` « should not try to refresh after a 403 » | ✅ auto |
+| Refresh d'un autre compte | une autre personne s'est connectée pendant le refresh | la requête n'est pas rejouée sous le nouveau compte | `session-interceptor.spec.ts` « should not refresh a request after another account has signed in » | ✅ auto |
 
 ## Cas limites et hors ligne
 
-- _(à compléter : valeurs extrêmes, listes vides, pagination, perte de connexion, rejeu avec `Idempotency-Key` si la saisie passe par la file hors ligne)_
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Réseau qui retombe pendant le refresh | `/refresh` → statut 0 puis réseau stable 1 s plus tard | saisie `PENDING`, `attempts: 1`, session gardée ; à la relance : 401 → refresh `jeton-neuf` → envoi, file vide | `outbox-session.spec.ts` « should keep the session and retry later when the network drops again during the refresh » | ✅ auto |
+| Rejeu après reconnexion | même saisie envoyée deux fois (avant et après expiration) | même `Idempotency-Key` : aucun doublon côté serveur (SYS-02/SYS-12) | `outbox-session.spec.ts` (assertions `Idempotency-Key`) | ✅ auto |
+| Déconnexion puis reconnexion du même compte | saisie hors ligne, `signOut`, `signIn` | saisie retrouvée puis envoyée | `outbox-service.spec.ts` « should retain queued requests until their creating account reconnects » | ✅ auto |
+| Rechargement de la page hors ligne | jeton perdu (mémoire), refresh impossible | page de connexion ; saisies conservées dans IndexedDB, envoyées après connexion du même compte au retour du réseau | à vérifier en recette (R2) | 🧪 |
+| Compte désactivé entre-temps | refresh refusé (famille révoquée, AUTH-01) | même chemin que « refresh refusé » : saisies conservées, jamais envoyées par un autre compte | couvert par la ligne 1 (refus 401) | ✅ auto |
 
-## Tests existants (repérés dans les PR liées)
+## Tests existants
 
-- `valimbavaka-ui/src/app/core/offline/connectivity-service.spec.ts`
-- `valimbavaka-ui/src/app/core/offline/outbox-service.spec.ts`
-- `valimbavaka-ui/src/app/core/offline/sync-status.a11y.spec.ts`
-- `valimbavaka-ui/src/app/core/offline/sync-status.spec.ts`
-- `valimbavaka-ui/src/app/features/sync/pages/sync-page/sync-page.spec.ts`
+- `valimbavaka-ui/src/app/core/offline/outbox-session.spec.ts` (nouveau, chaîne d'intercepteurs réelle)
+- `valimbavaka-ui/src/app/core/http/session-interceptor.spec.ts` (2 tests ajoutés, 1 adapté au paramètre `session=expired`)
+- `valimbavaka-ui/src/app/features/auth/pages/login-page/login-page.spec.ts` (2 tests ajoutés) et `login-page.a11y.spec.ts` (routeur fourni)
+- `valimbavaka-ui/src/app/core/offline/outbox-service.spec.ts` (SYS-02, non modifié : doit rester vert)
+
+## Recette manuelle (🧪)
+
+| # | Étapes | Résultat attendu | Statut |
+|---|---|---|---|
+| R1 | Se connecter (vendeuse), couper le Wi-Fi, modifier une fiche fournisseur, attendre 16 min, rétablir le Wi-Fi | la fiche part sans reconnexion (refresh automatique), compteur « en attente » à 0 | 🧪 |
+| R2 | Comme R1, mais recharger la page hors ligne avant de rétablir le réseau | page de connexion ; après connexion avec le même compte, la fiche part | 🧪 |
+| R3 | Comme R1, mais se déconnecter puis se connecter avec un autre compte sur le même poste | l'autre compte ne voit pas la saisie sur `/synchronisation` ; elle part au retour du premier compte | 🧪 |
 
 ## Résultat de l'exécution
 
-- Date : _(à compléter)_
-- Environnement : _(à compléter)_
-- Anomalies ouvertes : _(à compléter)_
+- Date : 2026-11-08
+- Environnement : CI GitHub `ci.yml` lancée sur la branche (run 42412591952) : jobs Backend et Frontend verts ; 54 fichiers et 315 tests frontend passés, dont `outbox-session.spec.ts` (4 tests), `session-interceptor.spec.ts` (9), `login-page.spec.ts` (5), `login-page.a11y.spec.ts` (1) et `outbox-service.spec.ts` (17)
+- Anomalies ouvertes : aucune
+- Étapes 🧪 restantes : 3 (R1 à R3)

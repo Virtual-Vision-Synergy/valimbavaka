@@ -1,0 +1,252 @@
+import { ArticleRDto } from '../../article/data-access/article-models';
+import { StockRDto } from '../../stocks/data-access/stock-models';
+import {
+  toBatchWDto,
+  toKpis,
+  toLot,
+  toLotCost,
+  toLotStatus,
+  toMaterial,
+  toProducible,
+} from './production-mapping';
+import {
+  ProductionBatchCostRDto,
+  ProductionBatchRDto,
+  ProductionIndicatorsRDto,
+} from './production-models';
+
+const article = (overrides: Partial<ArticleRDto>): ArticleRDto => ({
+  id: 'art-1',
+  code: 'ART-0008',
+  name: 'Base savonneuse',
+  barcode: null,
+  type: 'RAW_MATERIAL',
+  rangeId: null,
+  unit: 'KILOGRAM',
+  cost: 12000,
+  price: null,
+  threshold: 5,
+  supplierId: null,
+  active: true,
+  createdAt: '2026-11-08T08:00:00Z',
+  updatedAt: '2026-11-08T08:00:00Z',
+  version: 0,
+  ...overrides,
+});
+
+const stock: StockRDto = {
+  articleId: 'art-1',
+  code: 'ART-0008',
+  name: 'Base savonneuse',
+  rangeId: null,
+  unit: 'KILOGRAM',
+  threshold: 5,
+  cost: 12000,
+  total: 15.5,
+  locations: [
+    { locationId: 'l1', code: 'WAREHOUSE', label: 'Entrepôt', quantity: 12.5 },
+    { locationId: 'l2', code: 'STORE', label: 'Boutique', quantity: 3 },
+  ],
+};
+
+const batch: ProductionBatchRDto = {
+  id: 'batch-1',
+  number: 'LOT-00007',
+  outputArticleId: 'pf-1',
+  quantity: 30,
+  operatorId: 'op-1',
+  status: 'PLANNED',
+  inputs: [{ articleId: 'art-1', quantity: 2.4 }],
+  createdAt: '2026-11-08T09:30:00Z',
+  updatedAt: '2026-11-08T09:30:00Z',
+  version: 0,
+};
+
+describe('production-mapping', () => {
+  it("prend le disponible de l'entrepôt, l'unité courte et le coût de l'article", () => {
+    expect(toMaterial(article({}), [stock])).toEqual({
+      id: 'art-1',
+      reference: 'ART-0008',
+      name: 'Base savonneuse',
+      unit: 'kg',
+      available: 12.5,
+      unitCost: 12000,
+    });
+  });
+
+  it('met le disponible et le coût à zéro sans ligne de stock ni coût', () => {
+    const material = toMaterial(article({ id: 'art-2', cost: null }), [stock]);
+
+    expect(material.available).toBe(0);
+    expect(material.unitCost).toBe(0);
+  });
+
+  it("propose un produit fini sans recette, au prix de l'article", () => {
+    const product = toProducible(article({ id: 'pf-1', type: 'FINISHED', price: 8500 }));
+
+    expect(product.price).toBe(8500);
+    expect(product.recipe).toEqual([]);
+  });
+
+  it('affiche un lot planifié comme planifié (DRAFT) avec ses libellés et son identifiant', () => {
+    const lot = toLot(
+      batch,
+      [{ articleId: 'pf-1', reference: 'ART-0031', name: 'Savon noir', price: 8500, recipe: [] }],
+      [{ id: 'op-1', name: 'Soa Rakoto' }],
+    );
+
+    expect(lot).toEqual({
+      id: 'batch-1',
+      number: 'LOT-00007',
+      date: '2026-11-08',
+      articleName: 'Savon noir',
+      quantity: 30,
+      operator: 'Soa Rakoto',
+      status: 'DRAFT',
+    });
+  });
+
+  it('affiche « — » pour un article ou une vendeuse hors des listes', () => {
+    const lot = toLot(batch, [], []);
+
+    expect(lot.articleName).toBe('—');
+    expect(lot.operator).toBe('—');
+  });
+
+  it('traduit les trois statuts du serveur', () => {
+    expect(toLotStatus('PLANNED')).toBe('DRAFT');
+    expect(toLotStatus('IN_PROGRESS')).toBe('CURING');
+    expect(toLotStatus('COMPLETED')).toBe('VALIDATED');
+  });
+
+  it("envoie les entrants au format du serveur, sans les lignes à zéro ni l'indicateur de validation", () => {
+    const body = toBatchWDto({
+      articleId: 'pf-1',
+      quantity: 30,
+      operatorId: 'op-1',
+      lines: [
+        { materialId: 'art-1', quantity: 2.4 },
+        { materialId: 'art-2', quantity: 0 },
+      ],
+      validate: true,
+    });
+
+    expect(body).toEqual({
+      outputArticleId: 'pf-1',
+      quantity: 30,
+      operatorId: 'op-1',
+      inputs: [{ articleId: 'art-1', quantity: 2.4 }],
+    });
+  });
+
+  describe('toKpis (PRD-04)', () => {
+    const indicators: ProductionIndicatorsRDto = {
+      month: '2026-11',
+      completedBatches: 0,
+      inProgressBatches: 0,
+      unitsProduced: 0,
+      previousMonthUnits: 0,
+      unitsTrendPercent: null,
+      materialCost: 0,
+      materialCostPerUnit: null,
+      uncostedBatches: 0,
+    };
+
+    it('garde « pas de tendance » et « pas de coût moyen » quand le serveur les renvoie à null', () => {
+      const kpis = toKpis(indicators, [], []);
+
+      expect(kpis).toMatchObject({ lotsThisMonth: 0, unitsTrendPercent: null, averageCost: null });
+    });
+
+    it('compte un entrant à racheter sous son seuil, jamais à son seuil ni avec un seuil à zéro', () => {
+      const under = { ...stock, articleId: 'mp-1', threshold: 5, total: 4.999 };
+      const atThreshold = { ...stock, articleId: 'mp-2', threshold: 5, total: 5 };
+      const noThreshold = { ...stock, articleId: 'mp-3', threshold: 0, total: 0 };
+
+      const kpis = toKpis(indicators, ['mp-1', 'mp-2', 'mp-3'], [under, atThreshold, noThreshold]);
+
+      expect(kpis.materialsToRebuy).toBe(1);
+    });
+  });
+});
+
+describe('toLotCost (PRD-05)', () => {
+  const cost = (overrides: Partial<ProductionBatchCostRDto>): ProductionBatchCostRDto => ({
+    id: 'b1',
+    number: 'LOT-00003',
+    outputArticleId: 'pf-1',
+    outputArticleName: 'Savon noir 100 g',
+    quantity: 30,
+    status: 'COMPLETED',
+    completedAt: '2026-11-08T08:00:00Z',
+    estimated: false,
+    inputs: [
+      {
+        articleId: 'mp-1',
+        articleCode: 'ART-0008',
+        articleName: 'Huile de coco',
+        unit: 'KILOGRAM',
+        quantity: 2,
+        unitCost: 1200,
+        lineCost: 2400,
+      },
+    ],
+    materialCost: 2400,
+    unitCost: 80,
+    uncostedInputs: 0,
+    salePrice: 8500,
+    marginPercent: 99,
+    ...overrides,
+  });
+
+  it('reprend le coût de revient du serveur, le jour de validation et les unités courtes', () => {
+    const lot = toLotCost(cost({}));
+
+    expect(lot).toMatchObject({
+      number: 'LOT-00003',
+      articleName: 'Savon noir 100 g',
+      status: 'VALIDATED',
+      completedOn: '2026-11-08',
+      materialCost: 2400,
+      unitCost: 80,
+      margin: 99,
+    });
+    expect(lot.lines[0]).toEqual({
+      articleId: 'mp-1',
+      code: 'ART-0008',
+      name: 'Huile de coco',
+      unit: 'kg',
+      quantity: 2,
+      unitCost: 1200,
+      lineCost: 2400,
+    });
+  });
+
+  it('normalise les coûts absents à null (entrant sans coût, lot non validé)', () => {
+    const lot = toLotCost(
+      cost({
+        status: 'PLANNED',
+        completedAt: undefined,
+        estimated: true,
+        inputs: [{ ...cost({}).inputs[0], unitCost: undefined, lineCost: undefined }],
+        materialCost: undefined,
+        unitCost: undefined,
+        uncostedInputs: 1,
+        salePrice: undefined,
+        marginPercent: undefined,
+      }),
+    );
+
+    expect(lot).toMatchObject({
+      status: 'DRAFT',
+      completedOn: null,
+      estimated: true,
+      materialCost: null,
+      unitCost: null,
+      uncosted: 1,
+      salePrice: null,
+      margin: null,
+    });
+    expect(lot.lines[0]).toMatchObject({ unitCost: null, lineCost: null });
+  });
+});

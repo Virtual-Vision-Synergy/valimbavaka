@@ -91,8 +91,8 @@ export const routes: Routes = [
           import('./features/production/production.routes').then((m) => m.PRODUCTION_ROUTES),
       },
       {
+        // Permissions par page dans TRANSFERS_ROUTES : la vendeuse saisit un retour sans voir l'historique.
         path: 'transfers',
-        canActivate: [permissionGuard('transfers.read')],
         loadChildren: () =>
           import('./features/transfers/transfers.routes').then((m) => m.TRANSFERS_ROUTES),
       },
