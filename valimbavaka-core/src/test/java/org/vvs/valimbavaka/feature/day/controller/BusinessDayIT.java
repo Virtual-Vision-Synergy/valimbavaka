@@ -232,9 +232,7 @@ class BusinessDayIT extends StockApiTestSupport {
 
     @Test
     void openDay_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(DAYS)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body("")))
+        mockMvc.perform(post(DAYS).contentType(MediaType.APPLICATION_JSON).content(body("")))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
@@ -288,7 +286,8 @@ class BusinessDayIT extends StockApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.day.status").value("OPEN"))
                 .andExpect(jsonPath("$.day.transfers.length()").value(1))
-                .andExpect(jsonPath("$.day.transfers[0].locationId").value(location("STORE").toString()));
+                .andExpect(jsonPath("$.day.transfers[0].locationId")
+                        .value(location("STORE").toString()));
     }
 
     @Test
@@ -301,8 +300,7 @@ class BusinessDayIT extends StockApiTestSupport {
     @Test
     void requireOpenDay_beforeAndAfterOpening_throwsThenReturnsTheOpenDay() throws Exception {
         // Arrange
-        assertThat(catchThrowable(businessDayService::requireOpenDay))
-                .isInstanceOf(ConflictException.class);
+        assertThat(catchThrowable(businessDayService::requireOpenDay)).isInstanceOf(ConflictException.class);
         openDay(adminToken(), body("")).andExpect(status().isCreated());
 
         // Act

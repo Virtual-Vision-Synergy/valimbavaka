@@ -81,7 +81,10 @@ public class BusinessDayServiceImpl implements BusinessDayService {
         });
         var saved = dayRepository.saveAndFlush(day);
         journalService.record(JournalAction.CREATE, RESOURCE_TYPE, saved.getId(), description(saved));
-        log.info("Journée du {} ouverte ({} transfert(s) du matin)", date, saved.getTransfers().size());
+        log.info(
+                "Journée du {} ouverte ({} transfert(s) du matin)",
+                date,
+                saved.getTransfers().size());
         return dayMapper.toRDto(saved);
     }
 
@@ -109,7 +112,8 @@ public class BusinessDayServiceImpl implements BusinessDayService {
         if (day.getTransfers().isEmpty()) {
             return "Ouverture de la journée du %s sans transfert du matin".formatted(date);
         }
-        var numbers = day.getTransfers().stream().map(DayTransfer::getTransferNumber).collect(Collectors.joining(", "));
+        var numbers =
+                day.getTransfers().stream().map(DayTransfer::getTransferNumber).collect(Collectors.joining(", "));
         var template = "Ouverture de la journée du %s : %d transfert(s) du matin (%s)";
         return template.formatted(date, day.getTransfers().size(), numbers);
     }
