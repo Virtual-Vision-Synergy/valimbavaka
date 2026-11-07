@@ -28,8 +28,8 @@ Pas d'endpoint, pas de migration, pas d'écriture.
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
 | Navigation au clavier | La jauge reçoit le focus (Tab) ; le focus ouvre la bulle ; Échap la ferme | `StockGauge` › « ouvre la bulle au focus clavier et la ferme avec Échap » | ☐ |
-| Lecteur d'écran | Jauge `role="img"`, libellé « Répartition du stock par emplacement », décrite par la bulle (`aria-describedby`) | `StockGauge` › « est atteignable au clavier et décrite par le détail pour les lecteurs d'écran » | ☐ |
-| Jauge sans répartition (autres usages) | Reste décorative (`aria-hidden="true"`), pas de bulle, pas de focus | `StockGauge` › « reste décorative et sans bulle quand aucune répartition n'est fournie » | ☐ |
+| Lecteur d'écran | Jauge `role="img"`, libellé « Répartition du stock par emplacement », décrite par la bulle (`aria-describedby`) | `StockGauge` › « est atteignable au clavier et décrite par le détail pour les lecteurs d’écran » | ☐ |
+| Jauge sans répartition (autres usages) | Reste décorative (`aria-hidden="true"`), pas de bulle, pas de focus | `StockGauge` › « reste décorative et sans bulle quand aucune répartition n’est fournie » | ☐ |
 | 401 / 403 / 404 / 409 / 422, mass assignment | Sans objet : aucun endpoint nouveau ; la lecture reste couverte par `StockSecurityIT` (STK-01) | — | — |
 
 ## Cas limites et hors ligne
