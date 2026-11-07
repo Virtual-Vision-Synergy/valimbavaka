@@ -56,8 +56,8 @@ class InventoryScopeResolverTest {
                 .thenReturn(new PageResponse<>(articles, 1, 100, 3, 1));
         when(stockService.getQuantities(
                         InventoryTestData.LOCATION_ID, List.of(INACTIVE_WITH_STOCK_ID, INACTIVE_EMPTY_ID)))
-                .thenReturn(Map.of(
-                        INACTIVE_WITH_STOCK_ID, new BigDecimal("2.000"), INACTIVE_EMPTY_ID, BigDecimal.ZERO));
+                .thenReturn(
+                        Map.of(INACTIVE_WITH_STOCK_ID, new BigDecimal("2.000"), INACTIVE_EMPTY_ID, BigDecimal.ZERO));
 
         // Act
         var result = sut.articlesToCount(InventoryTestData.opening(null));

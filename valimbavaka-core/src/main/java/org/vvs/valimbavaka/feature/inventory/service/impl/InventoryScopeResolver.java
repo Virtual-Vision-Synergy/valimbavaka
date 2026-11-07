@@ -51,8 +51,8 @@ class InventoryScopeResolver {
         var page = 1;
         var totalPages = 1;
         while (page <= totalPages) {
-            var result = articleService.getArticles(
-                    new PageQuery(page, PAGE_SIZE, null, "code", SortDirection.ASC), filter);
+            var result =
+                    articleService.getArticles(new PageQuery(page, PAGE_SIZE, null, "code", SortDirection.ASC), filter);
             articles.addAll(result.items());
             totalPages = result.totalPages();
             page++;

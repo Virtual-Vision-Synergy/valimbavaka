@@ -123,10 +123,9 @@ class InventoryServiceImplTest {
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<InventoryLine>> lines = ArgumentCaptor.forClass(List.class);
         verify(lineRepository).saveAll(lines.capture());
+        assertThat(lines.getValue()).extracting(InventoryLine::getArticleCode).containsExactly("ART-0031", "ART-0087");
         assertThat(lines.getValue())
-                .extracting(InventoryLine::getArticleCode)
-                .containsExactly("ART-0031", "ART-0087");
-        assertThat(lines.getValue()).allSatisfy(line -> assertThat(line.getCountedQuantity()).isNull());
+                .allSatisfy(line -> assertThat(line.getCountedQuantity()).isNull());
         verify(journalService)
                 .record(eq(JournalAction.CREATE), eq("INVENTORY_SESSION"), any(), contains("INV-0012 · Boutique"));
     }
