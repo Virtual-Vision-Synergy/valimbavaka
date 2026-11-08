@@ -20,8 +20,8 @@ import { ShootingForm } from '../../components/shooting-form/shooting-form';
 import { ShootingKpis } from '../../components/shooting-kpis/shooting-kpis';
 import { ShootingList } from '../../components/shooting-list/shooting-list';
 import {
-  SalonServiceRDto,
-  SalonServiceWDto,
+  ServiceRecordRDto,
+  ServiceRecordWDto,
   ShootingRowRDto,
   ShootingWDto,
 } from '../../data-access/service-models';
@@ -80,7 +80,7 @@ export class ServicesPage {
   });
   protected readonly savingShooting = signal(false);
   protected readonly shootingError = signal<string | null>(null);
-  protected readonly created = signal<readonly SalonServiceRDto[]>([]);
+  protected readonly created = signal<readonly ServiceRecordRDto[]>([]);
   /** Réintégrations en file hors ligne : affichées « Réintégré » en attendant le serveur. */
   protected readonly returnedNumbers = signal<readonly string[]>([]);
 
@@ -106,7 +106,7 @@ export class ServicesPage {
     this.today().reduce((sum, service) => sum + service.price, 0),
   );
 
-  protected register(request: SalonServiceWDto): void {
+  protected register(request: ServiceRecordWDto): void {
     const treatment = this.context
       .value()
       ?.treatments.find((item) => item.id === request.treatmentId);

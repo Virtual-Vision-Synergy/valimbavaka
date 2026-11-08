@@ -1,5 +1,6 @@
 import {
   ArrowLeftRight,
+  BookOpen,
   ChartColumn,
   ClipboardList,
   Factory,
@@ -78,6 +79,12 @@ export const MENU_SECTIONS: readonly MenuSection[] = [
         route: '/articles',
         permission: 'articles.read',
         icon: Package,
+      },
+      {
+        labelKey: 'menu.item.salonCatalog',
+        route: '/services/catalog',
+        permission: 'services.read',
+        icon: BookOpen,
       },
     ],
   },
