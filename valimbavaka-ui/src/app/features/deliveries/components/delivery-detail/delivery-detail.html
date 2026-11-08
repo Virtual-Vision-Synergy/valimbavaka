@@ -19,6 +19,9 @@
     <p class="muted num">
       {{ 'deliveries.detail.round' | translate: { date: d.scheduledDate, stop: d.stop ?? '—' } }}
     </p>
+    @if (d.status === 'FAILED' && d.failureReason) {
+      <p class="failure">{{ 'deliveries.reason.' + d.failureReason | translate }}</p>
+    }
     @if (d.note) {
       <q class="note">{{ d.note }}</q>
     }

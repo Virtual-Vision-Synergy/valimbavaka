@@ -62,7 +62,7 @@ export function toDelivery(order: DeliveryOrderRDto, status: DeliveryOrderStatus
     stop: order.stopNumber,
     scheduledDate: order.scheduledDate,
     note: order.note,
-    failureReason: null,
+    failureReason: order.failureReason,
   };
 }
 

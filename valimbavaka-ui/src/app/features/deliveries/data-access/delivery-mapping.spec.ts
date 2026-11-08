@@ -29,6 +29,9 @@ function order(
     stopNumber: 2,
     amount: 17000,
     note: null,
+    failureReason: null,
+    failureNote: null,
+    returnTransferId: null,
     lines: [{ articleId: 'soap', quantity: 2, unitPrice: 8500, amount: 17000 }],
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
@@ -107,6 +110,14 @@ describe('delivery-mapping', () => {
       prepaid: false,
     });
     expect(round.stops[1].address).toBe('Ivandry, Lot II J 45, rue Pasteur');
+  });
+
+  it('montre le motif d’une commande en échec sur sa carte', () => {
+    const failed = { ...order('LIV-0003', 'tojo', 'FAILED'), failureReason: 'REFUSED' as const };
+
+    const board = toBoard([failed], [TOJO]);
+
+    expect(board.deliveries[0]).toMatchObject({ status: 'FAILED', failureReason: 'REFUSED' });
   });
 
   it('donne une tournée vide quand le livreur n’a aucun arrêt ce jour-là', () => {

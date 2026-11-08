@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.transfer.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -19,6 +21,8 @@ public interface TransferRepository extends OperationRepository<Transfer, UUID> 
 
     @Query(value = "select nextval('stock_return_number_seq')", nativeQuery = true)
     long nextReturnNumber();
+
+    List<Transfer> findAllByIdIn(Collection<UUID> ids);
 
     /**
      * Transfer history (TRF-01), one row per transfer with the count and total quantity of its lines, in a single

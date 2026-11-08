@@ -111,3 +111,7 @@
 .description {
   font-size: var(--text-sm);
 }
+.failure {
+  color: var(--danger-dark);
+  font-weight: 600;
+}

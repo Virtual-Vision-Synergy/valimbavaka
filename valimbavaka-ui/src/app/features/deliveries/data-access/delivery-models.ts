@@ -25,7 +25,7 @@ export const DELIVERY_STATUS_FILTERS: readonly DeliveryStatusFilter[] = [
   'CANCELLED',
 ];
 
-/** Motif d'échec saisi par le livreur (LIV-08). */
+/** Motif d'échec saisi par le livreur, miroir de DeliveryFailureReason (LIV-04). */
 export type FailureReason = 'ABSENT' | 'ADDRESS_NOT_FOUND' | 'REFUSED' | 'OTHER';
 
 /** Miroir de l'énumération backend JournalAction : nature d'une ligne du journal. */
@@ -92,6 +92,12 @@ export interface DeliveryStatusWDto {
   readonly note: string | null;
 }
 
+/** Miroir de DeliveryFailureWDto (LIV-04) : motif obligatoire, commentaire facultatif (280 caractères). */
+export interface DeliveryFailureWDto {
+  readonly reason: FailureReason;
+  readonly note: string | null;
+}
+
 /** Miroir de DeliveryOrderLineRDto : prix unitaire figé à la création, `amount` = quantité × prix. */
 export interface DeliveryOrderLineRDto {
   readonly articleId: string;
@@ -114,6 +120,10 @@ export interface DeliveryOrderRDto {
   readonly stopNumber: number;
   readonly amount: number;
   readonly note: string | null;
+  /** Motif, commentaire du livreur et retour de stock (`RET-…`) d'une commande en échec (LIV-04). */
+  readonly failureReason: FailureReason | null;
+  readonly failureNote: string | null;
+  readonly returnTransferId: string | null;
   readonly lines: readonly DeliveryOrderLineRDto[];
   readonly createdAt: string;
   readonly createdBy: string | null;

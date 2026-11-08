@@ -49,6 +49,28 @@ describe('DeliveryService', () => {
     expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries', body);
   });
 
+  it('envoie l’échec et son motif par la file hors ligne (POST /api/v1/deliveries/{id}/failure)', () => {
+    let result: string | undefined;
+
+    TestBed.inject(DeliveryService)
+      .updateStatus('order-1', { status: 'FAILED', failureReason: 'ABSENT', note: 'Portail fermé' })
+      .subscribe((id) => (result = id));
+
+    expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries/order-1/failure', {
+      reason: 'ABSENT',
+      note: 'Portail fermé',
+    });
+    expect(result).toBe('order-1');
+  });
+
+  it('n’appelle pas l’API d’échec pour une livraison marquée livrée (LIV-03)', () => {
+    TestBed.inject(DeliveryService)
+      .updateStatus('order-1', { status: 'DELIVERED', failureReason: null, note: null })
+      .subscribe();
+
+    expect(submit).not.toHaveBeenCalled();
+  });
+
   it('lit les commandes du jour dans l’ordre des arrêts et les livreurs pour le tableau', () => {
     let board: DeliveryBoardRDto | undefined;
     TestBed.inject(DeliveryService)
