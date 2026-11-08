@@ -30,4 +30,5 @@ public record DeliveryOrderRDto(
         List<DeliveryOrderLineRDto> lines,
         Instant createdAt,
         @Nullable UUID createdBy,
+        @Nullable UUID saleId,
         long version) {}
