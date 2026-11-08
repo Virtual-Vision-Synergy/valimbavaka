@@ -188,14 +188,10 @@ class DeliveryTrackingIT extends DeliveryApiTestSupport {
 
     /** A journal line one hour after now, as a later transition would write it (the journal accepts inserts only). */
     private void insertJournalLine(UUID resourceId, String description) {
-        jdbcTemplate.update(
-                """
+        jdbcTemplate.update("""
                 insert into journal_entries (id, occurred_at, actor_id, actor_name, action, resource_type, resource_id,
                                              description)
                 values (?, now() + interval '1 hour', null, 'Système', 'UPDATE', 'DELIVERY_ORDER', ?, ?)
-                """,
-                UUID.randomUUID(),
-                resourceId,
-                description);
+                """, UUID.randomUUID(), resourceId, description);
     }
 }
