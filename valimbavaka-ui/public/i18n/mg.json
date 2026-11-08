@@ -918,6 +918,7 @@
       "paid": "Voaloa",
       "doneToast": "{{name}} : tonga",
       "failedToast": "{{name}} : voasoratra ny tsy fahatontosana",
+      "refusedToast": "{{name}} : tsy voaray ny fampidirana. {{message}}",
       "undo": "Foano",
       "failureTitle": "Tsy tontosa ny fanaterana · {{name}}",
       "reason": "Inona no nitranga ?",

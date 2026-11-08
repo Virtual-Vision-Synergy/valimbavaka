@@ -47,7 +47,7 @@ export function toDelivery(order: DeliveryOrderRDto, status: DeliveryStatus): De
     status,
     roundId: order.driverId,
     stop: order.stopNumber,
-    failureReason: null,
+    failureReason: order.failureReason,
     history: [],
   };
 }
