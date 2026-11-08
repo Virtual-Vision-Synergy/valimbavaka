@@ -1,18 +1,25 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 
 export type Theme = 'light' | 'dark';
 
 const THEME_KEY = 'vvs.theme';
 const SIDEBAR_KEY = 'vvs.sidebar-collapsed';
 
+function isTheme(value: string | null): value is Theme {
+  return value === 'light' || value === 'dark';
+}
+
 /**
  * Préférences d'affichage (thème, menu replié) : aucune donnée sensible, mémorisées dans le navigateur.
  * Sans choix explicite, le thème suit le système (prefers-color-scheme).
+ * Le thème est porté par la classe `dark` de <html> : toute l'interface bascule d'un coup, sans rechargement,
+ * y compris dans les autres onglets ouverts (événement `storage`) (SYS-04).
  */
 @Injectable({ providedIn: 'root' })
 export class UiPreferencesService {
   private readonly document = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly selectedTheme = signal<Theme>(this.initialTheme());
   private readonly collapsed = signal(this.read(SIDEBAR_KEY) === 'true');
@@ -22,6 +29,7 @@ export class UiPreferencesService {
 
   constructor() {
     this.applyTheme(this.selectedTheme());
+    this.followOtherTabs();
   }
 
   toggleTheme(): void {
@@ -40,9 +48,22 @@ export class UiPreferencesService {
     this.document.documentElement.classList.toggle('dark', theme === 'dark');
   }
 
+  /** Un choix fait dans un autre onglet s'applique aussi à celui-ci, sans le mémoriser une seconde fois. */
+  private followOtherTabs(): void {
+    const view = this.document.defaultView;
+    const listener = (event: StorageEvent): void => {
+      if (event.key === THEME_KEY && isTheme(event.newValue)) {
+        this.selectedTheme.set(event.newValue);
+        this.applyTheme(event.newValue);
+      }
+    };
+    view?.addEventListener('storage', listener);
+    this.destroyRef.onDestroy(() => view?.removeEventListener('storage', listener));
+  }
+
   private initialTheme(): Theme {
     const stored = this.read(THEME_KEY);
-    if (stored === 'light' || stored === 'dark') {
+    if (isTheme(stored)) {
       return stored;
     }
     const prefersDark = this.document.defaultView?.matchMedia?.(
