@@ -12,7 +12,7 @@ Classes : `SaleIT` (`valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/
 |---|---|
 | Rôle(s) utilisé(s) | Vendeuse `SELLER` (saisit et est créditée), administrateur `ADMIN` (saisit pour une vendeuse), livreur `DELIVERY_DRIVER` (refusé) |
 | Données de départ | Journée du jour **ouverte** (JR-01, `POST /api/v1/days`) ; article fini « Savon noir 100 g » `ART-0031`, prix 8 500 Ar, coût 3 120,50 Ar, gamme Botanika ; 10 unités en Boutique (`STORE`) ; canaux `STORE`, `FACEBOOK`, `PHONE`, `DELIVERY` ; vendeuse active Miora Rakoto (canal Boutique, taux 5 %) |
-| Tickets à avoir déployés avant | ART-01, AUTH-03, JR-01 (branche de base, PR empilée), STK-01, JNL-01, JNL-02, SYS-05 |
+| Tickets à avoir déployés avant | ART-01, AUTH-03, JR-01, STK-01, JNL-01, JNL-02, SYS-05 (tous dans `develop`, base de la PR) |
 
 ## Scénarios issus des critères d'acceptation
 
@@ -54,6 +54,8 @@ Classes : `SaleIT` (`valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/
 | Totaux et coût figé | 3 × 8 500 + 1 × 12 000 (coût 7 000) | lignes 25 500,00 et 12 000,00, total 37 500, coût 7 000 conservé | `SaleTest.record_twoLines_freezesThePricesAndAddsTheLineTotals` | ☐ |
 | Prix courant / prix convenu (port LIV-03) | ligne sans prix ; ligne à 8 000 | 8 500 (fiche) ; 8 000 (commande) | `SalePolicyTest.check_finishedActiveArticle_pricesTheLineWithTheCurrentPriceAndCost`, `SalePolicyTest.check_agreedPrice_keepsThePriceOfTheCommand` | ☐ |
 | Prix convenu à 3 décimales | 8 000,005 | 422 | `SalePolicyTest.check_agreedPriceWithThreeDecimals_throwsBusinessException` | ☐ |
+| Port LIV-03 : article désactivé depuis la commande (décision PO du 07/11/2026) | Savon noir désactivé, ligne à 8 000 convenus | ligne acceptée à 8 000 (sans prix convenu : 422, voir « Article désactivé ») | `SalePolicyTest.check_agreedPriceOnAnArticleDeactivatedSince_keepsTheLine` | ☐ |
+| Port LIV-03 : commande saisie par l'administrateur | `sellerId` `null`, `ON_DELIVERY` | vente acceptée, aucune vendeuse créditée ni contrôlée ; le poste exige toujours la vendeuse (`SaleWDto`, 422) | `SalePolicyTest.check_noSellerFromAnotherFeature_creditsNobody`, `SaleIT.createSale_missingSeller_returns422` | ☐ |
 | Bornes des lignes | 0 ligne ; 101 lignes | 422 (1 à 100) | `SalePolicyTest.check_noLine_throwsBusinessException`, `SalePolicyTest.check_hundredAndOneLines_throwsBusinessException` | ☐ |
 | Quantité nulle | 0 | 422 | `SalePolicyTest.check_zeroQuantity_throwsBusinessException` | ☐ |
 | Journée, emplacement, vendeuse | vente Facebook du 08/11/2026, carte | vente rattachée à la journée ouverte, emplacement Boutique, vendeuse et règlement conservés ; ligne envoyée sans prix convenu | `SaleServiceImplTest.createSale_openDay_recordsTheSaleInTheDayAndTakesTheStockOfTheChannelLocation` | ☐ |
