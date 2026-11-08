@@ -12,6 +12,10 @@ import { DEMO_LATENCY_MS } from '../shared/data-access/demo';
 /** Pages alimentées par des données de démonstration : chacune se charge puis ne doit violer aucune règle axe. */
 const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
   [
+    'dashboard',
+    () => import('./dashboard/pages/dashboard-page/dashboard-page').then((m) => m.DashboardPage),
+  ],
+  [
     'commissions',
     () =>
       import('./commissions/pages/commissions-page/commissions-page').then(
@@ -40,7 +44,6 @@ const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
     () =>
       import('./deliveries/pages/deliveries-page/deliveries-page').then((m) => m.DeliveriesPage),
   ],
-  ['day open', () => import('./day/pages/day-open-page/day-open-page').then((m) => m.DayOpenPage)],
   [
     'day close',
     () => import('./day/pages/day-close-page/day-close-page').then((m) => m.DayClosePage),

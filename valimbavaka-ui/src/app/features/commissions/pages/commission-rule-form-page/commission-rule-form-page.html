@@ -1,0 +1,89 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" [routerLink]="rulesPath">{{ 'commissionRule.form.back' | translate }}</a>
+    <h1>
+      {{
+        (isEdit() ? 'commissionRule.form.editTitle' : 'commissionRule.form.newTitle') | translate
+      }}
+    </h1>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="grid">
+      <div class="field full">
+        <label for="name">{{ 'commissionRule.field.name' | translate }} *</label>
+        <input id="name" class="input" formControlName="name" aria-describedby="name-error" />
+        @if (fieldError('name'); as error) {
+          <span id="name-error" class="field-error" aria-live="polite">{{
+            error.key | translate: error.params
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="salesChannelId">{{ 'commissionRule.field.salesChannel' | translate }} *</label>
+        <select
+          id="salesChannelId"
+          class="input"
+          formControlName="salesChannelId"
+          aria-describedby="salesChannelId-error"
+        >
+          <option value="" disabled>{{ 'commissionRule.form.chooseChannel' | translate }}</option>
+          @for (channel of salesChannels(); track channel.id) {
+            <option [value]="channel.id">{{ channel.label }}</option>
+          }
+        </select>
+        @if (fieldError('salesChannelId'); as error) {
+          <span id="salesChannelId-error" class="field-error" aria-live="polite">{{
+            error.key | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="rate">{{ 'commissionRule.field.rate' | translate }} *</label>
+        <input
+          id="rate"
+          class="input"
+          type="number"
+          min="0"
+          max="100"
+          step="0.01"
+          inputmode="decimal"
+          formControlName="rate"
+          aria-describedby="rate-error"
+        />
+        @if (fieldError('rate'); as error) {
+          <span id="rate-error" class="field-error" aria-live="polite">{{
+            error.key | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field full">
+        <label for="base">{{ 'commissionRule.field.base' | translate }} *</label>
+        <select id="base" class="input" formControlName="base" aria-describedby="base-hint">
+          @for (base of bases; track base) {
+            <option [value]="base">{{ 'commissionRule.base.' + base | translate }}</option>
+          }
+        </select>
+        <span id="base-hint" class="field-hint">{{
+          'commissionRule.form.baseHint' | translate
+        }}</span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" [routerLink]="rulesPath">{{
+        'commissionRule.form.cancel' | translate
+      }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="!canSave()">
+        {{ 'commissionRule.form.save' | translate }}
+      </button>
+    </div>
+  </form>
+</section>

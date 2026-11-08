@@ -58,4 +58,13 @@ public interface ProductionBatchRepository extends OperationRepository<Productio
 
     /** Number of batches in the given status, whatever their date (PRD-04: batches in progress). */
     long countByStatus(ProductionBatchStatus status);
+
+    /** Batches producing or consuming the article (ART-06), most recent first; the page gives how many. */
+    @Query("""
+            select b from ProductionBatch b
+            where b.outputArticleId = :articleId
+               or b.id in (select c.id from ProductionBatch c join c.inputs i where i.articleId = :articleId)
+            order by b.createdAt desc, b.number desc
+            """)
+    List<ProductionBatch> findInvolving(UUID articleId, Pageable pageable);
 }

@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 
@@ -41,6 +42,9 @@ public interface StockMovementRepository extends Repository<StockMovement, UUID>
             having sum(m.quantity) <> 0
             """)
     List<StockBalance> nonZeroBalances();
+
+    /** Movements of one article, most recent first; the page gives how many (ART-06: journal of the article). */
+    List<StockMovement> findByArticleIdOrderByOccurredAtDescIdDesc(UUID articleId, Pageable pageable);
 
     /** Serialises concurrent movements on the same article and location until the end of the transaction. */
     @Query(value = "select pg_advisory_xact_lock(hashtextextended(:key, 0)) is not null", nativeQuery = true)

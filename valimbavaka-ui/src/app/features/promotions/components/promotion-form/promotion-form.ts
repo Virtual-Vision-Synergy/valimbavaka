@@ -24,9 +24,9 @@ import {
 import { SALE_CHANNELS } from '../../../../shared/models/commerce';
 import {
   PROMOTION_KINDS,
+  PromotionDraft,
   PromotionKind,
   PromotionScopeRDto,
-  PromotionWDto,
 } from '../../data-access/promotion-models';
 
 /** La fin ne précède pas le début ; au moins un canal est coché. */
@@ -41,7 +41,7 @@ function someChannel(group: AbstractControl): ValidationErrors | null {
     : { channels: true };
 }
 
-/** Création d'une promotion (PRO-02) : un seul formulaire, la prévisualisation du statut vient des dates. */
+/** Création d'une promotion (PRO-01) : un seul formulaire, la prévisualisation du statut vient des dates. */
 @Component({
   selector: 'vvs-promotion-form',
   imports: [ReactiveFormsModule, TranslatePipe, SegmentedControl],
@@ -53,7 +53,7 @@ export class PromotionForm {
   private readonly formBuilder = inject(FormBuilder).nonNullable;
 
   readonly scopes = input.required<readonly PromotionScopeRDto[]>();
-  readonly submitted = output<PromotionWDto>();
+  readonly submitted = output<PromotionDraft>();
   readonly cancelled = output<void>();
 
   protected readonly channels = SALE_CHANNELS;
@@ -71,7 +71,7 @@ export class PromotionForm {
       name: ['', [Validators.required, Validators.maxLength(60)]],
       value: [20, [Validators.required, Validators.min(0)]],
       code: ['', [Validators.pattern(/^[A-Z0-9]{3,12}$/)]],
-      scope: ['ALL' as PromotionWDto['scope']],
+      scope: ['ALL' as PromotionDraft['scope']],
       startsOn: [isoDay(1), Validators.required],
       endsOn: [isoDay(31), Validators.required],
       channels: this.formBuilder.group(
