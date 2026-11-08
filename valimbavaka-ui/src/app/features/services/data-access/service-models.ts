@@ -20,15 +20,24 @@ export interface TreatmentRDto {
   readonly recipe: readonly TreatmentRecipeLineRDto[];
 }
 
+/** Produit consommé affiché dans l'historique du jour : nom copié, quantité et unité courte de l'article. */
+export interface ServiceRecordRowProductRDto {
+  readonly name: string;
+  readonly quantity: number;
+  readonly unit: string;
+}
+
 /**
- * Ligne « Aujourd'hui » de la page, déduite d'un `ServiceRecordRDto` (SRV-02, `service-record-mapping.ts`) ; à ne pas
- * confondre avec `SalonServiceRDto` (catalogue SRV-01).
+ * Ligne « Mes prestations du jour » (SRV-03), déduite d'un `ServiceRecordRDto` (`service-record-mapping.ts`) :
+ * heure, service, cliente et produits consommés. À ne pas confondre avec `SalonServiceRDto` (catalogue SRV-01).
  */
 export interface ServiceRecordRowRDto {
   readonly id: string;
+  readonly number: string;
   readonly treatmentName: string;
   readonly time: string;
-  readonly staff: string;
+  readonly customer: string | null;
+  readonly products: readonly ServiceRecordRowProductRDto[];
   readonly price: number;
 }
 

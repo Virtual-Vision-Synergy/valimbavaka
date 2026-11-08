@@ -1,16 +1,22 @@
 package org.vvs.valimbavaka.feature.salonservice.service.impl;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.vvs.valimbavaka.core.exception.NotFoundException;
+import org.vvs.valimbavaka.core.exception.UnauthorizedException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.salonservice.domain.ServiceRecord;
@@ -38,6 +44,9 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
     /** Stock movement of a salon consumption: the « salon » type of STK-01 (see the SRV-02 guide). */
     static final StockMovementType SALON_MOVEMENT = StockMovementType.TRADE_SHOW;
 
+    /** Business day of the salon (SRV-03): a day runs from midnight to midnight in Madagascar. */
+    static final ZoneId BUSINESS_ZONE = ZoneId.of("Indian/Antananarivo");
+
     private static final Set<String> SORT_FIELDS = Set.of("createdAt", "number", "serviceName", "price");
 
     private final ServiceRecordRepository serviceRecordRepository;
@@ -45,18 +54,24 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
     private final ServiceRecordPolicy policy;
     private final StockMovementService stockMovementService;
     private final JournalService journalService;
+    private final AuditorAware<UUID> auditorAware;
+    private final Clock clock;
 
     ServiceRecordServiceImpl(
             ServiceRecordRepository serviceRecordRepository,
             ServiceRecordMapper serviceRecordMapper,
             ServiceRecordPolicy policy,
             StockMovementService stockMovementService,
-            JournalService journalService) {
+            JournalService journalService,
+            AuditorAware<UUID> auditorAware,
+            Clock clock) {
         this.serviceRecordRepository = serviceRecordRepository;
         this.serviceRecordMapper = serviceRecordMapper;
         this.policy = policy;
         this.stockMovementService = stockMovementService;
         this.journalService = journalService;
+        this.auditorAware = auditorAware;
+        this.clock = clock;
     }
 
     @Override
@@ -64,6 +79,20 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
         var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
         return PageResponse.from(
                 serviceRecordRepository.search(query.searchTerm(), pageable).map(serviceRecordMapper::toRDto));
+    }
+
+    @Override
+    public PageResponse<ServiceRecordRDto> getMyServiceRecords(PageQuery query, @Nullable LocalDate date) {
+        var sellerId = auditorAware
+                .getCurrentAuditor()
+                .orElseThrow(() -> new UnauthorizedException("Une session active est requise."));
+        var day = date != null ? date : LocalDate.now(clock.withZone(BUSINESS_ZONE));
+        var from = day.atStartOfDay(BUSINESS_ZONE).toInstant();
+        var to = day.plusDays(1).atStartOfDay(BUSINESS_ZONE).toInstant();
+        var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
+        return PageResponse.from(serviceRecordRepository
+                .findBySellerBetween(sellerId, from, to, pageable)
+                .map(serviceRecordMapper::toRDto));
     }
 
     @Override

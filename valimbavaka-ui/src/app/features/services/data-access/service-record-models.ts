@@ -51,3 +51,11 @@ export interface ServiceRecordWDto {
 
 /** Filtres de GET /api/v1/service-records : pagination et recherche (numéro, service, cliente, vendeuse). */
 export type ServiceRecordListQuery = PageQuery;
+
+/**
+ * Filtres de GET /api/v1/service-records/mine (SRV-03) : prestations du compte connecté sur un jour (heure de
+ * Madagascar), les plus récentes d'abord. `date` au format `AAAA-MM-JJ`, aujourd'hui si absente ; pas de recherche.
+ */
+export interface ServiceRecordDayQuery extends PageQuery {
+  readonly date?: string;
+}

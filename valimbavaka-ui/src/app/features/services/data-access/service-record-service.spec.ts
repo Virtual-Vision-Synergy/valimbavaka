@@ -35,6 +35,24 @@ describe('ServiceRecordService', () => {
     request.flush(EMPTY_PAGE);
   });
 
+  it("lit les prestations du jour du compte connecté sans date : le serveur prend aujourd'hui", () => {
+    service.mine({ page: 1, size: 100, sortBy: 'createdAt', sortDirection: 'DESC' }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${RECORDS_URL}/mine`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('size')).toBe('100');
+    expect(request.request.params.has('date')).toBe(false);
+    request.flush(EMPTY_PAGE);
+  });
+
+  it("lit les prestations du compte connecté d'un jour donné", () => {
+    service.mine({ page: 1, size: 20, date: '2026-11-01' }).subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${RECORDS_URL}/mine`);
+    expect(request.request.params.get('date')).toBe('2026-11-01');
+    request.flush(EMPTY_PAGE);
+  });
+
   it('enregistre une prestation par POST avec le service, la cliente et les produits consommés', async () => {
     const body: ServiceRecordWDto = {
       salonServiceId: 'soin-visage',
