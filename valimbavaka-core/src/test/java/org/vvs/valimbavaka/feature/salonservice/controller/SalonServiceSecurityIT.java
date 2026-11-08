@@ -142,6 +142,21 @@ class SalonServiceSecurityIT {
     }
 
     @Test
+    void createService_nullProductLine_returns201AndIgnoresLine() throws Exception {
+        // Arrange
+        var token = adminToken();
+        var articleId = insertArticle(true);
+        var products = "[null,{\"articleId\":\"%s\",\"quantity\":2}]".formatted(articleId);
+
+        // Act + Assert
+        mockMvc.perform(postJson(SERVICES, body(uniqueName(), 45, "12", products))
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.products.length()").value(1))
+                .andExpect(jsonPath("$.products[0].articleId").value(articleId.toString()));
+    }
+
+    @Test
     void createService_durationZero_returns422() throws Exception {
         // Arrange
         var token = adminToken();
