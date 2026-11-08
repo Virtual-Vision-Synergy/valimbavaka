@@ -15,6 +15,7 @@ describe('visibleSections', () => {
     expect(labels).toContain('menu.item.reports');
     expect(labels).toContain('menu.item.journal');
     expect(labels).toContain('menu.item.commissionRules');
+    expect(labels).toContain('menu.item.commissionList');
     expect(labels).toContain('menu.item.salonCatalog');
   });
 
@@ -37,6 +38,7 @@ describe('visibleSections', () => {
     expect(labels).not.toContain('menu.item.journal');
     expect(labels).not.toContain('menu.item.dayOpen');
     expect(labels).not.toContain('menu.item.commissionRules');
+    expect(labels).not.toContain('menu.item.commissionList');
   });
 
   it('should show only the dashboard and deliveries to a delivery driver', () => {
