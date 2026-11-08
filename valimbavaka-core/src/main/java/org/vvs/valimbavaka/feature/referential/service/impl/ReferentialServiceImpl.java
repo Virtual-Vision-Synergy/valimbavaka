@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.referential.service.impl;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.feature.referential.domain.SalesChannel;
 import org.vvs.valimbavaka.feature.referential.domain.StockLocation;
 import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
 import org.vvs.valimbavaka.feature.referential.dto.SalesChannelRDto;
@@ -74,6 +76,16 @@ public class ReferentialServiceImpl implements ReferentialService {
     @Override
     public boolean isActiveStockLocation(UUID stockLocationId) {
         return stockLocationRepository.existsByIdAndActiveTrue(stockLocationId);
+    }
+
+    @Override
+    public Optional<UUID> findSalesChannelId(String code) {
+        return salesChannelRepository.findByCode(code).map(SalesChannel::getId);
+    }
+
+    @Override
+    public Optional<UUID> findStockLocationId(String code) {
+        return stockLocationRepository.findByCode(code).map(StockLocation::getId);
     }
 
     @Override
