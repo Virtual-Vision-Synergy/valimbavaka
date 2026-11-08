@@ -356,7 +356,9 @@
       "titleWeek": "Chiffre d'affaires · 7 derniers jours",
       "titleMonth": "Chiffre d'affaires · 4 dernières semaines",
       "summary": "Total {{total}} · moyenne {{average}}",
-      "previous": "Périodes précédentes"
+      "previous": "Périodes précédentes",
+      "tooltipDay": "{{date}} : {{amount}}",
+      "tooltipWeek": "Semaine du {{date}} : {{amount}}"
     },
     "split": {
       "title": "Répartition du CA",

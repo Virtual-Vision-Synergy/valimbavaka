@@ -99,6 +99,29 @@
   color: var(--gris-anthracite);
   font-weight: 600;
 }
+.tooltip {
+  position: absolute;
+  z-index: 1;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  background: var(--gris-anthracite);
+  color: var(--blanc);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 120ms var(--ease-standard);
+}
+.column:hover .tooltip {
+  opacity: 1;
+}
+.column:hover .bar {
+  filter: brightness(1.08);
+}
 @keyframes grow {
   from {
     transform: scaleY(0);

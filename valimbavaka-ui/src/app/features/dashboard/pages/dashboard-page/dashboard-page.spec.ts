@@ -9,6 +9,20 @@ import { DEMO_LATENCY_MS } from '../../../../shared/data-access/demo';
 import { DashboardPage } from './dashboard-page';
 
 const ALERTS_URL = '/api/v1/stocks/alerts';
+const REVENUE_URL = '/api/v1/dashboard/revenue-trend';
+
+/** Tendance du CA calculée par le serveur (DSH-02). */
+const TREND = {
+  today: '2026-11-08',
+  last7Days: ['02', '03', '04', '05', '06', '07', '08'].map((day) => ({
+    date: `2026-11-${day}`,
+    amount: 125_000,
+  })),
+  last4Weeks: ['2026-10-12', '2026-10-19', '2026-10-26', '2026-11-02'].map((date) => ({
+    date,
+    amount: 875_000,
+  })),
+};
 
 /** Alerte de seuil telle que calculée par le serveur (STK-04). */
 const ALERT = {
@@ -67,7 +81,11 @@ describe('DashboardPage — alertes de stock', () => {
     fixture.detectChanges();
   };
 
-  afterEach(() => httpMock.verify());
+  afterEach(() => {
+    // Le graphique du CA (DSH-02) part aussi pour l'administrateur : testé dans le bloc suivant.
+    httpMock.match((req) => req.url === REVENUE_URL);
+    httpMock.verify();
+  });
 
   it('lit les 100 alertes les plus urgentes et rend chaque article cliquable vers sa fiche', async () => {
     await open('ADMIN');
@@ -121,5 +139,80 @@ describe('DashboardPage — alertes de stock', () => {
     fixture.detectChanges();
 
     expect(card?.textContent).toContain('Aucun article sous son seuil');
+  });
+});
+
+/** DSH-02 : le graphique du CA est lu à part de l'agrégat, pour l'administrateur seulement. */
+describe('DashboardPage — graphique du CA', () => {
+  let httpMock: HttpTestingController;
+  let fixture: ComponentFixture<DashboardPage>;
+  let element: HTMLElement;
+
+  const open = async (role: 'ADMIN' | 'SELLER'): Promise<void> => {
+    await TestBed.configureTestingModule({
+      imports: [DashboardPage],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        provideTestTranslations(),
+      ],
+    }).compileComponents();
+    TestBed.inject(AuthStore).signIn('jeton', buildUser(role));
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(DashboardPage);
+    fixture.componentRef.setInput('tab', 'analysis');
+    element = fixture.nativeElement as HTMLElement;
+    fixture.detectChanges();
+    httpMock.match((req) => req.url === ALERTS_URL).forEach((request) => request.flush(page([])));
+  };
+
+  const render = async (): Promise<void> => {
+    await settle();
+    await fixture.whenStable();
+    fixture.detectChanges();
+  };
+
+  afterEach(() => httpMock.verify());
+
+  it('lit la tendance sur l’API et affiche une barre par jour avec son infobulle', async () => {
+    await open('ADMIN');
+
+    httpMock.expectOne((req) => req.url === REVENUE_URL).flush(TREND);
+    await render();
+
+    const card = element.querySelector('vvs-revenue-chart-card');
+    expect(card?.querySelectorAll('.column')).toHaveLength(7);
+    expect(card?.querySelectorAll('.tooltip')).toHaveLength(7);
+  });
+
+  it('n’appelle pas l’API et masque le graphique pour la vendeuse, sans reports.read', async () => {
+    await open('SELLER');
+    await render();
+
+    httpMock.expectNone((req) => req.url === REVENUE_URL);
+    expect(element.querySelector('vvs-revenue-chart-card')).toBeNull();
+    expect(element.querySelector('vvs-revenue-split-card')).not.toBeNull();
+  });
+
+  it('affiche une erreur dans le graphique sans bloquer le cockpit, puis recharge au réessai', async () => {
+    await open('ADMIN');
+
+    httpMock
+      .expectOne((req) => req.url === REVENUE_URL)
+      .flush(null, { status: 503, statusText: 'Service Unavailable' });
+    await render();
+
+    const card = element.querySelector('vvs-revenue-chart-card');
+    expect(card?.querySelector('[role="alert"]')).not.toBeNull();
+    expect(element.querySelector('vvs-revenue-split-card')).not.toBeNull();
+
+    card?.querySelector<HTMLButtonElement>('[role="alert"] button')?.click();
+    TestBed.tick();
+    httpMock.expectOne((req) => req.url === REVENUE_URL).flush(TREND);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(card?.querySelectorAll('.column')).toHaveLength(7);
   });
 });

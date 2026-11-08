@@ -13,6 +13,9 @@
       </div>
       @for (bar of bars(); track bar.label) {
         <div class="column" [class.highlight]="bar.highlight">
+          @if (bar.tooltip) {
+            <span class="tooltip">{{ bar.tooltip }}</span>
+          }
           <div class="bar-slot">
             <span class="bar" [style.height.%]="percent(bar.value)">
               <span class="value">{{ bar.display }}</span>

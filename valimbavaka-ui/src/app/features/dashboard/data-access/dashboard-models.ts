@@ -40,10 +40,22 @@ export interface StockGapKpiRDto {
   readonly articles: number;
 }
 
-export interface DailyRevenueRDto {
+/** Une barre du graphique de CA (DSH-02) : un jour, ou une semaine (`date` = lundi). */
+export interface RevenuePointRDto {
   /** Date ISO (yyyy-MM-dd). */
   readonly date: string;
+  /** Ventes validées + prestations salon, 0 si rien n'a été vendu. */
   readonly amount: number;
+}
+
+/**
+ * Tendance du CA (DSH-02), `GET /api/v1/dashboard/revenue-trend` (permission `reports.read`) : 7 jours jusqu'à
+ * aujourd'hui inclus, puis 4 semaines du lundi au dimanche, la semaine en cours en dernier.
+ */
+export interface RevenueTrendRDto {
+  readonly today: string;
+  readonly last7Days: readonly RevenuePointRDto[];
+  readonly last4Weeks: readonly RevenuePointRDto[];
 }
 
 export interface RangeRevenueRDto {
@@ -80,8 +92,9 @@ export interface SellerPerformanceRDto {
 }
 
 /**
- * Cockpit du jour (DSH-01, DSH-02, DSH-04) : agrégat en lecture seule, calculé côté serveur. Les alertes de stock
- * (DSH-03) n'en font pas partie : la page les lit à part sur `GET /api/v1/stocks/alerts` (STK-04).
+ * Cockpit du jour (DSH-01, DSH-04) : agrégat en lecture seule, calculé côté serveur. Les alertes de stock (DSH-03)
+ * et la tendance du CA (DSH-02) n'en font pas partie : la page les lit à part (`GET /api/v1/stocks/alerts`,
+ * `GET /api/v1/dashboard/revenue-trend`).
  */
 export interface DashboardRDto {
   readonly businessDate: string;
@@ -95,9 +108,6 @@ export interface DashboardRDto {
   readonly sales: SalesKpiRDto;
   readonly deliveries: DeliveryKpiRDto;
   readonly stockGap: StockGapKpiRDto;
-  readonly revenueLast7Days: readonly DailyRevenueRDto[];
-  /** Chiffre d'affaires des 4 dernières semaines, `date` = lundi de la semaine. */
-  readonly revenueLast4Weeks: readonly DailyRevenueRDto[];
   readonly revenueByRange: readonly RangeRevenueRDto[];
   readonly revenueByChannel: readonly ChannelRevenueRDto[];
   readonly activity: readonly ActivityRDto[];

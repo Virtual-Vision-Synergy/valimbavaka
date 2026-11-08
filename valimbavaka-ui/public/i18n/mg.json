@@ -356,7 +356,9 @@
       "titleWeek": "Vola niditra · 7 andro farany",
       "titleMonth": "Vola niditra · 4 herinandro farany",
       "summary": "Totaliny {{total}} · salany {{average}}",
-      "previous": "Fe-potoana teo aloha"
+      "previous": "Fe-potoana teo aloha",
+      "tooltipDay": "{{date}} : {{amount}}",
+      "tooltipWeek": "Herinandro nanomboka ny {{date}} : {{amount}}"
     },
     "split": {
       "title": "Fizarana ny vola niditra",

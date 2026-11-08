@@ -36,7 +36,8 @@ const TABS: readonly TabItem<DashboardTab>[] = [
 
 /**
  * Cockpit du jour (DSH-01 à DSH-04) : vue d'ensemble pour agir, analyse détaillée pour comprendre. Les alertes de
- * stock (DSH-03) viennent de `GET /api/v1/stocks/alerts` ; le reste reste sur l'agrégat de démonstration.
+ * stock (DSH-03) viennent de `GET /api/v1/stocks/alerts`, la tendance du CA (DSH-02) de
+ * `GET /api/v1/dashboard/revenue-trend` ; le reste reste sur l'agrégat de démonstration.
  */
 @Component({
   selector: 'vvs-dashboard-page',
@@ -78,6 +79,19 @@ export class DashboardPage {
   protected readonly dashboard = rxResource({ stream: () => this.dashboardService.get() });
   protected readonly firstName = computed(() => this.authStore.currentUser()?.firstName ?? '');
   protected readonly canSeeSellers = computed(() => this.authStore.hasPermission('reports.read'));
+  /** Graphique du CA (DSH-02) : réservé à l'administrateur (`reports.read`), sinon aucun appel. */
+  protected readonly canSeeRevenueTrend = computed(() =>
+    this.authStore.hasPermission('reports.read'),
+  );
+  /** Tendance du CA, lue à part de l'agrégat (DSH-01) : un échec n'empêche pas le reste du cockpit. */
+  protected readonly revenueTrend = rxResource({
+    params: () => (this.canSeeRevenueTrend() ? true : undefined),
+    stream: () => this.dashboardService.revenueTrend(),
+  });
+  protected readonly revenueTrendValue = computed(() =>
+    this.revenueTrend.hasValue() ? this.revenueTrend.value() : undefined,
+  );
+  protected readonly revenueTrendFailed = computed(() => this.revenueTrend.status() === 'error');
   /** Alertes de stock (DSH-03) : réservées à `stocks.read`, sinon aucun appel (le livreur n'y a pas droit). */
   protected readonly canSeeStockAlerts = computed(() =>
     this.authStore.hasPermission('stocks.read'),
