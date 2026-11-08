@@ -19,19 +19,18 @@ import { SalonForm } from '../../components/salon-form/salon-form';
 import { ShootingForm } from '../../components/shooting-form/shooting-form';
 import { ShootingKpis } from '../../components/shooting-kpis/shooting-kpis';
 import { ShootingList } from '../../components/shooting-list/shooting-list';
-import {
-  ServiceRecordRDto,
-  ServiceRecordWDto,
-  ShootingRowRDto,
-  ShootingWDto,
-} from '../../data-access/service-models';
+import { ShootingRowRDto, ShootingWDto } from '../../data-access/service-models';
+import { ServiceRecordWDto } from '../../data-access/service-record-models';
+import { ServiceRecordService } from '../../data-access/service-record-service';
 import { SalonService } from '../../data-access/service-service';
 import { ShootingService } from '../../data-access/shooting-service';
-import { isoDay } from '../../../../shared/data-access/demo-dates';
 
 type ServicesTab = 'salon' | 'shooting';
 
-/** Salon et shooting (SRV-01 à SRV-04, SHO-01 à SHO-03) : prestations du jour, sorties de produits et leur suivi. */
+/**
+ * Salon et shooting : enregistrement des prestations et prestations du jour (SRV-02, API), sorties de produits
+ * shooting et leur suivi (SHO-01 à SHO-03, API).
+ */
 @Component({
   selector: 'vvs-services-page',
   imports: [
@@ -50,12 +49,13 @@ type ServicesTab = 'salon' | 'shooting';
 })
 export class ServicesPage {
   private readonly salonService = inject(SalonService);
+  private readonly serviceRecords = inject(ServiceRecordService);
   private readonly shootingService = inject(ShootingService);
   private readonly toast = inject(ToastService);
   private readonly shootingForm = viewChild(ShootingForm);
 
   protected readonly context = rxResource({ stream: () => this.salonService.context() });
-  /** Sorties shooting réelles (SHO-01) ; le salon reste en démonstration (SRV-xx). */
+  /** Sorties shooting réelles (SHO-01) ; le salon lit l'API (SRV-02). */
   protected readonly shootingRows = rxResource({ stream: () => this.shootingService.list() });
   private readonly authStore = inject(AuthStore);
   protected readonly canRecordShooting = computed(() =>
@@ -80,7 +80,8 @@ export class ServicesPage {
   });
   protected readonly savingShooting = signal(false);
   protected readonly shootingError = signal<string | null>(null);
-  protected readonly created = signal<readonly ServiceRecordRDto[]>([]);
+  protected readonly saving = signal(false);
+  protected readonly saveError = signal<string | null>(null);
   /** Réintégrations en file hors ligne : affichées « Réintégré » en attendant le serveur. */
   protected readonly returnedNumbers = signal<readonly string[]>([]);
 
@@ -98,31 +99,32 @@ export class ServicesPage {
     { id: 'salon', labelKey: 'services.tab.salon' },
     { id: 'shooting', labelKey: 'services.tab.shooting', count: this.active().length },
   ]);
-  protected readonly today = computed(() => [
-    ...this.created(),
-    ...(this.context.value()?.today ?? []),
-  ]);
+  protected readonly today = computed(() => this.context.value()?.today ?? []);
   protected readonly todayTotal = computed(() =>
     this.today().reduce((sum, service) => sum + service.price, 0),
   );
 
+  /** Le serveur déduit le stock salon ; la page relit ensuite les prestations du jour et le stock. */
   protected register(request: ServiceRecordWDto): void {
-    const treatment = this.context
-      .value()
-      ?.treatments.find((item) => item.id === request.treatmentId);
-    this.salonService.register(request).subscribe(() => {
-      const now = new Date();
-      this.created.update((all) => [
-        {
-          id: `new-${now.getTime()}`,
-          treatmentName: treatment?.name ?? '',
-          time: now.toTimeString().slice(0, 5),
-          staff: request.staff.split(' ')[0] + ' ' + (request.staff.split(' ')[1]?.[0] ?? '') + '.',
-          price: treatment?.price ?? 0,
-        },
-        ...all,
-      ]);
-      this.toast.show('services.registeredToast', { name: treatment?.name ?? '', date: isoDay(0) });
+    const name =
+      this.context.value()?.treatments.find((item) => item.id === request.salonServiceId)?.name ??
+      '';
+    this.saving.set(true);
+    this.saveError.set(null);
+    this.serviceRecords.create(request).subscribe({
+      next: (result) => {
+        this.saving.set(false);
+        if (result.queued) {
+          this.toast.show('common.queuedSaved', {}, 'info');
+          return;
+        }
+        this.toast.show('services.registeredToast', { name, number: result.body?.number ?? '' });
+        this.context.reload();
+      },
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.saveError.set(errorMessage(error));
+      },
     });
   }
 

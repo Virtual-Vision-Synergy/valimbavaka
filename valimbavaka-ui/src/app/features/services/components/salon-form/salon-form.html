@@ -24,6 +24,8 @@
             }}</span>
             <strong class="t-price num">{{ item.price | ariary }}</strong>
           </label>
+        } @empty {
+          <p class="muted">{{ 'services.noTreatment' | translate }}</p>
         }
       </div>
     </fieldset>
@@ -34,26 +36,17 @@
           >2. {{ 'services.customer' | translate }}
           <span class="muted">{{ 'common.optional' | translate }}</span></label
         >
-        <input id="svc-customer" class="input" formControlName="customer" autocomplete="off" />
+        <input
+          id="svc-customer"
+          class="input"
+          formControlName="customer"
+          autocomplete="off"
+          [attr.maxlength]="maxCustomerLength"
+        />
       </div>
       <div class="field">
-        <label for="svc-staff">{{ 'services.doneBy' | translate }}</label>
-        <select
-          id="svc-staff"
-          class="input"
-          formControlName="staff"
-          required
-          [attr.aria-invalid]="form.controls.staff.invalid && attempted()"
-          aria-describedby="svc-staff-error"
-        >
-          <option value="" disabled>{{ 'services.chooseStaff' | translate }}</option>
-          @for (name of staff(); track name) {
-            <option [value]="name">{{ name }}</option>
-          }
-        </select>
-        @if (form.controls.staff.invalid && attempted()) {
-          <p id="svc-staff-error" class="field-error">{{ 'services.staffRequired' | translate }}</p>
-        }
+        <span class="field-label">{{ 'services.doneBy' | translate }}</span>
+        <strong class="seller">{{ sellerName() }}</strong>
       </div>
     </div>
 
@@ -118,7 +111,7 @@
     <button class="btn btn-secondary" type="button" (click)="cancel()">
       {{ 'common.cancel' | translate }}
     </button>
-    <button class="btn btn-primary" type="submit" [disabled]="hasShortage()">
+    <button class="btn btn-primary" type="submit" [disabled]="hasShortage() || !treatment()">
       {{ 'services.save' | translate }}
     </button>
   </footer>

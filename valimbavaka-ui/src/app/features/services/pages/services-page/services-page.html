@@ -18,12 +18,17 @@
           id="services-panel-salon"
           aria-labelledby="services-tab-salon"
         >
-          <vvs-salon-form
-            [treatments]="data.treatments"
-            [products]="data.products"
-            [staff]="data.staff"
-            (registered)="register($event)"
-          />
+          <div class="main">
+            @if (saveError(); as message) {
+              <p class="alert alert-danger" role="alert">{{ message }}</p>
+            }
+            <vvs-salon-form
+              [treatments]="data.treatments"
+              [products]="data.products"
+              [attr.aria-busy]="saving()"
+              (registered)="register($event)"
+            />
+          </div>
           <aside class="aside">
             <section class="card" aria-labelledby="today-title">
               <header class="aside-head">

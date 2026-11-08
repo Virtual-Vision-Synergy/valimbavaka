@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Salon et shooting : données de démonstration tant que les prestations (SRV-02) n'existent pas.
+ * Salon et shooting : prestations enregistrées par l'API (SRV-02, `service-records.create`, le serveur décide) ;
+ * les sorties shooting restent en démonstration.
  * Catalogue des services salon (SRV-01) : lecture avec `services.read` (route parente), création et modification
  * réservées à l'administrateur (`services.create`, `services.update`) ; le serveur décide.
  */

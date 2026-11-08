@@ -156,6 +156,15 @@
   margin-left: var(--space-2);
   font-size: var(--text-xl);
 }
+/* Prestation au nom du compte connecté (SRV-02) : même allure qu'un libellé de champ. */
+.field-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--gris-anthracite);
+}
+.seller {
+  padding-block: var(--space-2);
+}
 @media (max-width: 640px) {
   .pair {
     grid-template-columns: minmax(0, 1fr);

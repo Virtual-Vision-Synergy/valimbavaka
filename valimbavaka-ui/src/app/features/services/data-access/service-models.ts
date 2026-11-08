@@ -1,4 +1,4 @@
-/** Produit du stock salon consommé par une prestation (unité d'affichage : ml, g, u.). */
+/** Produit du stock salon consommé par une prestation : article actif, unité courte (`u.`, `kg`, `L`), stock salon. */
 export interface SalonProductRDto {
   readonly id: string;
   readonly name: string;
@@ -11,7 +11,7 @@ export interface TreatmentRecipeLineRDto {
   readonly quantity: number;
 }
 
-/** Soin proposé au salon (SRV-01). */
+/** Soin proposé au salon : service actif du catalogue (SRV-01), recette = produits habituellement consommés. */
 export interface TreatmentRDto {
   readonly id: string;
   readonly name: string;
@@ -20,8 +20,11 @@ export interface TreatmentRDto {
   readonly recipe: readonly TreatmentRecipeLineRDto[];
 }
 
-/** Prestation enregistrée (SRV-03), maquette ; à ne pas confondre avec `SalonServiceRDto` (catalogue SRV-01). */
-export interface ServiceRecordRDto {
+/**
+ * Ligne « Aujourd'hui » de la page, déduite d'un `ServiceRecordRDto` (SRV-02, `service-record-mapping.ts`) ; à ne pas
+ * confondre avec `SalonServiceRDto` (catalogue SRV-01).
+ */
+export interface ServiceRecordRowRDto {
   readonly id: string;
   readonly treatmentName: string;
   readonly time: string;
@@ -112,14 +115,5 @@ export interface ShootingWDto {
 export interface ServicesContextRDto {
   readonly treatments: readonly TreatmentRDto[];
   readonly products: readonly SalonProductRDto[];
-  readonly staff: readonly string[];
-  readonly today: readonly ServiceRecordRDto[];
-}
-
-/** Enregistrement d'une prestation : le serveur déduit les produits du stock salon. */
-export interface ServiceRecordWDto {
-  readonly treatmentId: string;
-  readonly customer: string | null;
-  readonly staff: string;
-  readonly consumed: readonly { readonly productId: string; readonly quantity: number }[];
+  readonly today: readonly ServiceRecordRowRDto[];
 }
