@@ -10,4 +10,7 @@ import org.jspecify.annotations.Nullable;
  * for a channel rule, the rule's identifier.
  */
 public record CommissionTerms(
-        BigDecimal rate, CommissionBase base, CommissionRateSource rateSource, @Nullable UUID ruleId) {}
+        BigDecimal rate,
+        CommissionBase base,
+        CommissionRateSource rateSource,
+        @Nullable UUID ruleId) {}

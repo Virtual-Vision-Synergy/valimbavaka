@@ -76,8 +76,9 @@ class ServiceRecordIT extends ServiceRecordApiTestSupport {
         assertThat(balance(oil, SALON)).isEqualByComparingTo("0.980");
         assertThat(balance(oil, "STORE")).isEqualByComparingTo("5");
         var number = JsonPath.<String>read(result.getResponse().getContentAsString(), "$.number");
+        // COM-02 traces the commission of the service too ("Commission PRE-…"): look for the service line itself
         mockMvc.perform(get("/api/v1/journal")
-                        .param("search", number)
+                        .param("search", "Prestation " + number)
                         .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.items[0].action").value("CREATE"))
