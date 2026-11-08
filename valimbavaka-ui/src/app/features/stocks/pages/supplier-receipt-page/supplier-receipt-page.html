@@ -1,0 +1,155 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" routerLink="/stocks">{{ 'stocks.receipt.back' | translate }}</a>
+    <h1>{{ 'stocks.receipt.title' | translate }}</h1>
+    <p class="muted">{{ 'stocks.receipt.subtitle' | translate }}</p>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="field">
+      <label for="restockOrderId">{{ 'stocks.receipt.order' | translate }}</label>
+      <select
+        id="restockOrderId"
+        class="input"
+        formControlName="restockOrderId"
+        aria-describedby="order-hint"
+        (change)="useOrder()"
+      >
+        <option value="">{{ 'stocks.receipt.freeEntry' | translate }}</option>
+        @for (order of orders(); track order.id) {
+          <option [value]="order.id">
+            {{
+              'stocks.receipt.orderOption'
+                | translate: { reference: order.reference, count: order.lines.length }
+            }}
+          </option>
+        }
+      </select>
+      <span id="order-hint" class="field-hint">{{ 'stocks.receipt.orderHint' | translate }}</span>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label for="supplierId">{{ 'stocks.receipt.supplier' | translate }} *</label>
+        <select
+          id="supplierId"
+          class="input"
+          formControlName="supplierId"
+          aria-describedby="supplier-error"
+        >
+          <option value="">{{ 'stocks.receipt.chooseSupplier' | translate }}</option>
+          @for (supplier of suppliers(); track supplier.id) {
+            <option [value]="supplier.id">{{ supplier.name }}</option>
+          }
+        </select>
+        @if (form.controls.supplierId.touched && form.controls.supplierId.invalid) {
+          <span id="supplier-error" class="field-error" aria-live="polite">{{
+            'stocks.receipt.supplierRequired' | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="locationId">{{ 'stocks.receipt.location' | translate }} *</label>
+        <select id="locationId" class="input" formControlName="locationId">
+          @for (location of locations(); track location.id) {
+            <option [value]="location.id">{{ location.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <fieldset class="lines" formArrayName="lines">
+      <legend>{{ 'stocks.receipt.lines' | translate }}</legend>
+      @for (line of lines.controls; track line; let i = $index) {
+        <div class="line" [formGroupName]="i">
+          <div class="field">
+            <label [for]="'article-' + i">{{ 'stocks.receipt.article' | translate }} *</label>
+            <select
+              class="input"
+              formControlName="articleId"
+              [id]="'article-' + i"
+              [attr.aria-describedby]="'article-error-' + i"
+            >
+              <option value="">{{ 'stocks.receipt.chooseArticle' | translate }}</option>
+              @for (article of articles(); track article.articleId) {
+                <option [value]="article.articleId">{{ article.code }} · {{ article.name }}</option>
+              }
+            </select>
+            @if (line.controls.articleId.touched && line.controls.articleId.invalid) {
+              <span [id]="'article-error-' + i" class="field-error" aria-live="polite">{{
+                'stocks.receipt.articleRequired' | translate
+              }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label [for]="'quantity-' + i">{{ 'stocks.receipt.quantity' | translate }} *</label>
+            <input
+              class="input num"
+              inputmode="decimal"
+              formControlName="quantity"
+              [id]="'quantity-' + i"
+              [attr.aria-describedby]="'quantity-error-' + i"
+            />
+            @if (line.controls.quantity.touched && line.controls.quantity.invalid) {
+              <span [id]="'quantity-error-' + i" class="field-error" aria-live="polite">{{
+                'stocks.receipt.quantityInvalid' | translate
+              }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label [for]="'cost-' + i">{{ 'stocks.receipt.unitCost' | translate }} *</label>
+            <input
+              class="input num"
+              inputmode="decimal"
+              formControlName="unitCost"
+              [id]="'cost-' + i"
+              [attr.aria-describedby]="'cost-error-' + i"
+            />
+            @if (line.controls.unitCost.touched && line.controls.unitCost.invalid) {
+              <span [id]="'cost-error-' + i" class="field-error" aria-live="polite">{{
+                'stocks.receipt.unitCostInvalid' | translate
+              }}</span>
+            }
+          </div>
+
+          <button
+            class="btn btn-ghost remove"
+            type="button"
+            [disabled]="lines.length === 1"
+            [attr.aria-label]="'stocks.receipt.removeLine' | translate: { index: i + 1 }"
+            (click)="removeLine(i)"
+          >
+            ✕
+          </button>
+        </div>
+      }
+      <button
+        class="btn btn-secondary add"
+        type="button"
+        [disabled]="lines.length >= maxLines"
+        (click)="addLine()"
+      >
+        {{ 'stocks.receipt.addLine' | translate }}
+      </button>
+    </fieldset>
+
+    <div class="field">
+      <label for="note">{{ 'stocks.receipt.note' | translate }}</label>
+      <textarea id="note" class="input" rows="2" formControlName="note"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" routerLink="/stocks">{{ 'common.cancel' | translate }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="isSaving()">
+        {{ 'stocks.receipt.submit' | translate }}
+      </button>
+    </div>
+  </form>
+</section>

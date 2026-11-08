@@ -1,12 +1,13 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ArrowRight, Eye, EyeOff, Moon, Sun, WifiOff } from 'lucide';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../../core/auth/auth-service';
 import { ApiError, errorMessage } from '../../../../core/http/problem-detail';
+import { SESSION_EXPIRED_QUERY_PARAMS } from '../../../../core/http/session-interceptor';
 import { LanguageSwitcher } from '../../../../core/i18n/language-switcher';
 import { UiPreferencesService } from '../../../../core/layout/ui-preferences-service';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -34,6 +35,10 @@ export class LoginPage {
   protected readonly capsLock = signal(false);
   protected readonly theme = this.preferences.theme;
   protected readonly roles = ['admin', 'seller', 'driver'] as const;
+  /** Arrivée depuis une session expirée : les saisies en attente sont conservées jusqu'à la reconnexion (SYS-11). */
+  protected readonly sessionExpired =
+    inject(ActivatedRoute).snapshot.queryParamMap.get('session') ===
+    SESSION_EXPIRED_QUERY_PARAMS.session;
 
   protected readonly form = inject(FormBuilder).nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

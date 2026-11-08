@@ -16,8 +16,8 @@ class StockMovementTypeTest {
     }
 
     @Test
-    void accepts_receiptWithNegativeQuantity_returnsFalse() {
-        assertThat(StockMovementType.RECEIPT.accepts(new BigDecimal("-1"))).isFalse();
+    void accepts_receiptWithNegativeQuantity_returnsTrueForTheReversalOfAReceipt() {
+        assertThat(StockMovementType.RECEIPT.accepts(new BigDecimal("-1"))).isTrue();
     }
 
     @Test

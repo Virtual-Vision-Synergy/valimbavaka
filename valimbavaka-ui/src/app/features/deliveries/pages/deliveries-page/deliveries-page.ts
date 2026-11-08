@@ -7,8 +7,10 @@ import {
   signal,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { Plus } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthStore } from '../../../../core/auth/auth-store';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -21,10 +23,14 @@ import { DeliveryDetail } from '../../components/delivery-detail/delivery-detail
 import { DELIVERY_STATUSES } from '../../data-access/delivery-models';
 import { DeliveryService } from '../../data-access/delivery-service';
 
-/** Suivi des livraisons du jour (LIV-01, LIV-06, LIV-07) : colonnes par statut et détail. */
+/**
+ * Suivi des livraisons du jour (LIV-01, LIV-06, LIV-07) : colonnes par statut et détail. Les commandes viennent
+ * de l'API ; la vendeuse et l'administrateur en créent une avec « Nouvelle commande » (LIV-01).
+ */
 @Component({
   selector: 'vvs-deliveries-page',
   imports: [
+    RouterLink,
     TranslatePipe,
     Icon,
     PageHeader,
@@ -45,6 +51,7 @@ export class DeliveriesPage {
   private readonly docked = isPanelDocked();
 
   protected readonly icons = { Plus };
+  protected readonly canCreate = inject(AuthStore).hasPermission('deliveries.create');
   protected readonly board = rxResource({ stream: () => this.deliveryService.board() });
   protected readonly round = signal('ALL');
 
@@ -52,7 +59,7 @@ export class DeliveriesPage {
     { value: 'ALL', labelKey: 'deliveries.allRounds' },
     ...(this.board.value()?.rounds ?? []).map((round) => ({
       value: round.id,
-      label: `${round.name} · ${round.driverName}`,
+      label: round.name === round.driverName ? round.name : `${round.name} · ${round.driverName}`,
     })),
   ]);
   protected readonly visible = computed(() => {

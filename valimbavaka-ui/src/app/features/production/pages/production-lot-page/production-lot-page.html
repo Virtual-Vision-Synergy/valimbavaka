@@ -1,0 +1,109 @@
+<div class="page">
+  <a class="back link-arrow" routerLink="/production">
+    <svg [vvsIcon]="icons.ChevronLeft" [size]="16"></svg>
+    {{ 'production.detail.back' | translate }}
+  </a>
+
+  @if (lot.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="lot.reload()" /></div>
+  } @else if (lot.value(); as l) {
+    <section class="card detail" aria-labelledby="lot-title">
+      <header class="detail-head">
+        <div>
+          <h1 id="lot-title">
+            {{ 'production.detail.title' | translate: { number: l.number } }}
+            <span class="code-chip" aria-hidden="true">PRD-05</span>
+          </h1>
+          <p class="sub">
+            <strong>{{ l.articleName }}</strong>
+            · {{ numberFormat().format(l.quantity) }} u.
+            @if (l.completedOn) {
+              ·
+              {{
+                'production.detail.completedOn' | translate: { date: (l.completedOn | shortDate) }
+              }}
+            }
+          </p>
+        </div>
+        <vvs-status-badge
+          [tone]="lotTones[l.status]"
+          [label]="'production.status.' + l.status | translate"
+        />
+      </header>
+
+      <p class="alert" [class.alert-info]="!l.estimated" [class.alert-warning]="l.estimated">
+        <svg [vvsIcon]="icons.Info" [size]="18"></svg>
+        <span>{{
+          (l.estimated ? 'production.detail.estimated' : 'production.detail.frozen') | translate
+        }}</span>
+      </p>
+
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">
+            {{
+              'production.detail.inputs' | translate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'production.col.material' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'production.col.quantity' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'production.detail.unitCost' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'production.col.cost' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of l.lines; track line.articleId) {
+              <tr>
+                <th scope="row">
+                  <span class="cell-title">{{ line.name }}</span>
+                  <span class="cell-sub mono">{{ line.code }}</span>
+                </th>
+                <td class="cell-num num">
+                  {{ numberFormat().format(line.quantity) }} {{ line.unit }}
+                </td>
+                <td class="cell-num num">
+                  {{ line.unitCost === null ? '—' : (line.unitCost | ariary) + ' / ' + line.unit }}
+                </td>
+                <td class="cell-num num">
+                  {{ line.lineCost === null ? '—' : (line.lineCost | ariary) }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (l.uncosted > 0) {
+        <p class="alert alert-warning uncosted" role="note">
+          <svg [vvsIcon]="icons.TriangleAlert" [size]="18"></svg>
+          <span>{{ 'production.detail.uncosted' | translate: { count: l.uncosted } }}</span>
+        </p>
+      }
+
+      <dl class="costs">
+        <div>
+          <dt>{{ 'production.cost.materials' | translate }}</dt>
+          <dd class="num">{{ l.materialCost === null ? '—' : (l.materialCost | ariary) }}</dd>
+        </div>
+        <div class="main">
+          <dt>{{ 'production.cost.perUnit' | translate }}</dt>
+          <dd class="num">{{ l.unitCost === null ? '—' : (l.unitCost | ariary) }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'production.cost.price' | translate }}</dt>
+          <dd class="num">{{ l.salePrice === null ? '—' : (l.salePrice | ariary) }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'production.detail.margin' | translate }}</dt>
+          <dd class="num margin" [class.loss]="l.margin !== null && l.margin < 0">
+            {{ l.margin === null ? '—' : l.margin + ' %' }}
+          </dd>
+        </div>
+      </dl>
+    </section>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+  }
+</div>

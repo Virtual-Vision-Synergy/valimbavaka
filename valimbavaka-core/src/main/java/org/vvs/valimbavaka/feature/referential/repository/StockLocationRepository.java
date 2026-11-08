@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.referential.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -13,4 +14,6 @@ public interface StockLocationRepository extends JpaRepository<StockLocation, UU
     Page<StockLocation> findByActiveTrue(Pageable pageable);
 
     boolean existsByIdAndActiveTrue(UUID id);
+
+    Optional<StockLocation> findByCodeAndActiveTrue(String code);
 }
