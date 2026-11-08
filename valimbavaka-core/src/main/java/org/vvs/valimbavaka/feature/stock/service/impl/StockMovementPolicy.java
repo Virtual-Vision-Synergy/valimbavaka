@@ -36,9 +36,14 @@ class StockMovementPolicy {
             throw new BusinessException("L'emplacement de stock est inconnu ou inactif.");
         }
         checkQuantity(command);
-        stockMovementRepository.lock(command.articleId() + ":" + command.locationId());
+        stockMovementRepository.lock(lockKey(command));
         checkBalance(command);
         return article;
+    }
+
+    /** Key of the lock of an article in a location (reentrant within the transaction). */
+    static String lockKey(StockMovementCommand command) {
+        return command.articleId() + ":" + command.locationId();
     }
 
     private static void checkQuantity(StockMovementCommand command) {

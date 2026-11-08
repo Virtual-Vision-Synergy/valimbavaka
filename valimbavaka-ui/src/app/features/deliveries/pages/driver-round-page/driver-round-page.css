@@ -123,6 +123,11 @@
   margin-top: var(--space-1);
   color: var(--gris-moyen);
 }
+.phone {
+  margin-top: var(--space-1);
+  color: var(--gris-anthracite);
+  font-weight: 600;
+}
 .contact {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -214,9 +219,18 @@
   flex-direction: column;
   min-width: 0;
 }
-.who span {
+.who span,
+.who .tel {
   color: var(--gris-moyen);
   font-size: var(--text-sm);
+}
+.who .tel {
+  align-self: flex-start;
+  padding: var(--space-1) 0;
+  text-decoration: underline;
+}
+.empty {
+  color: var(--gris-anthracite);
 }
 .undo {
   position: fixed;

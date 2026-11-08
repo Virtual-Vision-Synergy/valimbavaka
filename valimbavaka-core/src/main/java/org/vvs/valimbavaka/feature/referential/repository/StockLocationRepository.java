@@ -16,4 +16,6 @@ public interface StockLocationRepository extends JpaRepository<StockLocation, UU
     boolean existsByIdAndActiveTrue(UUID id);
 
     Optional<StockLocation> findByCode(String code);
+
+    Optional<StockLocation> findByCodeAndActiveTrue(String code);
 }

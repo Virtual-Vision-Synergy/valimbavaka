@@ -1,13 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map } from 'rxjs';
-import { demo } from '../../../shared/data-access/demo';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import { StockRDto } from '../../stocks/data-access/stock-models';
 import { SalonServiceListQuery } from './salon-catalog-models';
 import { SalonCatalogService } from './salon-catalog-service';
-import { SERVICES_FIXTURE } from './service-fixtures';
 import { ServicesContextRDto } from './service-models';
 import {
   isSameLocalDay,
@@ -33,8 +31,8 @@ const LATEST_RECORDS: PageQuery = {
 };
 
 /**
- * Salon et shooting. Le salon lit l'API (SRV-02) : services actifs du catalogue, stock salon de chaque article actif
- * et prestations du jour (les 100 plus récentes). Les sorties shooting restent en démonstration (SHO-01 à SHO-03).
+ * Salon : lit l'API (SRV-02) : services actifs du catalogue, stock salon de chaque article actif et prestations du
+ * jour (les 100 plus récentes). Les sorties shooting passent par `ShootingService` (SHO-01 à SHO-03).
  */
 @Injectable({ providedIn: 'root' })
 export class SalonService {
@@ -60,14 +58,8 @@ export class SalonService {
           today: records.items
             .filter((record) => isSameLocalDay(record.performedAt, now))
             .map(toServiceRow),
-          shootings: SERVICES_FIXTURE.shootings,
         };
       }),
     );
-  }
-
-  /** Simulation : réintègre les produits d'un shooting au stock. */
-  returnShooting(number: string): Observable<string> {
-    return demo(number).pipe(map((value) => value));
   }
 }

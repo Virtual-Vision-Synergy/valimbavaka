@@ -32,4 +32,12 @@ public interface ReferentialService {
 
     /** Identifiant de l'emplacement de stock de ce code, actif ou non (ex. {@code TRADE_SHOW}, le salon). */
     Optional<UUID> findStockLocationId(String code);
+
+    /**
+     * Identifiant de l'emplacement actif portant ce code stable (ex. {@code WAREHOUSE}), pour les features qui
+     * mouvementent un emplacement fixe (production PRD-02).
+     *
+     * @throws org.vvs.valimbavaka.core.exception.BusinessException si l'emplacement est inconnu ou inactif (422)
+     */
+    UUID requireActiveStockLocationId(String code);
 }

@@ -67,11 +67,16 @@
 .today li + li {
   border-top: 1px solid var(--border-subtle);
 }
-.wide {
+.wide,
+vvs-shooting-kpis {
+  display: block;
   max-width: 760px;
 }
 @media (max-width: 1200px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.shooting-error {
+  margin: 0 var(--space-5) var(--space-4);
 }
