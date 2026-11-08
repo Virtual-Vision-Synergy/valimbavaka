@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -104,6 +105,23 @@ class SalonCatalogServiceImplTest {
         verify(serviceRepository).save(saved.capture());
         assertThat(saved.getValue().getProducts()).isEmpty();
         assertThat(saved.getValue().getCommissionRate()).isNull();
+    }
+
+    @Test
+    void createService_nullProductLine_ignoresLineAndSavesOthers() {
+        // Arrange
+        when(articleService.isActiveArticle(COCONUT_OIL)).thenReturn(true);
+        when(serviceRepository.save(any(SalonService.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var products = Arrays.asList(null, line(COCONUT_OIL, "15"), null);
+
+        // Act
+        sut.createService(request("Soin visage", null, products, null));
+
+        // Assert
+        var saved = ArgumentCaptor.forClass(SalonService.class);
+        verify(serviceRepository).save(saved.capture());
+        var expected = new ConsumedProduct(COCONUT_OIL, new BigDecimal("15"));
+        assertThat(saved.getValue().getProducts()).containsExactly(expected);
     }
 
     @Test
