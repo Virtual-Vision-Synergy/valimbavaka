@@ -1366,7 +1366,8 @@
     "channelRequired": "Mifidiana lalana iray farafahakeliny.",
     "limit": "Fetran'ny fampiasana",
     "schedule": "Alahatra",
-    "scheduledToast": "Voasoratra ny fampiroboroboana « {{name}} » (fanandramana)"
+    "scheduledToast": "Voasoratra ny fampiroboroboana « {{name}} »",
+    "createFailed": "Tsy voasoratra ny fampiroboroboana : {{reason}}"
   },
   "commissions": {
     "title": "Ny komisiako",

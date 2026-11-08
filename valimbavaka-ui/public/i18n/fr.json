@@ -1366,7 +1366,8 @@
     "channelRequired": "Choisissez au moins un canal.",
     "limit": "Limite d'utilisation",
     "schedule": "Programmer",
-    "scheduledToast": "Promotion « {{name}} » enregistrée (démonstration)"
+    "scheduledToast": "Promotion « {{name}} » enregistrée",
+    "createFailed": "Promotion non enregistrée : {{reason}}"
   },
   "commissions": {
     "title": "Mes commissions",
