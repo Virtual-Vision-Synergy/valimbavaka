@@ -23,7 +23,6 @@
         (keydown)="onKeydown($event)"
         autofocus
       />
-      <span class="code" aria-hidden="true">SYS-03</span>
       <button
         class="close"
         type="button"
@@ -38,10 +37,15 @@
       <p id="search-status" class="status" role="status">
         @if (term().length < 2) {
           {{ 'search.hint' | translate }}
+        } @else if (flat().length === 0 && articles.isLoading()) {
+          {{ 'search.loading' | translate }}
         } @else if (flat().length === 0) {
           {{ 'search.none' | translate: { query: term() } }}
         } @else {
           {{ 'search.results' | translate: { count: flat().length } }}
+        }
+        @if (term().length >= 2 && articles.error()) {
+          {{ 'search.articlesUnavailable' | translate }}
         }
       </p>
       <div id="search-list" role="listbox" [attr.aria-label]="'search.title' | translate">
@@ -75,7 +79,7 @@
                         @if (part.match) {
                           <mark>{{ part.text }}</mark>
                         } @else {
-                          {{ part.text }}
+                          <span>{{ part.text }}</span>
                         }
                       }
                     } @else {
@@ -108,7 +112,6 @@
         <kbd>↑</kbd><kbd>↓</kbd> {{ 'search.navigate' | translate }} <kbd>↵</kbd>
         {{ 'search.openKey' | translate }}
       </span>
-      <vvs-under-construction />
     </footer>
   </div>
 </dialog>

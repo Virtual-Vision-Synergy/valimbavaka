@@ -1,4 +1,7 @@
 import { PageQuery } from '../../../shared/models/page-response';
+import { ProductionBatchStatus } from '../../production/data-access/production-models';
+import { PromotionRDto } from '../../promotions/data-access/promotion-models';
+import { StockMovementRDto, StockRDto } from '../../stocks/data-access/stock-models';
 
 /** Miroir de ArticleType côté backend : matière première (MP), semi-fini (SF) ou produit fini. */
 export type ArticleType = 'RAW_MATERIAL' | 'SEMI_FINISHED' | 'FINISHED';
@@ -86,4 +89,33 @@ export interface ArticleImportRDto {
   conflicts: number;
   invalid: number;
   rows: ArticleImportRowRDto[];
+}
+
+/** Miroir de ArticleBatchRole (ART-06) : l'article est le produit obtenu (OUTPUT) ou un entrant consommé (INPUT). */
+export type ArticleBatchRole = 'OUTPUT' | 'INPUT';
+
+/** Miroir de ArticleBatchRDto : un lot de production vu depuis un article (quantité de cet article). */
+export interface ArticleBatchRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly status: ProductionBatchStatus;
+  readonly role: ArticleBatchRole;
+  readonly quantity: number;
+  readonly outputArticleId: string;
+  readonly outputArticleCode: string;
+  readonly outputArticleName: string;
+  readonly createdAt: string;
+  readonly completedAt: string | null;
+}
+
+/**
+ * Miroir de ArticleOverviewRDto (ART-06) : fiche 360° lue en un seul appel. Lots et mouvements : les 10 plus
+ * récents ; promotions : celles actives aujourd'hui qui visent l'article (catalogue, gamme ou article).
+ */
+export interface ArticleOverviewRDto {
+  readonly article: ArticleRDto;
+  readonly stock: StockRDto;
+  readonly activePromotions: readonly PromotionRDto[];
+  readonly productionBatches: readonly ArticleBatchRDto[];
+  readonly recentMovements: readonly StockMovementRDto[];
 }

@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.production.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -10,13 +11,16 @@ import org.vvs.valimbavaka.feature.production.dto.ProductionBatchWDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Production batches (PRD-01). Status changes (PRD-03) and stock movements (PRD-02) are added here. */
+/** Production batches: creation (PRD-01), start (PRD-03) and completion with its stock movements (PRD-02). */
 public interface ProductionBatchService {
 
     /** Most recent first by default; search on the number, null status = all. */
     PageResponse<ProductionBatchRDto> getBatches(PageQuery query, @Nullable ProductionBatchStatus status);
 
     ProductionBatchRDto getBatchById(UUID batchId);
+
+    /** The {@code limit} most recent batches producing the article or consuming it as an input (ART-06). */
+    List<ProductionBatchRDto> getRecentBatchesOf(UUID articleId, int limit);
 
     /**
      * Plans a batch: output must be an active finished product, inputs active raw materials or semi-finished
@@ -26,6 +30,14 @@ public interface ProductionBatchService {
      * @throws org.vvs.valimbavaka.core.exception.BusinessException if a rule above is broken (422)
      */
     ProductionBatchRDto createBatch(ProductionBatchWDto request);
+
+    /**
+     * Starts a planned batch (PRD-03): status IN_PROGRESS, traced in the journal; the stock does not move.
+     *
+     * @throws org.vvs.valimbavaka.core.exception.NotFoundException if the batch is unknown
+     * @throws org.vvs.valimbavaka.core.exception.ConflictException if already in progress or completed (409)
+     */
+    ProductionBatchRDto startBatch(UUID batchId);
 
     /**
      * Completes a planned or in-progress batch (PRD-02) in one transaction: input costs frozen, one outgoing PRODUCTION

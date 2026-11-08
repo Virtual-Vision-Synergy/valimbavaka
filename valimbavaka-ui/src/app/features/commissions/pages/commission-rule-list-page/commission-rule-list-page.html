@@ -1,0 +1,121 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'commissionRule.title' | translate"
+    [subtitle]="'commissionRule.subtitle' | translate"
+    [codes]="['COM-01']"
+  >
+    <a *vvsHasPermission="'commission-rules.create'" class="btn btn-primary" routerLink="new">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'commissionRule.new' | translate }}
+    </a>
+  </vvs-page-header>
+
+  <section class="card list" [attr.aria-label]="'commissionRule.title' | translate">
+    <div class="toolbar">
+      <vvs-search-field
+        class="search"
+        [label]="'commissionRule.search' | translate"
+        [placeholder]="'commissionRule.searchPlaceholder' | translate"
+        [value]="search()"
+        (submitted)="onSearch($event)"
+      />
+      <p class="count" role="status">
+        {{ 'commissionRule.count' | translate: { count: totalCount() } }}
+      </p>
+    </div>
+
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    @if (rules().length > 0) {
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'commissionRule.field.name' | translate }}</th>
+              <th scope="col">{{ 'commissionRule.field.salesChannel' | translate }}</th>
+              <th scope="col" class="num">{{ 'commissionRule.field.rate' | translate }}</th>
+              <th scope="col">{{ 'commissionRule.field.base' | translate }}</th>
+              <th scope="col">{{ 'commissionRule.col.status' | translate }}</th>
+              <th scope="col" class="actions">{{ 'commissionRule.col.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (rule of rules(); track rule.id) {
+              <tr [class.inactive]="!rule.active">
+                <td>
+                  <strong>{{ rule.name }}</strong>
+                </td>
+                <td>{{ channelLabel(rule) }}</td>
+                <td class="num">{{ rule.rate }} %</td>
+                <td>{{ 'commissionRule.base.' + rule.base | translate }}</td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="rule.active ? 'success' : 'muted'"
+                    [label]="
+                      (rule.active
+                        ? 'commissionRule.status.active'
+                        : 'commissionRule.status.inactive'
+                      ) | translate
+                    "
+                  />
+                </td>
+                <td class="actions">
+                  <a
+                    *vvsHasPermission="'commission-rules.update'"
+                    class="btn btn-ghost btn-sm"
+                    [routerLink]="[rule.id, 'edit']"
+                  >
+                    {{ 'commissionRule.actions.edit' | translate }}
+                  </a>
+                  <button
+                    *vvsHasPermission="'commission-rules.update'"
+                    class="btn btn-ghost btn-sm"
+                    type="button"
+                    (click)="ask(rule)"
+                  >
+                    {{
+                      (rule.active
+                        ? 'commissionRule.status.deactivate'
+                        : 'commissionRule.status.activate'
+                      ) | translate
+                    }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <vvs-pagination
+        [page]="page()"
+        [size]="pageSize"
+        [total]="totalCount()"
+        (pageChange)="goToPage($event)"
+      />
+    } @else if (isLoading()) {
+      <vvs-list-state kind="loading" [rows]="4" />
+    } @else if (errorMessage()) {
+      <vvs-list-state kind="error" (retry)="loadRules()" />
+    } @else {
+      <vvs-list-state
+        kind="empty"
+        titleKey="commissionRule.empty.title"
+        messageKey="commissionRule.empty.message"
+      />
+    }
+  </section>
+</div>
+
+@if (pending(); as pendingRule) {
+  @let texts = dialogTexts(pendingRule);
+  <vvs-confirm-dialog
+    [heading]="texts.heading"
+    [message]="texts.message"
+    [confirmLabel]="texts.confirm"
+    [danger]="pendingRule.active"
+    (confirmed)="confirm()"
+    (cancelled)="dismiss()"
+  />
+}

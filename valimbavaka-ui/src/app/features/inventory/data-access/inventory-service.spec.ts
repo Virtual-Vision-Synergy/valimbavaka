@@ -27,6 +27,7 @@ const SESSION: InventorySessionRDto = {
   openedBy: 'user-1',
   closedAt: null,
   lineCount: 2,
+  gapCount: 0,
   version: 0,
 };
 
@@ -135,6 +136,18 @@ describe('InventoryService', () => {
     await expect(result).resolves.toMatchObject({ queued: false, body: { reason: 'BREAKAGE' } });
   });
 
+  it('clôture une session par POST avec une clé d’idempotence et renvoie la session close', async () => {
+    const result = new Promise((resolve) => service.close('session-1').subscribe(resolve));
+
+    const request = await vi.waitFor(() =>
+      httpMock.expectOne('/api/v1/inventories/session-1/close'),
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
+    request.flush({ ...SESSION, status: 'CLOSED', closedAt: '2026-11-08T14:30:00Z' });
+    await expect(result).resolves.toMatchObject({ queued: false, body: { status: 'CLOSED' } });
+  });
+
   it('renvoie une feuille vide quand aucune session n’est en cours', async () => {
     const result = firstValueFrom(service.current());
 
@@ -150,6 +163,11 @@ describe('InventoryService', () => {
     httpMock
       .expectOne((req) => req.url === '/api/v1/inventories')
       .flush({ ...EMPTY_PAGE, items: [SESSION], totalCount: 1, totalPages: 1 });
+    httpMock
+      .expectOne(
+        (req) => req.url === '/api/v1/inventories' && req.params.get('status') === 'CLOSED',
+      )
+      .flush(EMPTY_PAGE);
     httpMock
       .expectOne((req) => req.url === LINES_URL && req.params.get('page') === '1')
       .flush({
@@ -175,5 +193,30 @@ describe('InventoryService', () => {
     expect(context.session?.openedBy).toBe('Hanta Rakoto');
     expect(context.session?.lines.map((item) => item.reference)).toEqual(['ART-0031', 'ART-0087']);
     expect(context.session?.lines[0]).toMatchObject({ lineId: 'l1', theoretical: 12, barcode: '' });
+  });
+
+  it('lit les dernières sessions clôturées avec leur nombre d’écarts à côté de la feuille', async () => {
+    const closed: InventorySessionRDto = {
+      ...SESSION,
+      id: 'session-0',
+      number: 'INV-0011',
+      status: 'CLOSED',
+      closedAt: '2026-11-01T14:30:00Z',
+      gapCount: 3,
+    };
+    const result = firstValueFrom(service.current());
+
+    httpMock
+      .expectOne((req) => req.url === '/api/v1/inventories')
+      .flush({ ...EMPTY_PAGE, items: [SESSION], totalCount: 1, totalPages: 1 });
+    const previous = httpMock.expectOne(
+      (req) => req.url === '/api/v1/inventories' && req.params.get('status') === 'CLOSED',
+    );
+    expect(previous.request.params.get('size')).toBe('5');
+    previous.flush({ ...EMPTY_PAGE, items: [closed], totalCount: 1, totalPages: 1 });
+    httpMock.expectOne((req) => req.url === LINES_URL).flush(EMPTY_PAGE);
+
+    const context = await result;
+    expect(context.previous.map((item) => [item.number, item.gapCount])).toEqual([['INV-0011', 3]]);
   });
 });

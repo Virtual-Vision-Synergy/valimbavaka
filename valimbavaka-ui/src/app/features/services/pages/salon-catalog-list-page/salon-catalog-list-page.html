@@ -1,0 +1,133 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'salonCatalog.title' | translate"
+    [subtitle]="'salonCatalog.subtitle' | translate"
+    [codes]="['SRV-01']"
+  >
+    <a *vvsHasPermission="'services.create'" class="btn btn-primary" routerLink="new">
+      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+      {{ 'salonCatalog.new' | translate }}
+    </a>
+  </vvs-page-header>
+
+  <section class="card list" [attr.aria-label]="'salonCatalog.title' | translate">
+    <div class="toolbar">
+      <vvs-search-field
+        class="search"
+        [label]="'salonCatalog.search' | translate"
+        [placeholder]="'salonCatalog.searchPlaceholder' | translate"
+        [value]="search()"
+        (submitted)="onSearch($event)"
+      />
+      <p class="count" role="status">
+        {{ 'salonCatalog.count' | translate: { count: totalCount() } }}
+      </p>
+    </div>
+
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    @if (services().length > 0) {
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'salonCatalog.field.name' | translate }}</th>
+              <th scope="col" class="num">{{ 'salonCatalog.field.duration' | translate }}</th>
+              <th scope="col" class="num">{{ 'salonCatalog.field.price' | translate }}</th>
+              <th scope="col" class="num">{{ 'salonCatalog.field.commissionRate' | translate }}</th>
+              <th scope="col">{{ 'salonCatalog.field.products' | translate }}</th>
+              <th scope="col">{{ 'salonCatalog.col.status' | translate }}</th>
+              <th scope="col" class="actions">{{ 'salonCatalog.col.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (service of services(); track service.id) {
+              <tr [class.inactive]="!service.active">
+                <td>
+                  <strong>{{ service.name }}</strong>
+                </td>
+                <td class="num">
+                  {{ 'salonCatalog.minutes' | translate: { count: service.durationMinutes } }}
+                </td>
+                <td class="num">{{ service.price | ariary }}</td>
+                <td class="num">
+                  @if (service.commissionRate !== null) {
+                    {{ service.commissionRate }} %
+                  } @else {
+                    <span class="muted">{{ 'salonCatalog.noRate' | translate }}</span>
+                  }
+                </td>
+                <td>
+                  {{ 'salonCatalog.products' | translate: { count: service.products.length } }}
+                </td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="service.active ? 'success' : 'muted'"
+                    [label]="
+                      (service.active
+                        ? 'salonCatalog.status.active'
+                        : 'salonCatalog.status.inactive'
+                      ) | translate
+                    "
+                  />
+                </td>
+                <td class="actions">
+                  <a
+                    *vvsHasPermission="'services.update'"
+                    class="btn btn-ghost btn-sm"
+                    [routerLink]="[service.id, 'edit']"
+                  >
+                    {{ 'salonCatalog.actions.edit' | translate }}
+                  </a>
+                  <button
+                    *vvsHasPermission="'services.update'"
+                    class="btn btn-ghost btn-sm"
+                    type="button"
+                    (click)="ask(service)"
+                  >
+                    {{
+                      (service.active
+                        ? 'salonCatalog.status.deactivate'
+                        : 'salonCatalog.status.activate'
+                      ) | translate
+                    }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <vvs-pagination
+        [page]="page()"
+        [size]="pageSize"
+        [total]="totalCount()"
+        (pageChange)="goToPage($event)"
+      />
+    } @else if (isLoading()) {
+      <vvs-list-state kind="loading" [rows]="4" />
+    } @else if (errorMessage()) {
+      <vvs-list-state kind="error" (retry)="loadServices()" />
+    } @else {
+      <vvs-list-state
+        kind="empty"
+        titleKey="salonCatalog.empty.title"
+        messageKey="salonCatalog.empty.message"
+      />
+    }
+  </section>
+</div>
+
+@if (pending(); as pendingService) {
+  @let texts = dialogTexts(pendingService);
+  <vvs-confirm-dialog
+    [heading]="texts.heading"
+    [message]="texts.message"
+    [confirmLabel]="texts.confirm"
+    [danger]="pendingService.active"
+    (confirmed)="confirm()"
+    (cancelled)="dismiss()"
+  />
+}

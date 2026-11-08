@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -27,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.transfer.domain.Transfer;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferCommand;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferLineCommand;
@@ -63,11 +65,14 @@ class TransferServiceImplTest {
     @Mock
     private TransferHistory history;
 
+    @Mock
+    private TransferSheet sheet;
+
     private TransferServiceImpl sut;
 
     @BeforeEach
     void setUp() {
-        sut = new TransferServiceImpl(transferRepository, transferMapper, policy, ledger, history);
+        sut = new TransferServiceImpl(transferRepository, transferMapper, policy, ledger, history, sheet);
     }
 
     @Test
@@ -176,6 +181,35 @@ class TransferServiceImplTest {
         var pageable = ArgumentCaptor.forClass(Pageable.class);
         verify(transferRepository).search(eq(""), isNull(), pageable.capture());
         assertThat(pageable.getValue().getSort()).isEqualTo(Sort.by(Sort.Direction.ASC, "number"));
+    }
+
+    @Test
+    void getTransfer_existingTransfer_returnsItsSheet() {
+        // Arrange
+        var transferId = UUID.randomUUID();
+        var line = new TransferLineCommand(ARTICLE_ID, BigDecimal.TWO);
+        var command = new TransferCommand(TransferOrigin.RETURN, STORE, WAREHOUSE, List.of(line), null);
+        var transfer = Transfer.create("RET-0015", command);
+        when(transferRepository.findById(transferId)).thenReturn(Optional.of(transfer));
+
+        // Act
+        sut.getTransfer(transferId);
+
+        // Assert
+        verify(sheet).toRDto(transfer);
+    }
+
+    @Test
+    void getTransfer_unknownTransfer_throwsNotFound() {
+        // Arrange
+        var transferId = UUID.randomUUID();
+        when(transferRepository.findById(transferId)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getTransfer(transferId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining(transferId.toString());
+        verifyNoInteractions(sheet);
     }
 
     @Test

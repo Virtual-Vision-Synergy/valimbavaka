@@ -1,11 +1,13 @@
 package org.vvs.valimbavaka.feature.production.service.impl;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,9 +71,30 @@ public class ProductionBatchServiceImpl implements ProductionBatchService {
     }
 
     @Override
+    public List<ProductionBatchRDto> getRecentBatchesOf(UUID articleId, int limit) {
+        var batches = productionBatchRepository.findInvolving(articleId, PageRequest.of(0, limit));
+        return batches.stream().map(productionMapper::toRDto).toList();
+    }
+
+    @Override
     @Transactional
     public ProductionBatchRDto createBatch(ProductionBatchWDto request) {
         return productionMapper.toRDto(plan(request));
+    }
+
+    @Override
+    @Transactional
+    public ProductionBatchRDto startBatch(UUID batchId) {
+        var batch = productionBatchRepository.findByIdForUpdate(batchId).orElseThrow(() -> notFound(batchId));
+        batch.start();
+        var saved = productionBatchRepository.saveAndFlush(batch);
+        journalService.record(
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                saved.getId(),
+                "Démarrage du lot %s : planifié → en cours".formatted(saved.getNumber()));
+        log.info("Lot de production {} démarré", saved.getId());
+        return productionMapper.toRDto(saved);
     }
 
     @Override

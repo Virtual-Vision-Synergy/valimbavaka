@@ -18,12 +18,17 @@
           id="services-panel-salon"
           aria-labelledby="services-tab-salon"
         >
-          <vvs-salon-form
-            [treatments]="data.treatments"
-            [products]="data.products"
-            [staff]="data.staff"
-            (registered)="register($event)"
-          />
+          <div class="main">
+            @if (saveError(); as message) {
+              <p class="alert alert-danger" role="alert">{{ message }}</p>
+            }
+            <vvs-salon-form
+              [treatments]="data.treatments"
+              [products]="data.products"
+              [attr.aria-busy]="saving()"
+              (registered)="register($event)"
+            />
+          </div>
           <aside class="aside">
             <section class="card" aria-labelledby="today-title">
               <header class="aside-head">
@@ -41,10 +46,22 @@
                   <li>
                     <span>
                       <strong>{{ service.treatmentName }}</strong>
-                      <span class="muted block num">{{ service.time }} · {{ service.staff }}</span>
+                      <span class="muted block num"
+                        >{{ service.time }} ·
+                        {{ service.customer ?? ('services.noCustomer' | translate) }}</span
+                      >
+                      @for (product of service.products; track $index) {
+                        <span class="muted block num"
+                          >{{ product.name }} · {{ product.quantity }} {{ product.unit }}</span
+                        >
+                      } @empty {
+                        <span class="muted block">{{ 'services.withoutProduct' | translate }}</span>
+                      }
                     </span>
                     <strong class="num">{{ service.price | ariary }}</strong>
                   </li>
+                } @empty {
+                  <li class="muted">{{ 'services.noServiceToday' | translate }}</li>
                 }
               </ul>
             </section>
@@ -55,24 +72,46 @@
                   <span class="code-chip" aria-hidden="true">SHO-03</span>
                 </h2>
               </header>
-              <vvs-shooting-list [shootings]="active()" (returned)="returnShooting($event)" />
+              <vvs-shooting-list
+                [shootings]="active()"
+                [canReturn]="canReturnShooting()"
+                (returned)="returnShooting($event)"
+              />
             </section>
           </aside>
         </div>
       }
       @case ('shooting') {
-        <section
-          class="card wide"
-          role="tabpanel"
-          id="services-panel-shooting"
-          aria-labelledby="services-tab-shooting"
-        >
-          <header class="aside-head">
-            <h2>{{ 'services.shooting.title' | translate }}</h2>
-            <p class="muted">{{ 'services.shooting.hint' | translate }}</p>
-          </header>
-          <vvs-shooting-list [shootings]="shootings()" (returned)="returnShooting($event)" />
-        </section>
+        <div role="tabpanel" id="services-panel-shooting" aria-labelledby="services-tab-shooting">
+          @if (shootingSummary.value(); as summary) {
+            <vvs-shooting-kpis [summary]="summary" />
+          }
+          <section class="card wide" aria-labelledby="shooting-title">
+            <header class="aside-head">
+              <h2 id="shooting-title">{{ 'services.shooting.title' | translate }}</h2>
+              <p class="muted">{{ 'services.shooting.hint' | translate }}</p>
+            </header>
+            @if (canRecordShooting() && shootingStock.value(); as stock) {
+              <vvs-shooting-form
+                [stock]="stock"
+                [saving]="savingShooting()"
+                (submitted)="recordShooting($event)"
+              />
+              @if (shootingError(); as message) {
+                <p class="alert alert-danger shooting-error" role="alert">{{ message }}</p>
+              }
+            }
+            @if (shootingRows.error()) {
+              <vvs-list-state kind="error" (retry)="shootingRows.reload()" />
+            } @else {
+              <vvs-shooting-list
+                [shootings]="shootings()"
+                [canReturn]="canReturnShooting()"
+                (returned)="returnShooting($event)"
+              />
+            }
+          </section>
+        </div>
       }
     }
   } @else if (context.error()) {

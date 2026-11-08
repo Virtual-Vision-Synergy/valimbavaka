@@ -23,7 +23,7 @@
               | translate: { who: shooting.takenBy, when: (shooting.expectedReturn | when) }
           }}
         </span>
-        @if (shooting.status !== 'RETURNED') {
+        @if (canReturn() && shooting.status !== 'RETURNED') {
           <button
             class="btn btn-secondary btn-sm"
             type="button"

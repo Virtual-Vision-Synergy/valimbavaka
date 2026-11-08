@@ -15,7 +15,7 @@ En tant qu'administrateur, je veux que l'ouverture de journée génère automati
 
 ## Critères d'acceptation
 
-- [ ] Un transfert généré par l'ouverture apparaît immédiatement avec le statut Validé.
+- [x] Un transfert généré par l'ouverture apparaît immédiatement avec le statut Validé. — *✅ vérifié : généré par JR-01, listé aussitôt `VALIDATED` par l'historique (`MorningTransferIT`), statut affiché sur la carte de fin (`day-open-page.spec.ts`)*
 
 ## Détails
 
