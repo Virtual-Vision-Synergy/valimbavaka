@@ -1,70 +1,15 @@
-import { DEMO_ARTICLES, DemoArticle, demoArticle } from '../../../shared/data-access/demo-catalog';
+import { demoArticle } from '../../../shared/data-access/demo-catalog';
 import {
   ClosingLineRDto,
   ClosingLocationRDto,
   DayClosingRDto,
-  DayOpeningRDto,
   DiscrepancyReason,
-  DispatchLineRDto,
-  DispatchQuantities,
 } from './day-models';
 
 function isoDay(offset: number): string {
   const day = new Date();
   day.setDate(day.getDate() + offset);
   return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
-}
-
-const CARRY_OVER: Readonly<Record<string, DispatchLineRDto['carryOver']>> = {
-  'ART-0031': { destination: 'SHOP', quantity: 6 },
-  'ART-0087': { destination: 'DELIVERY', quantity: 2 },
-  'ART-0190': { destination: 'SALON', quantity: 1 },
-};
-
-/** Écart volontaire de la maquette : la veille, on avait demandé plus que l'entrepôt n'en a. */
-const OVER_ASKED: Readonly<Record<string, DispatchQuantities>> = {
-  'ART-0112': { SHOP: 10, DELIVERY: 4, SALON: 0 },
-};
-
-/** Proposition : besoin estimé (seuil), ramené à ce que l'entrepôt peut fournir. */
-function propose(article: DemoArticle, index: number): DispatchQuantities {
-  const wanted = {
-    SHOP: Math.round(article.threshold * 0.4),
-    DELIVERY: Math.round(article.threshold * 0.15),
-    SALON: index % 3,
-  };
-  const total = wanted.SHOP + wanted.DELIVERY + wanted.SALON;
-  const ratio = total > article.stock.WAREHOUSE ? article.stock.WAREHOUSE / total : 1;
-  return {
-    SHOP: Math.floor(wanted.SHOP * ratio),
-    DELIVERY: Math.floor(wanted.DELIVERY * ratio),
-    SALON: Math.floor(wanted.SALON * ratio),
-  };
-}
-
-function toDispatchLine(article: DemoArticle, index: number): DispatchLineRDto {
-  const proposed = OVER_ASKED[article.reference] ?? propose(article, index);
-  return {
-    articleId: article.id,
-    reference: article.reference,
-    name: article.name,
-    threshold: article.threshold,
-    warehouse: article.stock.WAREHOUSE,
-    carryOver: CARRY_OVER[article.reference] ?? null,
-    proposed,
-    yesterday: { SHOP: proposed.SHOP + (index % 2), DELIVERY: proposed.DELIVERY, SALON: 0 },
-  };
-}
-
-export function openingFixture(): DayOpeningRDto {
-  return {
-    date: isoDay(0),
-    previousDay: isoDay(-1),
-    rounds: 2,
-    lines: DEMO_ARTICLES.filter((article) => article.type === 'FINISHED' && !article.box).map(
-      toDispatchLine,
-    ),
-  };
 }
 
 /** [référence, transféré, retour, vendu, livré, salon, shooting, compté, motif]. */

@@ -33,6 +33,7 @@ describe('visibleSections', () => {
     );
     expect(labels).not.toContain('menu.item.users');
     expect(labels).not.toContain('menu.item.journal');
+    expect(labels).not.toContain('menu.item.dayOpen');
     expect(labels).not.toContain('menu.item.commissionRules');
   });
 
