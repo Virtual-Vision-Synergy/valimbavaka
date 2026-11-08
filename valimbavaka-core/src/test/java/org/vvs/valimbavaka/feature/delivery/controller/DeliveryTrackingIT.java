@@ -3,15 +3,19 @@ package org.vvs.valimbavaka.feature.delivery.controller;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
+import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 
 /** LIV-06: the orders are followed by status and day, and each order shows its history (journal lines). */
@@ -21,13 +25,14 @@ class DeliveryTrackingIT extends DeliveryApiTestSupport {
 
     @Test
     void getOrders_filteredByEachStatus_returnsOnlyTheOrderInThatStatus() throws Exception {
-        // Arrange : one order per status in the round of a new driver
+        // Arrange : one order per status in today's round of a new driver
         var driverId = createDriver();
         var articleId = createArticle(uniqueName());
+        move(articleId, "DELIVERY", StockMovementType.RECEIPT, "1");
         var orders = new UUID[STATUSES.size()];
         for (var i = 0; i < STATUSES.size(); i++) {
-            orders[i] = createdOrderId(adminToken(), body(driverId, tomorrow(), line(articleId, "1")));
-            setStatus(orders[i], STATUSES.get(i));
+            orders[i] = createdOrderId(adminToken(), body(driverId, today(), line(articleId, "1")));
+            setStatus(driverId, orders[i], STATUSES.get(i));
         }
 
         // Act + Assert
@@ -56,8 +61,8 @@ class DeliveryTrackingIT extends DeliveryApiTestSupport {
         var tomorrowOrder = createdOrderId(adminToken(), body(driverId, tomorrow(), line(articleId, "2")));
         var yesterday = tomorrow().minusDays(2);
         jdbcTemplate.update("update delivery_orders set scheduled_date = ? where id = ?", yesterday, yesterdayOrder);
-        setStatus(yesterdayOrder, "DELIVERED");
-        setStatus(tomorrowOrder, "DELIVERED");
+        setStatus(driverId, yesterdayOrder, "DELIVERED");
+        setStatus(driverId, tomorrowOrder, "DELIVERED");
 
         // Act + Assert
         mockMvc.perform(get(DELIVERIES)
@@ -181,9 +186,21 @@ class DeliveryTrackingIT extends DeliveryApiTestSupport {
         return jdbcTemplate.queryForObject("select number from delivery_orders where id = ?", String.class, orderId);
     }
 
-    /** The status changes are not exposed yet (LIV-03, LIV-04): the test sets them in the database. */
-    private void setStatus(UUID orderId, String status) {
+    /** Failure through its endpoint (LIV-04); the other changes are not exposed yet, the test sets them in base. */
+    private void setStatus(UUID driverId, UUID orderId, String status) throws Exception {
+        if ("FAILED".equals(status)) {
+            mockMvc.perform(post(DELIVERIES + "/" + orderId + "/failure")
+                            .header(HttpHeaders.AUTHORIZATION, bearer(tokenOfDriver(driverId)))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"reason\":\"ABSENT\",\"note\":\"Portail fermé\"}"))
+                    .andExpect(status().isOk());
+            return;
+        }
         jdbcTemplate.update("update delivery_orders set status = ? where id = ?", status, orderId);
+    }
+
+    private static LocalDate today() {
+        return LocalDate.now(BUSINESS_ZONE);
     }
 
     /** A journal line one hour after now, as a later transition would write it (the journal accepts inserts only). */
