@@ -223,7 +223,7 @@ tr[data-level='error'] .qty {
 }
 .vouchers li {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);

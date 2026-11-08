@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 
-/** Promotions : données de démonstration tant que le module backend n'existe pas. */
+/**
+ * Promotions : liste, fiche et création branchées sur l'API (PRO-01, PRO-04). Reste « en construction » :
+ * nombres d'articles du périmètre en démonstration, remise accordée et application en caisse à venir (PRO-02, PRO-03).
+ */
 export const PROMOTIONS_ROUTES: Routes = [
   {
     path: '',

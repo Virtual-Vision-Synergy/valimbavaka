@@ -17,7 +17,7 @@ En tant qu'administrateur, je veux répartir en un seul écran la sortie du mati
 
 ## Critères d'acceptation
 
-- [ ] La validation génère un bon de transfert par destination et met à jour les stocks.
+- [x] La validation génère un bon de transfert par destination et met à jour les stocks. — *✅ vérifié en CI le 2026-11-08 (`BusinessDayIT`, `day-open-page.spec.ts`)*
 
 ## Détails
 

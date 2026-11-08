@@ -54,7 +54,7 @@ export const MENU_SECTIONS: readonly MenuSection[] = [
       {
         labelKey: 'menu.item.dayOpen',
         route: '/day/open',
-        permission: 'sales.read',
+        permission: 'days.open',
         icon: Sunrise,
       },
       {

@@ -998,12 +998,13 @@
       "after": "Aorian'ny fanamarinana",
       "afterText": "Ny fanaraha-maso ny andro (varotra, fanaterana, tolotra) dia hita ao amin'ny",
       "cockpit": "tabilao fitarihana",
-      "validated": "Taratasy famindrana {{count}} voaforona (fanandramana)",
+      "validated": "Taratasy famindrana {{count}} voaforona",
       "doneTitle": "Misokatra ny andro · taratasy {{count}}",
       "doneHint": "Nivoaka ny trano fitehirizana ny entana. Varotra mahomby !",
       "voucherLines": "Andalana {{lines}} · {{units}} isa",
       "goPos": "Sokafy ny kesy",
-      "goDashboard": "Jereo ny tabilao"
+      "goDashboard": "Jereo ny tabilao",
+      "goTransfers": "Jereo ny famindrana maraina"
     },
     "close": {
       "title": "Fanakatonana ny {{date}}",
@@ -1367,7 +1368,18 @@
     "channelRequired": "Mifidiana lalana iray farafahakeliny.",
     "limit": "Fetran'ny fampiasana",
     "schedule": "Alahatra",
-    "scheduledToast": "Voasoratra ny fampiroboroboana « {{name}} » (fanandramana)"
+    "scheduledToast": "Voasoratra ny fampiroboroboana « {{name}} »",
+    "createFailed": "Tsy voasoratra ny fampiroboroboana : {{reason}}",
+    "listLabel": "Lisitry ny fampiroboroboana",
+    "detail": {
+      "label": "Antontan'ny fampiroboroboana {{name}}",
+      "automatic": "Tsy misy (mihatra ho azy)",
+      "period": "Fotoana",
+      "scopeAll": "Ny katalaogy manontolo",
+      "scopeArticles": "Entana {{count}} voafidy",
+      "unknownTargets": "Tsy hita ao amin'ny firaketana ireo karazany",
+      "backToForm": "Hidio ny antontany"
+    }
   },
   "commissions": {
     "title": "Ny komisiako",
