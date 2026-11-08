@@ -19,7 +19,7 @@ public record SaleRDto(
         LocalDate businessDate,
         UUID salesChannelId,
         UUID stockLocationId,
-        UUID sellerId,
+        @Nullable UUID sellerId,
         PaymentMethod paymentMethod,
         OperationStatus status,
         BigDecimal subtotal,

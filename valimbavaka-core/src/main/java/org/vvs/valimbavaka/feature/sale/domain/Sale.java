@@ -17,6 +17,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 
+import org.jspecify.annotations.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,8 +53,9 @@ public class Sale extends BaseEntity {
     @Column(name = "stock_location_id", nullable = false, updatable = false)
     private UUID stockLocationId;
 
-    @Column(name = "seller_id", nullable = false, updatable = false)
-    private UUID sellerId;
+    /** Seller credited with the sale; {@code null} only for a sale created by another feature without one. */
+    @Column(name = "seller_id", updatable = false)
+    private @Nullable UUID sellerId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method", nullable = false, updatable = false, length = 20)

@@ -17,8 +17,10 @@ import org.vvs.valimbavaka.feature.sale.domain.SaleLineCommand;
 import org.vvs.valimbavaka.feature.user.service.UserService;
 
 /**
- * Rules of a sale checked before anything is written: active channel, active seller, 1 to 100 lines, each article
- * once, positive quantities, active finished articles with a price. The stock balance is checked by the movements.
+ * Rules of a sale checked before anything is written: active channel, active seller (if any), 1 to 100 lines, each
+ * article once, positive quantities, active finished articles with a price. A line with an agreed price (an order
+ * delivered, LIV-03) only needs a finished article: the order was accepted when the article was still sold. The stock
+ * balance is checked by the movements.
  */
 @Component
 class SalePolicy {
@@ -37,7 +39,8 @@ class SalePolicy {
 
     CheckedSale check(SaleCommand command) {
         var channel = channels.require(command.salesChannelId());
-        if (!userService.isActiveSeller(command.sellerId())) {
+        var sellerId = command.sellerId();
+        if (sellerId != null && !userService.isActiveSeller(sellerId)) {
             throw new BusinessException("La vendeuse est inconnue, inactive ou n'a pas le rôle vendeuse.");
         }
         return new CheckedSale(channel, price(command.lines()));
@@ -63,13 +66,13 @@ class SalePolicy {
 
     /** The agreed price of the command if any, otherwise the current sale price of the article. */
     private static PricedSaleLine priceOf(SaleLineCommand line, ArticleRDto article) {
-        var price = article.price();
-        if (article.type() != ArticleType.FINISHED || !article.active() || price == null) {
+        var agreed = line.unitPrice();
+        var unitPrice = agreed == null ? article.price() : agreed;
+        var sellable = agreed != null || article.active();
+        if (article.type() != ArticleType.FINISHED || !sellable || unitPrice == null) {
             var message = "L'article %s · %s n'est pas vendable : produit fini actif avec un prix requis.";
             throw new BusinessException(message.formatted(article.code(), article.name()));
         }
-        var agreed = line.unitPrice();
-        var unitPrice = agreed == null ? price : agreed;
         if (unitPrice.signum() < 0 || unitPrice.stripTrailingZeros().scale() > 2) {
             throw new BusinessException("Le prix unitaire doit être positif, avec 2 décimales au maximum.");
         }

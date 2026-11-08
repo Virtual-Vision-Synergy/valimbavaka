@@ -127,7 +127,8 @@ export interface SaleRDto {
   readonly businessDate: string;
   readonly salesChannelId: string;
   readonly stockLocationId: string;
-  readonly sellerId: string;
+  /** `null` : vente d'un autre module sans vendeuse créditée (LIV-03, commande saisie par l'administrateur). */
+  readonly sellerId: string | null;
   readonly paymentMethod: PaymentMethod;
   readonly status: SaleStatus;
   readonly subtotal: number;

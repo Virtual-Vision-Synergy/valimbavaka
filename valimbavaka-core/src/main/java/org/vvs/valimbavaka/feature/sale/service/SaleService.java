@@ -18,8 +18,9 @@ public interface SaleService {
      * command), stock taken out of the location of the channel ({@code SALE} movements), journal line and
      * {@code SaleRecordedEvent}, all or nothing. 409 if today is not opened or the location lacks stock; 422 if the
      * channel or the seller is unknown or inactive, if there is no line or more than 100, if an article appears
-     * twice, is not an active finished product with a price, or if a quantity is not positive; 404 if an article is
-     * unknown. Must be called in a transaction.
+     * twice, is not an active finished product with a price (a finished product is enough with an agreed price), or
+     * if a quantity is not positive; 404 if an article is unknown. A {@code null} seller credits nobody (LIV-03: order
+     * entered by the administrator). Must be called in a transaction.
      */
     SaleRDto record(SaleCommand command);
 

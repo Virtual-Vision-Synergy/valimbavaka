@@ -15,7 +15,7 @@ CREATE TABLE sales
     business_date     DATE           NOT NULL,
     sales_channel_id  UUID           NOT NULL,
     stock_location_id UUID           NOT NULL,
-    seller_id         UUID           NOT NULL,
+    seller_id         UUID,
     payment_method    VARCHAR(20)    NOT NULL,
     status            VARCHAR(20)    NOT NULL,
     subtotal          NUMERIC(19, 2) NOT NULL,

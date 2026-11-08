@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.sale.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -80,6 +81,34 @@ class SalePolicyTest {
 
         // Assert
         assertThat(checked.lines().getFirst().unitPrice()).isEqualByComparingTo("8000");
+    }
+
+    @Test
+    void check_agreedPriceOnAnArticleDeactivatedSince_keepsTheLine() {
+        // Arrange
+        arrangeChannelAndSeller();
+        when(articleService.getArticleById(SOAP)).thenReturn(article(ArticleType.FINISHED, false, "8500"));
+
+        // Act
+        var checked = sut.check(command(new SaleLineCommand(SOAP, BigDecimal.ONE, new BigDecimal("8000"))));
+
+        // Assert
+        assertThat(checked.lines().getFirst().unitPrice()).isEqualByComparingTo("8000");
+    }
+
+    @Test
+    void check_noSellerFromAnotherFeature_creditsNobody() {
+        // Arrange
+        when(channels.require(CHANNEL)).thenReturn(channel());
+        when(articleService.getArticleById(SOAP)).thenReturn(article(ArticleType.FINISHED, true, "8500"));
+        var line = new SaleLineCommand(SOAP, BigDecimal.ONE, new BigDecimal("8000"));
+
+        // Act
+        var checked = sut.check(new SaleCommand(CHANNEL, null, PaymentMethod.ON_DELIVERY, List.of(line)));
+
+        // Assert
+        assertThat(checked.lines()).hasSize(1);
+        verifyNoInteractions(userService);
     }
 
     @Test
