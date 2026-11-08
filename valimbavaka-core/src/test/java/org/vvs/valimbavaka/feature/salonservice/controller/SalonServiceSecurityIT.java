@@ -291,13 +291,17 @@ class SalonServiceSecurityIT {
         return UUID.fromString(JsonPath.read(result.getResponse().getContentAsString(), "$.id"));
     }
 
+    /**
+     * The database is shared by the tests: the code sorts before the generated {@code ART-nnnn} codes, so that the
+     * inventory tests still find the article they create as the highest code (InventoryCountIT, InventoryReasonIT).
+     */
     private UUID insertArticle(boolean active) {
         var id = UUID.randomUUID();
         jdbcTemplate.update(
                 "insert into articles (id, code, name, type, unit, threshold, is_active, created_at, updated_at) "
                         + "values (?, ?, ?, 'RAW_MATERIAL', 'LITER', 0, ?, now(), now())",
                 id,
-                "IT-" + id.toString().substring(0, 8),
+                "AIT-" + id.toString().substring(0, 8),
                 "Huile " + id,
                 active);
         return id;
