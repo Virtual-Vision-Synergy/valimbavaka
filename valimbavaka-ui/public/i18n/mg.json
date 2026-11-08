@@ -1001,7 +1001,8 @@
       "doneHint": "Nivoaka ny trano fitehirizana ny entana. Varotra mahomby !",
       "voucherLines": "Andalana {{lines}} · {{units}} isa",
       "goPos": "Sokafy ny kesy",
-      "goDashboard": "Jereo ny tabilao"
+      "goDashboard": "Jereo ny tabilao",
+      "goTransfers": "Jereo ny famindrana maraina"
     },
     "close": {
       "title": "Fanakatonana ny {{date}}",
