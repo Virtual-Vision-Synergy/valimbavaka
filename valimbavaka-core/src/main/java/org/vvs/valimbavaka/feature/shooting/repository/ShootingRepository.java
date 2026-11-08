@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.shooting.repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,4 +42,20 @@ public interface ShootingRepository extends OperationRepository<Shooting, UUID> 
               and (:status is null or s.status = :status)
             """)
     Page<Shooting> search(String search, @Nullable ShootingStatus status, Pageable pageable);
+
+    /** Number of exits with this status (SHO-03: exits still out). */
+    long countByStatus(ShootingStatus status);
+
+    /** Number of exits with this status whose expected return is before {@code instant} (SHO-03: late exits). */
+    long countByStatusAndExpectedReturnAtBefore(ShootingStatus status, Instant instant);
+
+    /** Quantity of each article over every exit with this status (SHO-03: value tied up by the exits still out). */
+    @Query("""
+            select new org.vvs.valimbavaka.feature.shooting.repository.ShootingArticleQuantity(
+                i.articleId, sum(i.quantity))
+            from Shooting s join s.items i
+            where s.status = :status
+            group by i.articleId
+            """)
+    List<ShootingArticleQuantity> quantitiesByArticle(ShootingStatus status);
 }

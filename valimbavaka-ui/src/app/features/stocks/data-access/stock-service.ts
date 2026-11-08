@@ -14,6 +14,8 @@ import {
   StockRDto,
   StockRowRDto,
   StockValuationRDto,
+  SupplierReceiptRDto,
+  SupplierReceiptWDto,
 } from './stock-models';
 
 /** Une page de 100 articles actifs, triés par nom (taille maximale du serveur). */
@@ -22,9 +24,13 @@ const ALL_ARTICLES: PageQuery = { page: 1, size: 100, sortBy: 'name', sortDirect
 /** Les 100 alertes les plus urgentes : l'ordre est fixé par le serveur. */
 const MOST_URGENT_ALERTS: PageQuery = { page: 1, size: 100 };
 
+/** Les 100 bons les plus récents : ceux qui attendent leur livraison sont parmi eux. */
+const RECENT_RESTOCK_ORDERS: PageQuery = { page: 1, size: 100 };
+
 /**
  * Stocks par emplacement : lecture seule de `GET /api/v1/stocks`. Le stock est la somme des mouvements
- * typés côté serveur et ne s'écrit jamais depuis l'interface (STK-01) ; seul le bon de réappro s'écrit (STK-05).
+ * typés côté serveur et ne s'écrit jamais depuis l'interface (STK-01) ; s'écrivent seulement le bon de réappro
+ * (STK-05) et la réception fournisseur (STK-06), qui crée elle-même ses mouvements côté serveur.
  */
 @Injectable({ providedIn: 'root' })
 export class StockService {
@@ -73,5 +79,22 @@ export class StockService {
   generateRestockOrder(articleIds: readonly string[]): Observable<SubmitResult<RestockOrderRDto>> {
     const body: RestockOrderWDto = { articleIds };
     return this.outbox.submit<RestockOrderRDto>('POST', `${this.baseUrl}/restock-orders`, body);
+  }
+
+  /** Bons de réapprovisionnement encore en attente de livraison (STK-05), les plus récents d'abord. */
+  pendingRestockOrders(): Observable<readonly RestockOrderRDto[]> {
+    return this.http
+      .get<PageResponse<RestockOrderRDto>>(`${this.baseUrl}/restock-orders`, {
+        params: toHttpParams(RECENT_RESTOCK_ORDERS),
+      })
+      .pipe(map((page) => page.items.filter((order) => order.status === 'PENDING')));
+  }
+
+  /**
+   * Enregistre la réception d'une livraison fournisseur (STK-06) : le serveur fait entrer le stock et, si la
+   * réception reprend un bon, le passe à `RECEIVED`. L'écriture passe par la file hors ligne (`Idempotency-Key`).
+   */
+  recordReceipt(body: SupplierReceiptWDto): Observable<SubmitResult<SupplierReceiptRDto>> {
+    return this.outbox.submit<SupplierReceiptRDto>('POST', `${this.baseUrl}/receipts`, body);
   }
 }

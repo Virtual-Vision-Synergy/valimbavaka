@@ -1,0 +1,189 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" routerLink="/deliveries">{{ 'deliveries.form.back' | translate }}</a>
+    <h1>{{ 'deliveries.form.title' | translate }}</h1>
+    <p class="muted">{{ 'deliveries.form.subtitle' | translate }}</p>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <fieldset class="group">
+      <legend>{{ 'deliveries.form.customer' | translate }}</legend>
+      <div class="grid">
+        <div class="field">
+          <label for="customerName">{{ 'deliveries.form.customerName' | translate }} *</label>
+          <input
+            id="customerName"
+            class="input"
+            formControlName="customerName"
+            autocomplete="name"
+            aria-describedby="customerName-error"
+          />
+          @if (form.controls.customerName.touched && form.controls.customerName.invalid) {
+            <span id="customerName-error" class="field-error" aria-live="polite">{{
+              'deliveries.form.customerNameRequired' | translate
+            }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="customerPhone">{{ 'deliveries.form.customerPhone' | translate }} *</label>
+          <input
+            id="customerPhone"
+            class="input num"
+            type="tel"
+            formControlName="customerPhone"
+            autocomplete="tel"
+            aria-describedby="customerPhone-error"
+          />
+          @if (form.controls.customerPhone.touched && form.controls.customerPhone.invalid) {
+            <span id="customerPhone-error" class="field-error" aria-live="polite">{{
+              'deliveries.form.customerPhoneInvalid' | translate
+            }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="address">{{ 'deliveries.form.address' | translate }} *</label>
+          <input
+            id="address"
+            class="input"
+            formControlName="address"
+            autocomplete="street-address"
+            aria-describedby="address-error"
+          />
+          @if (form.controls.address.touched && form.controls.address.invalid) {
+            <span id="address-error" class="field-error" aria-live="polite">{{
+              'deliveries.form.addressRequired' | translate
+            }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="district">{{ 'deliveries.form.district' | translate }}</label>
+          <input id="district" class="input" formControlName="district" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="group">
+      <legend>{{ 'deliveries.form.round' | translate }}</legend>
+      <div class="grid">
+        <div class="field">
+          <label for="driverId">{{ 'deliveries.form.driver' | translate }} *</label>
+          <select
+            id="driverId"
+            class="input"
+            formControlName="driverId"
+            aria-describedby="driverId-error"
+          >
+            <option value="">{{ 'deliveries.form.chooseDriver' | translate }}</option>
+            @for (driver of drivers(); track driver.id) {
+              <option [value]="driver.id">{{ driverLabel(driver) }}</option>
+            }
+          </select>
+          @if (form.controls.driverId.touched && form.controls.driverId.invalid) {
+            <span id="driverId-error" class="field-error" aria-live="polite">{{
+              'deliveries.form.driverRequired' | translate
+            }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="scheduledDate">{{ 'deliveries.form.scheduledDate' | translate }} *</label>
+          <input
+            id="scheduledDate"
+            class="input"
+            type="date"
+            formControlName="scheduledDate"
+            [min]="today"
+            aria-describedby="scheduledDate-error"
+          />
+          @if (form.controls.scheduledDate.touched && form.controls.scheduledDate.invalid) {
+            <span id="scheduledDate-error" class="field-error" aria-live="polite">{{
+              'deliveries.form.scheduledDateInvalid' | translate
+            }}</span>
+          }
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="group lines" formArrayName="lines">
+      <legend>{{ 'deliveries.form.lines' | translate }}</legend>
+      @for (line of lines.controls; track line; let i = $index) {
+        <div class="line" [formGroupName]="i">
+          <div class="field">
+            <label [for]="'article-' + i">{{ 'deliveries.form.article' | translate }} *</label>
+            <select
+              class="input"
+              formControlName="articleId"
+              [id]="'article-' + i"
+              [attr.aria-describedby]="'article-error-' + i"
+            >
+              <option value="">{{ 'deliveries.form.chooseArticle' | translate }}</option>
+              @for (article of articles(); track article.id) {
+                <option [value]="article.id">
+                  {{ article.code }} · {{ article.name }} · {{ article.price ?? 0 | ariary }}
+                </option>
+              }
+            </select>
+            @if (line.controls.articleId.touched && line.controls.articleId.invalid) {
+              <span [id]="'article-error-' + i" class="field-error" aria-live="polite">{{
+                'deliveries.form.articleRequired' | translate
+              }}</span>
+            }
+          </div>
+
+          <div class="field">
+            <label [for]="'quantity-' + i">{{ 'deliveries.form.quantity' | translate }} *</label>
+            <input
+              class="input num"
+              inputmode="decimal"
+              formControlName="quantity"
+              [id]="'quantity-' + i"
+              [attr.aria-describedby]="'quantity-error-' + i"
+            />
+            @if (line.controls.quantity.touched && line.controls.quantity.invalid) {
+              <span [id]="'quantity-error-' + i" class="field-error" aria-live="polite">{{
+                'deliveries.form.quantityInvalid' | translate
+              }}</span>
+            }
+          </div>
+
+          <button
+            class="btn btn-ghost remove"
+            type="button"
+            [disabled]="lines.length === 1"
+            [attr.aria-label]="'deliveries.form.removeLine' | translate: { index: i + 1 }"
+            (click)="removeLine(i)"
+          >
+            ✕
+          </button>
+        </div>
+      }
+      <button
+        class="btn btn-secondary add"
+        type="button"
+        [disabled]="lines.length >= maxLines"
+        (click)="addLine()"
+      >
+        {{ 'deliveries.form.addLine' | translate }}
+      </button>
+      <p class="estimate">
+        {{ 'deliveries.form.estimate' | translate }}
+        <strong class="num" data-testid="estimate">{{ estimate() | ariary }}</strong>
+      </p>
+    </fieldset>
+
+    <div class="field">
+      <label for="note">{{ 'deliveries.form.note' | translate }}</label>
+      <textarea id="note" class="input" rows="2" formControlName="note"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" routerLink="/deliveries">{{ 'common.cancel' | translate }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="isSaving()">
+        {{ 'deliveries.form.submit' | translate }}
+      </button>
+    </div>
+  </form>
+</section>

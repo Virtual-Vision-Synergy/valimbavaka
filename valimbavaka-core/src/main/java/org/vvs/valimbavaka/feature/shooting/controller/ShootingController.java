@@ -23,15 +23,18 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.shooting.domain.ShootingStatus;
 import org.vvs.valimbavaka.feature.shooting.dto.ShootingRDto;
+import org.vvs.valimbavaka.feature.shooting.dto.ShootingSummaryRDto;
 import org.vvs.valimbavaka.feature.shooting.dto.ShootingWDto;
 import org.vvs.valimbavaka.feature.shooting.service.ShootingService;
+import org.vvs.valimbavaka.feature.shooting.service.ShootingSummaryService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
  * Administrator and seller: reading with {@code services.read}, recording an exit with {@code shootings.create};
- * administrator only: returning the products with {@code shootings.return}.
+ * administrator only: returning the products with {@code shootings.return}, following the exits still out and the
+ * value they tie up with {@code shootings.track}.
  */
 @Tag(name = "Shootings")
 @ApiResponses({
@@ -45,9 +48,11 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 public class ShootingController {
 
     private final ShootingService shootingService;
+    private final ShootingSummaryService shootingSummaryService;
 
-    public ShootingController(ShootingService shootingService) {
+    public ShootingController(ShootingService shootingService, ShootingSummaryService shootingSummaryService) {
         this.shootingService = shootingService;
+        this.shootingSummaryService = shootingSummaryService;
     }
 
     @GetMapping
@@ -57,6 +62,14 @@ public class ShootingController {
     public PageResponse<ShootingRDto> getShootings(
             @Valid PageQuery query, @RequestParam(required = false) @Nullable ShootingStatus status) {
         return shootingService.getShootings(query, status);
+    }
+
+    @GetMapping("/summary")
+    @Operation(summary = "Exits still out, late exits and value at cost they tie up, in Ariary")
+    @ApiResponse(responseCode = "200", description = "Indicators of the shooting exits still out")
+    @HasPermission("shootings.track")
+    public ShootingSummaryRDto getSummary() {
+        return shootingSummaryService.getSummary();
     }
 
     @GetMapping("/{id}")

@@ -3,7 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { buildUser } from '../../../core/auth/auth-testing';
-import { ShootingRowRDto, ShootingWDto } from './service-models';
+import { ShootingRowRDto, ShootingSummaryRDto, ShootingWDto } from './service-models';
 import { ShootingService } from './shooting-service';
 
 /** SHO-01 : lecture des sorties et enregistrement par la file hors ligne (POST /api/v1/shootings). */
@@ -59,6 +59,22 @@ describe('ShootingService', () => {
     expect(rows.map((row) => [row.number, row.status, row.items[0]?.name])).toEqual([
       ['SHO-0001', 'LATE', 'Savon noir'],
     ]);
+  });
+
+  it('lit les indicateurs des sorties en cours par GET /summary (SHO-03)', () => {
+    let summary: ShootingSummaryRDto | undefined;
+    service.summary().subscribe((value) => (summary = value));
+
+    httpMock
+      .expectOne((req) => req.method === 'GET' && req.url === '/api/v1/shootings/summary')
+      .flush({ outCount: 3, lateCount: 1, immobilizedValue: 12241.5, unvaluedQuantity: 0 });
+
+    expect(summary).toEqual({
+      outCount: 3,
+      lateCount: 1,
+      immobilizedValue: 12241.5,
+      unvaluedQuantity: 0,
+    });
   });
 
   it('lit le stock par emplacement pour proposer les articles du formulaire', () => {
