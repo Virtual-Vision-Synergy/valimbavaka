@@ -1,0 +1,27 @@
+package org.vvs.valimbavaka.feature.day.service;
+
+import org.vvs.valimbavaka.feature.day.dto.BusinessDayRDto;
+import org.vvs.valimbavaka.feature.day.dto.DayOpeningRDto;
+import org.vvs.valimbavaka.feature.day.dto.DayOpeningWDto;
+
+/**
+ * Business day (JR-01): opened once a day by the morning dispatch, it is the frame of the day's operations. The
+ * date is always today's in the business time zone (Indian/Antananarivo); {@link #requireOpenDay} is the port of
+ * the features that need an opened day (sales VTE-01, deliveries, salon services).
+ */
+public interface BusinessDayService {
+
+    /** Dispatch grid of today: articles available at the warehouse, destinations, and today's day if opened. */
+    DayOpeningRDto getOpening();
+
+    /**
+     * Opens today: records one morning transfer (origin {@code MORNING}, status {@code VALIDATED}) per destination
+     * from the warehouse, moves the stock and traces the opening in the journal, all or nothing. 409 if today is
+     * already opened or the warehouse does not hold enough stock; 422 if a destination is the warehouse, unknown or
+     * inactive, or holds more than 100 articles; 404 if an article is unknown.
+     */
+    BusinessDayRDto openDay(DayOpeningWDto request);
+
+    /** Today's business day; 409 (CONFLICT) if today is not opened yet or already closed. */
+    BusinessDayRDto requireOpenDay();
+}

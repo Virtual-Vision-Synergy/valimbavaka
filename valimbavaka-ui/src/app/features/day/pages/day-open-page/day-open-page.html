@@ -174,10 +174,13 @@
                 </span>
               </button>
             }
+            @if (errorMessage(); as message) {
+              <div class="alert alert-danger" role="alert">{{ message }}</div>
+            }
             <button
               class="btn btn-primary btn-lg btn-block"
               type="button"
-              [disabled]="submitting() || voucherCount() === 0"
+              [disabled]="submitting() || queued() || voucherCount() === 0"
               [attr.aria-describedby]="conflicts().length ? null : 'validate-hint'"
               (click)="validate()"
             >

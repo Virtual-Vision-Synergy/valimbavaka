@@ -12,6 +12,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CircleCheck, RotateCcw, TriangleAlert, Undo2 } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { errorMessage } from '../../../../core/http/problem-detail';
+import { SubmitResult } from '../../../../core/offline/outbox-models';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -19,11 +21,16 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { StepItem, Stepper } from '../../../../shared/components/stepper/stepper';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import {
+  BusinessDayRDto,
   DISPATCH_DESTINATIONS,
+  DayOpeningGrid,
   DispatchDestination,
   DispatchQuantities,
   DispatchVoucherRDto,
+  NO_QUANTITIES,
   sumQuantities,
+  toDayOpeningWDto,
+  toVouchers,
 } from '../../data-access/day-models';
 import { DayService } from '../../data-access/day-service';
 
@@ -32,6 +39,7 @@ type QuantityMap = Readonly<Record<string, DispatchQuantities>>;
 /**
  * Répartition du matin (JR-01 à JR-03) : on sort le stock de l'entrepôt vers chaque point de vente
  * en un seul écran, au clavier (Entrée descend d'une ligne), sans jamais dépasser l'entrepôt.
+ * La validation ouvre la journée : le serveur crée un bon de transfert validé par destination.
  */
 @Component({
   selector: 'vvs-day-open-page',
@@ -54,8 +62,13 @@ export class DayOpenPage {
       (this.opening.value()?.lines ?? []).map((line) => [line.articleId, line.proposed]),
     ),
   );
-  protected readonly vouchers = signal<readonly DispatchVoucherRDto[] | null>(null);
+  protected readonly vouchers = linkedSignal<readonly DispatchVoucherRDto[] | null>(
+    () => this.opening.value()?.vouchers ?? null,
+  );
   protected readonly submitting = signal(false);
+  /** Ouverture en file d'attente (hors ligne) : on n'envoie pas une seconde fois. */
+  protected readonly queued = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly rows = computed(() =>
     (this.opening.value()?.lines ?? []).map((line) => {
@@ -119,8 +132,7 @@ export class DayOpenPage {
 
   protected reset(): void {
     const lines = this.opening.value()?.lines ?? [];
-    const zero: DispatchQuantities = { SHOP: 0, DELIVERY: 0, SALON: 0 };
-    this.quantities.set(Object.fromEntries(lines.map((line) => [line.articleId, zero])));
+    this.quantities.set(Object.fromEntries(lines.map((line) => [line.articleId, NO_QUANTITIES])));
   }
 
   /** Entrée : passe à la même colonne de la ligne suivante, comme dans un tableur. */
@@ -142,15 +154,31 @@ export class DayOpenPage {
       return;
     }
     this.submitting.set(true);
-    const lines = this.rows().map((row) => ({
+    this.errorMessage.set(null);
+    const rows = this.rows().map((row) => ({
       articleId: row.line.articleId,
       quantities: row.quantities,
     }));
-    this.dayService.dispatch({ date: opening.date, lines }).subscribe((vouchers) => {
-      this.submitting.set(false);
-      this.vouchers.set(vouchers);
-      this.toast.show('day.open.validated', { count: vouchers.length });
+    this.dayService.open(toDayOpeningWDto(opening, rows)).subscribe({
+      next: (result) => this.opened(result, opening),
+      error: (error: unknown) => {
+        this.submitting.set(false);
+        this.errorMessage.set(errorMessage(error));
+      },
     });
+  }
+
+  /** Bons renvoyés par le serveur ; en file d'attente, l'ouverture partira au retour du réseau. */
+  private opened(result: SubmitResult<BusinessDayRDto>, opening: DayOpeningGrid): void {
+    this.submitting.set(false);
+    if (result.queued || !result.body) {
+      this.queued.set(true);
+      this.toast.show('common.queuedSaved', {}, 'info');
+      return;
+    }
+    const vouchers = toVouchers(result.body, opening.destinationIds);
+    this.vouchers.set(vouchers);
+    this.toast.show('day.open.validated', { count: vouchers.length });
   }
 
   private focusCell(index: number, destination: DispatchDestination): void {
@@ -161,7 +189,7 @@ export class DayOpenPage {
     cell?.select();
   }
 
-  private weekday(date: string | undefined): string {
+  private weekday(date: string | null | undefined): string {
     return date ? this.format(date, { weekday: 'long' }) : '';
   }
 

@@ -1,42 +1,39 @@
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
+import { SubmitResult } from '../../../core/offline/outbox-models';
+import { OutboxService } from '../../../core/offline/outbox-service';
 import { demo } from '../../../shared/data-access/demo';
-import { closingFixture, openingFixture } from './day-fixtures';
+import { closingFixture } from './day-fixtures';
 import {
-  DISPATCH_DESTINATIONS,
+  BusinessDayRDto,
   DayClosingRDto,
   DayLockWDto,
+  DayOpeningGrid,
   DayOpeningRDto,
-  DispatchVoucherRDto,
-  DispatchWDto,
+  DayOpeningWDto,
+  toOpeningGrid,
 } from './day-models';
 
-/** Premier numéro de bon de transfert de démonstration. */
-const FIRST_VOUCHER = 93;
-
 /**
- * Journée de vente. Provisoire : données de démonstration ; à terme `GET /api/v1/days/{date}/opening`,
- * `POST /api/v1/days/{date}/dispatch`, `GET /api/v1/days/{date}/closing` et `POST .../lock`.
+ * Journée de vente. L'ouverture (JR-01) est branchée sur l'API : grille `GET /api/v1/days/opening`, ouverture
+ * `POST /api/v1/days` par la file hors ligne (`OutboxService`, SYS-07). La clôture reste en données de démonstration
+ * jusqu'à JR-04 / JR-06.
  */
 @Injectable({ providedIn: 'root' })
 export class DayService {
-  opening(): Observable<DayOpeningRDto> {
-    return demo(openingFixture());
+  private readonly http = inject(HttpClient);
+  private readonly outbox = inject(OutboxService);
+  private readonly baseUrl = '/api/v1/days';
+
+  /** Grille du jour : articles disponibles à l'entrepôt, colonnes des destinations, bons si déjà ouverte. */
+  opening(): Observable<DayOpeningGrid> {
+    return this.http.get<DayOpeningRDto>(`${this.baseUrl}/opening`).pipe(map(toOpeningGrid));
   }
 
-  /** Simulation : un bon par destination non vide, comme le fera le serveur. */
-  dispatch(request: DispatchWDto): Observable<readonly DispatchVoucherRDto[]> {
-    return demo(request).pipe(
-      map(({ lines }) =>
-        DISPATCH_DESTINATIONS.map((destination) => ({
-          destination,
-          lineCount: lines.filter((line) => line.quantities[destination] > 0).length,
-          units: lines.reduce((sum, line) => sum + line.quantities[destination], 0),
-        }))
-          .filter((voucher) => voucher.units > 0)
-          .map((voucher, index) => ({ ...voucher, number: `TRF-0${FIRST_VOUCHER + index}` })),
-      ),
-    );
+  /** Ouvre la journée : un transfert du matin par destination ; `queued` si la saisie attend le réseau. */
+  open(body: DayOpeningWDto): Observable<SubmitResult<BusinessDayRDto>> {
+    return this.outbox.submit<BusinessDayRDto>('POST', this.baseUrl, body);
   }
 
   closing(): Observable<DayClosingRDto> {
