@@ -15,7 +15,7 @@ import { Icon } from '../../../../shared/components/icon/icon';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import {
   SalonProductRDto,
-  SalonServiceWDto,
+  ServiceRecordWDto,
   TreatmentRDto,
 } from '../../data-access/service-models';
 
@@ -36,7 +36,7 @@ export class SalonForm {
   readonly treatments = input.required<readonly TreatmentRDto[]>();
   readonly products = input.required<readonly SalonProductRDto[]>();
   readonly staff = input.required<readonly string[]>();
-  readonly registered = output<SalonServiceWDto>();
+  readonly registered = output<ServiceRecordWDto>();
 
   protected readonly icons = { Plus };
   protected readonly treatmentId = signal('face');

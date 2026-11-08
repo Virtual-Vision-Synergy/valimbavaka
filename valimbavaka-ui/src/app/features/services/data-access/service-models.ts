@@ -20,8 +20,8 @@ export interface TreatmentRDto {
   readonly recipe: readonly TreatmentRecipeLineRDto[];
 }
 
-/** Prestation enregistrée (SRV-03). */
-export interface SalonServiceRDto {
+/** Prestation enregistrée (SRV-03), maquette ; à ne pas confondre avec `SalonServiceRDto` (catalogue SRV-01). */
+export interface ServiceRecordRDto {
   readonly id: string;
   readonly treatmentName: string;
   readonly time: string;
@@ -113,11 +113,11 @@ export interface ServicesContextRDto {
   readonly treatments: readonly TreatmentRDto[];
   readonly products: readonly SalonProductRDto[];
   readonly staff: readonly string[];
-  readonly today: readonly SalonServiceRDto[];
+  readonly today: readonly ServiceRecordRDto[];
 }
 
 /** Enregistrement d'une prestation : le serveur déduit les produits du stock salon. */
-export interface SalonServiceWDto {
+export interface ServiceRecordWDto {
   readonly treatmentId: string;
   readonly customer: string | null;
   readonly staff: string;
