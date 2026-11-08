@@ -7,6 +7,7 @@ import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { ServiceRecordRowRDto, ServicesContextRDto } from '../../data-access/service-models';
 import { SalonService } from '../../data-access/service-service';
+import { ShootingService } from '../../data-access/shooting-service';
 import { ServicesPage } from './services-page';
 
 const FACIAL: ServiceRecordRowRDto = {
@@ -54,6 +55,8 @@ describe('ServicesPage', () => {
           provide: SalonService,
           useValue: { context: () => of(contextWith(today)) },
         },
+        // Sorties shooting (SHO-01) hors sujet ici : une liste vide évite une requête HTTP en attente.
+        { provide: ShootingService, useValue: { list: () => of([]) } },
       ],
     }).compileComponents();
     TestBed.inject(AuthStore).signIn('jeton', buildUser('SELLER'));
