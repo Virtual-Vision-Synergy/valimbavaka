@@ -89,9 +89,14 @@ describe('DriverRoundPage', () => {
   };
 
   /** Ouvre la feuille « Échec » du prochain arrêt, choisit le motif, écrit le commentaire et valide. */
-  const reportFailure = (reason: string, note: string): void => {
+  /** Choisit le motif par son libellé visible, comme le livreur. */
+  const reportFailure = (reasonLabel: string, note: string): void => {
     element.querySelector<HTMLButtonElement>('.next .fail')?.click();
-    element.querySelector<HTMLInputElement>(`dialog input[value="${reason}"]`)?.click();
+    fixture.detectChanges();
+    const reason = Array.from(
+      element.querySelectorAll<HTMLLabelElement>('dialog label.reason'),
+    ).find((label) => label.textContent?.trim() === reasonLabel);
+    reason?.querySelector('input')?.click();
     const textarea = element.querySelector<HTMLTextAreaElement>('dialog textarea');
     if (textarea) {
       textarea.value = note;
@@ -141,7 +146,7 @@ describe('DriverRoundPage', () => {
     await open(ROUND);
     vi.useFakeTimers();
     try {
-      reportFailure('REFUSED', '  Le client a changé d’avis  ');
+      reportFailure('Colis refusé', '  Le client a changé d’avis  ');
       expect(updateStatus).not.toHaveBeenCalled();
       expect(text('.next h2')).toBe('Hery Andry');
 
@@ -166,7 +171,7 @@ describe('DriverRoundPage', () => {
     const show = vi.spyOn(TestBed.inject(ToastService), 'show');
     vi.useFakeTimers();
     try {
-      reportFailure('ABSENT', '');
+      reportFailure('Client absent', '');
       vi.advanceTimersByTime(UNDO_DELAY_MS);
     } finally {
       vi.useRealTimers();
