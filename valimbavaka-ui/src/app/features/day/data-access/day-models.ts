@@ -38,7 +38,13 @@ export interface BusinessDayRDto {
   readonly createdBy: string | null;
 }
 
-/** Article fini actif disponible à l'entrepôt (serveur). */
+/** Quantité d'un article envoyée vers un emplacement par un transfert du matin (serveur, JR-02). */
+export interface DayQuantityRDto {
+  readonly locationId: string;
+  readonly quantity: number;
+}
+
+/** Article fini actif disponible à l'entrepôt (serveur) ; `yesterday` = envois du dernier jour ouvré. */
 export interface DayOpeningLineRDto {
   readonly articleId: string;
   readonly code: string;
@@ -46,6 +52,7 @@ export interface DayOpeningLineRDto {
   readonly unit: string;
   readonly threshold: number;
   readonly warehouse: number;
+  readonly yesterday: readonly DayQuantityRDto[];
 }
 
 /** Grille de répartition du jour (`GET /api/v1/days/opening`) ; `day` est posé si la journée est déjà ouverte. */
@@ -76,7 +83,7 @@ export interface CarryOverRDto {
   readonly quantity: number;
 }
 
-/** Ligne de la grille : quantités proposées (zéro), modifiables ; `yesterday` sera fourni par JR-02. */
+/** Ligne de la grille : quantités proposées (zéro), modifiables ; `yesterday` = envois de la veille (JR-02). */
 export interface DispatchLineRDto {
   readonly articleId: string;
   readonly reference: string;
@@ -180,7 +187,10 @@ export function sumQuantities(quantities: DispatchQuantities): number {
   return quantities.SHOP + quantities.DELIVERY + quantities.SALON;
 }
 
-/** Grille de l'écran à partir de la réponse du serveur : quantités proposées à zéro. */
+/**
+ * Grille de l'écran à partir de la réponse du serveur : quantités proposées à zéro, quantités du dernier
+ * jour ouvré rangées par colonne (un emplacement hors grille est ignoré).
+ */
 export function toOpeningGrid(opening: DayOpeningRDto): DayOpeningGrid {
   const destinationIds: Partial<Record<DispatchDestination, string>> = {};
   for (const location of opening.destinations) {
@@ -203,9 +213,26 @@ export function toOpeningGrid(opening: DayOpeningRDto): DayOpeningGrid {
       warehouse: line.warehouse,
       carryOver: null,
       proposed: NO_QUANTITIES,
-      yesterday: NO_QUANTITIES,
+      yesterday: toQuantities(line.yesterday, destinationIds),
     })),
   };
+}
+
+/** Quantités d'un article par colonne, à partir des quantités par emplacement du serveur. */
+export function toQuantities(
+  sent: readonly DayQuantityRDto[],
+  destinationIds: DayOpeningGrid['destinationIds'],
+): DispatchQuantities {
+  const quantities: Record<DispatchDestination, number> = { ...NO_QUANTITIES };
+  for (const entry of sent) {
+    const destination = DISPATCH_DESTINATIONS.find(
+      (key) => destinationIds[key] === entry.locationId,
+    );
+    if (destination) {
+      quantities[destination] += Number(entry.quantity);
+    }
+  }
+  return quantities;
 }
 
 /** Bons du matin d'une journée ouverte, dans l'ordre du serveur ; un emplacement hors grille est ignoré. */

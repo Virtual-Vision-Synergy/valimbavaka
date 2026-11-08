@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.transfer.service;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -41,4 +43,10 @@ public interface TransferService {
      * unit) and quantity, in the order entered. 404 if the transfer is unknown.
      */
     TransferDetailRDto getTransfer(UUID transferId);
+
+    /**
+     * Transfers with their lines, read by id (morning transfers of the previous day, JR-02); unknown ids are ignored,
+     * the order is not guaranteed. Reserved to the other features: no endpoint, no permission check.
+     */
+    List<TransferRDto> getTransfersByIds(Collection<UUID> ids);
 }
