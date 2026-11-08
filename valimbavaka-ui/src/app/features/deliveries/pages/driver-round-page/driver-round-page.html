@@ -53,6 +53,7 @@
       </p>
       <h2 id="next-title">{{ stop.customerName }}</h2>
       <p class="address">{{ stop.address }}</p>
+      <p class="phone num">{{ stop.phone }}</p>
       <div class="contact">
         <a class="btn btn-secondary" [href]="telHref(stop.phone)">
           <svg [vvsIcon]="icons.Phone" [size]="18"></svg>
@@ -86,6 +87,11 @@
         </button>
       </div>
     </section>
+  } @else if (stops().length === 0) {
+    <section class="finished empty" aria-live="polite">
+      <h2>{{ 'deliveries.driver.noStops' | translate }}</h2>
+      <p>{{ 'deliveries.driver.noStopsHint' | translate }}</p>
+    </section>
   } @else {
     <section class="finished" aria-live="polite">
       <svg [vvsIcon]="icons.CircleCheck" [size]="40"></svg>
@@ -103,10 +109,11 @@
             <span class="badge num" aria-hidden="true">{{ stop.stop }}</span>
             <span class="who">
               <strong>{{ stop.customerName }}</strong>
-              <span>{{ stop.district }}</span>
+              <span>{{ stop.address }}</span>
+              <a class="tel num" [href]="telHref(stop.phone)">{{ stop.phone }}</a>
             </span>
             <span class="num">{{
-              stop.prepaid ? ('deliveries.driver.paid' | translate) : (stop.amount | ariary: 'kilo')
+              stop.prepaid ? ('deliveries.driver.paid' | translate) : (stop.amount | ariary)
             }}</span>
           </li>
         }

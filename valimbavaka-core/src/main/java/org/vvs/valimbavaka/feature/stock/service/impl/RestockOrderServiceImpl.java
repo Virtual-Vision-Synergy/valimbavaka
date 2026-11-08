@@ -93,11 +93,30 @@ public class RestockOrderServiceImpl implements RestockOrderService {
 
     @Override
     public RestockOrderRDto getRestockOrderById(UUID restockOrderId) {
-        var order = restockOrderRepository
-                .findById(restockOrderId)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND + restockOrderId));
+        var order = findOrder(restockOrderId);
         var lines = linesByOrder(List.of(restockOrderId));
         return restockOrderMapper.toRDto(order, lines.getOrDefault(restockOrderId, List.of()));
+    }
+
+    @Override
+    @Transactional
+    public String markReceived(UUID restockOrderId, String receiptNumber) {
+        var order = findOrder(restockOrderId);
+        order.markReceived();
+        restockOrderRepository.save(order);
+        journalService.record(
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                order.getId(),
+                "Bon de réapprovisionnement %s réceptionné (réception %s)"
+                        .formatted(order.getReference(), receiptNumber));
+        return order.getReference();
+    }
+
+    private RestockOrder findOrder(UUID restockOrderId) {
+        return restockOrderRepository
+                .findById(restockOrderId)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND + restockOrderId));
     }
 
     /** Alerts of the moment (STK-04), restricted to the requested articles; none requested = all of them. */
