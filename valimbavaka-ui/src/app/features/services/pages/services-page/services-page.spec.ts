@@ -36,7 +36,6 @@ const contextWith = (today: readonly ServiceRecordRowRDto[]): ServicesContextRDt
   treatments: [],
   products: [],
   today,
-  shootings: [],
 });
 
 /** Historique des prestations du jour (SRV-03) : heure, service, cliente et produits consommés de chaque prestation. */
@@ -53,7 +52,7 @@ describe('ServicesPage', () => {
         provideTestTranslations(),
         {
           provide: SalonService,
-          useValue: { context: () => of(contextWith(today)), returnShooting: () => of('') },
+          useValue: { context: () => of(contextWith(today)) },
         },
       ],
     }).compileComponents();

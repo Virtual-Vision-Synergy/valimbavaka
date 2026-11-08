@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TranslatePipe } from '@ngx-translate/core';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { WhenPipe } from '../../../transfers/data-access/when-pipe';
-import { ShootingRDto, ShootingStatus } from '../../data-access/service-models';
+import { ShootingRowRDto, ShootingStatus } from '../../data-access/service-models';
 import { Tone } from '../../../../shared/models/tone';
 
 const TONES: Readonly<Record<ShootingStatus, Tone>> = {
@@ -20,7 +20,9 @@ const TONES: Readonly<Record<ShootingStatus, Tone>> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShootingList {
-  readonly shootings = input.required<readonly ShootingRDto[]>();
+  readonly shootings = input.required<readonly ShootingRowRDto[]>();
+  /** Bouton « Réintégrer » affiché seulement avec la permission `shootings.return` (SHO-02). */
+  readonly canReturn = input(true);
   readonly returned = output<string>();
   protected readonly tones = TONES;
 }

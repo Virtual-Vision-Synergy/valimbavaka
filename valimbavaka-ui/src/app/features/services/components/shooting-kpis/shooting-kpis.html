@@ -1,0 +1,30 @@
+<section class="kpis" [attr.aria-label]="'services.shooting.kpi.label' | translate">
+  <vvs-kpi-card [label]="'services.shooting.kpi.out' | translate" [value]="'' + summary().outCount">
+    <p class="note">{{ 'services.shooting.kpi.outNote' | translate }}</p>
+  </vvs-kpi-card>
+  <vvs-kpi-card
+    [label]="'services.shooting.kpi.late' | translate"
+    [value]="'' + summary().lateCount"
+    [trend]="
+      summary().lateCount > 0
+        ? { tone: 'danger', label: 'services.shooting.kpi.lateBadge' | translate }
+        : undefined
+    "
+  >
+    <p class="note">{{ 'services.shooting.kpi.lateNote' | translate }}</p>
+  </vvs-kpi-card>
+  <vvs-kpi-card
+    [label]="'services.shooting.kpi.value' | translate"
+    [value]="summary().immobilizedValue | ariary: 'plain'"
+    unit="Ar"
+  >
+    <p class="note">{{ 'services.shooting.kpi.valueNote' | translate }}</p>
+    @if (summary().unvaluedQuantity > 0) {
+      <p class="note">
+        {{
+          'services.shooting.kpi.unvaluedNote' | translate: { count: summary().unvaluedQuantity }
+        }}
+      </p>
+    }
+  </vvs-kpi-card>
+</section>

@@ -123,6 +123,7 @@ const LOTS: readonly LotRDto[] = (
     ['PRD-0071', 10, 'ART-0031', 60, 'Soa R.', 'VALIDATED'],
   ] as const
 ).map(([number, ago, reference, quantity, operator, status]) => ({
+  id: number,
   number,
   date: isoDay(-ago),
   articleName: demoArticle(reference).name,
@@ -133,7 +134,11 @@ const LOTS: readonly LotRDto[] = (
 
 export const PRODUCTION_FIXTURE: ProductionContextRDto = {
   nextNumber: 'PRD-0081',
-  operators: ['Soa Rakoto', 'Fara Rasoa', 'Hanta Rasolofoson'],
+  operators: [
+    { id: 'op-1', name: 'Soa Rakoto' },
+    { id: 'op-2', name: 'Fara Rasoa' },
+    { id: 'op-3', name: 'Hanta Rasolofoson' },
+  ],
   materials: MATERIALS,
   products: RECIPES.map(toProduct),
   recentLots: LOTS,
@@ -143,6 +148,7 @@ export const PRODUCTION_FIXTURE: ProductionContextRDto = {
     unitsProduced: 864,
     unitsTrendPercent: 12,
     averageCost: 3410,
+    uncostedLots: 0,
     materialsToRebuy: 2,
   },
 };

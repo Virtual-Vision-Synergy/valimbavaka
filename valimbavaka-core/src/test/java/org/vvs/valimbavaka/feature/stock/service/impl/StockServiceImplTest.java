@@ -215,6 +215,33 @@ class StockServiceImplTest {
         assertThat(result.value()).isEqualByComparingTo("0");
     }
 
+    @Test
+    void getQuantities_balancesInSeveralLocations_keepsOnlyTheRequestedLocation() {
+        // Arrange
+        when(stockMovementRepository.balances(List.of(ARTICLE_ID, OTHER_ARTICLE_ID)))
+                .thenReturn(List.of(
+                        new StockBalance(ARTICLE_ID, STORE.id(), new BigDecimal("12.000")),
+                        new StockBalance(ARTICLE_ID, WAREHOUSE.id(), new BigDecimal("30.000")),
+                        new StockBalance(OTHER_ARTICLE_ID, WAREHOUSE.id(), new BigDecimal("4.000"))));
+
+        // Act
+        var result = sut.getQuantities(STORE.id(), List.of(ARTICLE_ID, OTHER_ARTICLE_ID));
+
+        // Assert
+        assertThat(result).containsOnlyKeys(ARTICLE_ID);
+        assertThat(result.get(ARTICLE_ID)).isEqualByComparingTo("12");
+    }
+
+    @Test
+    void getQuantities_noArticle_returnsEmptyMapWithoutQuery() {
+        // Act
+        var result = sut.getQuantities(STORE.id(), List.of());
+
+        // Assert
+        assertThat(result).isEmpty();
+        verify(stockMovementRepository, never()).balances(any());
+    }
+
     private static PageResponse<StockLocationRDto> locations() {
         return new PageResponse<>(List.of(WAREHOUSE, STORE), 1, 100, 2, 1);
     }
