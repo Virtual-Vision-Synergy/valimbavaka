@@ -6,7 +6,7 @@ import { OutboxService } from '../../../core/offline/outbox-service';
 import { toHttpParams } from '../../../shared/models/http-params';
 import { PageQuery, PageResponse } from '../../../shared/models/page-response';
 import { StockRDto } from '../../stocks/data-access/stock-models';
-import { ShootingRDto, ShootingRowRDto, ShootingWDto } from './service-models';
+import { ShootingRDto, ShootingRowRDto, ShootingSummaryRDto, ShootingWDto } from './service-models';
 import { toShootingRow } from './shooting-mapping';
 
 /** Les 100 sorties les plus récentes (taille maximale du serveur). */
@@ -21,8 +21,9 @@ const RECENT_SHOOTINGS: PageQuery = {
 const STOCK_BY_NAME: PageQuery = { page: 1, size: 100, sortBy: 'name', sortDirection: 'ASC' };
 
 /**
- * Sorties shooting (SHO-01) : lecture de `GET /api/v1/shootings`, enregistrement par la file hors ligne
- * (`OutboxService`, SYS-07) : `queued` vaut vrai si la saisie attend le réseau.
+ * Sorties shooting (SHO-01), réintégration (SHO-02) et indicateurs de suivi (SHO-03) : lecture de
+ * `GET /api/v1/shootings`, écritures par la file hors ligne (`OutboxService`, SYS-07) : `queued` vaut vrai si la
+ * saisie attend le réseau.
  */
 @Injectable({ providedIn: 'root' })
 export class ShootingService {
@@ -36,6 +37,11 @@ export class ShootingService {
       .pipe(map((page) => page.items.map(toShootingRow)));
   }
 
+  /** Indicateurs des sorties encore dehors (SHO-03) : nombre, retards, valeur au coût (`shootings.track`). */
+  summary(): Observable<ShootingSummaryRDto> {
+    return this.http.get<ShootingSummaryRDto>(`${this.baseUrl}/summary`);
+  }
+
   /** Articles proposés au formulaire, avec la quantité disponible dans chaque emplacement. */
   stock(): Observable<readonly StockRDto[]> {
     return this.http
@@ -45,5 +51,10 @@ export class ShootingService {
 
   create(body: ShootingWDto): Observable<SubmitResult<ShootingRDto>> {
     return this.outbox.submit<ShootingRDto>('POST', this.baseUrl, body);
+  }
+
+  /** Réintégration (SHO-02) : les produits reviennent dans l'emplacement de sortie, statut `RETURNED`. */
+  returnShooting(id: string): Observable<SubmitResult<ShootingRDto>> {
+    return this.outbox.submit<ShootingRDto>('POST', `${this.baseUrl}/${id}/return`);
   }
 }

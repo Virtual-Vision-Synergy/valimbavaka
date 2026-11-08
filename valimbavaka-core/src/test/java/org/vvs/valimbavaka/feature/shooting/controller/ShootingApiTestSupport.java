@@ -31,7 +31,7 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 import org.vvs.valimbavaka.support.IntegrationTest;
 
-/** Shared fixtures of the SHO-01 integration tests: users, articles created through the API, stock received. */
+/** Shared fixtures of the SHO-01 to SHO-03 integration tests: users, articles created through the API, stock. */
 @IntegrationTest
 @AutoConfigureMockMvc
 abstract class ShootingApiTestSupport {
@@ -59,13 +59,18 @@ abstract class ShootingApiTestSupport {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    /** Active finished article, created through the API by the administrator. */
+    /** Active finished article costing 3120.5 Ar, created through the API by the administrator. */
     protected UUID createArticle() throws Exception {
+        return createArticle("3120.5");
+    }
+
+    /** Active finished article with this purchase cost ({@code "null"} = without cost). */
+    protected UUID createArticle(String cost) throws Exception {
         var rangeId = jdbcTemplate.queryForObject("select id from product_ranges limit 1", UUID.class);
         var body = """
-                {"name":"Article-%s","type":"FINISHED","unit":"PIECE","rangeId":"%s","cost":3120.5,"price":8500,
+                {"name":"Article-%s","type":"FINISHED","unit":"PIECE","rangeId":"%s","cost":%s,"price":8500,
                  "threshold":0}
-                """.formatted(UUID.randomUUID(), rangeId);
+                """.formatted(UUID.randomUUID(), rangeId, cost);
         MvcResult result = mockMvc.perform(post("/api/v1/articles")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body)
@@ -113,6 +118,21 @@ abstract class ShootingApiTestSupport {
                 .header(HttpHeaders.AUTHORIZATION, bearer(token))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
+    }
+
+    /** Exit recorded by the administrator; returns its id. */
+    protected UUID createShooting(String body) throws Exception {
+        var response = postShooting(adminToken(), body)
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        return UUID.fromString(JsonPath.read(response, "$.id"));
+    }
+
+    protected ResultActions postReturn(String token, UUID shootingId) throws Exception {
+        return mockMvc.perform(
+                post(SHOOTINGS + "/" + shootingId + "/return").header(HttpHeaders.AUTHORIZATION, bearer(token)));
     }
 
     protected static String bearer(String token) {

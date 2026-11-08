@@ -17,6 +17,7 @@ import { ToastService } from '../../../../shared/components/toast/toast-service'
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { SalonForm } from '../../components/salon-form/salon-form';
 import { ShootingForm } from '../../components/shooting-form/shooting-form';
+import { ShootingKpis } from '../../components/shooting-kpis/shooting-kpis';
 import { ShootingList } from '../../components/shooting-list/shooting-list';
 import {
   SalonServiceRDto,
@@ -30,10 +31,19 @@ import { isoDay } from '../../../../shared/data-access/demo-dates';
 
 type ServicesTab = 'salon' | 'shooting';
 
-/** Salon et shooting (SRV-01 à SRV-04, SHO-01 à SHO-03) : prestations du jour et sorties de produits. */
+/** Salon et shooting (SRV-01 à SRV-04, SHO-01 à SHO-03) : prestations du jour, sorties de produits et leur suivi. */
 @Component({
   selector: 'vvs-services-page',
-  imports: [TranslatePipe, AriaryPipe, ListState, Tabs, SalonForm, ShootingForm, ShootingList],
+  imports: [
+    TranslatePipe,
+    AriaryPipe,
+    ListState,
+    Tabs,
+    SalonForm,
+    ShootingForm,
+    ShootingKpis,
+    ShootingList,
+  ],
   templateUrl: './services-page.html',
   styleUrl: './services-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,15 +61,27 @@ export class ServicesPage {
   protected readonly canRecordShooting = computed(() =>
     this.authStore.hasPermission('shootings.create'),
   );
+  protected readonly canReturnShooting = computed(() =>
+    this.authStore.hasPermission('shootings.return'),
+  );
+  protected readonly canTrackShooting = computed(() =>
+    this.authStore.hasPermission('shootings.track'),
+  );
   protected readonly tab = signal<ServicesTab>('salon');
   /** Articles et stock par emplacement, chargés à l'ouverture de l'onglet Shooting si la saisie est permise. */
   protected readonly shootingStock = rxResource({
     params: () => this.canRecordShooting() && this.tab() === 'shooting',
     stream: ({ params }) => (params ? this.shootingService.stock() : of(null)),
   });
+  /** Indicateurs des sorties en cours (SHO-03), chargés à l'ouverture de l'onglet Shooting avec `shootings.track`. */
+  protected readonly shootingSummary = rxResource({
+    params: () => this.canTrackShooting() && this.tab() === 'shooting',
+    stream: ({ params }) => (params ? this.shootingService.summary() : of(null)),
+  });
   protected readonly savingShooting = signal(false);
   protected readonly shootingError = signal<string | null>(null);
   protected readonly created = signal<readonly SalonServiceRDto[]>([]);
+  /** Réintégrations en file hors ligne : affichées « Réintégré » en attendant le serveur. */
   protected readonly returnedNumbers = signal<readonly string[]>([]);
 
   protected readonly shootings = computed<readonly ShootingRowRDto[]>(() =>
@@ -116,8 +138,7 @@ export class ServicesPage {
           return;
         }
         this.toast.show('services.shooting.form.savedToast', { number: result.body?.number ?? '' });
-        this.shootingRows.reload();
-        this.shootingStock.reload();
+        this.reloadShootings();
       },
       error: (error: unknown) => {
         this.savingShooting.set(false);
@@ -126,11 +147,35 @@ export class ServicesPage {
     });
   }
 
-  /** Réintégration encore simulée : branchée sur le serveur par SHO-02. */
+  /** Réintégration (SHO-02) : statut Réintégré et stock de l'emplacement de sortie remis à jour par le serveur. */
   protected returnShooting(number: string): void {
-    this.salonService.returnShooting(number).subscribe(() => {
-      this.returnedNumbers.update((all) => [...all, number]);
-      this.toast.show('services.shooting.returnedToast', { number });
+    const shooting = this.shootings().find((row) => row.number === number);
+    if (!shooting) {
+      return;
+    }
+    this.shootingService.returnShooting(shooting.id).subscribe({
+      next: (result) => {
+        if (result.queued) {
+          this.returnedNumbers.update((all) => [...all, number]);
+          this.toast.show('common.queuedSaved', {}, 'info');
+          return;
+        }
+        this.toast.show('services.shooting.returnedToast', { number });
+        this.reloadShootings();
+      },
+      error: (error: unknown) =>
+        this.toast.show(
+          'services.shooting.returnFailed',
+          { number, message: errorMessage(error) },
+          'danger',
+        ),
     });
+  }
+
+  /** Après une écriture acceptée : liste, stock du formulaire et indicateurs relus depuis le serveur. */
+  private reloadShootings(): void {
+    this.shootingRows.reload();
+    this.shootingStock.reload();
+    this.shootingSummary.reload();
   }
 }

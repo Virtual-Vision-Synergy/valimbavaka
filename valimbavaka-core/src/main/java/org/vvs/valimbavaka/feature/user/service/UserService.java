@@ -21,6 +21,12 @@ public interface UserService {
     /** True if the account exists, is active and has the seller role. */
     boolean isActiveSeller(UUID userId);
 
+    /** Active delivery drivers, sorted by first name by default (driver of an order to deliver, LIV-01). */
+    PageResponse<UserRDto> getActiveDrivers(PageQuery query);
+
+    /** True if the account exists, is active and has the delivery driver role. */
+    boolean isActiveDriver(UUID userId);
+
     UserRDto createUser(CreateUserWDto request);
 
     /**

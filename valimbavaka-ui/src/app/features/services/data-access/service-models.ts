@@ -40,6 +40,8 @@ export interface ShootingRowItemRDto {
 
 /** Sortie shooting telle qu'affichée par `ShootingList` (SHO-01 à SHO-03), issue de `ShootingRDto`. */
 export interface ShootingRowRDto {
+  /** Identifiant serveur, pour la réintégration (SHO-02). */
+  readonly id: string;
   readonly number: string;
   readonly items: readonly ShootingRowItemRDto[];
   readonly takenBy: string;
@@ -59,7 +61,10 @@ export interface ShootingItemRDto {
   readonly quantity: number;
 }
 
-/** `GET /api/v1/shootings` : sortie shooting (SHO-01). `late` : encore sortie après `expectedReturnAt`. */
+/**
+ * `GET /api/v1/shootings` : sortie shooting (SHO-01), réintégrée par `POST /api/v1/shootings/{id}/return` (SHO-02).
+ * `late` : encore sortie après `expectedReturnAt`.
+ */
 export interface ShootingRDto {
   readonly id: string;
   readonly number: string;
@@ -73,6 +78,21 @@ export interface ShootingRDto {
   readonly status: ShootingStoredStatus;
   readonly late: boolean;
   readonly createdAt: string;
+  /** Instant ISO 8601 de la réintégration (SHO-02), `null` tant que la sortie est dehors. */
+  readonly returnedAt: string | null;
+  /** Nom complet du compte qui a réintégré, `null` tant que la sortie est dehors. */
+  readonly returnedBy: string | null;
+}
+
+/**
+ * `GET /api/v1/shootings/summary` (permission `shootings.track`, SHO-03) : indicateurs des sorties encore dehors.
+ * `immobilizedValue` : quantité × coût d'achat, en ariary ; `unvaluedQuantity` : unités sans coût, hors valeur.
+ */
+export interface ShootingSummaryRDto {
+  readonly outCount: number;
+  readonly lateCount: number;
+  readonly immobilizedValue: number;
+  readonly unvaluedQuantity: number;
 }
 
 export interface ShootingItemWDto {
