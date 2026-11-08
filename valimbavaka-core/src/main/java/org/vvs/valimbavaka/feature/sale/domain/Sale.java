@@ -95,7 +95,7 @@ public class Sale extends BaseEntity {
         sale.status = OperationStatus.VALIDATED;
         lines.forEach(line -> sale.lines.add(SaleLine.of(line)));
         sale.subtotal = sale.lines.stream().map(SaleLine::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-        sale.discountAmount = BigDecimal.ZERO.setScale(2);
+        sale.discountAmount = new BigDecimal("0.00");
         sale.total = sale.subtotal.subtract(sale.discountAmount);
         return sale;
     }
