@@ -20,7 +20,7 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 /**
  * Turns a page of the transfer history (TRF-01) into rows ready to display: labels of the locations and full name
- * of the issuer, each looked up once per page.
+ * of the issuer, each looked up once per page. The sheet of a transfer (TRF-04) reuses the same lookups.
  */
 @Component
 class TransferHistory {
@@ -39,13 +39,22 @@ class TransferHistory {
     }
 
     PageResponse<TransferSummaryRDto> toRDtos(Page<TransferSummary> page) {
-        Map<UUID, String> labels = referentialService.getStockLocations(ALL_LOCATIONS).items().stream()
-                .collect(Collectors.toMap(StockLocationRDto::id, StockLocationRDto::label));
+        var labels = locationLabels();
         var names = new HashMap<UUID, String>();
         return PageResponse.from(page.map(row -> toRDto(row, labels, issuerName(row.createdBy(), names))));
     }
 
-    private String issuerName(@Nullable UUID userId, Map<UUID, String> names) {
+    /** Labels of the active stock locations by id, in one read; a location deactivated since is absent. */
+    Map<UUID, String> locationLabels() {
+        return referentialService.getStockLocations(ALL_LOCATIONS).items().stream()
+                .collect(Collectors.toMap(StockLocationRDto::id, StockLocationRDto::label));
+    }
+
+    /**
+     * Full name of the issuer, {@link #SYSTEM_ISSUER} without issuer; {@code names} keeps the accounts already
+     * loaded, so that an issuer is looked up once.
+     */
+    String issuerName(@Nullable UUID userId, Map<UUID, String> names) {
         if (userId == null) {
             return SYSTEM_ISSUER;
         }

@@ -1,10 +1,5 @@
 import { Injectable, computed, linkedSignal, signal } from '@angular/core';
-import {
-  InventoryCloseWDto,
-  InventorySheetLine,
-  InventoryReason,
-  InventorySheet,
-} from './inventory-models';
+import { InventorySheetLine, InventoryReason, InventorySheet } from './inventory-models';
 import { gapOf, parseQuantity } from './inventory-sheet';
 
 export type InventoryFilter = 'ALL' | 'TO_COUNT' | 'GAP' | 'NO_REASON';
@@ -89,16 +84,5 @@ export class InventoryState {
       ...all,
       [articleId]: (reason || null) as InventoryReason | null,
     }));
-  }
-
-  toRequest(): InventoryCloseWDto {
-    return {
-      number: this.session()?.number ?? '',
-      lines: this.counted().map((row) => ({
-        articleId: row.line.articleId,
-        counted: row.counted ?? 0,
-        reason: row.reason,
-      })),
-    };
   }
 }

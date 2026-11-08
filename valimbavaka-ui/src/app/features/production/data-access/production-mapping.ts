@@ -1,15 +1,19 @@
 import { ArticleRDto, ArticleUnit } from '../../article/data-access/article-models';
 import { StockRDto } from '../../stocks/data-access/stock-models';
 import {
+  LotCostRDto,
   LotRDto,
   LotStatus,
   LotWDto,
   MaterialRDto,
   OperatorOption,
   ProducibleArticleRDto,
+  ProductionBatchCostRDto,
   ProductionBatchRDto,
   ProductionBatchStatus,
   ProductionBatchWDto,
+  ProductionIndicatorsRDto,
+  ProductionKpisRDto,
   ProductionOperatorRDto,
 } from './production-models';
 
@@ -68,6 +72,7 @@ export function toLot(
   operators: readonly OperatorOption[],
 ): LotRDto {
   return {
+    id: batch.id,
     number: batch.number,
     date: batch.createdAt.slice(0, 10),
     articleName: products.find((item) => item.articleId === batch.outputArticleId)?.name ?? '—',
@@ -86,5 +91,58 @@ export function toBatchWDto(lot: LotWDto): ProductionBatchWDto {
     inputs: lot.lines
       .filter((line) => line.quantity > 0)
       .map((line) => ({ articleId: line.materialId, quantity: line.quantity })),
+  };
+}
+
+/**
+ * Indicateurs de tête (PRD-04) : ceux du serveur, plus les entrants à racheter, c'est-à-dire les entrants dont le
+ * stock total est sous un seuil non nul (même règle que les alertes STK-04).
+ */
+export function toKpis(
+  indicators: ProductionIndicatorsRDto,
+  inputIds: readonly string[],
+  stocks: readonly StockRDto[],
+): ProductionKpisRDto {
+  return {
+    lotsThisMonth: indicators.completedBatches,
+    curing: indicators.inProgressBatches,
+    unitsProduced: indicators.unitsProduced,
+    unitsTrendPercent: indicators.unitsTrendPercent ?? null,
+    averageCost: indicators.materialCostPerUnit ?? null,
+    uncostedLots: indicators.uncostedBatches,
+    materialsToRebuy: stocks.filter(
+      (stock) =>
+        inputIds.includes(stock.articleId) && stock.threshold > 0 && stock.total < stock.threshold,
+    ).length,
+  };
+}
+
+/**
+ * Détail et coût de revient d'un lot (PRD-05) : le serveur calcule tout à partir des entrants ; ici on normalise les
+ * champs absents à null et on traduit les unités.
+ */
+export function toLotCost(cost: ProductionBatchCostRDto): LotCostRDto {
+  return {
+    id: cost.id,
+    number: cost.number,
+    articleName: cost.outputArticleName,
+    quantity: cost.quantity,
+    status: toLotStatus(cost.status),
+    completedOn: cost.completedAt ? cost.completedAt.slice(0, 10) : null,
+    estimated: cost.estimated,
+    lines: cost.inputs.map((input) => ({
+      articleId: input.articleId,
+      code: input.articleCode,
+      name: input.articleName,
+      unit: UNIT_LABELS[input.unit],
+      quantity: input.quantity,
+      unitCost: input.unitCost ?? null,
+      lineCost: input.lineCost ?? null,
+    })),
+    materialCost: cost.materialCost ?? null,
+    unitCost: cost.unitCost ?? null,
+    uncosted: cost.uncostedInputs,
+    salePrice: cost.salePrice ?? null,
+    margin: cost.marginPercent ?? null,
   };
 }

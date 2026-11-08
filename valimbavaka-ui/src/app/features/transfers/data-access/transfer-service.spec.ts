@@ -62,4 +62,19 @@ describe('TransferService', () => {
     expect(request.request.params.has('origin')).toBe(false);
     request.flush({ items: [], page: 1, pageSize: 9, totalCount: 0, totalPages: 0 });
   });
+
+  it("lit le détail d'un transfert sur GET /api/v1/transfers/{id}", () => {
+    let number: string | undefined;
+
+    TestBed.inject(TransferService)
+      .get('0195f0a0-0000-7000-8000-0000000000c1')
+      .subscribe((transfer) => (number = transfer.number));
+
+    const request = TestBed.inject(HttpTestingController).expectOne(
+      '/api/v1/transfers/0195f0a0-0000-7000-8000-0000000000c1',
+    );
+    expect(request.request.method).toBe('GET');
+    request.flush({ number: 'RET-0015' });
+    expect(number).toBe('RET-0015');
+  });
 });

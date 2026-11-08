@@ -1,10 +1,4 @@
-import { isoDay } from '../../../shared/data-access/demo-dates';
-import {
-  SalonProductRDto,
-  ServicesContextRDto,
-  ShootingRDto,
-  TreatmentRDto,
-} from './service-models';
+import { SalonProductRDto, ServicesContextRDto, TreatmentRDto } from './service-models';
 
 const PRODUCTS: readonly SalonProductRDto[] = [
   { id: 'coco', name: 'Huile de coco vierge', unit: 'ml', stock: 220 },
@@ -63,40 +57,6 @@ const TREATMENTS: readonly TreatmentRDto[] = [
   },
 ];
 
-const SHOOTINGS: readonly ShootingRDto[] = [
-  {
-    number: 'SHO-0042',
-    items: [
-      { name: 'Gommage café 200 g', quantity: 1 },
-      { name: 'Baume lèvres miel 15 g', quantity: 1 },
-    ],
-    takenBy: 'Miora A.',
-    expectedReturn: `${isoDay(0)}T16:00`,
-    status: 'OUT',
-  },
-  {
-    number: 'SHO-0041',
-    items: [{ name: 'Lait corporel vanille', quantity: 2 }],
-    takenBy: 'Lova R.',
-    expectedReturn: `${isoDay(-1)}T18:00`,
-    status: 'LATE',
-  },
-  {
-    number: 'SHO-0040',
-    items: [{ name: 'Coffret Botanika', quantity: 1 }],
-    takenBy: 'Miora A.',
-    expectedReturn: `${isoDay(2)}T12:00`,
-    status: 'OUT',
-  },
-  {
-    number: 'SHO-0039',
-    items: [{ name: 'Savon noir 100 g', quantity: 2 }],
-    takenBy: 'Lova R.',
-    expectedReturn: `${isoDay(-3)}T17:00`,
-    status: 'RETURNED',
-  },
-];
-
 export const SERVICES_FIXTURE: ServicesContextRDto = {
   treatments: TREATMENTS,
   products: PRODUCTS,
@@ -125,5 +85,4 @@ export const SERVICES_FIXTURE: ServicesContextRDto = {
       price: 12000,
     },
   ],
-  shootings: SHOOTINGS,
 };

@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.transfer.service.impl;
 
 import java.util.Set;
+import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -8,11 +9,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.transfer.domain.Transfer;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferCommand;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferLineCommand;
 import org.vvs.valimbavaka.feature.transfer.domain.TransferOrigin;
 import org.vvs.valimbavaka.feature.transfer.dto.StockReturnWDto;
+import org.vvs.valimbavaka.feature.transfer.dto.TransferDetailRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferRDto;
 import org.vvs.valimbavaka.feature.transfer.dto.TransferSummaryRDto;
 import org.vvs.valimbavaka.feature.transfer.mapper.TransferMapper;
@@ -34,18 +37,21 @@ public class TransferServiceImpl implements TransferService {
     private final TransferPolicy policy;
     private final TransferLedger ledger;
     private final TransferHistory history;
+    private final TransferSheet sheet;
 
     TransferServiceImpl(
             TransferRepository transferRepository,
             TransferMapper transferMapper,
             TransferPolicy policy,
             TransferLedger ledger,
-            TransferHistory history) {
+            TransferHistory history,
+            TransferSheet sheet) {
         this.transferRepository = transferRepository;
         this.transferMapper = transferMapper;
         this.policy = policy;
         this.ledger = ledger;
         this.history = history;
+        this.sheet = sheet;
     }
 
     @Override
@@ -72,6 +78,14 @@ public class TransferServiceImpl implements TransferService {
     public PageResponse<TransferSummaryRDto> getTransfers(PageQuery query, @Nullable TransferOrigin origin) {
         var pageable = query.toPageable(SORT_FIELDS, "createdAt", SortDirection.DESC);
         return history.toRDtos(transferRepository.search(query.searchTerm(), origin, pageable));
+    }
+
+    @Override
+    public TransferDetailRDto getTransfer(UUID transferId) {
+        var transfer = transferRepository
+                .findById(transferId)
+                .orElseThrow(() -> new NotFoundException("Transfert introuvable : " + transferId));
+        return sheet.toRDto(transfer);
     }
 
     private String nextNumber(TransferOrigin origin) {
