@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.promotion.service.impl;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.promotion.domain.Promotion;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionDetails;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionPeriod;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionScope;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionStatus;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionRDto;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionWDto;
@@ -74,6 +76,14 @@ public class PromotionServiceImpl implements PromotionService {
                 .findById(promotionId)
                 .orElseThrow(() -> new NotFoundException("Promotion introuvable : " + promotionId));
         return toRDto(promotion);
+    }
+
+    @Override
+    public List<PromotionRDto> getActivePromotionsFor(UUID articleId, @Nullable UUID rangeId) {
+        var targetIds = rangeId == null ? Set.of(articleId) : Set.of(articleId, rangeId);
+        return promotionRepository.findActiveTargeting(targetIds, PromotionScope.ALL, today()).stream()
+                .map(promotion -> promotionMapper.toRDto(promotion, PromotionStatus.ACTIVE))
+                .toList();
     }
 
     @Override

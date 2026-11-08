@@ -92,7 +92,10 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds) {
-        return articleRepository.findByIdIn(articleIds).stream()
+        if (articleIds.isEmpty()) {
+            return List.of();
+        }
+        return articleRepository.findByIdIn(Set.copyOf(articleIds)).stream()
                 .map(articleMapper::toRDto)
                 .toList();
     }

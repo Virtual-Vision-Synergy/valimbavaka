@@ -196,6 +196,36 @@ class PromotionServiceImplTest {
         verify(promotionMapper).toRDto(ended, PromotionStatus.ENDED);
     }
 
+    @Test
+    void getActivePromotionsFor_articleWithRange_looksForTheArticleItsRangeAndTheCatalogueOnTheBusinessDay() {
+        // Arrange
+        var articleId = UUID.randomUUID();
+        var rangeId = UUID.randomUUID();
+        var running = promotion(new PromotionPeriod(BUSINESS_TODAY, BUSINESS_TODAY));
+        when(promotionRepository.findActiveTargeting(Set.of(articleId, rangeId), PromotionScope.ALL, BUSINESS_TODAY))
+                .thenReturn(List.of(running));
+
+        // Act
+        var promotions = sut.getActivePromotionsFor(articleId, rangeId);
+
+        // Assert
+        assertThat(promotions).hasSize(1);
+        verify(promotionMapper).toRDto(running, PromotionStatus.ACTIVE);
+    }
+
+    @Test
+    void getActivePromotionsFor_articleWithoutRange_looksForTheArticleOnly() {
+        // Arrange
+        var articleId = UUID.randomUUID();
+
+        // Act
+        var promotions = sut.getActivePromotionsFor(articleId, null);
+
+        // Assert
+        assertThat(promotions).isEmpty();
+        verify(promotionRepository).findActiveTargeting(Set.of(articleId), PromotionScope.ALL, BUSINESS_TODAY);
+    }
+
     private static Promotion promotion(PromotionPeriod period) {
         return Promotion.create(new PromotionDetails(
                 "Octobre rose",

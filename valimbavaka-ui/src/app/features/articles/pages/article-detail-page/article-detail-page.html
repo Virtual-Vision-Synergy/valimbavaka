@@ -4,40 +4,38 @@
     {{ 'articles.backToList' | translate }}
   </a>
 
-  @if (article.error()) {
-    <div class="card"><vvs-list-state kind="error" (retry)="article.reload()" /></div>
-  } @else if (article.value(); as a) {
-    @let eco = economics();
+  @if (sheet.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="sheet.reload()" /></div>
+  } @else if (sheet.value(); as a) {
+    @let unit = 'articles.detail.unit.' + a.unit | translate;
     <section class="card identity" aria-labelledby="article-title">
       <div class="top">
         <vvs-article-thumb [name]="a.name" [range]="a.range" size="lg" />
         <div class="intro">
           <div class="title-row">
             <h1 id="article-title">{{ a.name }}</h1>
-            <span class="code-chip" aria-hidden="true">ART-01 · ART-06</span>
-            <vvs-under-construction />
           </div>
           <p class="tags">
-            <span class="mono">{{ a.reference }}</span>
+            <span class="mono">{{ a.code }}</span>
             @if (a.range) {
               <vvs-range-tag [range]="a.range" />
             }
-            <span class="badge badge-dot badge-muted">
-              {{ 'articles.type.' + a.type | translate }}
-              @if (a.manufactured) {
-                · {{ 'articles.detail.manufactured' | translate }}
-              }
-            </span>
+            <span class="badge badge-dot badge-muted">{{
+              'article.type.' + a.type | translate
+            }}</span>
             <vvs-status-badge
               [tone]="tones[a.status]"
               [label]="'articles.status.' + a.status | translate"
             />
+            @if (!a.active) {
+              <vvs-status-badge tone="muted" [label]="'articles.detail.inactive' | translate" />
+            }
           </p>
-          <p class="description">
-            {{ a.description }}
-            {{ 'articles.detail.barcode' | translate }} <span class="mono">{{ a.barcode }}</span
-            >.
-          </p>
+          @if (a.barcode) {
+            <p class="description">
+              {{ 'articles.detail.barcode' | translate }} <span class="mono">{{ a.barcode }}</span>
+            </p>
+          }
         </div>
         <div class="actions">
           <a
@@ -48,8 +46,12 @@
             <svg [vvsIcon]="icons.Pencil" [size]="18"></svg>
             {{ 'articles.detail.edit' | translate }}
           </a>
-          @if (a.manufactured) {
-            <a class="btn btn-primary" routerLink="/production">
+          @if (a.type === 'FINISHED') {
+            <a
+              class="btn btn-primary"
+              routerLink="/production"
+              *vvsHasPermission="'production.create'"
+            >
               <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
               {{ 'articles.detail.newLot' | translate }}
             </a>
@@ -60,36 +62,27 @@
       <dl class="kpis">
         <div>
           <dt>{{ 'articles.detail.price' | translate }}</dt>
-          <dd class="num">{{ a.price ? (a.price | ariary) : '—' }}</dd>
+          <dd class="num">{{ a.price !== null ? (a.price | ariary) : '—' }}</dd>
         </div>
         <div>
           <dt>{{ 'articles.detail.cost' | translate }}</dt>
-          <dd class="num">{{ a.cost | ariary }}</dd>
-          @if (eco?.margin !== null && eco?.margin !== undefined) {
+          <dd class="num">{{ a.cost !== null ? (a.cost | ariary) : '—' }}</dd>
+          @if (a.margin !== null) {
             <dd class="sub positive">
-              {{ 'articles.detail.margin' | translate: { rate: eco?.margin } }}
+              {{ 'articles.detail.margin' | translate: { rate: a.margin } }}
             </dd>
           }
         </div>
         <div>
           <dt>{{ 'articles.detail.totalStock' | translate }}</dt>
-          <dd class="num">{{ a.totalStock }} u.</dd>
-          <dd class="sub">{{ 'articles.detail.threshold' | translate: { count: a.threshold } }}</dd>
-        </div>
-        <div>
-          <dt>{{ 'articles.detail.sold30' | translate }}</dt>
-          <dd class="num">{{ a.soldLast30Days }} u.</dd>
-          <dd class="sub">{{ 'articles.detail.perDay' | translate: { count: eco?.perDay } }}</dd>
-        </div>
-        <div>
-          <dt>{{ 'articles.detail.coverage' | translate }}</dt>
-          <dd class="num">
-            {{
-              eco?.coverage !== null
-                ? ('articles.detail.days' | translate: { count: eco?.coverage })
-                : '—'
-            }}
+          <dd class="num">{{ a.total }} {{ unit }}</dd>
+          <dd class="sub">
+            {{ 'articles.detail.threshold' | translate: { count: a.threshold, unit: unit } }}
           </dd>
+        </div>
+        <div>
+          <dt>{{ 'articles.detail.valueAtCost' | translate }}</dt>
+          <dd class="num">{{ a.value !== null ? (a.value | ariary) : '—' }}</dd>
         </div>
       </dl>
     </section>
@@ -97,64 +90,53 @@
     <div class="grid grid-2">
       <section class="card" aria-labelledby="locations-title">
         <header class="card-header">
-          <h2 id="locations-title">
-            {{ 'articles.detail.byLocation' | translate }}
-            <span class="code-chip" aria-hidden="true">STK-01</span>
-          </h2>
+          <h2 id="locations-title">{{ 'articles.detail.byLocation' | translate }}</h2>
           <a class="link-arrow" routerLink="/stocks">{{
-            'articles.detail.movements' | translate
+            'articles.detail.allStocks' | translate
           }}</a>
         </header>
         <ul class="locations">
-          @for (item of a.stockByLocation; track item.location) {
+          @for (location of a.locations; track location.id) {
             <li>
-              <span>{{ 'stocks.location.' + item.location | translate }}</span>
+              <span>{{ location.label }}</span>
               <span class="bar" aria-hidden="true"
                 ><span
-                  [class.low]="item.quantity < a.threshold / 4"
-                  [style.width.%]="(item.quantity / (eco?.maxLocation ?? 1)) * 100"
+                  [class.low]="location.quantity < a.threshold / 4"
+                  [style.width.%]="(location.quantity / a.maxQuantity) * 100"
                 ></span
               ></span>
-              <strong class="num">{{ item.quantity }}</strong>
+              <strong class="num">{{ location.quantity }}</strong>
             </li>
           }
         </ul>
-        <p class="total">
-          <span>{{ 'articles.detail.valueAtCost' | translate }}</span>
-          <strong class="num">{{ eco?.value ?? 0 | ariary }}</strong>
-        </p>
       </section>
 
       <section class="card" aria-labelledby="lots-title">
         <header class="card-header">
-          <h2 id="lots-title">
-            {{ 'articles.detail.lots' | translate }}
-            <span class="code-chip" aria-hidden="true">PRD-05</span>
-          </h2>
+          <h2 id="lots-title">{{ 'articles.detail.lots' | translate }}</h2>
           <a class="link-arrow" routerLink="/production">{{
             'articles.detail.allLots' | translate
           }}</a>
         </header>
-        @if (a.lots.length) {
+        @if (a.batches.length) {
           <ul class="rows">
-            @for (lot of a.lots; track lot.number) {
+            @for (batch of a.batches; track batch.id) {
               <li>
-                <span class="mono">{{ lot.number }}</span>
-                <span>· {{ lot.quantity }} u. · {{ lot.operator }}</span>
-                <span class="end">
-                  @if (lot.unitCost) {
-                    <span class="muted num">{{ lot.unitCost | ariary }} / u.</span>
-                  } @else {
-                    <span class="muted">
-                      {{ 'articles.detail.curing' | translate: { days: lot.curingDaysLeft } }}
-                    </span>
+                <span class="mono">{{ batch.number }}</span>
+                <span class="grow">
+                  {{
+                    'articles.detail.role.' + batch.role
+                      | translate: { quantity: batch.quantity, unit: unit }
+                  }}
+                  @if (batch.role === 'INPUT') {
+                    <span class="muted">· {{ batch.product }}</span>
                   }
+                </span>
+                <span class="end">
+                  <span class="muted">{{ batch.date | date: 'dd/MM/yyyy' }}</span>
                   <vvs-status-badge
-                    [tone]="lot.validated ? 'success' : 'info'"
-                    [label]="
-                      (lot.validated ? 'articles.detail.validated' : 'articles.detail.inProgress')
-                        | translate
-                    "
+                    [tone]="batchTones[batch.status]"
+                    [label]="'articles.detail.batchStatus.' + batch.status | translate"
                   />
                 </span>
               </li>
@@ -167,53 +149,61 @@
 
       <section class="card" aria-labelledby="promos-title">
         <header class="card-header">
-          <h2 id="promos-title">
-            {{ 'articles.detail.promotions' | translate }}
-            <span class="code-chip" aria-hidden="true">PRO-03</span>
-          </h2>
+          <h2 id="promos-title">{{ 'articles.detail.promotions' | translate }}</h2>
           <a class="link-arrow" routerLink="/promotions">{{
             'articles.detail.manage' | translate
           }}</a>
         </header>
-        @if (a.promotion; as promo) {
+        @for (promo of a.promotions; track promo.id) {
           <div class="promo">
-            <span class="rate num">−{{ promo.rate }}%</span>
+            <span class="rate num">{{ promo.discount }}</span>
             <span class="promo-text">
-              <strong>{{ promo.name }} · {{ promo.rule }}</strong>
+              <strong>{{ promo.name }}</strong>
               <span class="muted">
                 {{
                   'articles.detail.promoMeta'
-                    | translate: { period: promo.period, code: promo.code, uses: promo.uses }
+                    | translate
+                      : {
+                          from: (promo.startsOn | date: 'dd/MM/yyyy'),
+                          to: (promo.endsOn | date: 'dd/MM/yyyy'),
+                          uses: promo.usageCount,
+                        }
                 }}
+                @if (promo.code) {
+                  · {{ 'articles.detail.promoCode' | translate: { code: promo.code } }}
+                }
               </span>
             </span>
             <vvs-status-badge tone="success" [label]="'articles.detail.active' | translate" />
           </div>
+        } @empty {
+          <p class="muted">{{ 'articles.detail.noPromotion' | translate }}</p>
         }
-        <p class="muted">
-          {{ 'articles.detail.endedPromotions' | translate: { count: a.endedPromotions } }}
-        </p>
       </section>
 
       <section class="card" aria-labelledby="journal-title">
         <header class="card-header">
-          <h2 id="journal-title">
-            {{ 'articles.detail.journal' | translate }}
-            <span class="code-chip" aria-hidden="true">JNL-03</span>
-          </h2>
-          <a class="link-arrow" routerLink="/journal">{{ 'common.seeAll' | translate }}</a>
+          <h2 id="journal-title">{{ 'articles.detail.journal' | translate }}</h2>
         </header>
-        <ul class="rows">
-          @for (move of a.movements; track $index) {
-            <li>
-              <span class="mono muted when">{{ move.when }}</span>
-              <span class="grow">{{ move.label }}</span>
-              <strong class="num delta" [class.out]="move.delta < 0">
-                {{ move.delta > 0 ? '+' : '−' }}{{ move.delta < 0 ? -move.delta : move.delta }}
-              </strong>
-            </li>
-          }
-        </ul>
+        @if (a.movements.length) {
+          <ul class="rows">
+            @for (move of a.movements; track move.id) {
+              <li>
+                <span class="mono muted when">{{ move.occurredAt | date: 'dd/MM HH:mm' }}</span>
+                <span class="grow">
+                  {{ 'articles.detail.movementType.' + move.type | translate }} ·
+                  {{ move.location }}
+                </span>
+                <strong class="num delta" [class.out]="move.quantity < 0">
+                  {{ move.quantity > 0 ? '+' : '−'
+                  }}{{ move.quantity < 0 ? -move.quantity : move.quantity }}
+                </strong>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="muted">{{ 'articles.detail.noMovement' | translate }}</p>
+        }
       </section>
     </div>
   } @else {

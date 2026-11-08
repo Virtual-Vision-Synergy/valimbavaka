@@ -784,7 +784,6 @@
     },
     "detail": {
       "title": "Antontan'entana",
-      "manufactured": "vita an-trano",
       "barcode": "Kaody bara",
       "edit": "Hanova",
       "newLot": "Famokarana vaovao",
@@ -792,26 +791,47 @@
       "cost": "Vidiny niaviana",
       "margin": "Tombony {{rate}} %",
       "totalStock": "Tahiry rehetra",
-      "threshold": "Fetra {{count}}",
-      "sold30": "Lafo (30 andro)",
-      "perDay": "≈ {{count}} / andro",
-      "coverage": "Faharetana",
-      "days": "Andro {{count}}",
+      "threshold": "Fetra {{count}} {{unit}}",
       "byLocation": "Tahiry isaky ny toerana",
-      "movements": "Fivezivezena",
       "valueAtCost": "Sanda amin'ny vidiny niaviana",
       "lots": "Famokarana",
       "allLots": "Famokarana rehetra",
-      "noLots": "Tsy vita ao amin'ny atelier ity entana ity.",
-      "curing": "mbola maina · J-{{days}}",
-      "validated": "Voamarina",
-      "inProgress": "Eo am-panaovana",
+      "noLots": "Tsy misy famokarana ho an'ity entana ity.",
       "promotions": "Fihenam-bidy",
       "manage": "Hitantana",
-      "promoMeta": "{{period}} · kaody {{code}} · nampiasaina in-{{uses}}",
+      "promoMeta": "{{from}} – {{to}} · nampiasaina in-{{uses}}",
       "active": "Mandeha",
-      "endedPromotions": "Fihenam-bidy {{count}} vita",
-      "journal": "Diarin'ny entana"
+      "journal": "Diarin'ny entana",
+      "allStocks": "Tahiry rehetra",
+      "inactive": "Tsy mandeha intsony",
+      "role": {
+        "OUTPUT": "Vokatra : {{quantity}} {{unit}}",
+        "INPUT": "Lany : {{quantity}} {{unit}}"
+      },
+      "batchStatus": {
+        "PLANNED": "Voalahatra",
+        "IN_PROGRESS": "Eo am-panaovana",
+        "COMPLETED": "Vita"
+      },
+      "promoCode": "kaody {{code}}",
+      "noPromotion": "Tsy misy fihenam-bidy mandeha ho an'ity entana ity.",
+      "noMovement": "Tsy misy fivezivezena ho an'ity entana ity.",
+      "movementType": {
+        "RECEIPT": "Fandraisana",
+        "RETURN": "Famerenana",
+        "SALE": "Varotra",
+        "DELIVERY": "Fanaterana",
+        "SHOOTING": "Sary",
+        "TRANSFER": "Famindrana",
+        "TRADE_SHOW": "Foara",
+        "PRODUCTION": "Famokarana",
+        "INVENTORY": "Fanisana"
+      },
+      "unit": {
+        "PIECE": "p.",
+        "KILOGRAM": "kg",
+        "LITER": "L"
+      }
     }
   },
   "deliveries": {
