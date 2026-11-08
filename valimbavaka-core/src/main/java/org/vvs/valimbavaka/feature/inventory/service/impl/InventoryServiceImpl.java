@@ -1,6 +1,8 @@
 package org.vvs.valimbavaka.feature.inventory.service.impl;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryLine;
+import org.vvs.valimbavaka.feature.inventory.domain.InventoryLineTally;
 import org.vvs.valimbavaka.feature.inventory.domain.InventorySession;
 import org.vvs.valimbavaka.feature.inventory.domain.InventoryStatus;
 import org.vvs.valimbavaka.feature.inventory.dto.InventoryLineRDto;
@@ -56,7 +59,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final ArticleService articleService;
     private final JournalService journalService;
 
-    public InventoryServiceImpl(
+    InventoryServiceImpl(
             InventorySessionRepository sessionRepository,
             InventoryLineRepository lineRepository,
             InventoryOpeningPolicy openingPolicy,
@@ -81,14 +84,15 @@ public class InventoryServiceImpl implements InventoryService {
     public PageResponse<InventorySessionRDto> getSessions(
             PageQuery query, @Nullable InventoryStatus status, @Nullable UUID locationId) {
         var pageable = query.toPageable(SESSION_SORT_FIELDS, "createdAt", SortDirection.DESC);
+        var sessions = sessionRepository.search(status, locationId, pageable);
+        var tallies = talliesOf(sessions.map(InventorySession::getId).toSet());
         var locations = locationsById();
-        return PageResponse.from(
-                sessionRepository.search(status, locationId, pageable).map(session -> toRDto(session, locations)));
+        return PageResponse.from(sessions.map(session -> toRDto(session, locations, tallies)));
     }
 
     @Override
     public InventorySessionRDto getSession(UUID sessionId) {
-        return toRDto(findSession(sessionId), locationsById());
+        return toRDto(findSession(sessionId), locationsById(), talliesOf(Set.of(sessionId)));
     }
 
     @Override
@@ -124,7 +128,8 @@ public class InventoryServiceImpl implements InventoryService {
                 "Ouverture de la session d'inventaire %s · %s (%d articles)"
                         .formatted(number, location.label(), articles.size()));
         log.info("Session d'inventaire {} ouverte ({} lignes)", session.getId(), articles.size());
-        return inventoryMapper.toRDto(session, location, articles.size());
+        var tally = new InventoryLineTally(session.getId(), (long) articles.size(), 0L);
+        return inventoryMapper.toRDto(session, location, tally);
     }
 
     private InventorySession findSession(UUID sessionId) {
@@ -133,9 +138,16 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new NotFoundException("Session d'inventaire introuvable : " + sessionId));
     }
 
-    private InventorySessionRDto toRDto(InventorySession session, Map<UUID, StockLocationRDto> locations) {
-        return inventoryMapper.toRDto(
-                session, locationOf(session, locations), lineRepository.countBySessionId(session.getId()));
+    private InventorySessionRDto toRDto(
+            InventorySession session, Map<UUID, StockLocationRDto> locations, Map<UUID, InventoryLineTally> tallies) {
+        var tally = tallies.getOrDefault(session.getId(), InventoryLineTally.none(session.getId()));
+        return inventoryMapper.toRDto(session, locationOf(session, locations), tally);
+    }
+
+    /** Lines and gaps of the sessions of a page in one grouped query (INV-05), instead of one count per session. */
+    private Map<UUID, InventoryLineTally> talliesOf(Collection<UUID> sessionIds) {
+        var tallies = sessionIds.isEmpty() ? List.<InventoryLineTally>of() : lineRepository.tallies(sessionIds);
+        return tallies.stream().collect(Collectors.toMap(InventoryLineTally::sessionId, Function.identity()));
     }
 
     /** A location deactivated since the opening is no longer listed by the referential: shown as such. */

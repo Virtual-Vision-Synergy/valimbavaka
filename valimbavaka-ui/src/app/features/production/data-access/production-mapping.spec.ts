@@ -4,11 +4,16 @@ import {
   toBatchWDto,
   toKpis,
   toLot,
+  toLotCost,
   toLotStatus,
   toMaterial,
   toProducible,
 } from './production-mapping';
-import { ProductionBatchRDto, ProductionIndicatorsRDto } from './production-models';
+import {
+  ProductionBatchCostRDto,
+  ProductionBatchRDto,
+  ProductionIndicatorsRDto,
+} from './production-models';
 
 const article = (overrides: Partial<ArticleRDto>): ArticleRDto => ({
   id: 'art-1',
@@ -162,5 +167,86 @@ describe('production-mapping', () => {
 
       expect(kpis.materialsToRebuy).toBe(1);
     });
+  });
+});
+
+describe('toLotCost (PRD-05)', () => {
+  const cost = (overrides: Partial<ProductionBatchCostRDto>): ProductionBatchCostRDto => ({
+    id: 'b1',
+    number: 'LOT-00003',
+    outputArticleId: 'pf-1',
+    outputArticleName: 'Savon noir 100 g',
+    quantity: 30,
+    status: 'COMPLETED',
+    completedAt: '2026-11-08T08:00:00Z',
+    estimated: false,
+    inputs: [
+      {
+        articleId: 'mp-1',
+        articleCode: 'ART-0008',
+        articleName: 'Huile de coco',
+        unit: 'KILOGRAM',
+        quantity: 2,
+        unitCost: 1200,
+        lineCost: 2400,
+      },
+    ],
+    materialCost: 2400,
+    unitCost: 80,
+    uncostedInputs: 0,
+    salePrice: 8500,
+    marginPercent: 99,
+    ...overrides,
+  });
+
+  it('reprend le coût de revient du serveur, le jour de validation et les unités courtes', () => {
+    const lot = toLotCost(cost({}));
+
+    expect(lot).toMatchObject({
+      number: 'LOT-00003',
+      articleName: 'Savon noir 100 g',
+      status: 'VALIDATED',
+      completedOn: '2026-11-08',
+      materialCost: 2400,
+      unitCost: 80,
+      margin: 99,
+    });
+    expect(lot.lines[0]).toEqual({
+      articleId: 'mp-1',
+      code: 'ART-0008',
+      name: 'Huile de coco',
+      unit: 'kg',
+      quantity: 2,
+      unitCost: 1200,
+      lineCost: 2400,
+    });
+  });
+
+  it('normalise les coûts absents à null (entrant sans coût, lot non validé)', () => {
+    const lot = toLotCost(
+      cost({
+        status: 'PLANNED',
+        completedAt: undefined,
+        estimated: true,
+        inputs: [{ ...cost({}).inputs[0], unitCost: undefined, lineCost: undefined }],
+        materialCost: undefined,
+        unitCost: undefined,
+        uncostedInputs: 1,
+        salePrice: undefined,
+        marginPercent: undefined,
+      }),
+    );
+
+    expect(lot).toMatchObject({
+      status: 'DRAFT',
+      completedOn: null,
+      estimated: true,
+      materialCost: null,
+      unitCost: null,
+      uncosted: 1,
+      salePrice: null,
+      margin: null,
+    });
+    expect(lot.lines[0]).toMatchObject({ unitCost: null, lineCost: null });
   });
 });

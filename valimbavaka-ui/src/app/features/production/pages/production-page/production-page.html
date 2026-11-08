@@ -259,7 +259,12 @@
               <span class="lot-info">
                 <strong>{{ lot.articleName }}</strong>
                 <span class="mono muted"
-                  >{{ lot.number }} · {{ lot.quantity }} u. · {{ lot.operator }}</span
+                  ><a
+                    [routerLink]="['/production', lot.id]"
+                    [attr.aria-label]="'production.detail.open' | translate: { number: lot.number }"
+                    >{{ lot.number }}</a
+                  >
+                  · {{ lot.quantity }} u. · {{ lot.operator }}</span
                 >
               </span>
               <span class="lot-status">

@@ -9,10 +9,12 @@
       [options]="roundOptions()"
       [(value)]="round"
     />
-    <button class="btn btn-primary" type="button" (click)="demoAction()">
-      <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
-      {{ 'deliveries.newOrder' | translate }}
-    </button>
+    @if (canCreate) {
+      <a class="btn btn-primary" routerLink="new">
+        <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
+        {{ 'deliveries.newOrder' | translate }}
+      </a>
+    }
   </vvs-page-header>
 
   @if (board.error()) {

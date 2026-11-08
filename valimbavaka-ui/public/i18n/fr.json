@@ -602,6 +602,32 @@
       "expectedDelivery": "Livraison prévue le {{date}} si la commande part aujourd'hui.",
       "generated": "Bon de réapprovisionnement {{reference}} généré · {{count}} article(s)",
       "failed": "Le bon n'a pas été généré : {{message}}"
+    },
+    "receipt": {
+      "title": "Réception fournisseur",
+      "subtitle": "Les marchandises reçues entrent en stock à l'emplacement choisi. Une réception validée ne se supprime pas : une erreur se corrige par contre-passation.",
+      "back": "← Retour aux stocks",
+      "order": "Bon de réapprovisionnement",
+      "freeEntry": "Saisie libre (sans bon)",
+      "orderOption": "{{reference}} · {{count}} article(s)",
+      "orderHint": "Reprendre un bon préremplit les articles, les quantités commandées et le coût d'achat ; le bon passe à « reçu ».",
+      "supplier": "Fournisseur",
+      "chooseSupplier": "Choisir un fournisseur",
+      "supplierRequired": "Choisissez le fournisseur de la livraison.",
+      "location": "Emplacement de réception",
+      "lines": "Articles reçus",
+      "article": "Article",
+      "chooseArticle": "Choisir un article",
+      "articleRequired": "Choisissez un article.",
+      "quantity": "Quantité",
+      "quantityInvalid": "Quantité supérieure à zéro, 3 décimales au maximum.",
+      "unitCost": "Coût unitaire (Ar)",
+      "unitCostInvalid": "Coût positif ou nul, 2 décimales au maximum.",
+      "removeLine": "Retirer la ligne {{index}}",
+      "addLine": "Ajouter un article",
+      "note": "Note",
+      "submit": "Valider la réception",
+      "saved": "Réception {{number}} enregistrée : le stock est à jour."
     }
   },
   "articles": {
@@ -883,6 +909,8 @@
       "deliveredPaid": "Livré et encaissé",
       "finished": "Tournée terminée",
       "finishedHint": "Bravo ! {{amount}} encaissés. Rapportez la caisse à la boutique.",
+      "noStops": "Aucun arrêt aujourd'hui",
+      "noStopsHint": "Aucune commande ne vous est confiée pour ce jour. Les nouvelles commandes apparaîtront ici.",
       "later": "Ensuite",
       "paid": "Payée",
       "doneToast": "{{name}} : livrée",
@@ -896,6 +924,37 @@
       "historyHint": "Arrêts terminés, du plus récent au plus ancien.",
       "historyEmpty": "Aucun arrêt terminé pour l'instant",
       "settings": "Réglages"
+    },
+    "form": {
+      "title": "Nouvelle commande à livrer",
+      "subtitle": "Le serveur lit les prix des articles et ajoute la commande en fin de tournée du livreur choisi.",
+      "back": "← Retour aux livraisons",
+      "customer": "Client",
+      "customerName": "Nom du client",
+      "customerNameRequired": "Le nom du client est obligatoire (120 caractères au maximum).",
+      "customerPhone": "Téléphone",
+      "customerPhoneInvalid": "Saisissez un numéro de téléphone valide (7 chiffres au moins).",
+      "address": "Adresse de livraison",
+      "addressRequired": "L'adresse est obligatoire (255 caractères au maximum).",
+      "district": "Quartier",
+      "round": "Tournée",
+      "driver": "Livreur",
+      "chooseDriver": "Choisir un livreur",
+      "driverRequired": "Choisissez le livreur de la tournée.",
+      "scheduledDate": "Jour de livraison",
+      "scheduledDateInvalid": "Le jour de livraison ne peut pas être dans le passé.",
+      "lines": "Articles",
+      "article": "Article",
+      "chooseArticle": "Choisir un produit fini",
+      "articleRequired": "Choisissez un article.",
+      "quantity": "Quantité",
+      "quantityInvalid": "Quantité supérieure à zéro, 3 décimales au maximum.",
+      "addLine": "Ajouter un article",
+      "removeLine": "Retirer l'article {{index}}",
+      "estimate": "Montant estimé à encaisser :",
+      "note": "Note pour le livreur",
+      "submit": "Créer la commande",
+      "saved": "Commande {{number}} ajoutée à la tournée (arrêt {{stop}})."
     }
   },
   "day": {
@@ -1097,7 +1156,20 @@
     "finish": "Terminer",
     "finishLot": "Terminer le lot {{number}} (sort les matières, entre le produit fini)",
     "startedToast": "Lot {{number}} en cours : le stock bougera quand il sera terminé",
-    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}"
+    "statusError": "Le statut du lot {{number}} n'a pas changé : {{message}}",
+    "detail": {
+      "pageTitle": "Détail d'un lot",
+      "title": "Lot {{number}}",
+      "back": "Retour à la production",
+      "open": "Détail du lot {{number}}",
+      "completedOn": "terminé le {{date}}",
+      "frozen": "Coûts figés à la validation du lot : un changement de prix d'achat ne les modifie plus.",
+      "estimated": "Lot non terminé : coût estimé avec les prix d'achat actuels, figé à la validation.",
+      "inputs": "Entrants du lot",
+      "unitCost": "Coût unitaire",
+      "uncosted": "{{count}} entrant(s) sans coût d'achat : coût de revient non calculable, renseignez le coût de l'article.",
+      "margin": "Marge sur prix de vente"
+    }
   },
   "transfers": {
     "title": "Transferts de stock",
@@ -1181,7 +1253,8 @@
     "closeHint": "Disponible quand tout est compté et chaque écart expliqué.",
     "closeReady": "Tout est compté : vous pouvez clôturer.",
     "closedAt": "Session clôturée à {{time}}.",
-    "closedToast": "Session {{number}} clôturée : stock ajusté (démonstration)",
+    "closedToast": "Session {{number}} clôturée : stock ajusté aux quantités comptées",
+    "closeFailed": "Clôture de la session {{number}} refusée : {{reason}}",
     "listLabel": "Articles à compter",
     "filterLabel": "Filtrer les articles",
     "filter": {
@@ -1218,6 +1291,25 @@
     "missingReasons": "{{count}} écart sans motif : la clôture sera possible une fois le motif saisi.",
     "previous": "Sessions précédentes",
     "previousEmpty": "Aucune session clôturée à afficher pour l'instant.",
+    "gapCount": "{{count}} écart(s)",
+    "historyLink": "Voir l'historique des sessions",
+    "history": {
+      "title": "Historique des sessions d'inventaire",
+      "subtitle": "{{count}} session(s)",
+      "back": "← Retour à l'inventaire",
+      "listLabel": "Sessions d'inventaire",
+      "statusFilter": "Filtrer par statut",
+      "allStatuses": "Toutes",
+      "empty": "Aucune session d'inventaire pour ce filtre.",
+      "col": {
+        "session": "Session",
+        "countDate": "Comptage prévu",
+        "closedOn": "Clôturée le",
+        "status": "Statut",
+        "lines": "Articles",
+        "gaps": "Écarts"
+      }
+    },
     "confirmTitle": "Clôturer la session ?",
     "confirmText": "Le stock théorique sera aligné sur le comptage ({{count}} articles avec écart). Cette action ne peut pas être annulée.",
     "scope": {
@@ -1374,11 +1466,39 @@
       "expected": "{{who}} · retour prévu {{when}}",
       "return": "Réintégrer",
       "none": "Aucune sortie en cours.",
-      "returnedToast": "Sortie {{number}} réintégrée au stock (démonstration)",
+      "returnedToast": "Sortie {{number}} réintégrée : statut Réintégré, stock remis à jour",
+      "returnFailed": "Réintégration de {{number}} refusée : {{message}}",
+      "kpi": {
+        "label": "Suivi des sorties en cours",
+        "out": "Sorties en cours",
+        "outNote": "produits encore en séance photo",
+        "late": "En retard",
+        "lateNote": "retour prévu dépassé",
+        "lateBadge": "À relancer",
+        "value": "Valeur immobilisée",
+        "valueNote": "au coût d'achat des produits sortis",
+        "unvaluedNote": "dont {{count}} unité(s) sans coût, non valorisée(s)"
+      },
       "status": {
         "OUT": "Sorti",
         "LATE": "En retard",
         "RETURNED": "Réintégré"
+      },
+      "form": {
+        "title": "Nouvelle sortie shooting",
+        "hint": "Les produits quittent le stock de l'emplacement choisi sans être comptés comme perte.",
+        "location": "Emplacement de sortie",
+        "expectedReturn": "Retour prévu",
+        "returnInPast": "Le retour prévu doit être dans le futur.",
+        "items": "Articles sortis",
+        "available": "disponible {{count}}",
+        "remove": "Retirer",
+        "noItem": "Ajoutez au moins un article.",
+        "add": "Ajouter un article",
+        "shortage": "Stock insuffisant à cet emplacement pour un des articles : ajustez la quantité.",
+        "note": "Note",
+        "save": "Enregistrer la sortie",
+        "savedToast": "Sortie {{number}} enregistrée : statut Sorti"
       }
     }
   },

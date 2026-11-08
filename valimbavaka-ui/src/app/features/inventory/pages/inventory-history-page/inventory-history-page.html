@@ -1,0 +1,77 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'inventory.history.title' | translate"
+    [subtitle]="
+      sessions.hasValue()
+        ? ('inventory.history.subtitle' | translate: { count: sessions.value().totalCount })
+        : ''
+    "
+    [codes]="['INV-05']"
+  >
+    <a class="btn btn-ghost" routerLink="/inventory">{{ 'inventory.history.back' | translate }}</a>
+  </vvs-page-header>
+
+  <section class="card list" [attr.aria-label]="'inventory.history.listLabel' | translate">
+    <div class="filters">
+      <vvs-filter-chips
+        [label]="'inventory.history.statusFilter' | translate"
+        [options]="statusOptions"
+        [(value)]="status"
+      />
+    </div>
+
+    @if (sessions.error()) {
+      <vvs-list-state kind="error" (retry)="sessions.reload()" />
+    } @else if (!sessions.hasValue()) {
+      <vvs-list-state kind="loading" [rows]="8" />
+    } @else if (!items().length) {
+      <vvs-list-state kind="empty" titleKey="inventory.history.empty" />
+    } @else {
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'inventory.history.col.session' | translate }}</th>
+              <th scope="col" class="c-date">
+                {{ 'inventory.history.col.countDate' | translate }}
+              </th>
+              <th scope="col" class="c-date">{{ 'inventory.history.col.closedOn' | translate }}</th>
+              <th scope="col">{{ 'inventory.history.col.status' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'inventory.history.col.lines' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'inventory.history.col.gaps' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (session of items(); track session.id) {
+              <tr class="row">
+                <th scope="row">
+                  <span class="cell-title">{{ session.locationLabel }}</span>
+                  <span class="cell-sub mono"
+                    >{{ session.number }} · {{ session.responsibleName }}</span
+                  >
+                </th>
+                <td class="c-date num">{{ session.countDate | shortDate }}</td>
+                <td class="c-date num">
+                  {{ session.status === 'CLOSED' ? (closedOn(session) | shortDate) : '—' }}
+                </td>
+                <td>
+                  <vvs-status-badge
+                    [tone]="tones[session.status]"
+                    [label]="'inventory.status.' + session.status | translate"
+                  />
+                </td>
+                <td class="cell-num num">{{ session.lineCount }}</td>
+                <td class="cell-num">
+                  <strong class="num gaps" [class.has-gaps]="session.gapCount > 0">{{
+                    session.gapCount
+                  }}</strong>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <vvs-pagination [(page)]="page" [size]="pageSize" [total]="sessions.value().totalCount" />
+    }
+  </section>
+</div>

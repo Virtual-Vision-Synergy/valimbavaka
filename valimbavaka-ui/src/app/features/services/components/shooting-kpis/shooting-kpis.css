@@ -1,0 +1,10 @@
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.note {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
