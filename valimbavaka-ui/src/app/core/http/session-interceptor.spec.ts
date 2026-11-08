@@ -106,8 +106,36 @@ describe('sessionInterceptor', () => {
     httpMock.expectOne('/api/v1/auth/refresh').flush(UNAUTHENTICATED_BODY, UNAUTHORIZED);
 
     expect(authStore.isAuthenticated()).toBe(false);
-    expect(navigate).toHaveBeenCalledWith(['/login']);
+    expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: { session: 'expired' } });
     expect(failure).toBeInstanceOf(ApiError);
+  });
+
+  it('should keep the session when the refresh fails because the network is down', () => {
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    let failure: unknown;
+    http.get('/api/v1/articles').subscribe({ error: (error: unknown) => (failure = error) });
+
+    httpMock.expectOne('/api/v1/articles').flush(UNAUTHENTICATED_BODY, UNAUTHORIZED);
+    httpMock.expectOne('/api/v1/auth/refresh').error(new ProgressEvent('error'));
+
+    expect(authStore.isAuthenticated()).toBe(true);
+    expect(navigate).not.toHaveBeenCalled();
+    expect((failure as ApiError).status).toBe(0);
+  });
+
+  it('should keep the session when the server is unavailable during the refresh', () => {
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    let failure: unknown;
+    http.get('/api/v1/articles').subscribe({ error: (error: unknown) => (failure = error) });
+
+    httpMock.expectOne('/api/v1/articles').flush(UNAUTHENTICATED_BODY, UNAUTHORIZED);
+    httpMock
+      .expectOne('/api/v1/auth/refresh')
+      .flush({ status: 503 }, { status: 503, statusText: 'Service Unavailable' });
+
+    expect(authStore.accessToken()).toBe('ancien-jeton');
+    expect(navigate).not.toHaveBeenCalled();
+    expect((failure as ApiError).status).toBe(503);
   });
 
   it('should not try to refresh after a 403', () => {

@@ -1,0 +1,131 @@
+<form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <header class="head">
+    <h3 id="shooting-form-title">{{ 'services.shooting.form.title' | translate }}</h3>
+    <p class="muted">{{ 'services.shooting.form.hint' | translate }}</p>
+  </header>
+
+  <div class="body">
+    <div class="pair">
+      <div class="field">
+        <label for="sho-location">{{ 'services.shooting.form.location' | translate }}</label>
+        <select
+          #location
+          id="sho-location"
+          class="input"
+          [value]="locationId()"
+          (change)="locationId.set(location.value)"
+        >
+          @for (item of locations(); track item.locationId) {
+            <option [value]="item.locationId" [selected]="item.locationId === locationId()">
+              {{ item.label }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="sho-return">{{ 'services.shooting.form.expectedReturn' | translate }}</label>
+        <input
+          id="sho-return"
+          class="input"
+          type="datetime-local"
+          formControlName="expectedReturn"
+          required
+          [attr.aria-invalid]="attempted() && returnInPast()"
+          aria-describedby="sho-return-error"
+        />
+        @if (attempted() && returnInPast()) {
+          <p id="sho-return-error" class="field-error">
+            {{ 'services.shooting.form.returnInPast' | translate }}
+          </p>
+        }
+      </div>
+    </div>
+
+    <section class="step" aria-labelledby="sho-items-title">
+      <h4 id="sho-items-title" class="step-title">
+        {{ 'services.shooting.form.items' | translate }}
+      </h4>
+      <ul class="lines">
+        @for (row of rows(); track row.article.articleId) {
+          <li [class.short]="row.short">
+            <span class="name">{{ row.article.name }}</span>
+            <span class="muted">{{
+              'services.shooting.form.available' | translate: { count: row.available }
+            }}</span>
+            <input
+              #qty
+              class="qty num"
+              inputmode="decimal"
+              [value]="row.line.quantity"
+              [attr.aria-label]="('services.quantityOf' | translate) + ' ' + row.article.name"
+              [attr.aria-invalid]="row.short || !(row.line.quantity > 0)"
+              (focus)="qty.select()"
+              (change)="setQuantity(row.article.articleId, qty.value)"
+            />
+            <button
+              class="btn btn-ghost btn-sm"
+              type="button"
+              [attr.aria-label]="
+                ('services.shooting.form.remove' | translate) + ' ' + row.article.name
+              "
+              (click)="removeArticle(row.article.articleId)"
+            >
+              <svg [vvsIcon]="icons.X" [size]="16"></svg>
+            </button>
+          </li>
+        } @empty {
+          <li class="none muted">{{ 'services.shooting.form.noItem' | translate }}</li>
+        }
+        @if (addable().length) {
+          <li class="add-row">
+            <label class="add">
+              <svg [vvsIcon]="icons.Plus" [size]="16"></svg>
+              <select
+                #adder
+                [attr.aria-label]="'services.shooting.form.add' | translate"
+                (change)="addArticle(adder.value); adder.value = ''"
+              >
+                <option value="">{{ 'services.shooting.form.add' | translate }}</option>
+                @for (article of addable(); track article.articleId) {
+                  <option [value]="article.articleId">
+                    {{ article.code }} · {{ article.name }}
+                  </option>
+                }
+              </select>
+            </label>
+          </li>
+        }
+      </ul>
+      @if (attempted() && !lines().length) {
+        <p class="alert alert-danger" role="alert">
+          {{ 'services.shooting.form.noItem' | translate }}
+        </p>
+      }
+      @if (hasShortage()) {
+        <p class="alert alert-danger" role="alert">
+          {{ 'services.shooting.form.shortage' | translate }}
+        </p>
+      }
+    </section>
+
+    <div class="field">
+      <label for="sho-note"
+        >{{ 'services.shooting.form.note' | translate }}
+        <span class="muted">{{ 'common.optional' | translate }}</span></label
+      >
+      <input
+        id="sho-note"
+        class="input"
+        formControlName="note"
+        maxlength="255"
+        autocomplete="off"
+      />
+    </div>
+  </div>
+
+  <footer class="foot">
+    <button class="btn btn-primary" type="submit" [disabled]="saving() || hasShortage()">
+      {{ 'services.shooting.form.save' | translate }}
+    </button>
+  </footer>
+</form>

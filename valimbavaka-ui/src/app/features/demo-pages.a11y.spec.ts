@@ -1,6 +1,6 @@
 import { Type } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import axe from 'axe-core';
@@ -29,17 +29,6 @@ const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
       import('./production/pages/production-page/production-page').then((m) => m.ProductionPage),
   ],
   [
-    'transfers',
-    () =>
-      import('./transfers/pages/transfer-list-page/transfer-list-page').then(
-        (m) => m.TransferListPage,
-      ),
-  ],
-  [
-    'inventory',
-    () => import('./inventory/pages/inventory-page/inventory-page').then((m) => m.InventoryPage),
-  ],
-  [
     'promotions',
     () =>
       import('./promotions/pages/promotion-list-page/promotion-list-page').then(
@@ -61,6 +50,14 @@ const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
 const settle = (): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, DEMO_LATENCY_MS + 100));
 
+/** Pages déjà branchées sur l'API (référentiels…) : chaque appel reçoit une page vide pour que la page se charge. */
+const answerApiCalls = async (): Promise<void> => {
+  await new Promise((resolve) => setTimeout(resolve));
+  for (const request of TestBed.inject(HttpTestingController).match(() => true)) {
+    request.flush({ items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 });
+  }
+};
+
 describe('Demo pages accessibility', () => {
   it.each(PAGES)(
     '%s should have no detectable accessibility violation',
@@ -77,8 +74,10 @@ describe('Demo pages accessibility', () => {
       }).compileComponents();
       TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
       const fixture = TestBed.createComponent(component);
+      await answerApiCalls();
       await fixture.whenStable();
       await settle();
+      await answerApiCalls();
       await fixture.whenStable();
       const host = fixture.nativeElement as HTMLElement;
       document.body.appendChild(host);

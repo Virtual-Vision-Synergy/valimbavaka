@@ -1,9 +1,18 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { buildUser } from '../../../core/auth/auth-testing';
+import { SubmitResult } from '../../../core/offline/outbox-models';
 import { PageResponse } from '../../../shared/models/page-response';
 import { LocationTotals } from './stock-mapping';
-import { StockAlertRDto, StockRowRDto } from './stock-models';
+import {
+  RestockOrderRDto,
+  StockAlertRDto,
+  StockRowRDto,
+  SupplierReceiptRDto,
+  SupplierReceiptWDto,
+} from './stock-models';
 import { StockService } from './stock-service';
 
 const page = (items: unknown[]) => ({
@@ -130,5 +139,64 @@ describe('StockService', () => {
     httpMock.expectOne((req) => req.url === '/api/v1/product-ranges').flush(page([]));
 
     expect(rows).toEqual([]);
+  });
+
+  it('génère un bon de réapprovisionnement par la file hors ligne, avec une clé d’idempotence (STK-05)', () => {
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
+    let result: SubmitResult<RestockOrderRDto> | undefined;
+    service.generateRestockOrder(['art-1', 'art-2']).subscribe((value) => (result = value));
+
+    const request = httpMock.expectOne('/api/v1/stocks/restock-orders');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ articleIds: ['art-1', 'art-2'] });
+    expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
+    request.flush({
+      id: 'ro-1',
+      reference: 'BR-000001',
+      status: 'PENDING',
+      createdAt: '',
+      lines: [],
+    });
+
+    expect(result?.queued).toBe(false);
+    expect(result?.body?.reference).toBe('BR-000001');
+  });
+
+  it('ne propose que les bons de réapprovisionnement encore en attente de livraison (STK-06)', () => {
+    let orders: readonly RestockOrderRDto[] = [];
+    service.pendingRestockOrders().subscribe((value) => (orders = value));
+
+    const request = httpMock.expectOne((req) => req.url === '/api/v1/stocks/restock-orders');
+    expect(request.request.params.get('size')).toBe('100');
+    request.flush(
+      page([
+        { id: 'ro-1', reference: 'BR-000001', status: 'RECEIVED', createdAt: '', lines: [] },
+        { id: 'ro-2', reference: 'BR-000002', status: 'PENDING', createdAt: '', lines: [] },
+      ]),
+    );
+
+    expect(orders.map((order) => order.reference)).toEqual(['BR-000002']);
+  });
+
+  it('enregistre une réception fournisseur par la file hors ligne, avec une clé d’idempotence (STK-06)', () => {
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
+    const body: SupplierReceiptWDto = {
+      supplierId: 'sup-1',
+      locationId: 'loc-1',
+      restockOrderId: null,
+      lines: [{ articleId: 'art-1', quantity: 12, unitCost: 3000 }],
+      note: null,
+    };
+    let result: SubmitResult<SupplierReceiptRDto> | undefined;
+    service.recordReceipt(body).subscribe((value) => (result = value));
+
+    const request = httpMock.expectOne('/api/v1/stocks/receipts');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(body);
+    expect(request.request.headers.get('Idempotency-Key')).toMatch(/^[0-9a-f-]{36}$/);
+    request.flush({ id: 'rec-1', number: 'REC-000001', status: 'VALIDATED', lines: [] });
+
+    expect(result?.queued).toBe(false);
+    expect(result?.body?.number).toBe('REC-000001');
   });
 });

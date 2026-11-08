@@ -1,7 +1,10 @@
 import { SaleChannel } from '../../../shared/models/commerce';
 
-/** Statut d'une livraison (miroir de l'énumération backend DeliveryStatus). */
+/** Statut affiché sur le tableau de suivi (une colonne par statut ; les commandes annulées n'y figurent pas). */
 export type DeliveryStatus = 'TO_PREPARE' | 'ON_ROUND' | 'DELIVERED' | 'FAILED';
+
+/** Miroir de l'énumération backend DeliveryStatus (LIV-01) : statuts du tableau + annulée. */
+export type DeliveryOrderStatus = DeliveryStatus | 'CANCELLED';
 
 export const DELIVERY_STATUSES: readonly DeliveryStatus[] = [
   'TO_PREPARE',
@@ -30,7 +33,7 @@ export interface DeliveryRoundRDto {
   readonly driverName: string;
 }
 
-/** Commande à livrer (LIV-01). */
+/** Commande à livrer telle qu'affichée sur le tableau de suivi (vue construite par `delivery-mapping.ts`). */
 export interface DeliveryRDto {
   readonly id: string;
   readonly number: string;
@@ -39,7 +42,8 @@ export interface DeliveryRDto {
   readonly district: string;
   readonly address: string;
   readonly phone: string;
-  readonly channel: SaleChannel;
+  /** Canal de prise de commande ; null pour une commande lue sur l'API (le serveur ne le connaît pas). */
+  readonly channel: SaleChannel | null;
   readonly articleCount: number;
   readonly amount: number;
   /** Payée d'avance (MVola) : rien à encaisser à la porte. */
@@ -69,4 +73,57 @@ export interface DeliveryStatusWDto {
   readonly status: Extract<DeliveryStatus, 'DELIVERED' | 'FAILED'>;
   readonly failureReason: FailureReason | null;
   readonly note: string | null;
+}
+
+/** Miroir de DeliveryOrderLineRDto : prix unitaire figé à la création, `amount` = quantité × prix. */
+export interface DeliveryOrderLineRDto {
+  readonly articleId: string;
+  readonly quantity: number;
+  readonly unitPrice: number;
+  readonly amount: number;
+}
+
+/** Miroir de DeliveryOrderRDto (LIV-01) : la tournée d'un livreur = `driverId` + `scheduledDate`. */
+export interface DeliveryOrderRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly status: DeliveryOrderStatus;
+  readonly customerName: string;
+  readonly customerPhone: string;
+  readonly address: string;
+  readonly district: string | null;
+  readonly driverId: string;
+  readonly scheduledDate: string;
+  readonly stopNumber: number;
+  readonly amount: number;
+  readonly note: string | null;
+  readonly lines: readonly DeliveryOrderLineRDto[];
+  readonly createdAt: string;
+  readonly createdBy: string | null;
+  readonly version: number;
+}
+
+/** Miroir de DeliveryOrderLineWDto : le prix est lu par le serveur sur la fiche article. */
+export interface DeliveryOrderLineWDto {
+  readonly articleId: string;
+  readonly quantity: number;
+}
+
+/** Miroir de DeliveryOrderWDto : ni numéro, ni statut, ni prix (attribués par le serveur). */
+export interface DeliveryOrderWDto {
+  readonly customerName: string;
+  readonly customerPhone: string;
+  readonly address: string;
+  readonly district: string | null;
+  readonly driverId: string;
+  readonly scheduledDate: string;
+  readonly lines: readonly DeliveryOrderLineWDto[];
+  readonly note: string | null;
+}
+
+/** Miroir de DeliveryDriverRDto : livreur actif proposé à l'affectation. */
+export interface DeliveryDriverRDto {
+  readonly id: string;
+  readonly firstName: string;
+  readonly lastName: string;
 }
