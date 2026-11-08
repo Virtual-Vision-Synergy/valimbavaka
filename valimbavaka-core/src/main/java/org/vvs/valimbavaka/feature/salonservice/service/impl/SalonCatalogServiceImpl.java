@@ -137,7 +137,7 @@ public class SalonCatalogServiceImpl implements SalonCatalogService {
     }
 
     private static SalonServiceDetails toDetails(SalonServiceWDto request) {
-        var lines = request.products() == null ? List.<ConsumedProductWDto>of() : request.products();
+        List<@Nullable ConsumedProductWDto> lines = request.products() == null ? List.of() : request.products();
         var products = lines.stream()
                 .filter(Objects::nonNull)
                 .map(line -> new ConsumedProduct(line.articleId(), line.quantity()))

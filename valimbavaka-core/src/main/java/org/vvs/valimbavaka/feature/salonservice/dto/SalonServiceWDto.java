@@ -38,9 +38,10 @@ public record SalonServiceWDto(
         @Nullable
         BigDecimal commissionRate,
 
-        // Optional: absent or empty = no product usually consumed; a null line is ignored.
+        // Optional: absent or empty = no product usually consumed. A line may be null in the JSON ([null]):
+        // the element type says so, and the service ignores it (SalonCatalogServiceImpl.toDetails).
         @Size(max = 20, message = "Un service ne peut pas lister plus de {max} produits consommés") @Nullable
-        List<@Valid ConsumedProductWDto> products,
+        List<@Valid @Nullable ConsumedProductWDto> products,
 
         // Version read by the client (SalonServiceRDto.version): a stale value is refused with 409. Optional.
         @Nullable Long version) {}
