@@ -1367,7 +1367,17 @@
     "limit": "Fetran'ny fampiasana",
     "schedule": "Alahatra",
     "scheduledToast": "Voasoratra ny fampiroboroboana « {{name}} »",
-    "createFailed": "Tsy voasoratra ny fampiroboroboana : {{reason}}"
+    "createFailed": "Tsy voasoratra ny fampiroboroboana : {{reason}}",
+    "listLabel": "Lisitry ny fampiroboroboana",
+    "detail": {
+      "label": "Antontan'ny fampiroboroboana {{name}}",
+      "automatic": "Tsy misy (mihatra ho azy)",
+      "period": "Fotoana",
+      "scopeAll": "Ny katalaogy manontolo",
+      "scopeArticles": "Entana {{count}} voafidy",
+      "unknownTargets": "Tsy hita ao amin'ny firaketana ireo karazany",
+      "backToForm": "Hidio ny antontany"
+    }
   },
   "commissions": {
     "title": "Ny komisiako",

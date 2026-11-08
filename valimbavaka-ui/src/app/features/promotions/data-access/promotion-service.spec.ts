@@ -45,6 +45,31 @@ describe('PromotionService', () => {
 
   afterEach(() => httpMock.verify());
 
+  it('liste les promotions paginées en n’envoyant le statut que s’il est choisi', () => {
+    service.list({ page: 2, size: 12, status: 'ENDED' }).subscribe();
+    const filtered = httpMock.expectOne((req) => req.url === '/api/v1/promotions');
+    expect(filtered.request.params.get('page')).toBe('2');
+    expect(filtered.request.params.get('size')).toBe('12');
+    expect(filtered.request.params.get('status')).toBe('ENDED');
+    filtered.flush({ items: [], page: 2, pageSize: 12, totalCount: 0, totalPages: 0 });
+
+    service.list({ page: 1, size: 12 }).subscribe();
+    const all = httpMock.expectOne((req) => req.url === '/api/v1/promotions');
+    expect(all.request.params.has('status')).toBe(false);
+    all.flush({ items: [], page: 1, pageSize: 12, totalCount: 0, totalPages: 0 });
+  });
+
+  it('lit la fiche d’une promotion par son identifiant', () => {
+    let sheet: PromotionRDto | undefined;
+    service.getById('promo-1').subscribe((value) => (sheet = value));
+
+    const request = httpMock.expectOne('/api/v1/promotions/promo-1');
+    expect(request.request.method).toBe('GET');
+    request.flush({ id: 'promo-1', name: 'Octobre rose' });
+
+    expect(sheet?.name).toBe('Octobre rose');
+  });
+
   it('crée la promotion par POST avec une clé d’idempotence et les identifiants du référentiel', () => {
     let result: SubmitResult<PromotionRDto> | undefined;
     service.create(DRAFT, REFS).subscribe((value) => (result = value));

@@ -1367,7 +1367,17 @@
     "limit": "Limite d'utilisation",
     "schedule": "Programmer",
     "scheduledToast": "Promotion « {{name}} » enregistrée",
-    "createFailed": "Promotion non enregistrée : {{reason}}"
+    "createFailed": "Promotion non enregistrée : {{reason}}",
+    "listLabel": "Liste des promotions",
+    "detail": {
+      "label": "Fiche de la promotion {{name}}",
+      "automatic": "Aucun (appliquée automatiquement)",
+      "period": "Période",
+      "scopeAll": "Tout le catalogue",
+      "scopeArticles": "{{count}} article(s) choisi(s)",
+      "unknownTargets": "Gammes introuvables dans le référentiel",
+      "backToForm": "Fermer la fiche"
+    }
   },
   "commissions": {
     "title": "Mes commissions",

@@ -3,6 +3,7 @@ import {
   SalesChannelRDto,
 } from '../../referential/data-access/referential-models';
 import { SaleChannel } from '../../../shared/models/commerce';
+import { PageQuery } from '../../../shared/models/page-response';
 
 export type PromotionKind = 'PERCENT' | 'AMOUNT' | 'BUY_X';
 export type PromotionStatus = 'ACTIVE' | 'SCHEDULED' | 'ENDED';
@@ -20,7 +21,7 @@ export interface PromotionScopeRDto {
   readonly articleCount: number;
 }
 
-/** Carte de promotion affichée dans la liste (PRO-04 la branchera sur l'API de liste). */
+/** Carte de promotion affichée dans la liste (construite depuis `PromotionRDto` par `toCardView`). */
 export interface PromotionCardView {
   readonly id: string;
   readonly name: string;
@@ -41,9 +42,14 @@ export interface PromotionReferences {
   readonly channels: readonly SalesChannelRDto[];
 }
 
+/** Contexte du formulaire : référentiels réels et choix du périmètre (nombres d'articles de démonstration). */
 export interface PromotionContext extends PromotionReferences {
-  readonly promotions: readonly PromotionCardView[];
   readonly scopes: readonly PromotionScopeRDto[];
+}
+
+/** Paramètres de `GET /api/v1/promotions` : sans statut, toutes les promotions. */
+export interface PromotionListQuery extends PageQuery {
+  status?: PromotionStatus;
 }
 
 /** Saisie du formulaire, avant traduction en identifiants du référentiel. */
