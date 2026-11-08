@@ -9,6 +9,7 @@ import {
   ArticleExportQuery,
   ArticleImportRDto,
   ArticleListQuery,
+  ArticleOverviewRDto,
   ArticleRDto,
   ArticleStatusWDto,
   ArticleWDto,
@@ -56,6 +57,11 @@ export class ArticleService {
 
   getById(id: string): Observable<ArticleRDto> {
     return this.http.get<ArticleRDto>(`${this.baseUrl}/${id}`);
+  }
+
+  /** Fiche 360° (ART-06) : identité, stock par emplacement, promotions actives, lots et derniers mouvements. */
+  overview(id: string): Observable<ArticleOverviewRDto> {
+    return this.http.get<ArticleOverviewRDto>(`${this.baseUrl}/${id}/overview`);
   }
 
   create(body: ArticleWDto): Observable<SubmitResult<ArticleRDto>> {

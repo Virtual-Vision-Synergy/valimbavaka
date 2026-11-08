@@ -56,16 +56,6 @@ export interface ChannelRevenueRDto {
   readonly amount: number;
 }
 
-export interface StockAlertRDto {
-  readonly articleId: string;
-  readonly reference: string;
-  readonly name: string;
-  readonly range: ProductRange;
-  readonly location: string;
-  readonly quantity: number;
-  readonly threshold: number;
-}
-
 export interface ActivityRDto {
   readonly id: string;
   readonly kind: ActivityKind;
@@ -89,7 +79,10 @@ export interface SellerPerformanceRDto {
   readonly target: number;
 }
 
-/** Cockpit du jour (DSH-01 à DSH-04) : agrégat en lecture seule, calculé côté serveur. */
+/**
+ * Cockpit du jour (DSH-01, DSH-02, DSH-04) : agrégat en lecture seule, calculé côté serveur. Les alertes de stock
+ * (DSH-03) n'en font pas partie : la page les lit à part sur `GET /api/v1/stocks/alerts` (STK-04).
+ */
 export interface DashboardRDto {
   readonly businessDate: string;
   readonly openedAt: string;
@@ -107,7 +100,6 @@ export interface DashboardRDto {
   readonly revenueLast4Weeks: readonly DailyRevenueRDto[];
   readonly revenueByRange: readonly RangeRevenueRDto[];
   readonly revenueByChannel: readonly ChannelRevenueRDto[];
-  readonly stockAlerts: readonly StockAlertRDto[];
   readonly activity: readonly ActivityRDto[];
   readonly topArticles: readonly TopArticleRDto[];
   readonly sellers: readonly SellerPerformanceRDto[];

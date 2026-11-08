@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'dashboard.title' | translate"
     [subtitle]="'dashboard.subtitle' | translate"
-    [codes]="['DSH-01', 'DSH-04']"
+    [codes]="['DSH-01', 'DSH-03', 'DSH-04']"
   >
     <a *vvsHasPermission="'sales.read'" class="btn btn-primary" routerLink="/day/close">
       <svg [vvsIcon]="icons.Lock"></svg>
@@ -39,7 +39,14 @@
           </section>
           <vvs-dashboard-kpis [data]="data" />
           <div class="grid grid-main-aside">
-            <vvs-stock-alerts-card [alerts]="data.stockAlerts" [limit]="3" />
+            @if (canSeeStockAlerts()) {
+              <vvs-stock-alerts-card
+                [page]="stockAlertsPage()"
+                [failed]="stockAlertsFailed()"
+                [limit]="3"
+                (retry)="stockAlerts.reload()"
+              />
+            }
             <vvs-activity-feed-card [activity]="data.activity" [limit]="4" />
           </div>
         }
@@ -53,7 +60,13 @@
             [sellers]="canSeeSellers() ? data.sellers : []"
           />
           <div class="grid grid-main-aside">
-            <vvs-stock-alerts-card [alerts]="data.stockAlerts" />
+            @if (canSeeStockAlerts()) {
+              <vvs-stock-alerts-card
+                [page]="stockAlertsPage()"
+                [failed]="stockAlertsFailed()"
+                (retry)="stockAlerts.reload()"
+              />
+            }
             <vvs-activity-feed-card [activity]="data.activity" />
           </div>
         }

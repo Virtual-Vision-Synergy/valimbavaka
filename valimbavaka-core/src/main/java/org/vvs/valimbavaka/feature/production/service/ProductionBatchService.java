@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.production.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -17,6 +18,9 @@ public interface ProductionBatchService {
     PageResponse<ProductionBatchRDto> getBatches(PageQuery query, @Nullable ProductionBatchStatus status);
 
     ProductionBatchRDto getBatchById(UUID batchId);
+
+    /** The {@code limit} most recent batches producing the article or consuming it as an input (ART-06). */
+    List<ProductionBatchRDto> getRecentBatchesOf(UUID articleId, int limit);
 
     /**
      * Plans a batch: output must be an active finished product, inputs active raw materials or semi-finished

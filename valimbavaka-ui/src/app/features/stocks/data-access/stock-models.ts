@@ -24,6 +24,29 @@ export interface StockRDto {
   readonly locations: readonly StockLocationQuantityRDto[];
 }
 
+/** Miroir de StockMovementType : signe accepté selon le type (STK-01). */
+export type StockMovementType =
+  | 'RECEIPT'
+  | 'RETURN'
+  | 'SALE'
+  | 'DELIVERY'
+  | 'SHOOTING'
+  | 'TRANSFER'
+  | 'TRADE_SHOW'
+  | 'PRODUCTION'
+  | 'INVENTORY';
+
+/** Miroir de StockMovementRDto : `quantity` signée (positive = entrée dans l'emplacement). */
+export interface StockMovementRDto {
+  readonly id: string;
+  readonly articleId: string;
+  readonly locationId: string;
+  readonly type: StockMovementType;
+  readonly quantity: number;
+  readonly referenceId: string | null;
+  readonly occurredAt: string;
+}
+
 /**
  * `GET /api/v1/stocks/alerts` : article actif sous son seuil minimum (STK-04). `quantity` est le total des
  * emplacements actifs, `shortage` = seuil − stock, `suggestedQuantity` = manque arrondi à la dizaine supérieure.

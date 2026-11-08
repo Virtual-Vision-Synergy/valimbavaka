@@ -24,6 +24,7 @@ import { RevenueSplitCard } from '../../components/revenue-split-card/revenue-sp
 import { StockAlertsCard } from '../../components/stock-alerts-card/stock-alerts-card';
 import { TopArticlesCard } from '../../components/top-articles-card/top-articles-card';
 import { DashboardService } from '../../data-access/dashboard-service';
+import { StockService } from '../../../stocks/data-access/stock-service';
 import { Icon } from '../../../../shared/components/icon/icon';
 
 export type DashboardTab = 'overview' | 'analysis';
@@ -33,7 +34,10 @@ const TABS: readonly TabItem<DashboardTab>[] = [
   { id: 'analysis', labelKey: 'dashboard.tab.analysis' },
 ];
 
-/** Cockpit du jour (DSH-01 à DSH-04) : vue d'ensemble pour agir, analyse détaillée pour comprendre. */
+/**
+ * Cockpit du jour (DSH-01 à DSH-04) : vue d'ensemble pour agir, analyse détaillée pour comprendre. Les alertes de
+ * stock (DSH-03) viennent de `GET /api/v1/stocks/alerts` ; le reste reste sur l'agrégat de démonstration.
+ */
 @Component({
   selector: 'vvs-dashboard-page',
   imports: [
@@ -62,6 +66,7 @@ export class DashboardPage {
   private readonly router = inject(Router);
   private readonly authStore = inject(AuthStore);
   private readonly dashboardService = inject(DashboardService);
+  private readonly stockService = inject(StockService);
 
   /** Paramètre `?tab=` (lien partageable vers un onglet). */
   readonly tab = input<string>();
@@ -73,6 +78,22 @@ export class DashboardPage {
   protected readonly dashboard = rxResource({ stream: () => this.dashboardService.get() });
   protected readonly firstName = computed(() => this.authStore.currentUser()?.firstName ?? '');
   protected readonly canSeeSellers = computed(() => this.authStore.hasPermission('reports.read'));
+  /** Alertes de stock (DSH-03) : réservées à `stocks.read`, sinon aucun appel (le livreur n'y a pas droit). */
+  protected readonly canSeeStockAlerts = computed(() =>
+    this.authStore.hasPermission('stocks.read'),
+  );
+  /**
+   * Articles sous leur seuil (STK-04), lus à part de l'agrégat du cockpit (DSH-01) : un échec n'empêche pas
+   * le reste du cockpit de s'afficher. `params` indéfini = ressource au repos, aucune requête.
+   */
+  protected readonly stockAlerts = rxResource({
+    params: () => (this.canSeeStockAlerts() ? true : undefined),
+    stream: () => this.stockService.alerts(),
+  });
+  protected readonly stockAlertsPage = computed(() =>
+    this.stockAlerts.hasValue() ? this.stockAlerts.value() : undefined,
+  );
+  protected readonly stockAlertsFailed = computed(() => this.stockAlerts.status() === 'error');
   protected readonly steps = computed<StepItem[]>(() =>
     (this.dashboard.value()?.steps ?? []).map((step) => ({
       labelKey: `dashboard.step.${step.code}.label`,

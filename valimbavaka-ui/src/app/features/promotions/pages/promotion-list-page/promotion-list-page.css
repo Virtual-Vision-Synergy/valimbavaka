@@ -24,3 +24,12 @@
     position: static;
   }
 }
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.back {
+  margin-top: var(--space-3);
+}
