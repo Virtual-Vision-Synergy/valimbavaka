@@ -25,13 +25,12 @@ export class DeliveryCard {
     const delivery = this.delivery();
     switch (delivery.status) {
       case 'TO_PREPARE':
-        return { key: `sales.channel.${delivery.channel}`, params: {}, tone: 'muted' };
+        // Commande lue sur l'API (LIV-01) : pas de canal connu, on montre sa place dans la tournée.
+        return delivery.channel
+          ? { key: `sales.channel.${delivery.channel}`, params: {}, tone: 'muted' }
+          : this.stopFooter('muted');
       case 'ON_ROUND':
-        return {
-          key: 'deliveries.card.stop',
-          params: { stop: delivery.stop ?? 0, count: this.stopCount() },
-          tone: 'info',
-        };
+        return this.stopFooter('info');
       case 'DELIVERED':
         return {
           key: delivery.prepaid ? 'deliveries.card.prepaid' : 'deliveries.card.collected',
@@ -46,4 +45,12 @@ export class DeliveryCard {
         };
     }
   });
+
+  private stopFooter(tone: string): { key: string; params: Record<string, number>; tone: string } {
+    return {
+      key: 'deliveries.card.stop',
+      params: { stop: this.delivery().stop ?? 0, count: this.stopCount() },
+      tone,
+    };
+  }
 }
