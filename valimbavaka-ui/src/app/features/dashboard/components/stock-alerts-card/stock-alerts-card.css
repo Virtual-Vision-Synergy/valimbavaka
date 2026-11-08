@@ -29,6 +29,14 @@ td:first-child {
 .cell-sub {
   display: block;
 }
+/* Nom de l'article = lien vers sa fiche (DSH-03). */
+a.cell-title {
+  text-decoration: none;
+}
+a.cell-title:hover {
+  color: var(--secondary-strong);
+  text-decoration: underline;
+}
 .level {
   display: inline-flex;
   align-items: center;
@@ -52,7 +60,7 @@ td:first-child {
 .gauge .out {
   background: var(--danger);
 }
-/* Mobile : gamme et emplacement masqués, le tableau tient sans défilement horizontal. */
+/* Mobile : quantité à commander et jauge masquées, le tableau tient sans défilement horizontal. */
 @media (max-width: 640px) {
   .secondary {
     display: none;
