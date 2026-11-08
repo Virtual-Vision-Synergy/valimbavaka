@@ -372,12 +372,13 @@
       "subtitle": "Entana {{count}} latsaky ny fetra ambany",
       "reorder": "Hamorona baiko famenoana",
       "article": "Entana",
-      "range": "Karazany",
-      "location": "Toerana",
       "level": "Tahiry / fetra",
+      "suggested": "Hobaiko",
       "state": "Toetra",
       "out": "Lany",
-      "low": "Tahiry kely"
+      "low": "Tahiry kely",
+      "emptyTitle": "Tsy misy entana latsaky ny fetra",
+      "emptyMessage": "Mitovy na mihoatra ny fetra ambany ny tahirin'ny entana rehetra arahina."
     },
     "activity": {
       "title": "Mivantana",
