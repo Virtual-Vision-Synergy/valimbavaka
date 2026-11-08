@@ -1,6 +1,6 @@
 # Guide d'intégration — LIV-04 · Signalement d'un échec de livraison
 
-Statut : ✅ rédigé ; tests à lancer (CI ou local), voir le [scénario](scenario-test.md#résultat-de-lexécution) · Ticket : [#49](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/49) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé, tests verts en CI (commit `c10037e2`) · Ticket : [#49](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/49) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
