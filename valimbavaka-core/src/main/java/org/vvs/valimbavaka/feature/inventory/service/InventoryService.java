@@ -14,11 +14,14 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 /** Inventory sessions (INV-01): opening and reading; counting, gap reasons and closing are added by INV-02 to 04. */
 public interface InventoryService {
 
-    /** Sessions, most recent first by default; a null filter means "all". */
+    /**
+     * Sessions, most recent first by default; a null filter means "all". Each session carries its number of lines and
+     * of gaps (INV-05: history of the sessions), read in one grouped query for the whole page.
+     */
     PageResponse<InventorySessionRDto> getSessions(
             PageQuery query, @Nullable InventoryStatus status, @Nullable UUID locationId);
 
-    /** 404 if the session is unknown. */
+    /** Session with its number of lines and of gaps; 404 if the session is unknown. */
     InventorySessionRDto getSession(UUID sessionId);
 
     /** Lines of a session sorted by article code; 404 if the session is unknown. */

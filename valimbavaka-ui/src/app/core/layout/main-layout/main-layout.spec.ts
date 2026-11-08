@@ -36,12 +36,12 @@ describe('MainLayout', () => {
     expect(element.querySelector('main')).not.toBeNull();
   });
 
-  it('should hide users and deliveries from a seller', async () => {
+  it('should hide users but show deliveries to a seller (LIV-01)', async () => {
     const element = await render('SELLER');
 
     expect(navText(element)).toContain('Ventes');
+    expect(navText(element)).toContain('Livraisons');
     expect(navText(element)).not.toContain('Utilisateurs');
-    expect(navText(element)).not.toContain('Livraisons');
   });
 
   it('should show only the dashboard and deliveries to a delivery driver', async () => {

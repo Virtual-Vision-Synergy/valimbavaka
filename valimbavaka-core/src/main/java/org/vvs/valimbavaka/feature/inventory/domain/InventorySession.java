@@ -72,4 +72,10 @@ public class InventorySession extends BaseEntity {
         session.status = InventoryStatus.IN_PROGRESS;
         return session;
     }
+
+    /** Closes the session (INV-04) once the stock is adjusted; the caller checks it is still in progress. */
+    public void close(Instant at) {
+        status = InventoryStatus.CLOSED;
+        closedAt = at;
+    }
 }
