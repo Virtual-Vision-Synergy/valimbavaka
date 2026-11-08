@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.sale.service.impl;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -81,13 +82,22 @@ public class SaleServiceImpl implements SaleService {
 
     @Override
     public SaleRDto getSaleById(UUID saleId) {
-        return saleMapper.toRDto(saleRepository
-                .findById(saleId)
-                .orElseThrow(() -> new NotFoundException("Vente introuvable : " + saleId)));
+        return saleMapper.toRDto(findSale(saleId));
+    }
+
+    @Override
+    public BigDecimal getPurchaseCost(UUID saleId) {
+        return findSale(saleId).purchaseCost();
     }
 
     @Override
     public SaleFormRDto getForm() {
         return formAssembler.build(saleRepository.peekNextNumber());
+    }
+
+    private Sale findSale(UUID saleId) {
+        return saleRepository
+                .findById(saleId)
+                .orElseThrow(() -> new NotFoundException("Vente introuvable : " + saleId));
     }
 }

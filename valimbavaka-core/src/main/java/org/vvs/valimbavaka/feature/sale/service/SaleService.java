@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.sale.service;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.sale.domain.SaleCommand;
@@ -29,6 +30,12 @@ public interface SaleService {
 
     /** 404 if the sale is unknown. */
     SaleRDto getSaleById(UUID saleId);
+
+    /**
+     * Purchase cost of the goods sold (margin of the sale, COM-02): sum of quantity × unit cost frozen on the lines, a
+     * line without cost counting zero. 404 if the sale is unknown.
+     */
+    BigDecimal getPurchaseCost(UUID saleId);
 
     /** Channels, active sellers and sellable articles with their stock, for the sale form. */
     SaleFormRDto getForm();

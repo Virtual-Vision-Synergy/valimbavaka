@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.sale.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,6 +99,21 @@ public class Sale extends BaseEntity {
         sale.discountAmount = new BigDecimal("0.00");
         sale.total = sale.subtotal.subtract(sale.discountAmount);
         return sale;
+    }
+
+    /**
+     * Purchase cost of the goods sold (margin, COM-02): sum of quantity × unit cost frozen on the lines, rounded half
+     * up to 2 decimals; a line without cost counts zero.
+     */
+    public BigDecimal purchaseCost() {
+        var cost = BigDecimal.ZERO;
+        for (var line : lines) {
+            var unitCost = line.getUnitCost();
+            if (unitCost != null) {
+                cost = cost.add(unitCost.multiply(line.getQuantity()));
+            }
+        }
+        return cost.setScale(2, RoundingMode.HALF_UP);
     }
 
     /** Lines in the order they were entered; they never change once recorded. */
