@@ -468,9 +468,9 @@
       "hold": "Miandry",
       "checkout": "Handray {{amount}}",
       "invoiceNote": "Misy faktiora misy laharana mivoaka rehefa voaray ny vola.",
-      "added": "{{name}} nampidirina · isa {{quantity}}",
-      "decreased": "{{name}} · isa {{quantity}}",
-      "removed": "{{name}} nesorina tamin'ny tapakila",
+      "added": "{{name}} nampidirina · isa {{quantity}} · tokony haloa {{total}}",
+      "decreased": "{{name}} · isa {{quantity}} · tokony haloa {{total}}",
+      "removed": "{{name}} nesorina tamin'ny tapakila · tokony haloa {{total}}",
       "sellerLabel": "Mpivarotra",
       "sellerPlaceholder": "Safidio ny mpivarotra"
     },
@@ -484,6 +484,7 @@
     },
     "toast": {
       "paid": "Voaray ny varotra {{ticket}} · {{amount}}",
+      "totalAdjusted": "Voaray ny varotra {{ticket}} amin'ny vidin'ny mpizara : {{amount}} ({{displayed}} no naseho). Hamarino ny famerenana.",
       "held": "Nampiandrasina ny tapakila {{ticket}}",
       "cannotCheckout": "Tsy ampy ny vola voaray",
       "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}",

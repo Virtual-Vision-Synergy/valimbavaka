@@ -468,9 +468,9 @@
       "hold": "Attente",
       "checkout": "Encaisser {{amount}}",
       "invoiceNote": "Une facture numérotée est générée à l'encaissement.",
-      "added": "{{name}} ajouté · quantité {{quantity}}",
-      "decreased": "{{name}} · quantité {{quantity}}",
-      "removed": "{{name}} retiré du ticket",
+      "added": "{{name}} ajouté · quantité {{quantity}} · net à payer {{total}}",
+      "decreased": "{{name}} · quantité {{quantity}} · net à payer {{total}}",
+      "removed": "{{name}} retiré du ticket · net à payer {{total}}",
       "sellerLabel": "Vendeuse",
       "sellerPlaceholder": "Choisir la vendeuse"
     },
@@ -484,6 +484,7 @@
     },
     "toast": {
       "paid": "Vente {{ticket}} encaissée · {{amount}}",
+      "totalAdjusted": "Vente {{ticket}} encaissée au prix du serveur : {{amount}} (affiché {{displayed}}). Vérifiez le rendu.",
       "held": "Ticket {{ticket}} mis en attente",
       "cannotCheckout": "Montant reçu insuffisant pour encaisser",
       "outOfStock": "Stock insuffisant pour {{name}}",
