@@ -231,6 +231,13 @@ class SaleIT extends StockApiTestSupport {
     }
 
     @Test
+    void createSale_missingSeller_returns422() throws Exception {
+        var soap = createArticle(uniqueName());
+        assertValidationFailed("{\"salesChannelId\":\"%s\",\"paymentMethod\":\"CASH\",\"lines\":[%s]}"
+                .formatted(channel("STORE"), line(soap, "1")));
+    }
+
+    @Test
     void createSale_unknownArticle_returns404() throws Exception {
         createSale(sellerToken, storeSale("CASH", line(UUID.randomUUID(), "1")))
                 .andExpect(status().isNotFound())
