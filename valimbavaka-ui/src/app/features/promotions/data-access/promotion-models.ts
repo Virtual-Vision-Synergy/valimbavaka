@@ -1,12 +1,19 @@
+import {
+  ProductRangeRDto,
+  SalesChannelRDto,
+} from '../../referential/data-access/referential-models';
 import { SaleChannel } from '../../../shared/models/commerce';
+import { PageQuery } from '../../../shared/models/page-response';
 
 export type PromotionKind = 'PERCENT' | 'AMOUNT' | 'BUY_X';
 export type PromotionStatus = 'ACTIVE' | 'SCHEDULED' | 'ENDED';
+/** Périmètre côté serveur : tout le catalogue, des gammes ou des articles (`targetIds`). */
+export type PromotionTargetScope = 'ALL' | 'RANGES' | 'ARTICLES';
 
 export const PROMOTION_KINDS: readonly PromotionKind[] = ['PERCENT', 'AMOUNT', 'BUY_X'];
 export const PROMOTION_STATUSES: readonly PromotionStatus[] = ['ACTIVE', 'SCHEDULED', 'ENDED'];
 
-/** Périmètre d'une promotion : tout le catalogue ou une gamme. */
+/** Choix du formulaire : tout le catalogue ou une gamme (code du référentiel). */
 export type PromotionScope = 'ALL' | 'BOTANIKA' | 'ZEZIKA' | 'SOLIKA';
 
 export interface PromotionScopeRDto {
@@ -14,8 +21,8 @@ export interface PromotionScopeRDto {
   readonly articleCount: number;
 }
 
-/** Carte de promotion (PRO-01, PRO-03). */
-export interface PromotionRDto {
+/** Carte de promotion affichée dans la liste (construite depuis `PromotionRDto` par `toCardView`). */
+export interface PromotionCardView {
   readonly id: string;
   readonly name: string;
   readonly description: string;
@@ -29,13 +36,24 @@ export interface PromotionRDto {
   readonly discountGranted: number;
 }
 
-export interface PromotionContextRDto {
-  readonly promotions: readonly PromotionRDto[];
+/** Référentiels utiles à la création : gammes ciblables et canaux de vente (SYS-05). */
+export interface PromotionReferences {
+  readonly ranges: readonly ProductRangeRDto[];
+  readonly channels: readonly SalesChannelRDto[];
+}
+
+/** Contexte du formulaire : référentiels réels et choix du périmètre (nombres d'articles de démonstration). */
+export interface PromotionContext extends PromotionReferences {
   readonly scopes: readonly PromotionScopeRDto[];
 }
 
-/** Création d'une promotion (PRO-02) ; le statut est déduit des dates par le serveur. */
-export interface PromotionWDto {
+/** Paramètres de `GET /api/v1/promotions` : sans statut, toutes les promotions. */
+export interface PromotionListQuery extends PageQuery {
+  status?: PromotionStatus;
+}
+
+/** Saisie du formulaire, avant traduction en identifiants du référentiel. */
+export interface PromotionDraft {
   readonly name: string;
   readonly kind: PromotionKind;
   readonly value: number;
@@ -45,4 +63,40 @@ export interface PromotionWDto {
   readonly endsOn: string;
   readonly channels: readonly SaleChannel[];
   readonly limit: number | null;
+}
+
+/** Miroir de `PromotionWDto` (POST /api/v1/promotions) ; le statut est déduit des dates par le serveur. */
+export interface PromotionWDto {
+  readonly name: string;
+  readonly description: string | null;
+  readonly kind: PromotionKind;
+  readonly value: number;
+  readonly code: string | null;
+  readonly scope: PromotionTargetScope;
+  readonly targetIds: readonly string[];
+  readonly startsOn: string;
+  readonly endsOn: string;
+  readonly channelIds: readonly string[];
+  readonly usageLimit: number | null;
+}
+
+/** Miroir de `PromotionRDto`. */
+export interface PromotionRDto {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly kind: PromotionKind;
+  readonly value: number;
+  readonly code: string | null;
+  readonly scope: PromotionTargetScope;
+  readonly targetIds: readonly string[];
+  readonly startsOn: string;
+  readonly endsOn: string;
+  readonly channelIds: readonly string[];
+  readonly usageLimit: number | null;
+  readonly usageCount: number;
+  readonly status: PromotionStatus;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+  readonly version: number;
 }

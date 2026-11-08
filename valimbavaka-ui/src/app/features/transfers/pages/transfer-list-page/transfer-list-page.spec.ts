@@ -144,6 +144,22 @@ describe('TransferListPage', () => {
     request.flush(pageOf([sellerReturn]));
   });
 
+  it('should open on the origin given in the address (link from the opening of the day)', async () => {
+    await respond(nextRequest(), pageOf([sellerReturn, morningTransfer]));
+
+    fixture.componentRef.setInput('origin', 'MORNING');
+    await refresh();
+
+    const request = nextRequest();
+    expect(request.request.params.get('origin')).toBe('MORNING');
+    expect(request.request.params.get('page')).toBe('1');
+    await respond(request, pageOf([morningTransfer]));
+    const pressed = Array.from(element.querySelectorAll('.chips button')).find(
+      (chip) => chip.getAttribute('aria-pressed') === 'true',
+    );
+    expect(pressed?.textContent).toContain('Répartition matinale');
+  });
+
   it('should load the next page from the server', async () => {
     await respond(nextRequest(), pageOf([sellerReturn, morningTransfer], 20));
 

@@ -25,6 +25,12 @@
                       | translate: { lines: voucher.lineCount, units: voucher.units }
                   }}
                 </span>
+                @if (statusByNumber().get(voucher.number); as status) {
+                  <vvs-status-badge
+                    [tone]="tones[status]"
+                    [label]="'transfers.status.' + status | translate"
+                  />
+                }
               </li>
             }
           </ul>
@@ -33,6 +39,14 @@
             <a class="btn btn-secondary" routerLink="/dashboard">{{
               'day.open.goDashboard' | translate
             }}</a>
+            @if (canReadTransfers) {
+              <a
+                class="btn btn-secondary"
+                routerLink="/transfers"
+                [queryParams]="{ origin: 'MORNING' }"
+                >{{ 'day.open.goTransfers' | translate }}</a
+              >
+            }
           </div>
         </section>
       } @else {
@@ -174,10 +188,13 @@
                 </span>
               </button>
             }
+            @if (errorMessage(); as message) {
+              <div class="alert alert-danger" role="alert">{{ message }}</div>
+            }
             <button
               class="btn btn-primary btn-lg btn-block"
               type="button"
-              [disabled]="submitting() || voucherCount() === 0"
+              [disabled]="submitting() || queued() || voucherCount() === 0"
               [attr.aria-describedby]="conflicts().length ? null : 'validate-hint'"
               (click)="validate()"
             >
