@@ -7,7 +7,7 @@
    4. Textes légèrement chauds pour réduire la fatigue visuelle
    5. Bordures ultra-subtiles
 
-   Activation : ThemeService (core/layout/theme-service.ts) pose `dark` sur <html>
+   Activation : UiPreferencesService (core/layout/ui-preferences-service.ts) pose `dark` sur <html>
    selon le choix mémorisé ou, à défaut, prefers-color-scheme.
    ============================================================ */
 html.dark {

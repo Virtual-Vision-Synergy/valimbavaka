@@ -46,12 +46,6 @@
 .field::placeholder {
   color: var(--gris-moyen);
 }
-.code {
-  padding: 2px 8px;
-  border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-sm);
-  font: 12px var(--font-mono);
-}
 .close {
   min-height: 32px;
   padding: 0 var(--space-1);
@@ -159,10 +153,5 @@ kbd {
   from {
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
-  }
-}
-@media (max-width: 640px) {
-  .code {
-    display: none;
   }
 }

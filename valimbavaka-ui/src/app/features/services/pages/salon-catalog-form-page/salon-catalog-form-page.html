@@ -1,0 +1,169 @@
+<section class="page">
+  <header class="page-header">
+    <a class="back" [routerLink]="catalogPath">{{ 'salonCatalog.form.back' | translate }}</a>
+    <h1>
+      {{ (isEdit() ? 'salonCatalog.form.editTitle' : 'salonCatalog.form.newTitle') | translate }}
+    </h1>
+  </header>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    <div class="grid">
+      <div class="field full">
+        <label for="name">{{ 'salonCatalog.field.name' | translate }} *</label>
+        <input id="name" class="input" formControlName="name" aria-describedby="name-error" />
+        @if (fieldError('name'); as error) {
+          <span id="name-error" class="field-error" aria-live="polite">{{
+            error.key | translate: error.params
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="durationMinutes">{{ 'salonCatalog.field.duration' | translate }} *</label>
+        <input
+          id="durationMinutes"
+          class="input"
+          type="number"
+          min="1"
+          max="600"
+          step="1"
+          inputmode="numeric"
+          formControlName="durationMinutes"
+          aria-describedby="durationMinutes-error"
+        />
+        @if (fieldError('durationMinutes'); as error) {
+          <span id="durationMinutes-error" class="field-error" aria-live="polite">{{
+            error.key | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="price">{{ 'salonCatalog.field.price' | translate }} *</label>
+        <input
+          id="price"
+          class="input"
+          type="number"
+          min="0"
+          step="0.01"
+          inputmode="decimal"
+          formControlName="price"
+          aria-describedby="price-error"
+        />
+        @if (fieldError('price'); as error) {
+          <span id="price-error" class="field-error" aria-live="polite">{{
+            error.key | translate
+          }}</span>
+        }
+      </div>
+
+      <div class="field full">
+        <label for="commissionRate">{{ 'salonCatalog.field.commissionRate' | translate }}</label>
+        <input
+          id="commissionRate"
+          class="input"
+          type="number"
+          min="0"
+          max="100"
+          step="0.01"
+          inputmode="decimal"
+          formControlName="commissionRate"
+          aria-describedby="commissionRate-hint commissionRate-error"
+        />
+        <span id="commissionRate-hint" class="field-hint">{{
+          'salonCatalog.form.rateHint' | translate
+        }}</span>
+        @if (fieldError('commissionRate'); as error) {
+          <span id="commissionRate-error" class="field-error" aria-live="polite">{{
+            error.key | translate
+          }}</span>
+        }
+      </div>
+
+      <fieldset class="products full" formArrayName="products" aria-describedby="products-hint">
+        <legend>{{ 'salonCatalog.field.products' | translate }}</legend>
+        <span id="products-hint" class="field-hint">{{
+          'salonCatalog.form.productsHint' | translate
+        }}</span>
+
+        @for (line of products.controls; track line; let index = $index) {
+          <div class="product-line" [formGroupName]="index">
+            <div class="field">
+              <label [for]="'article-' + index">{{
+                'salonCatalog.form.article' | translate
+              }}</label>
+              <select [id]="'article-' + index" class="input" formControlName="articleId">
+                <option value="" disabled>
+                  {{ 'salonCatalog.form.chooseArticle' | translate }}
+                </option>
+                @if (isUnlisted(line.controls.articleId.value)) {
+                  <option [value]="line.controls.articleId.value">
+                    {{ 'salonCatalog.form.inactiveArticle' | translate }}
+                  </option>
+                }
+                @for (article of articles(); track article.id) {
+                  <option [value]="article.id">{{ article.code }} · {{ article.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label [for]="'quantity-' + index">{{
+                'salonCatalog.form.quantity' | translate
+              }}</label>
+              <span class="qty-wrap">
+                <input
+                  [id]="'quantity-' + index"
+                  class="input"
+                  type="number"
+                  min="0.001"
+                  step="0.001"
+                  inputmode="decimal"
+                  formControlName="quantity"
+                />
+                @if (unitKey(line.controls.articleId.value); as unit) {
+                  <span class="unit">{{ unit | translate }}</span>
+                }
+              </span>
+            </div>
+            <button
+              class="btn btn-ghost btn-sm"
+              type="button"
+              [attr.aria-label]="'salonCatalog.form.removeProduct' | translate"
+              (click)="removeProduct(index)"
+            >
+              <svg [vvsIcon]="icons.Trash2" [size]="16"></svg>
+            </button>
+          </div>
+        } @empty {
+          <p class="field-hint">{{ 'salonCatalog.form.noProducts' | translate }}</p>
+        }
+
+        @if (productsInvalid()) {
+          <span class="field-error" aria-live="polite">{{
+            'salonCatalog.form.productInvalid' | translate
+          }}</span>
+        }
+
+        @if (products.length < maxProducts) {
+          <button class="btn btn-secondary btn-sm add" type="button" (click)="addProduct()">
+            <svg [vvsIcon]="icons.Plus" [size]="16"></svg>
+            {{ 'salonCatalog.form.addProduct' | translate }}
+          </button>
+        }
+      </fieldset>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" [routerLink]="catalogPath">{{
+        'salonCatalog.form.cancel' | translate
+      }}</a>
+      <button class="btn btn-primary" type="submit" [disabled]="!canSave()">
+        {{ 'salonCatalog.form.save' | translate }}
+      </button>
+    </div>
+  </form>
+</section>

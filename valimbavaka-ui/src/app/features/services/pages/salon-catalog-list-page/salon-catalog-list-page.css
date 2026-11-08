@@ -1,0 +1,38 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.search {
+  flex: 1;
+  max-width: 380px;
+}
+.count {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+.list {
+  padding: var(--space-4) var(--space-5);
+}
+.table-wrapper {
+  overflow-x: auto;
+}
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .actions {
+    white-space: normal;
+  }
+}
+.muted {
+  color: var(--gris-moyen);
+}

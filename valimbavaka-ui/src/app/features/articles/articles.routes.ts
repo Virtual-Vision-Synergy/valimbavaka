@@ -2,9 +2,9 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Catalogue d'articles : la liste et le détail restent sur des données de démonstration (ART-05, ART-06).
- * La création et la modification (ART-01, ART-02) utilisent le même formulaire, branché sur
- * `/api/v1/articles` (`features/article/data-access`).
+ * Catalogue d'articles : la liste reste sur des données de démonstration (ART-05) ; la fiche 360° (ART-06) lit
+ * `/api/v1/articles/{id}/overview`. La création et la modification (ART-01, ART-02) utilisent le même formulaire,
+ * branché sur `/api/v1/articles` (`features/article/data-access`).
  */
 export const ARTICLES_ROUTES: Routes = [
   {
@@ -31,7 +31,6 @@ export const ARTICLES_ROUTES: Routes = [
   {
     path: ':id',
     title: 'articles.detail.title',
-    data: { underConstruction: true },
     loadComponent: () =>
       import('./pages/article-detail-page/article-detail-page').then((m) => m.ArticleDetailPage),
   },

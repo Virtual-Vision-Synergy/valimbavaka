@@ -6,7 +6,7 @@
   >
     <vvs-filter-chips
       [label]="'promotions.statusFilter' | translate"
-      [options]="options()"
+      [options]="statusOptions"
       [(value)]="status"
     />
   </vvs-page-header>
@@ -15,18 +15,52 @@
     <div class="card"><vvs-list-state kind="error" (retry)="context.reload()" /></div>
   } @else if (context.value(); as data) {
     <div class="layout">
-      @if (visible().length) {
-        <ul class="grid-cards">
-          @for (item of visible(); track item.promotion.id) {
-            <li><vvs-promotion-card [promotion]="item.promotion" [status]="item.status" /></li>
-          }
-        </ul>
-      } @else {
-        <div class="card"><vvs-list-state kind="empty" titleKey="promotions.empty" /></div>
-      }
+      <section class="list" [attr.aria-label]="'promotions.listLabel' | translate">
+        @if (promotions.error()) {
+          <div class="card"><vvs-list-state kind="error" (retry)="promotions.reload()" /></div>
+        } @else if (!promotions.hasValue()) {
+          <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+        } @else if (items().length) {
+          <ul class="grid-cards">
+            @for (item of items(); track item.promotion.id) {
+              <li>
+                <vvs-promotion-card
+                  [promotion]="item.promotion"
+                  [status]="item.status"
+                  [selected]="item.promotion.id === selectedId()"
+                  (opened)="selectedId.set(item.promotion.id)"
+                />
+              </li>
+            }
+          </ul>
+          <vvs-pagination
+            [(page)]="page"
+            [size]="pageSize"
+            [total]="promotions.value().totalCount"
+          />
+        } @else {
+          <div class="card"><vvs-list-state kind="empty" titleKey="promotions.empty" /></div>
+        }
+      </section>
       <aside class="aside">
-        @for (key of [formKey()]; track key) {
-          <vvs-promotion-form [scopes]="data.scopes" (submitted)="create($event)" />
+        @if (selectedId(); as id) {
+          <vvs-side-panel
+            [label]="'promotions.detail.label' | translate: { name: selectedName() }"
+            [focusKey]="id"
+            (closed)="selectedId.set(null)"
+          >
+            <vvs-promotion-detail [promotionId]="id" [references]="data" />
+          </vvs-side-panel>
+          @if (docked) {
+            <button class="btn btn-ghost back" type="button" (click)="selectedId.set(null)">
+              {{ 'promotions.detail.backToForm' | translate }}
+            </button>
+          }
+        }
+        @if (!docked || !selectedId()) {
+          @for (key of [formKey()]; track key) {
+            <vvs-promotion-form [scopes]="data.scopes" (submitted)="create($event)" />
+          }
         }
       </aside>
     </div>

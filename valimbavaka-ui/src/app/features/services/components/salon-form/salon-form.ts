@@ -11,20 +11,24 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Plus } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthStore } from '../../../../core/auth/auth-store';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
+import { SalonProductRDto, TreatmentRDto } from '../../data-access/service-models';
 import {
-  SalonProductRDto,
-  SalonServiceWDto,
-  TreatmentRDto,
-} from '../../data-access/service-models';
+  MAX_CUSTOMER_NAME_LENGTH,
+  ServiceRecordWDto,
+} from '../../data-access/service-record-models';
 
 interface ConsumedLine {
   readonly productId: string;
   readonly quantity: number;
 }
 
-/** Enregistrement d'une prestation (SRV-01, SRV-02) : soin, cliente, produits consommés pré-remplis. */
+/**
+ * Enregistrement d'une prestation (SRV-02) : soin actif du catalogue, cliente, produits consommés pré-remplis par la
+ * recette et ajustables. La prestation est au nom du compte connecté ; le serveur déduit le stock salon.
+ */
 @Component({
   selector: 'vvs-salon-form',
   imports: [ReactiveFormsModule, TranslatePipe, AriaryPipe, Icon],
@@ -35,15 +39,20 @@ interface ConsumedLine {
 export class SalonForm {
   readonly treatments = input.required<readonly TreatmentRDto[]>();
   readonly products = input.required<readonly SalonProductRDto[]>();
-  readonly staff = input.required<readonly string[]>();
-  readonly registered = output<SalonServiceWDto>();
+  readonly registered = output<ServiceRecordWDto>();
 
   protected readonly icons = { Plus };
-  protected readonly treatmentId = signal('face');
+  protected readonly maxCustomerLength = MAX_CUSTOMER_NAME_LENGTH;
+  /** Premier soin de la liste par défaut ; revient au premier quand la liste change. */
+  protected readonly treatmentId = linkedSignal(() => this.treatments()[0]?.id ?? '');
   protected readonly attempted = signal(false);
   protected readonly form = inject(FormBuilder).nonNullable.group({
-    customer: [''],
-    staff: ['', Validators.required],
+    customer: ['', Validators.maxLength(MAX_CUSTOMER_NAME_LENGTH)],
+  });
+  private readonly user = inject(AuthStore).currentUser;
+  protected readonly sellerName = computed(() => {
+    const user = this.user();
+    return user ? `${user.firstName} ${user.lastName}` : '';
   });
 
   protected readonly treatment = computed(() =>
@@ -69,7 +78,8 @@ export class SalonForm {
   protected readonly hasShortage = computed(() => this.rows().some((row) => row.short));
 
   protected setQuantity(productId: string, raw: string): void {
-    const quantity = Math.max(0, Number(raw.replace(',', '.')) || 0);
+    const parsed = Math.max(0, Number(raw.replace(',', '.')) || 0);
+    const quantity = Math.round(parsed * 1000) / 1000;
     this.lines.update((lines) =>
       lines.map((line) => (line.productId === productId ? { ...line, quantity } : line)),
     );
@@ -83,15 +93,16 @@ export class SalonForm {
 
   protected submit(): void {
     this.attempted.set(true);
-    if (this.form.invalid || this.hasShortage()) {
+    if (this.form.invalid || this.hasShortage() || !this.treatment()) {
       return;
     }
-    const { customer, staff } = this.form.getRawValue();
+    const { customer } = this.form.getRawValue();
     this.registered.emit({
-      treatmentId: this.treatmentId(),
-      customer: customer.trim() || null,
-      staff,
-      consumed: this.lines(),
+      salonServiceId: this.treatmentId(),
+      customerName: customer.trim() || null,
+      products: this.lines()
+        .filter((line) => line.quantity > 0)
+        .map((line) => ({ articleId: line.productId, quantity: line.quantity })),
     });
     this.form.reset();
     this.attempted.set(false);
@@ -100,6 +111,6 @@ export class SalonForm {
   protected cancel(): void {
     this.form.reset();
     this.attempted.set(false);
-    this.treatmentId.set('face');
+    this.treatmentId.set(this.treatments()[0]?.id ?? '');
   }
 }

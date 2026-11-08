@@ -60,4 +60,28 @@ class ReferentialServiceImplIT {
         assertThat(sut.isActiveProductRange(seeded)).isTrue();
         assertThat(sut.isActiveProductRange(UUID.randomUUID())).isFalse();
     }
+
+    @Test
+    void findStockLocationId_seededCodeAndUnknownCode_returnsIdOrEmpty() {
+        // given
+        var salon = sut.getStockLocations(FIRST_PAGE).items().stream()
+                .filter(location -> location.code().equals("TRADE_SHOW"))
+                .findFirst()
+                .orElseThrow();
+        // then
+        assertThat(sut.findStockLocationId("TRADE_SHOW")).contains(salon.id());
+        assertThat(sut.findStockLocationId("UNKNOWN")).isEmpty();
+    }
+
+    @Test
+    void findSalesChannelId_seededCodeAndUnknownCode_returnsIdOrEmpty() {
+        // given
+        var store = sut.getSalesChannels(FIRST_PAGE).items().stream()
+                .filter(channel -> channel.code().equals("STORE"))
+                .findFirst()
+                .orElseThrow();
+        // then
+        assertThat(sut.findSalesChannelId("STORE")).contains(store.id());
+        assertThat(sut.findSalesChannelId("UNKNOWN")).isEmpty();
+    }
 }

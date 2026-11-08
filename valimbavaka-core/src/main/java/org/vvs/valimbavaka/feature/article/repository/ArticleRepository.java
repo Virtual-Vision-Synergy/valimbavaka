@@ -30,6 +30,8 @@ public interface ArticleRepository extends Repository<Article, UUID> {
 
     boolean existsByBarcodeAndIdNot(String barcode, UUID id);
 
+    boolean existsByIdAndActiveTrue(UUID id);
+
     /** Next number of the article code sequence (gaps are possible, a code is never reused). */
     @Query(value = "select nextval('article_code_seq')", nativeQuery = true)
     long nextCodeNumber();
@@ -100,6 +102,6 @@ public interface ArticleRepository extends Repository<Article, UUID> {
             """)
     List<ArticleCost> findCosts(Collection<UUID> articleIds);
 
-    /** Articles with the given ids, active or not (TRF-04: lines of a transfer); an unknown id is left out. */
+    /** Articles with the given ids, active or not (TRF-04, PRO-01, ART-06); an unknown id is left out. */
     List<Article> findByIdIn(Collection<UUID> ids);
 }

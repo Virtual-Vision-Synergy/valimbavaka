@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.stock.service;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementCommand;
 import org.vvs.valimbavaka.feature.stock.dto.StockMovementRDto;
@@ -25,4 +26,7 @@ public interface StockMovementService {
      * first refused movement fails the whole call. Must be called in a transaction.
      */
     List<StockMovementRDto> recordAll(List<StockMovementCommand> commands);
+
+    /** The {@code limit} most recent movements of one article, all locations (ART-06); empty if it never moved. */
+    List<StockMovementRDto> getRecentMovements(UUID articleId, int limit);
 }

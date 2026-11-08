@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   inject,
+  input,
   linkedSignal,
   signal,
 } from '@angular/core';
@@ -61,11 +62,15 @@ export class TransferListPage {
   protected readonly icons = { MoveRight, Plus, Undo2 };
   protected readonly pageSize = TRANSFER_PAGE_SIZE;
   protected readonly tones = TRANSFER_STATUS_TONES;
-  protected readonly origin = signal<TransferOrigin | 'ALL'>('ALL');
-  protected readonly page = linkedSignal({ source: this.origin, computation: () => 1 });
+  /** Origine reçue dans l'adresse (`/transfers?origin=MORNING`, lien de l'ouverture de journée, TRF-02). */
+  readonly origin = input<string>();
+  protected readonly originFilter = linkedSignal<TransferOrigin | 'ALL'>(
+    () => TRANSFER_ORIGINS.find((value) => value === this.origin()) ?? 'ALL',
+  );
+  protected readonly page = linkedSignal({ source: this.originFilter, computation: () => 1 });
   protected readonly transfers = rxResource({
     params: (): TransferListQuery => {
-      const origin = this.origin();
+      const origin = this.originFilter();
       const query = { page: this.page(), size: TRANSFER_PAGE_SIZE };
       return origin === 'ALL' ? query : { ...query, origin };
     },

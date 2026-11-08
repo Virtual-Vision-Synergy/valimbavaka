@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.referential.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.referential.dto.ProductRangeRDto;
@@ -25,6 +26,12 @@ public interface ReferentialService {
 
     /** Vrai si l'emplacement de stock existe et est actif (contrôle de référence pour les mouvements de stock). */
     boolean isActiveStockLocation(UUID stockLocationId);
+
+    /** Identifiant du canal de vente de ce code, actif ou non (ex. {@code STORE} pour une prestation salon). */
+    Optional<UUID> findSalesChannelId(String code);
+
+    /** Identifiant de l'emplacement de stock de ce code, actif ou non (ex. {@code TRADE_SHOW}, le salon). */
+    Optional<UUID> findStockLocationId(String code);
 
     /**
      * Identifiant de l'emplacement actif portant ce code stable (ex. {@code WAREHOUSE}), pour les features qui
