@@ -84,6 +84,17 @@ export interface ShootingRDto {
   readonly returnedBy: string | null;
 }
 
+/**
+ * `GET /api/v1/shootings/summary` (permission `shootings.track`, SHO-03) : indicateurs des sorties encore dehors.
+ * `immobilizedValue` : quantité × coût d'achat, en ariary ; `unvaluedQuantity` : unités sans coût, hors valeur.
+ */
+export interface ShootingSummaryRDto {
+  readonly outCount: number;
+  readonly lateCount: number;
+  readonly immobilizedValue: number;
+  readonly unvaluedQuantity: number;
+}
+
 export interface ShootingItemWDto {
   readonly articleId: string;
   readonly quantity: number;

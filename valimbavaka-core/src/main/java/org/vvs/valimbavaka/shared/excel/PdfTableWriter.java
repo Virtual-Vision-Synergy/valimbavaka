@@ -98,12 +98,16 @@ final class PdfTableWriter {
     }
 
     private void writeHeaderRow() throws IOException {
-        PDPageContentStream stream = content();
+        fillHeaderBackground(content());
+        writeCells(rows.headers(), text.bold());
+    }
+
+    /** Le flux appartient à la page courante : il est fermé par {@link #closeContent()}, pas ici. */
+    private void fillHeaderBackground(PDPageContentStream stream) throws IOException {
         stream.setNonStrokingColor(HEADER_GREY, HEADER_GREY, HEADER_GREY);
         stream.addRect(MARGIN, y - ROW_HEIGHT, tableWidth, ROW_HEIGHT);
         stream.fill();
         stream.setNonStrokingColor(0f, 0f, 0f);
-        writeCells(rows.headers(), text.bold());
     }
 
     private void writeCells(List<String> cells, PdfText.Style style) throws IOException {
@@ -119,7 +123,11 @@ final class PdfTableWriter {
     }
 
     private void drawRowSeparator() throws IOException {
-        PDPageContentStream stream = content();
+        strokeRowSeparator(content());
+    }
+
+    /** Le flux appartient à la page courante : il est fermé par {@link #closeContent()}, pas ici. */
+    private void strokeRowSeparator(PDPageContentStream stream) throws IOException {
         stream.setStrokingColor(LINE_GREY, LINE_GREY, LINE_GREY);
         stream.setLineWidth(LINE_WIDTH);
         stream.moveTo(MARGIN, y);

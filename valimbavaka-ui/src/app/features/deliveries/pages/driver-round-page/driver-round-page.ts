@@ -21,6 +21,7 @@ import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { mapsHref, telHref } from '../../data-access/delivery-links';
+import { isPendingStop } from '../../data-access/delivery-mapping';
 import { DeliveryRDto, DeliveryStatusWDto, FailureReason } from '../../data-access/delivery-models';
 import { DeliveryService } from '../../data-access/delivery-service';
 
@@ -42,8 +43,9 @@ interface PendingChange {
 }
 
 /**
- * Tournée du livreur (LIV-02, LIV-08), pensée pour une main, dehors et parfois hors ligne :
+ * Tournée du jour du livreur (LIV-02, LIV-08), pensée pour une main, dehors et parfois hors ligne :
  * un seul arrêt mis en avant, deux grosses actions, annulation possible pendant 5 s.
+ * Les arrêts viennent de l'API (LIV-02) ; « Livrée » et « Échec » restent simulés (LIV-03, LIV-04).
  */
 @Component({
   selector: 'vvs-driver-round-page',
@@ -94,7 +96,7 @@ export class DriverRoundPage {
     }).format(new Date(`${this.round.value()?.date ?? ''}T12:00:00`)),
   );
   protected readonly upcoming = computed(() =>
-    this.stops().filter((stop) => stop.status === 'ON_ROUND'),
+    this.stops().filter((stop) => isPendingStop(stop.status)),
   );
   protected readonly next = computed(() => this.upcoming()[0]);
   protected readonly doneCount = computed(() => this.stops().length - this.upcoming().length);

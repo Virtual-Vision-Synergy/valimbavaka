@@ -2,9 +2,12 @@ package org.vvs.valimbavaka.feature.stock.domain;
 
 import java.math.BigDecimal;
 
-/** Types of stock movement (STK-01). The stock of an article is the sum of its movements, never edited by hand. */
+/**
+ * Types of stock movement (STK-01). The stock of an article is the sum of its movements, never edited by hand.
+ * {@code RECEIPT} is negative only for the reversal of a supplier receipt (STK-06): the original type, opposite sign.
+ */
 public enum StockMovementType {
-    RECEIPT(Sign.IN),
+    RECEIPT(Sign.ANY),
     TRANSFER(Sign.ANY),
     SALE(Sign.OUT),
     DELIVERY(Sign.OUT),

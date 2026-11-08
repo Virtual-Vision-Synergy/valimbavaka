@@ -543,6 +543,17 @@ class UserServiceImplTest {
         return new UpdateUserWDto(email, "Hery", "Rabe", roleId, null, null, active);
     }
 
+    @Test
+    void isActiveDriver_activeDeliveryDriver_returnsTrue() {
+        // given
+        var userId = UUID.randomUUID();
+        when(userRepository.isActiveWithRole(userId, RoleName.DELIVERY_DRIVER)).thenReturn(true);
+        // when
+        var result = sut.isActiveDriver(userId);
+        // then
+        assertThat(result).isTrue();
+    }
+
     private static AdminAccountProperties validAccount() {
         return new AdminAccountProperties(" Admin@Valimbavaka.mg ", RAW_PASSWORD, "Rasoa", "Rakoto");
     }
