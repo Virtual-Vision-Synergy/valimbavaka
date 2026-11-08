@@ -58,13 +58,17 @@ abstract class ServiceRecordApiTestSupport {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Shared database: the code sorts before the generated {@code ART-nnnn} codes, so that the inventory tests still
+     * find the article they create as the highest code (InventoryCountIT, InventoryReasonIT).
+     */
     protected UUID insertArticle(String name) {
         var id = UUID.randomUUID();
         jdbcTemplate.update(
                 "insert into articles (id, code, name, type, unit, threshold, is_active, created_at, updated_at) "
                         + "values (?, ?, ?, 'RAW_MATERIAL', 'LITER', 0, true, now(), now())",
                 id,
-                "IT-" + id.toString().substring(0, 8),
+                "AIT-" + id.toString().substring(0, 8),
                 name);
         return id;
     }
