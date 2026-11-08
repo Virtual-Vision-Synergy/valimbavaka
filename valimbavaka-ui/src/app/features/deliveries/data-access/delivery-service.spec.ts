@@ -6,7 +6,12 @@ import { vi } from 'vitest';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { buildUser } from '../../../core/auth/auth-testing';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { DeliveryBoardRDto, DeliveryOrderWDto, DriverRoundRDto } from './delivery-models';
+import {
+  DeliveryBoardRDto,
+  DeliveryEventRDto,
+  DeliveryOrderWDto,
+  DriverRoundRDto,
+} from './delivery-models';
 import { DeliveryService } from './delivery-service';
 
 const EMPTY_PAGE = { items: [], page: 1, pageSize: 100, totalCount: 0, totalPages: 0 };
@@ -60,6 +65,28 @@ describe('DeliveryService', () => {
     http.expectOne((req) => req.url === '/api/v1/deliveries/drivers').flush(EMPTY_PAGE);
 
     expect(board).toEqual({ rounds: [], deliveries: [] });
+  });
+
+  it('lit l’historique d’une commande, une page de 100 étapes au plus', () => {
+    const step: DeliveryEventRDto = {
+      occurredAt: '2026-11-08T06:15:00Z',
+      actorName: 'Hanta Rabe',
+      action: 'CREATE',
+      description: 'Création de la commande à livrer LIV-0001',
+    };
+    let steps: DeliveryEventRDto[] | undefined;
+    TestBed.inject(DeliveryService)
+      .history('id-1')
+      .subscribe((value) => (steps = value));
+
+    const request = TestBed.inject(HttpTestingController).expectOne(
+      (req) => req.url === '/api/v1/deliveries/id-1/history',
+    );
+    expect(request.request.params.get('page')).toBe('1');
+    expect(request.request.params.get('size')).toBe('100');
+    request.flush({ ...EMPTY_PAGE, items: [step], totalCount: 1, totalPages: 1 });
+
+    expect(steps).toEqual([step]);
   });
 
   it('lit la tournée du jour du livreur connecté, arrêt par arrêt', () => {

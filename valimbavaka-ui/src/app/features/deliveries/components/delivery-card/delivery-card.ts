@@ -43,6 +43,8 @@ export class DeliveryCard {
           params: {},
           tone: 'danger',
         };
+      case 'CANCELLED':
+        return { key: 'deliveries.status.CANCELLED', params: {}, tone: 'muted' };
     }
   });
 

@@ -2,9 +2,9 @@ import {
   DeliveryBoardRDto,
   DeliveryDriverRDto,
   DeliveryOrderRDto,
+  DeliveryOrderStatus,
   DeliveryRDto,
   DeliveryRoundRDto,
-  DeliveryStatus,
   DriverRoundRDto,
 } from './delivery-models';
 
@@ -30,8 +30,21 @@ function timeOf(instant: string): string {
   }).format(new Date(instant));
 }
 
-/** Une commande de l'API en carte du tableau ; l'historique viendra de LIV-07. */
-export function toDelivery(order: DeliveryOrderRDto, status: DeliveryStatus): DeliveryRDto {
+/** « 08/11 09:15 » : jour et heure d'Antananarivo d'une étape de l'historique (LIV-06). */
+export function eventTime(instant: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    timeZone: BUSINESS_TIME_ZONE,
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+    .format(new Date(instant))
+    .replace(',', '');
+}
+
+/** Une commande de l'API en carte du tableau ; son historique est lu à part (`DeliveryService.history`). */
+export function toDelivery(order: DeliveryOrderRDto, status: DeliveryOrderStatus): DeliveryRDto {
   return {
     id: order.id,
     number: order.number,
@@ -47,22 +60,21 @@ export function toDelivery(order: DeliveryOrderRDto, status: DeliveryStatus): De
     status,
     roundId: order.driverId,
     stop: order.stopNumber,
+    scheduledDate: order.scheduledDate,
+    note: order.note,
     failureReason: null,
-    history: [],
   };
 }
 
 /**
- * Tableau du jour : une tournée par livreur ayant au moins une commande (ordre de la liste des livreurs), les
- * commandes annulées sont écartées (aucune colonne ne les montre).
+ * Tableau d'un jour : une tournée par livreur ayant au moins une commande (ordre de la liste des livreurs). Les
+ * commandes annulées sont gardées : le tableau ne les montre qu'avec le filtre « Annulée » (LIV-06).
  */
 export function toBoard(
   orders: readonly DeliveryOrderRDto[],
   drivers: readonly DeliveryDriverRDto[],
 ): DeliveryBoardRDto {
-  const deliveries = orders.flatMap((order) =>
-    order.status === 'CANCELLED' ? [] : [toDelivery(order, order.status)],
-  );
+  const deliveries = orders.map((order) => toDelivery(order, order.status));
   const driverIds = new Set(deliveries.map((delivery) => delivery.roundId));
   const rounds: DeliveryRoundRDto[] = drivers
     .filter((driver) => driverIds.has(driver.id))
@@ -80,7 +92,7 @@ export function toBoard(
 }
 
 /** Arrêt encore à faire : ni livré ni en échec (une commande à préparer peut être livrée d'un geste, LIV-01). */
-export function isPendingStop(status: DeliveryStatus): boolean {
+export function isPendingStop(status: DeliveryOrderStatus): boolean {
   return status === 'TO_PREPARE' || status === 'ON_ROUND';
 }
 
