@@ -30,6 +30,8 @@ public interface ArticleRepository extends Repository<Article, UUID> {
 
     boolean existsByBarcodeAndIdNot(String barcode, UUID id);
 
+    boolean existsByIdAndActiveTrue(UUID id);
+
     /** Next number of the article code sequence (gaps are possible, a code is never reused). */
     @Query(value = "select nextval('article_code_seq')", nativeQuery = true)
     long nextCodeNumber();

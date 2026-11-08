@@ -2,6 +2,7 @@
   display: block;
 }
 .promo {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -11,6 +12,10 @@
   border-radius: var(--radius-xl);
   background: var(--blanc);
   box-shadow: var(--shadow-sm);
+}
+.promo:hover,
+.promo.selected {
+  border-color: var(--primary);
 }
 .promo[data-status='ENDED'] {
   background: var(--gris-fond);
@@ -49,6 +54,29 @@
 }
 .title h3 {
   font-size: var(--text-lg);
+}
+/* Toute la carte est cliquable : le bouton du titre s'étend sur la carte. */
+.open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.open::after {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  content: '';
+}
+.open:focus-visible {
+  outline: none;
+}
+.open:focus-visible::after {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .muted {
   color: var(--gris-moyen);

@@ -1,4 +1,4 @@
-/** Produit du stock salon consommé par une prestation (unité d'affichage : ml, g, u.). */
+/** Produit du stock salon consommé par une prestation : article actif, unité courte (`u.`, `kg`, `L`), stock salon. */
 export interface SalonProductRDto {
   readonly id: string;
   readonly name: string;
@@ -11,7 +11,7 @@ export interface TreatmentRecipeLineRDto {
   readonly quantity: number;
 }
 
-/** Soin proposé au salon (SRV-01). */
+/** Soin proposé au salon : service actif du catalogue (SRV-01), recette = produits habituellement consommés. */
 export interface TreatmentRDto {
   readonly id: string;
   readonly name: string;
@@ -20,12 +20,24 @@ export interface TreatmentRDto {
   readonly recipe: readonly TreatmentRecipeLineRDto[];
 }
 
-/** Prestation enregistrée (SRV-03). */
-export interface SalonServiceRDto {
+/** Produit consommé affiché dans l'historique du jour : nom copié, quantité et unité courte de l'article. */
+export interface ServiceRecordRowProductRDto {
+  readonly name: string;
+  readonly quantity: number;
+  readonly unit: string;
+}
+
+/**
+ * Ligne « Mes prestations du jour » (SRV-03), déduite d'un `ServiceRecordRDto` (`service-record-mapping.ts`) :
+ * heure, service, cliente et produits consommés. À ne pas confondre avec `SalonServiceRDto` (catalogue SRV-01).
+ */
+export interface ServiceRecordRowRDto {
   readonly id: string;
+  readonly number: string;
   readonly treatmentName: string;
   readonly time: string;
-  readonly staff: string;
+  readonly customer: string | null;
+  readonly products: readonly ServiceRecordRowProductRDto[];
   readonly price: number;
 }
 
@@ -112,14 +124,5 @@ export interface ShootingWDto {
 export interface ServicesContextRDto {
   readonly treatments: readonly TreatmentRDto[];
   readonly products: readonly SalonProductRDto[];
-  readonly staff: readonly string[];
-  readonly today: readonly SalonServiceRDto[];
-}
-
-/** Enregistrement d'une prestation : le serveur déduit les produits du stock salon. */
-export interface SalonServiceWDto {
-  readonly treatmentId: string;
-  readonly customer: string | null;
-  readonly staff: string;
-  readonly consumed: readonly { readonly productId: string; readonly quantity: number }[];
+  readonly today: readonly ServiceRecordRowRDto[];
 }

@@ -12,36 +12,66 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { CircleCheck, RotateCcw, TriangleAlert, Undo2 } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthStore } from '../../../../core/auth/auth-store';
+import { errorMessage } from '../../../../core/http/problem-detail';
+import { SubmitResult } from '../../../../core/offline/outbox-models';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
+import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { StepItem, Stepper } from '../../../../shared/components/stepper/stepper';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import {
+  BusinessDayRDto,
   DISPATCH_DESTINATIONS,
+  DayOpeningGrid,
   DispatchDestination,
   DispatchQuantities,
   DispatchVoucherRDto,
+  NO_QUANTITIES,
   sumQuantities,
+  toDayOpeningWDto,
+  toVouchers,
 } from '../../data-access/day-models';
 import { DayService } from '../../data-access/day-service';
+import { TransferListQuery, TransferStatus } from '../../../transfers/data-access/transfer-models';
+import { TransferService } from '../../../transfers/data-access/transfer-service';
+import { TRANSFER_STATUS_TONES } from '../../../transfers/data-access/transfer-tones';
 
 type QuantityMap = Readonly<Record<string, DispatchQuantities>>;
 
 /**
+ * Une page de l'historique suffit : les bons du jour sont les transferts du matin les plus récents (un par
+ * destination, soit trois aujourd'hui).
+ */
+export const MORNING_HISTORY_SIZE = 20;
+
+/**
  * Répartition du matin (JR-01 à JR-03) : on sort le stock de l'entrepôt vers chaque point de vente
  * en un seul écran, au clavier (Entrée descend d'une ligne), sans jamais dépasser l'entrepôt.
+ * La validation ouvre la journée : le serveur crée un bon de transfert validé par destination.
+ * TRF-02 : la carte de fin relit ces bons dans l'historique des transferts (statut « Validé ») et y mène.
  */
 @Component({
   selector: 'vvs-day-open-page',
-  imports: [LowerCasePipe, RouterLink, TranslatePipe, Icon, PageHeader, ListState, Stepper],
+  imports: [
+    LowerCasePipe,
+    RouterLink,
+    TranslatePipe,
+    Icon,
+    PageHeader,
+    ListState,
+    StatusBadge,
+    Stepper,
+  ],
   templateUrl: './day-open-page.html',
   styleUrl: './day-open-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DayOpenPage {
   private readonly dayService = inject(DayService);
+  private readonly transferService = inject(TransferService);
   private readonly toast = inject(ToastService);
   private readonly language = inject(LanguageService);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -54,8 +84,30 @@ export class DayOpenPage {
       (this.opening.value()?.lines ?? []).map((line) => [line.articleId, line.proposed]),
     ),
   );
-  protected readonly vouchers = signal<readonly DispatchVoucherRDto[] | null>(null);
+  protected readonly vouchers = linkedSignal<readonly DispatchVoucherRDto[] | null>(
+    () => this.opening.value()?.vouchers ?? null,
+  );
+  /** L'historique des transferts est réservé à `transfers.read` : sans ce droit, ni statut ni lien. */
+  protected readonly canReadTransfers = inject(AuthStore).hasPermission('transfers.read');
+  protected readonly tones = TRANSFER_STATUS_TONES;
+  /** Bons du matin tels que l'historique (TRF-01) les montre, relus dès que la journée est ouverte. */
+  protected readonly morningTransfers = rxResource({
+    params: (): TransferListQuery | undefined =>
+      this.canReadTransfers && (this.vouchers()?.length ?? 0) > 0
+        ? { page: 1, size: MORNING_HISTORY_SIZE, origin: 'MORNING' }
+        : undefined,
+    stream: ({ params }) => this.transferService.list(params),
+  });
+  protected readonly statusByNumber = computed(
+    () =>
+      new Map<string, TransferStatus>(
+        (this.morningTransfers.value()?.items ?? []).map((item) => [item.number, item.status]),
+      ),
+  );
   protected readonly submitting = signal(false);
+  /** Ouverture en file d'attente (hors ligne) : on n'envoie pas une seconde fois. */
+  protected readonly queued = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly rows = computed(() =>
     (this.opening.value()?.lines ?? []).map((line) => {
@@ -119,8 +171,7 @@ export class DayOpenPage {
 
   protected reset(): void {
     const lines = this.opening.value()?.lines ?? [];
-    const zero: DispatchQuantities = { SHOP: 0, DELIVERY: 0, SALON: 0 };
-    this.quantities.set(Object.fromEntries(lines.map((line) => [line.articleId, zero])));
+    this.quantities.set(Object.fromEntries(lines.map((line) => [line.articleId, NO_QUANTITIES])));
   }
 
   /** Entrée : passe à la même colonne de la ligne suivante, comme dans un tableur. */
@@ -142,15 +193,31 @@ export class DayOpenPage {
       return;
     }
     this.submitting.set(true);
-    const lines = this.rows().map((row) => ({
+    this.errorMessage.set(null);
+    const rows = this.rows().map((row) => ({
       articleId: row.line.articleId,
       quantities: row.quantities,
     }));
-    this.dayService.dispatch({ date: opening.date, lines }).subscribe((vouchers) => {
-      this.submitting.set(false);
-      this.vouchers.set(vouchers);
-      this.toast.show('day.open.validated', { count: vouchers.length });
+    this.dayService.open(toDayOpeningWDto(opening, rows)).subscribe({
+      next: (result) => this.opened(result, opening),
+      error: (error: unknown) => {
+        this.submitting.set(false);
+        this.errorMessage.set(errorMessage(error));
+      },
     });
+  }
+
+  /** Bons renvoyés par le serveur ; en file d'attente, l'ouverture partira au retour du réseau. */
+  private opened(result: SubmitResult<BusinessDayRDto>, opening: DayOpeningGrid): void {
+    this.submitting.set(false);
+    if (result.queued || !result.body) {
+      this.queued.set(true);
+      this.toast.show('common.queuedSaved', {}, 'info');
+      return;
+    }
+    const vouchers = toVouchers(result.body, opening.destinationIds);
+    this.vouchers.set(vouchers);
+    this.toast.show('day.open.validated', { count: vouchers.length });
   }
 
   private focusCell(index: number, destination: DispatchDestination): void {
@@ -161,7 +228,7 @@ export class DayOpenPage {
     cell?.select();
   }
 
-  private weekday(date: string | undefined): string {
+  private weekday(date: string | null | undefined): string {
     return date ? this.format(date, { weekday: 'long' }) : '';
   }
 

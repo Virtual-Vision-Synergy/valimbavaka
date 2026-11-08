@@ -124,6 +124,8 @@
       "services": "Salon & shooting",
       "reports": "Rapports",
       "users": "Utilisateurs",
+      "commissionRules": "Règles de commission",
+      "salonCatalog": "Catalogue salon",
       "journal": "Journal",
       "dayOpen": "Ouverture",
       "dayClose": "Clôture",
@@ -997,12 +999,13 @@
       "after": "Après validation",
       "afterText": "Le suivi en temps réel de la journée (ventes, livraisons, prestations par emplacement) s'affiche sur le",
       "cockpit": "cockpit",
-      "validated": "{{count}} bons de transfert générés (démonstration)",
+      "validated": "{{count}} bons de transfert générés",
       "doneTitle": "Journée ouverte · {{count}} bons générés",
       "doneHint": "Le stock est sorti de l'entrepôt. Bonne journée de vente !",
       "voucherLines": "{{lines}} lignes · {{units}} u.",
       "goPos": "Ouvrir la caisse",
-      "goDashboard": "Voir le cockpit"
+      "goDashboard": "Voir le cockpit",
+      "goTransfers": "Voir les transferts du matin"
     },
     "close": {
       "title": "Clôture du {{date}}",
@@ -1366,7 +1369,18 @@
     "channelRequired": "Choisissez au moins un canal.",
     "limit": "Limite d'utilisation",
     "schedule": "Programmer",
-    "scheduledToast": "Promotion « {{name}} » enregistrée (démonstration)"
+    "scheduledToast": "Promotion « {{name}} » enregistrée",
+    "createFailed": "Promotion non enregistrée : {{reason}}",
+    "listLabel": "Liste des promotions",
+    "detail": {
+      "label": "Fiche de la promotion {{name}}",
+      "automatic": "Aucun (appliquée automatiquement)",
+      "period": "Période",
+      "scopeAll": "Tout le catalogue",
+      "scopeArticles": "{{count}} article(s) choisi(s)",
+      "unknownTargets": "Gammes introuvables dans le référentiel",
+      "backToForm": "Fermer la fiche"
+    }
   },
   "commissions": {
     "title": "Mes commissions",
@@ -1402,6 +1416,130 @@
       "PAID": "Payée"
     }
   },
+  "commissionRule": {
+    "title": "Règles de commission",
+    "subtitle": "Taux et base de calcul par canal de vente ; une seule règle active par canal.",
+    "new": "Nouvelle règle",
+    "search": "Rechercher une règle",
+    "searchPlaceholder": "Nom de la règle…",
+    "count": "{{count}} règle(s)",
+    "unknownChannel": "Canal inactif",
+    "field": {
+      "name": "Nom",
+      "salesChannel": "Canal de vente",
+      "rate": "Taux (%)",
+      "base": "Base de calcul"
+    },
+    "base": {
+      "REVENUE": "Chiffre d'affaires",
+      "MARGIN": "Marge brute"
+    },
+    "col": {
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Modifier"
+    },
+    "status": {
+      "active": "ACTIVE",
+      "inactive": "INACTIVE",
+      "activate": "Activer",
+      "deactivate": "Désactiver"
+    },
+    "confirm": {
+      "activateTitle": "Activer cette règle ?",
+      "deactivateTitle": "Désactiver cette règle ?",
+      "activateMessage": "La règle {{name}} s'appliquera de nouveau aux ventes de son canal.",
+      "deactivateMessage": "La règle {{name}} ne s'appliquera plus : le taux de la vendeuse reprendra le relais."
+    },
+    "empty": {
+      "title": "Aucune règle de commission",
+      "message": "Créez une règle pour fixer le taux d'un canal de vente."
+    },
+    "form": {
+      "newTitle": "Nouvelle règle de commission",
+      "editTitle": "Modifier la règle de commission",
+      "back": "← Retour aux règles",
+      "chooseChannel": "Choisir un canal",
+      "baseHint": "Le taux s'applique au chiffre d'affaires de la vente (après remises) ou à sa marge brute.",
+      "nameRequired": "Le nom est obligatoire.",
+      "tooLong": "{{max}} caractères au maximum.",
+      "channelRequired": "Le canal de vente est obligatoire.",
+      "rateInvalid": "Le taux doit être compris entre 0 et 100, avec 2 décimales au plus.",
+      "baseRequired": "La base de calcul est obligatoire.",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
+    }
+  },
+  "salonCatalog": {
+    "title": "Catalogue salon",
+    "subtitle": "Soins proposés au salon : durée, prix, commission et produits habituellement consommés.",
+    "new": "Nouveau service",
+    "search": "Rechercher un service",
+    "searchPlaceholder": "Nom du service…",
+    "count": "{{count}} service(s)",
+    "minutes": "{{count}} min",
+    "products": "{{count}} produit(s)",
+    "noRate": "Canal ou vendeuse",
+    "field": {
+      "name": "Nom",
+      "duration": "Durée (min)",
+      "price": "Prix (Ar)",
+      "commissionRate": "Commission (%)",
+      "products": "Produits consommés"
+    },
+    "col": {
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Modifier"
+    },
+    "status": {
+      "active": "ACTIF",
+      "inactive": "INACTIF",
+      "activate": "Activer",
+      "deactivate": "Désactiver"
+    },
+    "confirm": {
+      "activateTitle": "Activer ce service ?",
+      "deactivateTitle": "Désactiver ce service ?",
+      "activateMessage": "Le service {{name}} sera de nouveau proposé à l'enregistrement d'une prestation.",
+      "deactivateMessage": "Le service {{name}} ne sera plus proposé ; son historique est conservé."
+    },
+    "empty": {
+      "title": "Aucun service salon",
+      "message": "Créez un service pour cadrer l'offre de prestations."
+    },
+    "unit": {
+      "PIECE": "u.",
+      "KILOGRAM": "kg",
+      "LITER": "L"
+    },
+    "form": {
+      "newTitle": "Nouveau service salon",
+      "editTitle": "Modifier le service salon",
+      "back": "← Retour au catalogue",
+      "rateHint": "Facultatif. S'il est renseigné, il remplace le taux du canal et celui de la vendeuse (pas de cumul).",
+      "productsHint": "Pré-remplis à l'enregistrement d'une prestation ; quantité dans l'unité de l'article.",
+      "article": "Article",
+      "quantity": "Quantité",
+      "chooseArticle": "Choisir un article",
+      "inactiveArticle": "Article inactif",
+      "addProduct": "Ajouter un produit",
+      "removeProduct": "Retirer le produit",
+      "noProducts": "Aucun produit consommé.",
+      "nameRequired": "Le nom est obligatoire.",
+      "tooLong": "{{max}} caractères au maximum.",
+      "durationInvalid": "La durée doit être un nombre entier de 1 à 600 minutes.",
+      "priceInvalid": "Le prix doit être positif, avec 2 décimales au plus.",
+      "rateInvalid": "Le taux doit être compris entre 0 et 100, avec 2 décimales au plus.",
+      "productInvalid": "Choisissez un article différent par ligne et une quantité supérieure à zéro (3 décimales au plus).",
+      "cancel": "Annuler",
+      "save": "Enregistrer"
+    }
+  },
   "services": {
     "title": "Salon & shooting",
     "tab": {
@@ -1412,11 +1550,10 @@
     "register": "Enregistrer une prestation",
     "registerHint": "Les produits consommés sont déduits du stock salon.",
     "chooseTreatment": "Choisissez le soin",
+    "noTreatment": "Aucun service actif au catalogue : demandez à l'administrateur d'en créer un.",
     "minutes": "{{count}} min",
     "customer": "Cliente",
     "doneBy": "Réalisée par",
-    "chooseStaff": "Choisir…",
-    "staffRequired": "Indiquez qui a réalisé la prestation.",
     "consumed": "Produits consommés",
     "prefilled": "pré-remplis selon le soin",
     "stock": "stock {{count}}",
@@ -1426,9 +1563,12 @@
     "shortage": "Stock salon insuffisant pour un des produits : ajustez la quantité.",
     "total": "Total",
     "save": "Enregistrer la prestation",
-    "registeredToast": "Prestation « {{name}} » enregistrée (démonstration)",
-    "today": "Aujourd'hui",
+    "registeredToast": "Prestation {{number}} « {{name}} » enregistrée : stock salon mis à jour",
+    "today": "Mes prestations du jour",
     "todaySummary": "{{count}} · {{total}}",
+    "noCustomer": "Cliente non renseignée",
+    "withoutProduct": "Aucun produit consommé",
+    "noServiceToday": "Aucune prestation enregistrée aujourd'hui.",
     "shooting": {
       "title": "Sorties shooting",
       "hint": "Produits sortis du stock pour une séance photo, à réintégrer au retour.",

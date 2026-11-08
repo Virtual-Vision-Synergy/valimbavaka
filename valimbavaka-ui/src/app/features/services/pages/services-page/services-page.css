@@ -15,6 +15,12 @@
   align-items: start;
   gap: var(--space-6);
 }
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
 .aside {
   display: flex;
   flex-direction: column;
