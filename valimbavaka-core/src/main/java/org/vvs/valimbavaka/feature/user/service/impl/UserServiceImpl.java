@@ -99,6 +99,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public PageResponse<UserRDto> getActiveDrivers(PageQuery query) {
+        var pageable = query.toPageable(SORT_FIELDS, "firstName", SortDirection.ASC);
+        return PageResponse.from(userRepository
+                .searchActiveByRoleName(RoleName.DELIVERY_DRIVER, query.searchTerm(), pageable)
+                .map(userMapper::toRDto));
+    }
+
+    @Override
+    public boolean isActiveDriver(UUID userId) {
+        return userRepository.isActiveWithRole(userId, RoleName.DELIVERY_DRIVER);
+    }
+
+    @Override
     public UserRDto getUserById(UUID userId) {
         return userMapper.toRDto(findUserWithRole(userId));
     }

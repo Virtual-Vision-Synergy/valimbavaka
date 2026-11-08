@@ -20,7 +20,7 @@
         <vvs-filter-chips
           [label]="'transfers.originFilter' | translate"
           [options]="originOptions"
-          [(value)]="origin"
+          [(value)]="originFilter"
         />
         @if (transfers.value()) {
           <span class="week">{{ 'transfers.total' | translate: { count: total() } }}</span>
@@ -106,7 +106,7 @@
         <vvs-transfer-detail
           [transferId]="id"
           (print)="demoAction()"
-          (createReturn)="demoAction()"
+          (createReturn)="openReturn()"
         />
       </vvs-side-panel>
     }

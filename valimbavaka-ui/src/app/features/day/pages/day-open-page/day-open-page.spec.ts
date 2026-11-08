@@ -3,11 +3,15 @@ import { provideRouter } from '@angular/router';
 import axe from 'axe-core';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { AuthStore } from '../../../../core/auth/auth-store';
+import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { BusinessDayRDto, DayOpeningGrid, NO_QUANTITIES } from '../../data-access/day-models';
 import { DayService } from '../../data-access/day-service';
-import { DayOpenPage } from './day-open-page';
+import { TransferSummaryRDto } from '../../../transfers/data-access/transfer-models';
+import { TransferService } from '../../../transfers/data-access/transfer-service';
+import { DayOpenPage, MORNING_HISTORY_SIZE } from './day-open-page';
 
 const GRID: DayOpeningGrid = {
   date: '2026-11-08',
@@ -63,14 +67,32 @@ const OPENED: BusinessDayRDto = {
   createdBy: null,
 };
 
+/** Bon du matin tel que l'historique des transferts (TRF-01) le renvoie. */
+const morningTransfer = (number: string): TransferSummaryRDto => ({
+  id: `id-${number}`,
+  number,
+  origin: 'MORNING',
+  status: 'VALIDATED',
+  fromLocationId: 'warehouse-id',
+  fromLocationLabel: 'Entrepôt',
+  toLocationId: 'store-id',
+  toLocationLabel: 'Boutique',
+  lineCount: 1,
+  quantity: 12,
+  createdAt: '2026-11-08T04:30:00Z',
+  createdBy: 'admin-id',
+  createdByName: 'Hanta Rasolofoson',
+});
+
 describe('DayOpenPage', () => {
   const opening = vi.fn();
   const openDay = vi.fn();
+  const listTransfers = vi.fn();
   let fixture: ComponentFixture<DayOpenPage>;
   let element: HTMLElement;
   let toast: ToastService;
 
-  const render = async (grid: DayOpeningGrid = GRID): Promise<void> => {
+  const render = async (grid: DayOpeningGrid = GRID, role?: 'ADMIN' | 'SELLER'): Promise<void> => {
     opening.mockReturnValue(of(grid));
     await TestBed.configureTestingModule({
       imports: [DayOpenPage],
@@ -78,8 +100,12 @@ describe('DayOpenPage', () => {
         provideRouter([]),
         provideTestTranslations(),
         { provide: DayService, useValue: { opening, open: openDay } },
+        { provide: TransferService, useValue: { list: listTransfers } },
       ],
     }).compileComponents();
+    if (role) {
+      TestBed.inject(AuthStore).signIn('jeton', buildUser(role));
+    }
     toast = TestBed.inject(ToastService);
     fixture = TestBed.createComponent(DayOpenPage);
     element = fixture.nativeElement as HTMLElement;
@@ -104,7 +130,10 @@ describe('DayOpenPage', () => {
     await fixture.whenStable();
   };
 
-  beforeEach(() => openDay.mockReset());
+  beforeEach(() => {
+    openDay.mockReset();
+    listTransfers.mockReset();
+  });
 
   it('liste les articles disponibles à l’entrepôt, quantités à zéro', async () => {
     await render();
@@ -133,6 +162,51 @@ describe('DayOpenPage', () => {
     expect(element.textContent).toContain('TRF-0093');
     expect(element.textContent).toContain('TRF-0094');
     expect(show).toHaveBeenCalledWith('day.open.validated', { count: 2 });
+  });
+
+  it('relit les bons générés dans l’historique : statut Validé et lien vers les transferts du matin', async () => {
+    openDay.mockReturnValue(of({ queued: false, body: OPENED }));
+    listTransfers.mockReturnValue(
+      of({
+        items: [morningTransfer('TRF-0094'), morningTransfer('TRF-0093')],
+        page: 1,
+        pageSize: MORNING_HISTORY_SIZE,
+        totalCount: 2,
+        totalPages: 1,
+      }),
+    );
+    await render(GRID, 'ADMIN');
+    await type('qty-SHOP-0', '12');
+    await type('qty-DELIVERY-0', '5');
+
+    await validate();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(listTransfers).toHaveBeenCalledWith({
+      page: 1,
+      size: MORNING_HISTORY_SIZE,
+      origin: 'MORNING',
+    });
+    const vouchers = Array.from(element.querySelectorAll('.vouchers li'));
+    expect(vouchers).toHaveLength(2);
+    vouchers.forEach((voucher) => expect(voucher.textContent).toContain('Validé'));
+    const link = Array.from(element.querySelectorAll<HTMLAnchorElement>('.success-actions a')).find(
+      (anchor) => anchor.textContent?.includes('Voir les transferts du matin'),
+    );
+    expect(link?.getAttribute('href')).toBe('/transfers?origin=MORNING');
+  });
+
+  it('sans accès à l’historique, ne relit pas les bons et ne propose pas le lien', async () => {
+    openDay.mockReturnValue(of({ queued: false, body: OPENED }));
+    await render(GRID, 'SELLER');
+    await type('qty-SHOP-0', '12');
+
+    await validate();
+
+    expect(element.textContent).toContain('TRF-0093');
+    expect(listTransfers).not.toHaveBeenCalled();
+    expect(element.textContent).not.toContain('Voir les transferts du matin');
   });
 
   it('n’envoie rien quand on demande plus que le stock de l’entrepôt', async () => {

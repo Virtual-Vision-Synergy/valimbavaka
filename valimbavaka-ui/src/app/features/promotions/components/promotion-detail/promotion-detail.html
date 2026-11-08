@@ -1,0 +1,68 @@
+<section class="detail">
+  @if (promotion.error()) {
+    <vvs-list-state kind="error" (retry)="promotion.reload()" />
+  } @else if (promotion.hasValue()) {
+    @let p = promotion.value();
+    <header class="head">
+      <span class="discount" [attr.data-status]="p.status">{{ badge() }}</span>
+      <div class="identity">
+        <h2>{{ p.name }}</h2>
+        <vvs-status-badge
+          [tone]="tones[p.status]"
+          [label]="'promotions.status.' + p.status | translate"
+        />
+      </div>
+    </header>
+    @if (p.description) {
+      <p class="description">{{ p.description }}</p>
+    }
+    <dl class="facts">
+      <div>
+        <dt>{{ 'promotions.kindLabel' | translate }}</dt>
+        <dd>{{ 'promotions.kind.' + p.kind | translate }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'promotions.code' | translate }}</dt>
+        <dd>
+          @if (p.code) {
+            <span class="mono">{{ p.code }}</span>
+          } @else {
+            {{ 'promotions.detail.automatic' | translate }}
+          }
+        </dd>
+      </div>
+      <div class="wide">
+        <dt>{{ 'promotions.detail.period' | translate }}</dt>
+        <dd class="num">{{ p.startsOn | shortDate }} → {{ p.endsOn | shortDate }}</dd>
+      </div>
+      <div class="wide">
+        <dt>{{ 'promotions.scopeLabel' | translate }}</dt>
+        <dd>
+          @switch (p.scope) {
+            @case ('ALL') {
+              {{ 'promotions.detail.scopeAll' | translate }}
+            }
+            @case ('RANGES') {
+              {{ ranges().join(', ') || ('promotions.detail.unknownTargets' | translate) }}
+            }
+            @case ('ARTICLES') {
+              {{ 'promotions.detail.scopeArticles' | translate: { count: p.targetIds.length } }}
+            }
+          }
+        </dd>
+      </div>
+      <div class="wide">
+        <dt>{{ 'promotions.channels' | translate }}</dt>
+        <dd>{{ channels().join(', ') || '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'promotions.uses' | translate }}</dt>
+        <dd class="num">
+          {{ p.usageCount }} / {{ p.usageLimit ?? ('promotions.unlimited' | translate) }}
+        </dd>
+      </div>
+    </dl>
+  } @else {
+    <vvs-list-state kind="loading" [rows]="5" />
+  }
+</section>

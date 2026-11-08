@@ -12,7 +12,7 @@ import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { PageResponse } from '../../../../shared/models/page-response';
-import { TransferSummaryRDto } from '../../data-access/transfer-models';
+import { TransferDetailRDto, TransferSummaryRDto } from '../../data-access/transfer-models';
 import { TRANSFER_PAGE_SIZE, TransferListPage } from './transfer-list-page';
 
 const TRANSFERS_URL = '/api/v1/transfers';
@@ -144,6 +144,22 @@ describe('TransferListPage', () => {
     request.flush(pageOf([sellerReturn]));
   });
 
+  it('should open on the origin given in the address (link from the opening of the day)', async () => {
+    await respond(nextRequest(), pageOf([sellerReturn, morningTransfer]));
+
+    fixture.componentRef.setInput('origin', 'MORNING');
+    await refresh();
+
+    const request = nextRequest();
+    expect(request.request.params.get('origin')).toBe('MORNING');
+    expect(request.request.params.get('page')).toBe('1');
+    await respond(request, pageOf([morningTransfer]));
+    const pressed = Array.from(element.querySelectorAll('.chips button')).find(
+      (chip) => chip.getAttribute('aria-pressed') === 'true',
+    );
+    expect(pressed?.textContent).toContain('Répartition matinale');
+  });
+
   it('should load the next page from the server', async () => {
     await respond(nextRequest(), pageOf([sellerReturn, morningTransfer], 20));
 
@@ -153,6 +169,39 @@ describe('TransferListPage', () => {
     const request = nextRequest();
     expect(request.request.params.get('page')).toBe('2');
     request.flush(pageOf([]));
+  });
+
+  it('should open the full detail of a transfer when its number is clicked', async () => {
+    await respond(nextRequest(), pageOf([sellerReturn, morningTransfer]));
+
+    Array.from(element.querySelectorAll<HTMLButtonElement>('tbody .row-link'))
+      .find((button) => button.textContent?.includes('RET-0015'))
+      ?.click();
+    await refresh();
+
+    const detail: TransferDetailRDto = {
+      ...sellerReturn,
+      note: null,
+      lines: [
+        {
+          articleId: '0195f0a0-0000-7000-8000-0000000000a1',
+          articleCode: 'ART-0001',
+          articleName: 'Savon au curcuma',
+          unit: 'PIECE',
+          quantity: 5.5,
+        },
+      ],
+    };
+    await respond(httpMock.expectOne(`${TRANSFERS_URL}/${sellerReturn.id}`), detail);
+
+    const panel = element.querySelector('vvs-transfer-detail')?.textContent ?? '';
+    expect(panel).toContain('Savon au curcuma');
+    expect(panel).toContain('ART-0001');
+    expect(panel).toContain('5.5 u.');
+    expect(panel).toContain('Tiana Ranaivoson');
+    expect(element.querySelector('tbody .row-link[aria-pressed="true"]')?.textContent?.trim()).toBe(
+      'RET-0015',
+    );
   });
 
   it('should name a location deactivated since the transfer', async () => {

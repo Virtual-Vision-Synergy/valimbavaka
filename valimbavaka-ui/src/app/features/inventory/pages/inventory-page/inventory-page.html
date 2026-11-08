@@ -241,27 +241,25 @@
               <span class="code-chip" aria-hidden="true">INV-05</span>
             </h2>
             <ul class="previous">
-              @for (item of data.previous; track item.number) {
+              @for (item of data.previous; track item.id) {
                 <li>
                   <span>
                     <strong>{{ item.locationLabel }}</strong>
                     <span class="mono muted block"
-                      >{{ item.number }} · {{ item.closedOn | shortDate }}</span
+                      >{{ item.number }} · {{ closedOn(item) | shortDate }}</span
                     >
                   </span>
-                  <strong
-                    class="num"
-                    [attr.data-sign]="
-                      item.gapUnits < 0 ? 'minus' : item.gapUnits > 0 ? 'plus' : 'zero'
-                    "
-                  >
-                    {{ signedGap(item.gapUnits) }}
+                  <strong class="num" [attr.data-sign]="item.gapCount ? 'minus' : 'zero'">
+                    {{ 'inventory.gapCount' | translate: { count: item.gapCount } }}
                   </strong>
                 </li>
               } @empty {
                 <li class="muted">{{ 'inventory.previousEmpty' | translate }}</li>
               }
             </ul>
+            <a class="history-link" routerLink="/inventory/history">{{
+              'inventory.historyLink' | translate
+            }}</a>
           </section>
         </aside>
       </div>
@@ -270,6 +268,9 @@
         <p>{{ 'inventory.noSession' | translate }}</p>
         <a class="btn btn-primary" routerLink="/inventory/new">{{
           'inventory.open.link' | translate
+        }}</a>
+        <a class="btn btn-ghost" routerLink="/inventory/history">{{
+          'inventory.historyLink' | translate
         }}</a>
       </div>
     }

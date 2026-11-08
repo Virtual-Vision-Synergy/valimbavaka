@@ -16,9 +16,10 @@ public interface BusinessDayService {
 
     /**
      * Opens today: records one morning transfer (origin {@code MORNING}, status {@code VALIDATED}) per destination
-     * from the warehouse, moves the stock and traces the opening in the journal, all or nothing. 409 if today is
-     * already opened or the warehouse does not hold enough stock; 422 if a destination is the warehouse, unknown or
-     * inactive, or holds more than 100 articles; 404 if an article is unknown.
+     * from the warehouse, noted {@code Ouverture de la journée du 08/11/2026} (TRF-02), moves the stock and traces
+     * the opening in the journal, all or nothing. 409 if today is already opened or the warehouse does not hold
+     * enough stock; 422 if a destination is the warehouse, unknown or inactive, or holds more than 100 articles; 404
+     * if an article is unknown.
      */
     BusinessDayRDto openDay(DayOpeningWDto request);
 

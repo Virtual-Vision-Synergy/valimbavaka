@@ -12,6 +12,10 @@ import { DEMO_LATENCY_MS } from '../shared/data-access/demo';
 /** Pages alimentées par des données de démonstration : chacune se charge puis ne doit violer aucune règle axe. */
 const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
   [
+    'dashboard',
+    () => import('./dashboard/pages/dashboard-page/dashboard-page').then((m) => m.DashboardPage),
+  ],
+  [
     'commissions',
     () =>
       import('./commissions/pages/commissions-page/commissions-page').then(

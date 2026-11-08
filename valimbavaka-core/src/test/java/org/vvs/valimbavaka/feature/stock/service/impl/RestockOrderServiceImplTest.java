@@ -177,6 +177,38 @@ class RestockOrderServiceImplTest {
         assertThat(result.lines()).isEmpty();
     }
 
+    @Test
+    void markReceived_pendingOrder_becomesReceivedAndTracesAnUpdate() {
+        // Arrange
+        var order = RestockOrder.create(7);
+        ReflectionTestUtils.setField(order, "id", ORDER_ID);
+        when(restockOrderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));
+
+        // Act
+        var reference = sut.markReceived(ORDER_ID, "REC-000004");
+
+        // Assert
+        assertThat(reference).isEqualTo("BR-000007");
+        assertThat(order.getStatus()).isEqualTo(RestockOrderStatus.RECEIVED);
+        verify(restockOrderRepository).save(order);
+        var description = "Bon de réapprovisionnement BR-000007 réceptionné (réception REC-000004)";
+        verify(journalService).record(JournalAction.UPDATE, "RESTOCK_ORDER", ORDER_ID, description);
+    }
+
+    @Test
+    void markReceived_orderAlreadyReceived_throwsConflictAndTracesNothing() {
+        // Arrange
+        var order = RestockOrder.create(8);
+        order.markReceived();
+        when(restockOrderRepository.findById(ORDER_ID)).thenReturn(Optional.of(order));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.markReceived(ORDER_ID, "REC-000005"))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Le bon de réapprovisionnement BR-000008 est déjà réceptionné.");
+        verify(journalService, never()).record(any(), any(), any(), any());
+    }
+
     private void givenAlerts(StockAlertRDto... alerts) {
         when(stockService.getAllAlerts()).thenReturn(List.of(alerts));
     }

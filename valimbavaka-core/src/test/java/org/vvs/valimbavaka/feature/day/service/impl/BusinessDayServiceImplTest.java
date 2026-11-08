@@ -128,6 +128,26 @@ class BusinessDayServiceImplTest {
     }
 
     @Test
+    void openDay_twoDestinations_notesTheOpeningDayOnEachMorningTransfer() {
+        // Arrange
+        var request = new DayOpeningWDto(List.of());
+        when(policy.today()).thenReturn(TODAY);
+        when(policy.check(TODAY, request)).thenReturn(plan());
+        when(transferService.record(any())).thenReturn(transfer("TRF-0093", STORE), transfer("TRF-0094", DELIVERY));
+        when(dayRepository.saveAndFlush(any())).thenAnswer(call -> call.getArgument(0));
+
+        // Act
+        sut.openDay(request);
+
+        // Assert
+        var commands = ArgumentCaptor.forClass(TransferCommand.class);
+        verify(transferService, times(2)).record(commands.capture());
+        assertThat(commands.getAllValues())
+                .extracting(TransferCommand::note)
+                .containsOnly("Ouverture de la journée du 08/11/2026");
+    }
+
+    @Test
     void requireOpenDay_noDayToday_throwsConflict() {
         // Arrange
         when(policy.today()).thenReturn(TODAY);
