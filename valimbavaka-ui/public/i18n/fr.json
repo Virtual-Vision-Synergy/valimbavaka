@@ -996,12 +996,13 @@
       "after": "Après validation",
       "afterText": "Le suivi en temps réel de la journée (ventes, livraisons, prestations par emplacement) s'affiche sur le",
       "cockpit": "cockpit",
-      "validated": "{{count}} bons de transfert générés (démonstration)",
+      "validated": "{{count}} bons de transfert générés",
       "doneTitle": "Journée ouverte · {{count}} bons générés",
       "doneHint": "Le stock est sorti de l'entrepôt. Bonne journée de vente !",
       "voucherLines": "{{lines}} lignes · {{units}} u.",
       "goPos": "Ouvrir la caisse",
-      "goDashboard": "Voir le cockpit"
+      "goDashboard": "Voir le cockpit",
+      "goTransfers": "Voir les transferts du matin"
     },
     "close": {
       "title": "Clôture du {{date}}",

@@ -32,6 +32,7 @@ describe('visibleSections', () => {
     );
     expect(labels).not.toContain('menu.item.users');
     expect(labels).not.toContain('menu.item.journal');
+    expect(labels).not.toContain('menu.item.dayOpen');
   });
 
   it('should show only the dashboard and deliveries to a delivery driver', () => {
