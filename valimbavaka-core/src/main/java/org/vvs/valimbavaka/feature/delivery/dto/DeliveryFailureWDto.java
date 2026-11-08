@@ -12,7 +12,8 @@ import org.vvs.valimbavaka.feature.delivery.domain.DeliveryFailureReason;
  * the stock return are set by the server: sent in the body, they are ignored.
  */
 public record DeliveryFailureWDto(
-        @NotNull(message = "Le motif de l'échec est obligatoire") DeliveryFailureReason reason,
+        @NotNull(message = "Le motif de l'échec est obligatoire")
+        DeliveryFailureReason reason,
 
         @Size(max = 280, message = "Le commentaire ne doit pas dépasser {max} caractères") @Nullable
         String note) {}

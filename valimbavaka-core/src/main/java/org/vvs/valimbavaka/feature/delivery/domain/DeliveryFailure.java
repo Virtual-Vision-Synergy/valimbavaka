@@ -8,4 +8,5 @@ import org.jspecify.annotations.Nullable;
  * @param reason required reason of the failure
  * @param note optional comment of the driver, trimmed, {@code null} when blank
  */
-public record DeliveryFailure(DeliveryFailureReason reason, @Nullable String note) {}
+public record DeliveryFailure(
+        DeliveryFailureReason reason, @Nullable String note) {}
