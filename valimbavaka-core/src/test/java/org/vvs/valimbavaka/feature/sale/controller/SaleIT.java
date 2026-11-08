@@ -179,6 +179,9 @@ class SaleIT extends StockApiTestSupport {
         // Arrange
         var soap = createArticle(uniqueName());
         move(soap, "STORE", StockMovementType.RECEIPT, "5");
+        // LIV-03: a delivered order references its sale
+        jdbcTemplate.update(
+                "update delivery_orders set status = 'CANCELLED', sale_id = null where sale_id is not null");
         jdbcTemplate.update("delete from sale_lines");
         jdbcTemplate.update("delete from sales");
         jdbcTemplate.update("delete from business_day_transfers");

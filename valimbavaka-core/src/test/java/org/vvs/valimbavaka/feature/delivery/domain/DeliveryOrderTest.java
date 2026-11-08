@@ -50,6 +50,45 @@ class DeliveryOrderTest {
     }
 
     @Test
+    void deliver_orderOnRound_movesToDeliveredWithItsSale() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+        sut.moveTo(DeliveryStatus.ON_ROUND);
+        var saleId = UUID.randomUUID();
+
+        // Act
+        sut.deliver(saleId);
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.DELIVERED);
+        assertThat(sut.getSaleId()).isEqualTo(saleId);
+    }
+
+    @Test
+    void deliver_orderToPrepare_movesToDeliveredInOneStep() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+
+        // Act
+        sut.deliver(UUID.randomUUID());
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.DELIVERED);
+    }
+
+    @Test
+    void deliver_alreadyDeliveredOrder_throwsConflictAndKeepsTheFirstSale() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+        var firstSaleId = UUID.randomUUID();
+        sut.deliver(firstSaleId);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.deliver(UUID.randomUUID())).isInstanceOf(ConflictException.class);
+        assertThat(sut.getSaleId()).isEqualTo(firstSaleId);
+    }
+
+    @Test
     void moveTo_allowedTransition_changesTheStatus() {
         // Arrange
         var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));

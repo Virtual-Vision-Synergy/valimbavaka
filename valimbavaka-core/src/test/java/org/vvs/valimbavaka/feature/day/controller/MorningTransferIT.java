@@ -32,6 +32,9 @@ class MorningTransferIT extends StockApiTestSupport {
     /** One day per date: each test starts with today not opened yet (the sales of VTE-01 reference the day). */
     @BeforeEach
     void forgetToday() {
+        // LIV-03: a delivered order references its sale
+        jdbcTemplate.update(
+                "update delivery_orders set status = 'CANCELLED', sale_id = null where sale_id is not null");
         jdbcTemplate.update("delete from sale_lines");
         jdbcTemplate.update("delete from sales");
         jdbcTemplate.update("delete from business_day_transfers");
