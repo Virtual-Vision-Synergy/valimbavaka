@@ -914,6 +914,7 @@
       "paid": "Payée",
       "doneToast": "{{name}} : livrée",
       "failedToast": "{{name}} : échec enregistré",
+      "refusedToast": "{{name}} : saisie refusée. {{message}}",
       "undo": "Annuler",
       "failureTitle": "Échec de livraison · {{name}}",
       "reason": "Que s'est-il passé ?",

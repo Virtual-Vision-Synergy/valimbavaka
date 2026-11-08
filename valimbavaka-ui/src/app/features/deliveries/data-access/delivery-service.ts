@@ -10,6 +10,7 @@ import { businessToday, toBoard, toDriverRound } from './delivery-mapping';
 import {
   DeliveryBoardRDto,
   DeliveryDriverRDto,
+  DeliveryFailureWDto,
   DeliveryOrderRDto,
   DeliveryOrderWDto,
   DeliveryStatusWDto,
@@ -31,8 +32,8 @@ function dayParams(day: string): HttpParams {
 
 /**
  * Livraisons. Le tableau du jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs ; la création
- * (LIV-01) passe par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit ses
- * commandes du jour. Le changement de statut (LIV-03, LIV-04) reste une simulation.
+ * (LIV-01) et l'échec (LIV-04) passent par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du
+ * livreur (LIV-02) lit ses commandes du jour. Le marquage « livrée » (LIV-03) reste une simulation.
  */
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -81,8 +82,27 @@ export class DeliveryService {
     return this.outbox.submit<DeliveryOrderRDto>('POST', this.baseUrl, body);
   }
 
-  /** Simulation : accepte le changement de statut ; aucune donnée n'est conservée. */
+  /**
+   * Signale l'échec (LIV-04) : la commande passe `FAILED` et ses articles reviennent de la livraison à
+   * l'entrepôt ; `queued` si l'échec attend le réseau (rejoué une seule fois grâce à `Idempotency-Key`).
+   */
+  reportFailure(
+    deliveryId: string,
+    body: DeliveryFailureWDto,
+  ): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/failure`,
+      body,
+    );
+  }
+
+  /** Saisie du livreur : l'échec part vers l'API (LIV-04) ; « livrée » reste simulée jusqu'à LIV-03. */
   updateStatus(deliveryId: string, change: DeliveryStatusWDto): Observable<string> {
+    if (change.status === 'FAILED') {
+      const body = { reason: change.failureReason ?? 'OTHER', note: change.note };
+      return this.reportFailure(deliveryId, body).pipe(map(() => deliveryId));
+    }
     return demo(change).pipe(map(() => deliveryId));
   }
 }

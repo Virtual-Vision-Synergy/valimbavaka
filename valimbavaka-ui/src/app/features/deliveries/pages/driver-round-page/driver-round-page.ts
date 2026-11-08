@@ -14,11 +14,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CircleCheck, CircleX, CloudUpload, Navigation, Phone, Wifi, WifiOff } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthStore } from '../../../../core/auth/auth-store';
+import { errorMessage } from '../../../../core/http/problem-detail';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { ConnectivityService } from '../../../../core/offline/connectivity-service';
 import { OutboxService } from '../../../../core/offline/outbox-service';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { mapsHref, telHref } from '../../data-access/delivery-links';
 import { isPendingStop } from '../../data-access/delivery-mapping';
@@ -45,7 +47,8 @@ interface PendingChange {
 /**
  * Tournée du jour du livreur (LIV-02, LIV-08), pensée pour une main, dehors et parfois hors ligne :
  * un seul arrêt mis en avant, deux grosses actions, annulation possible pendant 5 s.
- * Les arrêts viennent de l'API (LIV-02) ; « Livrée » et « Échec » restent simulés (LIV-03, LIV-04).
+ * Les arrêts viennent de l'API (LIV-02) ; « Échec » part vers l'API avec son motif (LIV-04) ;
+ * « Livrée » reste simulé (LIV-03).
  */
 @Component({
   selector: 'vvs-driver-round-page',
@@ -59,6 +62,7 @@ export class DriverRoundPage {
   private readonly authStore = inject(AuthStore);
   private readonly language = inject(LanguageService);
   private readonly connectivity = inject(ConnectivityService);
+  private readonly toast = inject(ToastService);
   private readonly failureDialog = viewChild<ElementRef<HTMLDialogElement>>('failureDialog');
 
   protected readonly icons = {
@@ -105,8 +109,13 @@ export class DriverRoundPage {
   );
   protected readonly remaining = computed(() => this.sumToCollect(this.upcoming()));
 
+  private destroyed = false;
+
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.commit());
+    inject(DestroyRef).onDestroy(() => {
+      this.commit();
+      this.destroyed = true;
+    });
   }
 
   protected markDelivered(delivery: DeliveryRDto): void {
@@ -162,7 +171,21 @@ export class DriverRoundPage {
     if (pending) {
       clearTimeout(pending.timer);
       this.pending.set(null);
-      this.deliveryService.updateStatus(pending.delivery.id, pending.change).subscribe();
+      this.deliveryService.updateStatus(pending.delivery.id, pending.change).subscribe({
+        error: (error: unknown) => this.onRefused(pending.delivery, error),
+      });
+    }
+  }
+
+  /** Saisie refusée par le serveur (déjà livrée, articles absents de la livraison…) : on relit la tournée. */
+  private onRefused(delivery: DeliveryRDto, error: unknown): void {
+    this.toast.show(
+      'deliveries.driver.refusedToast',
+      { name: delivery.customerName, message: errorMessage(error) },
+      'danger',
+    );
+    if (!this.destroyed) {
+      this.round.reload();
     }
   }
 
