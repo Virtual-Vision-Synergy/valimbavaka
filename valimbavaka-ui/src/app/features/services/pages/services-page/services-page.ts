@@ -28,8 +28,9 @@ import { ShootingService } from '../../data-access/shooting-service';
 type ServicesTab = 'salon' | 'shooting';
 
 /**
- * Salon et shooting : enregistrement des prestations et prestations du jour (SRV-02, API), sorties de produits
- * shooting et leur suivi (SHO-01 à SHO-03, API).
+ * Salon et shooting : enregistrement des prestations (SRV-02, API), historique de mes prestations du jour avec heure,
+ * service, cliente et produits consommés (SRV-03, API), sorties de produits shooting et leur suivi (SHO-01 à SHO-03,
+ * API).
  */
 @Component({
   selector: 'vvs-services-page',
@@ -104,7 +105,7 @@ export class ServicesPage {
     this.today().reduce((sum, service) => sum + service.price, 0),
   );
 
-  /** Le serveur déduit le stock salon ; la page relit ensuite les prestations du jour et le stock. */
+  /** Le serveur déduit le stock salon ; la page relit ensuite mes prestations du jour et le stock. */
   protected register(request: ServiceRecordWDto): void {
     const name =
       this.context.value()?.treatments.find((item) => item.id === request.salonServiceId)?.name ??

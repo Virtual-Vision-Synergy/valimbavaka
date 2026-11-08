@@ -46,10 +46,22 @@
                   <li>
                     <span>
                       <strong>{{ service.treatmentName }}</strong>
-                      <span class="muted block num">{{ service.time }} · {{ service.staff }}</span>
+                      <span class="muted block num"
+                        >{{ service.time }} ·
+                        {{ service.customer ?? ('services.noCustomer' | translate) }}</span
+                      >
+                      @for (product of service.products; track $index) {
+                        <span class="muted block num"
+                          >{{ product.name }} · {{ product.quantity }} {{ product.unit }}</span
+                        >
+                      } @empty {
+                        <span class="muted block">{{ 'services.withoutProduct' | translate }}</span>
+                      }
                     </span>
                     <strong class="num">{{ service.price | ariary }}</strong>
                   </li>
+                } @empty {
+                  <li class="muted">{{ 'services.noServiceToday' | translate }}</li>
                 }
               </ul>
             </section>

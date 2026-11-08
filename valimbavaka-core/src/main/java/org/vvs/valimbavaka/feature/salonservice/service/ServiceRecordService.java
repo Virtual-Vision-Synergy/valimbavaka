@@ -1,8 +1,11 @@
 package org.vvs.valimbavaka.feature.salonservice.service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+
+import org.jspecify.annotations.Nullable;
 
 import org.vvs.valimbavaka.feature.salonservice.dto.SalonConsumptionRDto;
 import org.vvs.valimbavaka.feature.salonservice.dto.ServiceRecordRDto;
@@ -18,6 +21,12 @@ public interface ServiceRecordService {
 
     /** Most recent first; search on number, service, customer and seller. */
     PageResponse<ServiceRecordRDto> getServiceRecords(PageQuery query);
+
+    /**
+     * Services recorded by the authenticated account during one business day ({@code Indian/Antananarivo}), today when
+     * {@code date} is {@code null}; most recent first (SRV-03). {@code search} is not applied.
+     */
+    PageResponse<ServiceRecordRDto> getMyServiceRecords(PageQuery query, @Nullable LocalDate date);
 
     ServiceRecordRDto getServiceRecordById(UUID serviceRecordId);
 

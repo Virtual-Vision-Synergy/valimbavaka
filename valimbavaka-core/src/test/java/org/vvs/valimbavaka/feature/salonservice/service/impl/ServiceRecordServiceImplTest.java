@@ -13,6 +13,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,10 +27,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
+import org.vvs.valimbavaka.core.exception.UnauthorizedException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.salonservice.domain.ServiceRecord;
@@ -41,6 +49,7 @@ import org.vvs.valimbavaka.feature.salonservice.repository.ServiceRecordReposito
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementCommand;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
 import org.vvs.valimbavaka.feature.stock.service.StockMovementService;
+import org.vvs.valimbavaka.shared.dto.PageQuery;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceRecordServiceImplTest {
@@ -50,6 +59,10 @@ class ServiceRecordServiceImplTest {
     private static final UUID SALON_ID = UUID.randomUUID();
     private static final UUID OIL_ID = UUID.randomUUID();
     private static final UUID MASK_ID = UUID.randomUUID();
+    private static final UUID SELLER_ID = UUID.randomUUID();
+
+    /** 22:30 UTC on 8 November = 01:30 on 9 November in Madagascar (UTC+3). */
+    private static final Clock LATE_EVENING_UTC = Clock.fixed(Instant.parse("2026-11-08T22:30:00Z"), ZoneOffset.UTC);
 
     @Mock
     private ServiceRecordRepository serviceRecordRepository;
@@ -66,12 +79,21 @@ class ServiceRecordServiceImplTest {
     @Mock
     private JournalService journalService;
 
+    @Mock
+    private AuditorAware<UUID> auditorAware;
+
     private ServiceRecordServiceImpl sut;
 
     @BeforeEach
     void setUp() {
         sut = new ServiceRecordServiceImpl(
-                serviceRecordRepository, serviceRecordMapper, policy, stockMovementService, journalService);
+                serviceRecordRepository,
+                serviceRecordMapper,
+                policy,
+                stockMovementService,
+                journalService,
+                auditorAware,
+                LATE_EVENING_UTC);
     }
 
     @Test
@@ -147,6 +169,61 @@ class ServiceRecordServiceImplTest {
 
         // Act + Assert
         assertThatThrownBy(() -> sut.getServiceRecordById(RECORD_ID)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void getMyServiceRecords_withoutDate_readsCurrentSellerOnTodayInMadagascar() {
+        // Arrange
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(SELLER_ID));
+        when(serviceRecordRepository.findBySellerBetween(eq(SELLER_ID), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        // Act
+        var page = sut.getMyServiceRecords(firstPage(), null);
+
+        // Assert
+        assertThat(page.items()).isEmpty();
+        verify(serviceRecordRepository)
+                .findBySellerBetween(
+                        eq(SELLER_ID),
+                        eq(Instant.parse("2026-11-08T21:00:00Z")),
+                        eq(Instant.parse("2026-11-09T21:00:00Z")),
+                        any(Pageable.class));
+    }
+
+    @Test
+    void getMyServiceRecords_withDate_readsThatBusinessDayMostRecentFirst() {
+        // Arrange
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(SELLER_ID));
+        when(serviceRecordRepository.findBySellerBetween(eq(SELLER_ID), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        // Act
+        sut.getMyServiceRecords(firstPage(), LocalDate.parse("2026-11-01"));
+
+        // Assert
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(serviceRecordRepository)
+                .findBySellerBetween(
+                        eq(SELLER_ID),
+                        eq(Instant.parse("2026-10-31T21:00:00Z")),
+                        eq(Instant.parse("2026-11-01T21:00:00Z")),
+                        pageable.capture());
+        assertThat(pageable.getValue().getSort().toString()).isEqualTo("createdAt: DESC");
+    }
+
+    @Test
+    void getMyServiceRecords_withoutSession_throwsUnauthorizedException() {
+        // Arrange
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getMyServiceRecords(firstPage(), null)).isInstanceOf(UnauthorizedException.class);
+        verifyNoInteractions(serviceRecordRepository);
+    }
+
+    private static PageQuery firstPage() {
+        return new PageQuery(1, 20, null, null, null);
     }
 
     private static ServiceRecordWDto request() {

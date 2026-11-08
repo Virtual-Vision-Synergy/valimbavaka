@@ -33,18 +33,25 @@ export function toTreatment(service: SalonServiceRDto, known: ReadonlySet<string
   };
 }
 
-/** Ligne « Aujourd'hui » : heure locale `HH:MM`, soin, vendeuse et prix copiés à l'enregistrement. */
-export function toServiceRow(record: ServiceRecordRDto): ServiceRecordRowRDto {
+/**
+ * Ligne « Mes prestations du jour » (SRV-03) : heure locale `HH:MM`, soin, cliente, produits consommés et prix copiés
+ * à l'enregistrement. `units` donne l'unité courte de chaque article proposé ; un article absent n'en a pas.
+ */
+export function toServiceRow(
+  record: ServiceRecordRDto,
+  units: ReadonlyMap<string, string>,
+): ServiceRecordRowRDto {
   return {
     id: record.id,
+    number: record.number,
     treatmentName: record.serviceName,
     time: new Date(record.performedAt).toTimeString().slice(0, 5),
-    staff: record.sellerName,
+    customer: record.customerName,
+    products: record.products.map((product) => ({
+      name: product.articleName,
+      quantity: product.quantity,
+      unit: units.get(product.articleId) ?? '',
+    })),
     price: record.price,
   };
-}
-
-/** Vrai si l'instant ISO tombe le même jour local que `now`. */
-export function isSameLocalDay(instant: string, now: Date): boolean {
-  return new Date(instant).toDateString() === now.toDateString();
 }
