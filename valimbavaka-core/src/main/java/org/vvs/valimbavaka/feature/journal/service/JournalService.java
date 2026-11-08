@@ -27,4 +27,10 @@ public interface JournalService {
      * @param date jour UTC à lister ; null = tout le journal. Avec un jour, l'ordre par défaut est chronologique.
      */
     PageResponse<JournalEntryRDto> getEntries(PageQuery query, @Nullable LocalDate date);
+
+    /**
+     * Historique d'une ressource (LIV-06) : ses seules lignes, de la plus ancienne à la plus récente par défaut. Le
+     * droit de lire la ressource est vérifié par la feature appelante, pas ici.
+     */
+    PageResponse<JournalEntryRDto> getResourceEntries(String resourceType, UUID resourceId, PageQuery query);
 }
