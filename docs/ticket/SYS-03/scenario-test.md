@@ -70,4 +70,5 @@ Ce ticket est **uniquement frontend** : les articles viennent de `GET /api/v1/ar
 
 - Date : 2026-11-08.
 - Environnement : CI GitHub (workflows `CI` et `Convention VVS`, déclenchés à la main sur la branche `feature/SYS-03-recherche-globale-palette`, commit `f3e54f8`) : job Frontend vert, 58 fichiers et 351 tests Vitest dont `search-index.spec.ts` (13) et `search-dialog.spec.ts` (9) ; job Backend vert (`mvn verify`, dont `ArticleSecurityIT`) ; Convention VVS verte.
+- Après le merge de `develop` (commit `98d00aa`) : 2 tests de `search-dialog.spec.ts` en échec (« should open the chosen article with Enter », « should emit closed when the close button is pressed ») ; cause : le bouchon `HTMLDialogElement.prototype.close` posé par `inventory-page.spec.ts` (INV-04) n'était jamais retiré et fuyait vers la palette (fichiers Vitest non isolés). Corrigé dans `inventory-page.spec.ts` (`afterEach` qui retire le bouchon), commit `306d4f5` : CI de la PR #192 verte, 81 fichiers et 494 tests Vitest, Backend, Convention VVS et Qodana for JVM verts (aucune annotation).
 - Anomalies ouvertes : aucune. Étapes 🧪 restantes : 4.
