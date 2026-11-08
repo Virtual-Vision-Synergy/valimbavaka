@@ -100,6 +100,8 @@ export interface DeliveryOrderRDto {
   readonly lines: readonly DeliveryOrderLineRDto[];
   readonly createdAt: string;
   readonly createdBy: string | null;
+  /** Vente (canal Livraison) créée quand la commande a été marquée livrée (LIV-03). */
+  readonly saleId: string | null;
   readonly version: number;
 }
 

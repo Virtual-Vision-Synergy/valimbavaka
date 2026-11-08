@@ -31,8 +31,8 @@ function dayParams(day: string): HttpParams {
 
 /**
  * Livraisons. Le tableau du jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs ; la création
- * (LIV-01) passe par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit ses
- * commandes du jour. Le changement de statut (LIV-03, LIV-04) reste une simulation.
+ * (LIV-01) et le marquage « livrée » (LIV-03) passent par la file hors ligne (`OutboxService`, SYS-07) ; la
+ * tournée du livreur (LIV-02) lit ses commandes du jour. L'échec (LIV-04) reste une simulation.
  */
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -81,8 +81,22 @@ export class DeliveryService {
     return this.outbox.submit<DeliveryOrderRDto>('POST', this.baseUrl, body);
   }
 
-  /** Simulation : accepte le changement de statut ; aucune donnée n'est conservée. */
+  /**
+   * Marque la livraison livrée d'un geste, sans saisie (LIV-03) : la commande passe `DELIVERED` et devient une
+   * vente canal Livraison ; `queued` si elle attend le réseau (rejouée une seule fois grâce à `Idempotency-Key`).
+   */
+  markDelivered(deliveryId: string): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/deliver`,
+    );
+  }
+
+  /** Saisie du livreur : « livrée » part vers l'API (LIV-03) ; l'échec reste simulé jusqu'à LIV-04. */
   updateStatus(deliveryId: string, change: DeliveryStatusWDto): Observable<string> {
+    if (change.status === 'DELIVERED') {
+      return this.markDelivered(deliveryId).pipe(map(() => deliveryId));
+    }
     return demo(change).pipe(map(() => deliveryId));
   }
 }
