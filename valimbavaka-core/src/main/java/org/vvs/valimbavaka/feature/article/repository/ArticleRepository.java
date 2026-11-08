@@ -99,4 +99,7 @@ public interface ArticleRepository extends Repository<Article, UUID> {
             where a.id in :articleIds and a.cost is not null
             """)
     List<ArticleCost> findCosts(Collection<UUID> articleIds);
+
+    /** Articles with the given ids, active or not (TRF-04: lines of a transfer); an unknown id is left out. */
+    List<Article> findByIdIn(Collection<UUID> ids);
 }

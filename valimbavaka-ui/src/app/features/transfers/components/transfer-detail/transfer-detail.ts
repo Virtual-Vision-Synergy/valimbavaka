@@ -9,7 +9,10 @@ import { TransferService } from '../../data-access/transfer-service';
 import { TRANSFER_STATUS_TONES } from '../../data-access/transfer-tones';
 import { WhenPipe } from '../../data-access/when-pipe';
 
-/** Bon de transfert (TRF-04) : trajet, effet sur les stocks, lignes et écarts de réception. */
+/**
+ * Détail d'un bon de transfert (TRF-04), lu sur `GET /api/v1/transfers/{id}` : trajet, statut, émetteur, note et
+ * toutes les lignes (article, code, quantité et unité).
+ */
 @Component({
   selector: 'vvs-transfer-detail',
   imports: [TranslatePipe, WhenPipe, Icon, ListState, StatusBadge],

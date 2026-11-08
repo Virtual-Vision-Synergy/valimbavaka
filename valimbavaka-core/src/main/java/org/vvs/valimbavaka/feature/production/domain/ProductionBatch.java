@@ -1,8 +1,10 @@
 package org.vvs.valimbavaka.feature.production.domain;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import jakarta.persistence.CollectionTable;
@@ -16,6 +18,7 @@ import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 
 import org.hibernate.annotations.BatchSize;
+import org.jspecify.annotations.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -49,6 +52,9 @@ public class ProductionBatch extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private ProductionBatchStatus status;
 
+    @Column(name = "completed_at")
+    private @Nullable Instant completedAt;
+
     // Loaded lazily, by batches of pages, to keep the paged list free of N+1 queries.
     @ElementCollection
     @CollectionTable(name = "production_batch_inputs", joinColumns = @JoinColumn(name = "batch_id"))
@@ -66,6 +72,34 @@ public class ProductionBatch extends BaseEntity {
         batch.inputs = new ArrayList<>(details.inputs());
         batch.status = ProductionBatchStatus.PLANNED;
         return batch;
+    }
+
+    /**
+     * Start (PRD-03): {@link ProductionBatchStatus#PLANNED} to {@link ProductionBatchStatus#IN_PROGRESS}. The stock
+     * does not move until the completion (PRD-02).
+     *
+     * @throws org.vvs.valimbavaka.core.exception.ConflictException if the batch is already in progress or completed
+     */
+    public void start() {
+        status.ensureCanStart();
+        this.status = ProductionBatchStatus.IN_PROGRESS;
+    }
+
+    /**
+     * Completion (PRD-02): freezes the unit cost of each input (absent from {@code costs} = no cost) and marks the
+     * batch {@link ProductionBatchStatus#COMPLETED}. The stock movements are recorded by the service in the same
+     * transaction.
+     *
+     * @throws org.vvs.valimbavaka.core.exception.ConflictException if the batch is already completed
+     */
+    public void complete(Map<UUID, BigDecimal> costs, Instant completedAt) {
+        status.ensureCanComplete();
+        for (var i = 0; i < inputs.size(); i++) {
+            var input = inputs.get(i);
+            inputs.set(i, input.withUnitCost(costs.get(input.getArticleId())));
+        }
+        this.status = ProductionBatchStatus.COMPLETED;
+        this.completedAt = completedAt;
     }
 
     public List<ProductionInput> getInputs() {

@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'production.title' | translate"
     [subtitle]="'production.subtitle' | translate"
-    [codes]="['PRD-01', 'PRD-05']"
+    [codes]="['PRD-01', 'PRD-04', 'PRD-05']"
   />
 
   @if (context.value(); as data) {
@@ -17,16 +17,26 @@
         [label]="'production.kpi.units' | translate"
         [value]="'' + data.kpis.unitsProduced"
       >
-        <p class="note up">
-          {{ 'production.kpi.unitsNote' | translate: { percent: data.kpis.unitsTrendPercent } }}
-        </p>
+        @let trend = data.kpis.unitsTrendPercent;
+        @if (trend === null) {
+          <p class="note">{{ 'production.kpi.unitsNoTrend' | translate }}</p>
+        } @else {
+          <p class="note" [class.up]="trend > 0" [class.down]="trend < 0">
+            {{ 'production.kpi.unitsNote' | translate: { trend: (trend > 0 ? '+' : '') + trend } }}
+          </p>
+        }
       </vvs-kpi-card>
       <vvs-kpi-card
         [label]="'production.kpi.cost' | translate"
-        [value]="data.kpis.averageCost | ariary: 'plain'"
-        unit="Ar"
+        [value]="data.kpis.averageCost === null ? '—' : (data.kpis.averageCost | ariary: 'plain')"
+        [unit]="data.kpis.averageCost === null ? undefined : 'Ar'"
       >
         <p class="note">{{ 'production.kpi.costNote' | translate }}</p>
+        @if (data.kpis.uncostedLots > 0) {
+          <p class="note warn">
+            {{ 'production.kpi.uncosted' | translate: { count: data.kpis.uncostedLots } }}
+          </p>
+        }
       </vvs-kpi-card>
       <vvs-kpi-card
         [label]="'production.kpi.rebuy' | translate"
@@ -37,7 +47,7 @@
     </div>
 
     <div class="layout">
-      <form class="card lot" [formGroup]="form" (ngSubmit)="save(true)" novalidate>
+      <form class="card lot" [formGroup]="form" (ngSubmit)="save(canComplete())" novalidate>
         <header class="lot-head">
           <h2>
             {{ 'production.newLot' | translate }}
@@ -226,9 +236,11 @@
           >
             {{ 'production.saveDraft' | translate }}
           </button>
-          <button class="btn btn-primary" type="submit" [disabled]="!canValidate()">
-            {{ 'production.validate' | translate }}
-          </button>
+          @if (canComplete()) {
+            <button class="btn btn-primary" type="submit" [disabled]="!canValidate()">
+              {{ 'production.validate' | translate }}
+            </button>
+          }
         </footer>
       </form>
 
@@ -241,19 +253,48 @@
           <a class="link-arrow" routerLink="/production">{{ 'production.all' | translate }}</a>
         </header>
         <ul class="lots">
-          @for (lot of recentLots(); track lot.number) {
+          @for (lot of recentLots(); track lot.id) {
             <li>
               <span class="date num" aria-hidden="true">{{ lot.date | shortDate }}</span>
               <span class="lot-info">
                 <strong>{{ lot.articleName }}</strong>
                 <span class="mono muted"
-                  >{{ lot.number }} · {{ lot.quantity }} u. · {{ lot.operator }}</span
+                  ><a
+                    [routerLink]="['/production', lot.id]"
+                    [attr.aria-label]="'production.detail.open' | translate: { number: lot.number }"
+                    >{{ lot.number }}</a
+                  >
+                  · {{ lot.quantity }} u. · {{ lot.operator }}</span
                 >
               </span>
-              <vvs-status-badge
-                [tone]="lotTones[lot.status]"
-                [label]="'production.status.' + lot.status | translate"
-              />
+              <span class="lot-status">
+                <vvs-status-badge
+                  [tone]="lotTones[lot.status]"
+                  [label]="'production.status.' + lot.status | translate"
+                />
+                @if (canStart() && lot.status === 'DRAFT') {
+                  <button
+                    class="btn btn-ghost btn-sm"
+                    type="button"
+                    [disabled]="changing() !== null"
+                    [attr.aria-label]="'production.startLot' | translate: { number: lot.number }"
+                    (click)="advance(lot, 'start')"
+                  >
+                    {{ 'production.start' | translate }}
+                  </button>
+                }
+                @if (canComplete() && lot.status !== 'VALIDATED') {
+                  <button
+                    class="btn btn-secondary btn-sm"
+                    type="button"
+                    [disabled]="changing() !== null"
+                    [attr.aria-label]="'production.finishLot' | translate: { number: lot.number }"
+                    (click)="advance(lot, 'finish')"
+                  >
+                    {{ 'production.finish' | translate }}
+                  </button>
+                }
+              </span>
             </li>
           }
         </ul>

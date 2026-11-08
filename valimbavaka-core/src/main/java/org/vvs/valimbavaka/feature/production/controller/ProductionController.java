@@ -22,16 +22,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.production.domain.ProductionBatchStatus;
+import org.vvs.valimbavaka.feature.production.dto.ProductionBatchCostRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionBatchRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionBatchWDto;
+import org.vvs.valimbavaka.feature.production.dto.ProductionIndicatorsRDto;
 import org.vvs.valimbavaka.feature.production.dto.ProductionOperatorRDto;
 import org.vvs.valimbavaka.feature.production.service.ProductionBatchService;
+import org.vvs.valimbavaka.feature.production.service.ProductionCostService;
+import org.vvs.valimbavaka.feature.production.service.ProductionIndicatorService;
 import org.vvs.valimbavaka.feature.production.service.ProductionOperatorService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Production batches (PRD-01): administrator and seller; never deleted (JNL-02). */
+/**
+ * Production batches: administrator and seller plan them (PRD-01), start them (PRD-03) and complete them, which moves
+ * the stock (PRD-02). Never deleted (JNL-02). Indicators of the month at the top of the screen (PRD-04), cost price of
+ * a batch (PRD-05).
+ */
 @Tag(name = "Production")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -45,11 +53,18 @@ public class ProductionController {
 
     private final ProductionBatchService productionBatchService;
     private final ProductionOperatorService productionOperatorService;
+    private final ProductionIndicatorService productionIndicatorService;
+    private final ProductionCostService productionCostService;
 
     public ProductionController(
-            ProductionBatchService productionBatchService, ProductionOperatorService productionOperatorService) {
+            ProductionBatchService productionBatchService,
+            ProductionOperatorService productionOperatorService,
+            ProductionIndicatorService productionIndicatorService,
+            ProductionCostService productionCostService) {
         this.productionBatchService = productionBatchService;
         this.productionOperatorService = productionOperatorService;
+        this.productionIndicatorService = productionIndicatorService;
+        this.productionCostService = productionCostService;
     }
 
     @GetMapping("/batches")
@@ -70,6 +85,15 @@ public class ProductionController {
         return productionBatchService.getBatchById(id);
     }
 
+    @GetMapping("/batches/{id}/cost")
+    @Operation(summary = "Batch detail with its cost price: inputs, material cost, cost per unit and margin")
+    @ApiResponse(responseCode = "200", description = "Cost frozen at completion, estimated before")
+    @ApiResponse(responseCode = "404", description = "Batch not found (NOT_FOUND)")
+    @HasPermission("production.read")
+    public ProductionBatchCostRDto getBatchCost(@PathVariable UUID id) {
+        return productionCostService.getBatchCost(id);
+    }
+
     @PostMapping("/batches")
     @Operation(summary = "Plans a production batch: output product, quantity, responsible seller and inputs")
     @ApiResponse(responseCode = "201", description = "Batch created with status PLANNED")
@@ -82,11 +106,53 @@ public class ProductionController {
                 .body(created);
     }
 
+    @PostMapping("/batches/{id}/start")
+    @Operation(summary = "Starts a planned batch: status IN_PROGRESS, the stock does not move")
+    @ApiResponse(responseCode = "200", description = "Batch IN_PROGRESS")
+    @ApiResponse(responseCode = "404", description = "Batch not found (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Batch already in progress or completed (CONFLICT)")
+    @HasPermission("production.update")
+    public ProductionBatchRDto startBatch(@PathVariable UUID id) {
+        return productionBatchService.startBatch(id);
+    }
+
+    @PostMapping("/batches/{id}/completion")
+    @Operation(summary = "Completes a batch: inputs out of the warehouse and output in, in one transaction")
+    @ApiResponse(responseCode = "200", description = "Batch COMPLETED, stock moved, input costs frozen")
+    @ApiResponse(responseCode = "404", description = "Batch not found (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Already completed or insufficient stock (CONFLICT)")
+    @ApiResponse(responseCode = "422", description = "Warehouse unknown or inactive (VALIDATION_FAILED)")
+    @HasPermission("production.complete")
+    public ProductionBatchRDto completeBatch(@PathVariable UUID id) {
+        return productionBatchService.completeBatch(id);
+    }
+
+    @PostMapping("/completed-batches")
+    @Operation(summary = "Plans and completes a batch in one transaction (screen button \"Valider le lot\")")
+    @ApiResponse(responseCode = "201", description = "Batch created with status COMPLETED, stock moved")
+    @ApiResponse(responseCode = "404", description = "Unknown article (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Insufficient stock (CONFLICT): nothing is created")
+    @ApiResponse(responseCode = "422", description = "Invalid data (VALIDATION_FAILED)")
+    @HasPermission("production.complete")
+    public ResponseEntity<ProductionBatchRDto> createCompletedBatch(@Valid @RequestBody ProductionBatchWDto request) {
+        var created = productionBatchService.createCompletedBatch(request);
+        return ResponseEntity.created(URI.create("/api/v1/production/batches/" + created.id()))
+                .body(created);
+    }
+
     @GetMapping("/operators")
     @Operation(summary = "Active sellers that can be responsible for a batch")
     @ApiResponse(responseCode = "200", description = "Page of sellers")
     @HasPermission("production.read")
     public PageResponse<ProductionOperatorRDto> getOperators(@Valid PageQuery query) {
         return productionOperatorService.getOperators(query);
+    }
+
+    @GetMapping("/indicators")
+    @Operation(summary = "Indicators of the current month: completed batches, units produced, material cost per unit")
+    @ApiResponse(responseCode = "200", description = "Indicators of the month (Madagascar time)")
+    @HasPermission("production.read")
+    public ProductionIndicatorsRDto getIndicators() {
+        return productionIndicatorService.getIndicators();
     }
 }

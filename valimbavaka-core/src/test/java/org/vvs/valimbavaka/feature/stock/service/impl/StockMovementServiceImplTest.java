@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -11,6 +12,8 @@ import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -94,5 +97,31 @@ class StockMovementServiceImplTest {
         assertThatThrownBy(() -> sut.record(command)).isInstanceOf(ConflictException.class);
         verify(stockMovementRepository, never()).save(any());
         verifyNoInteractions(journalService);
+    }
+
+    @Test
+    void recordAll_crossedMovements_locksEveryArticleAndLocationInSortedOrderBeforeRecording() {
+        // Arrange
+        var otherLocation = UUID.randomUUID();
+        var out = transferLeg(otherLocation, "-2");
+        var in = transferLeg(LOCATION_ID, "2");
+        when(policy.check(any())).thenReturn(StockTestData.article(ARTICLE_ID, "ART-0031"));
+        when(stockMovementRepository.save(any(StockMovement.class))).thenAnswer(call -> call.getArgument(0));
+        var keys = new TreeSet<>(List.of(ARTICLE_ID + ":" + otherLocation, ARTICLE_ID + ":" + LOCATION_ID));
+
+        // Act
+        sut.recordAll(List.of(out, in));
+
+        // Assert
+        var order = inOrder(stockMovementRepository, policy);
+        order.verify(stockMovementRepository).lock(keys.first());
+        order.verify(stockMovementRepository).lock(keys.last());
+        order.verify(policy).check(out);
+        order.verify(policy).check(in);
+    }
+
+    private static StockMovementCommand transferLeg(UUID locationId, String quantity) {
+        return new StockMovementCommand(
+                ARTICLE_ID, locationId, StockMovementType.TRANSFER, new BigDecimal(quantity), null);
     }
 }
