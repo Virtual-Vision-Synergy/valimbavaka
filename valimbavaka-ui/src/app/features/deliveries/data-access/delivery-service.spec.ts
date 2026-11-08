@@ -3,8 +3,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
+import { AuthStore } from '../../../core/auth/auth-store';
+import { buildUser } from '../../../core/auth/auth-testing';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { DeliveryBoardRDto, DeliveryOrderWDto } from './delivery-models';
+import { DeliveryBoardRDto, DeliveryOrderWDto, DriverRoundRDto } from './delivery-models';
 import { DeliveryService } from './delivery-service';
 
 const EMPTY_PAGE = { items: [], page: 1, pageSize: 100, totalCount: 0, totalPages: 0 };
@@ -58,5 +60,29 @@ describe('DeliveryService', () => {
     http.expectOne((req) => req.url === '/api/v1/deliveries/drivers').flush(EMPTY_PAGE);
 
     expect(board).toEqual({ rounds: [], deliveries: [] });
+  });
+
+  it('lit la tournée du jour du livreur connecté, arrêt par arrêt', () => {
+    const driver = buildUser('DELIVERY_DRIVER');
+    TestBed.inject(AuthStore).signIn('jeton', driver);
+    let round: DriverRoundRDto | undefined;
+    TestBed.inject(DeliveryService)
+      .myRound('2026-11-09')
+      .subscribe((value) => (round = value));
+    const http = TestBed.inject(HttpTestingController);
+
+    const orders = http.expectOne((req) => req.url === '/api/v1/deliveries');
+    expect(orders.request.params.get('driverId')).toBe(driver.id);
+    expect(orders.request.params.get('date')).toBe('2026-11-09');
+    expect(orders.request.params.get('size')).toBe('100');
+    expect(orders.request.params.get('sortBy')).toBe('stopNumber');
+    expect(orders.request.params.get('sortDirection')).toBe('ASC');
+    orders.flush(EMPTY_PAGE);
+
+    expect(round).toEqual({
+      round: { id: driver.id, name: 'Hanta R.', driverName: 'Hanta R.' },
+      date: '2026-11-09',
+      stops: [],
+    });
   });
 });
