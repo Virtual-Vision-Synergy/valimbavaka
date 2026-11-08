@@ -59,7 +59,12 @@
               >
             </p>
             <div class="toolbar-actions">
-              <button class="btn btn-secondary btn-sm" type="button" (click)="useYesterday()">
+              <button
+                class="btn btn-secondary btn-sm"
+                type="button"
+                [disabled]="!opening.value()?.previousDay"
+                (click)="useYesterday()"
+              >
                 <svg [vvsIcon]="icons.Undo2" [size]="16"></svg>
                 {{ 'day.open.useYesterday' | translate }}
               </button>

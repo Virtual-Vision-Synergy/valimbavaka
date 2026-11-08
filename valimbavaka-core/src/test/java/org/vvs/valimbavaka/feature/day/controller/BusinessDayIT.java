@@ -11,7 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +32,10 @@ import org.vvs.valimbavaka.feature.stock.controller.StockApiTestSupport;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
 
-/** JR-01: the morning dispatch opens the day with one validated transfer per destination and moves the stock. */
+/**
+ * JR-01: the morning dispatch opens the day with one validated transfer per destination and moves the stock. JR-02:
+ * the grid carries the quantities of the previous working day.
+ */
 class BusinessDayIT extends StockApiTestSupport {
 
     private static final String DAYS = "/api/v1/days";
@@ -291,6 +297,56 @@ class BusinessDayIT extends StockApiTestSupport {
     }
 
     @Test
+    void getOpening_afterAPreviousWorkingDay_returnsTheQuantitiesItSentToEachDestination() throws Exception {
+        // Arrange: opened three days ago (a Friday before a Monday), not yesterday
+        var soap = createArticle(uniqueName());
+        var oil = createArticle(uniqueName());
+        move(soap, "WAREHOUSE", StockMovementType.RECEIPT, "20");
+        move(oil, "WAREHOUSE", StockMovementType.RECEIPT, "8");
+        openDay(adminToken(), body(line(soap, "STORE", "12") + "," + line(soap, "DELIVERY", "5")))
+                .andExpect(status().isCreated());
+        jdbcTemplate.update("update business_days set business_date = business_date - 3");
+
+        // Act
+        var json = getOpening(adminToken())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.day").doesNotExist())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Assert
+        LocalDate today = LocalDate.parse(JsonPath.read(json, "$.businessDate"));
+        LocalDate previousDay = LocalDate.parse(JsonPath.read(json, "$.previousDay"));
+        assertThat(previousDay).isEqualTo(today.minusDays(3));
+        var soapSent = yesterday(json, soap);
+        assertThat(soapSent)
+                .containsOnlyKeys(
+                        location("STORE").toString(), location("DELIVERY").toString());
+        assertThat(soapSent.get(location("STORE").toString())).isEqualByComparingTo("12");
+        assertThat(soapSent.get(location("DELIVERY").toString())).isEqualByComparingTo("5");
+        assertThat(yesterday(json, oil)).isEmpty();
+    }
+
+    @Test
+    void getOpening_veryFirstDay_hasNoPreviousDayAndNoQuantityToTakeAgain() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "WAREHOUSE", StockMovementType.RECEIPT, "4");
+
+        // Act
+        var json = getOpening(adminToken())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.previousDay").doesNotExist())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Assert
+        assertThat(yesterday(json, soap)).isEmpty();
+    }
+
+    @Test
     void getOpening_withSellerRole_returns403() throws Exception {
         getOpening(tokenOf(RoleName.SELLER))
                 .andExpect(status().isForbidden())
@@ -342,6 +398,19 @@ class BusinessDayIT extends StockApiTestSupport {
     private String line(UUID articleId, String destinationCode, String quantity) {
         return "{\"articleId\":\"%s\",\"destinationId\":\"%s\",\"quantity\":%s}"
                 .formatted(articleId, location(destinationCode), quantity);
+    }
+
+    /** Quantities sent the previous working day for one article of the grid, by destination id. */
+    private static Map<String, BigDecimal> yesterday(String json, UUID articleId) {
+        var path = "$.lines[?(@.articleId == '%s')].yesterday[*]".formatted(articleId);
+        List<Map<String, Object>> sent = JsonPath.read(json, path);
+        var quantities = new HashMap<String, BigDecimal>();
+        for (var entry : sent) {
+            quantities.put(
+                    entry.get("locationId").toString(),
+                    new BigDecimal(entry.get("quantity").toString()));
+        }
+        return quantities;
     }
 
     private BigDecimal balance(UUID articleId, String locationCode) {

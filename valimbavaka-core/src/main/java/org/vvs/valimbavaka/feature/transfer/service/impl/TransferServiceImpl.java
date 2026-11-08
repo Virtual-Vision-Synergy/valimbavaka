@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.transfer.service.impl;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -86,6 +88,16 @@ public class TransferServiceImpl implements TransferService {
                 .findById(transferId)
                 .orElseThrow(() -> new NotFoundException("Transfert introuvable : " + transferId));
         return sheet.toRDto(transfer);
+    }
+
+    @Override
+    public List<TransferRDto> getTransfersByIds(Collection<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return transferRepository.findAllByIdIn(Set.copyOf(ids)).stream()
+                .map(transferMapper::toRDto)
+                .toList();
     }
 
     private String nextNumber(TransferOrigin origin) {

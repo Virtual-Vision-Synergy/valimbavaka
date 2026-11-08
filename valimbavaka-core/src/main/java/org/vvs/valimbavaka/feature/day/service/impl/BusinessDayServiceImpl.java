@@ -64,7 +64,6 @@ public class BusinessDayServiceImpl implements BusinessDayService {
         var day = dayRepository.findByBusinessDate(date).map(dayMapper::toRDto).orElse(null);
         var previousDay = dayRepository
                 .findFirstByBusinessDateLessThanOrderByBusinessDateDesc(date)
-                .map(BusinessDay::getBusinessDate)
                 .orElse(null);
         return grid.build(date, previousDay, day);
     }

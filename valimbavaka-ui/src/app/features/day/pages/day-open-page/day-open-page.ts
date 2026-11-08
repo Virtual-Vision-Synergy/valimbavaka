@@ -164,6 +164,7 @@ export class DayOpenPage {
     }));
   }
 
+  /** « Reprendre hier » : les quantités envoyées le dernier jour ouvré remplacent la saisie (JR-02). */
   protected useYesterday(): void {
     const lines = this.opening.value()?.lines ?? [];
     this.quantities.set(Object.fromEntries(lines.map((line) => [line.articleId, line.yesterday])));
