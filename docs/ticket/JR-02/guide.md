@@ -1,6 +1,6 @@
 # Guide d'intégration — JR-02 · Reprise des quantités de la veille
 
-Statut : ☐ écrit le 2026-11-08, tests à lancer en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#56](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/56) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-08, CI verte (ci, conventions, Qodana) (voir « Résultat de l'exécution » du scénario) · Ticket : [#56](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/56) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -87,4 +87,4 @@ Côté interface, la grille fournit déjà `line.yesterday` (`DispatchQuantities
 - **Hypothèse (stock insuffisant)** : on n'écrête pas au stock du jour ; l'écran signale l'écart et l'administrateur corrige (écrêter masquerait la rupture).
 - **Contrat étendu** : `DayOpeningLineRDto` gagne un champ ; un client qui construirait ce record en Java (aucun aujourd'hui en dehors de `DayOpeningGrid`) doit le fournir.
 - Quantités décimales (3 décimales côté serveur) : l'écran les affiche telles quelles, mais sa saisie manuelle reste entière (comportement JR-01).
-- Tests à lancer en CI ; la recette manuelle (🧪) reste à passer.
+- Branche à jour de `develop` (JR-01, TRF-02, TRF-04 mergés) : `TransferService` expose à la fois `getTransfer` (TRF-04) et `getTransfersByIds` (JR-02). CI verte ; la recette manuelle (🧪) reste à passer.
