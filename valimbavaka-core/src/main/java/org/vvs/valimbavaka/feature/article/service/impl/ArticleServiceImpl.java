@@ -86,6 +86,11 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    public boolean isActiveArticle(UUID articleId) {
+        return articleRepository.existsByIdAndActiveTrue(articleId);
+    }
+
+    @Override
     public List<ArticleRDto> getArticlesByIds(Collection<UUID> articleIds) {
         if (articleIds.isEmpty()) {
             return List.of();

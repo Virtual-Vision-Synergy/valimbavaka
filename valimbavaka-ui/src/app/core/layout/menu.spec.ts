@@ -14,6 +14,8 @@ describe('visibleSections', () => {
     expect(labels).toContain('menu.item.suppliers');
     expect(labels).toContain('menu.item.reports');
     expect(labels).toContain('menu.item.journal');
+    expect(labels).toContain('menu.item.commissionRules');
+    expect(labels).toContain('menu.item.salonCatalog');
   });
 
   it('should show sales, deliveries, catalogue and production modules but no administration to a seller', () => {
@@ -28,10 +30,13 @@ describe('visibleSections', () => {
         'menu.item.sales',
         'menu.item.deliveries',
         'menu.item.commissions',
+        'menu.item.salonCatalog',
       ]),
     );
     expect(labels).not.toContain('menu.item.users');
     expect(labels).not.toContain('menu.item.journal');
+    expect(labels).not.toContain('menu.item.dayOpen');
+    expect(labels).not.toContain('menu.item.commissionRules');
   });
 
   it('should show only the dashboard and deliveries to a delivery driver', () => {
