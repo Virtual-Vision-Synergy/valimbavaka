@@ -292,13 +292,11 @@ describe('InventoryPage', () => {
       await fixture.whenStable();
     };
 
-    // jsdom n'implémente pas HTMLDialogElement.close : la page le rappelle après la réponse.
+    // jsdom n'a pas HTMLDialogElement.close : bouchon retiré après chaque test (prototype partagé).
     beforeEach(() => {
-      Object.defineProperty(HTMLDialogElement.prototype, 'close', {
-        configurable: true,
-        value: vi.fn(),
-      });
+      HTMLDialogElement.prototype.close = vi.fn();
     });
+    afterEach(() => Reflect.deleteProperty(HTMLDialogElement.prototype, 'close'));
 
     it('n’autorise pas la clôture tant qu’un écart n’a pas de motif', async () => {
       await load([SESSION], LINE_WITH_GAP);
