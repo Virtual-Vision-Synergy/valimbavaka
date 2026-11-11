@@ -12,7 +12,8 @@ import org.jspecify.annotations.Nullable;
  * @param promotionName name of that promotion, {@code null} when none applies
  * @param amount discount in ariary, 2 decimals, zero when no promotion applies
  */
-public record PromotionDiscount(@Nullable UUID promotionId, @Nullable String promotionName, BigDecimal amount) {
+public record PromotionDiscount(
+        @Nullable UUID promotionId, @Nullable String promotionName, BigDecimal amount) {
 
     /** No promotion applies. */
     public static final PromotionDiscount NONE = new PromotionDiscount(null, null, new BigDecimal("0.00"));

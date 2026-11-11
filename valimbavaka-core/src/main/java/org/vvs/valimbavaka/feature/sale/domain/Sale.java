@@ -106,7 +106,8 @@ public class Sale extends BaseEntity {
         sale.status = OperationStatus.VALIDATED;
         lines.forEach(line -> sale.lines.add(SaleLine.of(line)));
         sale.subtotal = sale.lines.stream().map(SaleLine::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-        sale.discountAmount = discount.amount().setScale(2, RoundingMode.HALF_UP).min(sale.subtotal);
+        sale.discountAmount =
+                discount.amount().setScale(2, RoundingMode.HALF_UP).min(sale.subtotal);
         sale.promotionId = sale.discountAmount.signum() > 0 ? discount.promotionId() : null;
         sale.total = sale.subtotal.subtract(sale.discountAmount);
         return sale;

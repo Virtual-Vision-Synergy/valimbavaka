@@ -121,8 +121,7 @@ class SaleServiceImplTest {
         var channel = new SaleChannelOptionRDto(CHANNEL, "STORE", "Boutique", STORE);
         when(policy.check(any())).thenReturn(new CheckedSale(channel, List.of(line)));
         var promotionId = UUID.randomUUID();
-        when(discounts.of(any(), eq(List.of(line))))
-                .thenReturn(new SaleDiscount(promotionId, new BigDecimal("2550")));
+        when(discounts.of(any(), eq(List.of(line)))).thenReturn(new SaleDiscount(promotionId, new BigDecimal("2550")));
         when(saleRepository.nextNumber()).thenReturn(43L);
         when(saleRepository.save(any(Sale.class))).then(returnsFirstArg());
         var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));

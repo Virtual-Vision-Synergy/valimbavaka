@@ -16,9 +16,4 @@ import org.vvs.valimbavaka.feature.promotion.domain.PromotionKind;
  * @param channelIds sales channels on which it applies
  */
 public record SalePromotionRDto(
-        UUID id,
-        String name,
-        PromotionKind kind,
-        BigDecimal value,
-        List<UUID> articleIds,
-        List<UUID> channelIds) {}
+        UUID id, String name, PromotionKind kind, BigDecimal value, List<UUID> articleIds, List<UUID> channelIds) {}

@@ -244,7 +244,8 @@ class SalePromotionIT extends StockApiTestSupport {
                 .andExpect(jsonPath(promotion + ".kind").value("PERCENT"))
                 .andExpect(jsonPath(promotion + ".value").value(15.0))
                 .andExpect(jsonPath(promotion + ".articleIds[0]").value(soap.toString()))
-                .andExpect(jsonPath(promotion + ".channelIds[0]").value(channel("STORE").toString()));
+                .andExpect(jsonPath(promotion + ".channelIds[0]")
+                        .value(channel("STORE").toString()));
     }
 
     @Test
