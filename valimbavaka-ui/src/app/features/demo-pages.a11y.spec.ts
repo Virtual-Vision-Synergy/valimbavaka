@@ -53,7 +53,11 @@ const settle = (): Promise<void> =>
 const answerApiCalls = async (): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve));
   for (const request of TestBed.inject(HttpTestingController).match(() => true)) {
-    request.flush({ items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 });
+    request.flush(
+      request.request.url === '/api/v1/reports'
+        ? { sales: { revenue: 0, salesCount: 0, averageBasket: 0 } }
+        : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+    );
   }
 };
 
