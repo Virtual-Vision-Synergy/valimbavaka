@@ -33,6 +33,7 @@ export const ROLE_PERMISSIONS: Record<string, readonly string[]> = {
     'promotions.read',
     'commissions.read',
     'commissions.read-all',
+    'commissions.validate',
     'commission-rules.read',
     'commission-rules.create',
     'commission-rules.update',

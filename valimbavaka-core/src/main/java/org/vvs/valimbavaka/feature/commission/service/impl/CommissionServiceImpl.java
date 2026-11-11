@@ -88,9 +88,13 @@ public class CommissionServiceImpl implements CommissionService {
                 .findBySourceTypeAndSourceId(sourceType, sourceId)
                 .filter(commission -> commission.getStatus() != CommissionStatus.CANCELLED)
                 .ifPresent(commission -> {
+                    var wasValidated = commission.getStatus() == CommissionStatus.VALIDATED;
                     commission.cancel();
-                    var description = "Commission %s Ar annulée avec l'opération %s"
-                            .formatted(commission.getAmount().toPlainString(), commission.getSourceNumber());
+                    var description = "Commission %s Ar annulée avec l'opération %s%s"
+                            .formatted(
+                                    commission.getAmount().toPlainString(),
+                                    commission.getSourceNumber(),
+                                    wasValidated ? " (déjà validée : versement à corriger)" : "");
                     journalService.record(JournalAction.CANCEL, RESOURCE_TYPE, commission.getId(), description);
                     log.info("Commission {} annulée avec {}", commission.getId(), commission.getSourceNumber());
                 });
