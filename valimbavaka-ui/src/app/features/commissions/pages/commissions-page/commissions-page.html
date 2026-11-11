@@ -65,14 +65,14 @@
               'commissions.salesGoal'
                 | translate
                   : {
-                      sales: (data.revenue | ariary: 'compact'),
-                      goal: (data.monthlyTarget | ariary: 'compact'),
+                      sales: (data.revenue | ariary: 'plain'),
+                      goal: (data.monthlyTarget | ariary: 'plain'),
                     }
             }}
           </p>
         } @else {
           <p class="muted">
-            {{ 'commissions.noGoal' | translate: { sales: (data.revenue | ariary: 'compact') } }}
+            {{ 'commissions.noGoal' | translate: { sales: (data.revenue | ariary: 'plain') } }}
           </p>
         }
         @if (remaining(); as rest) {
@@ -81,7 +81,7 @@
               'commissions.remaining'
                 | translate
                   : {
-                      left: (rest.left | ariary: 'compact'),
+                      left: (rest.left | ariary: 'plain'),
                       days: rest.days,
                       perDay: (rest.perDay | ariary),
                     }

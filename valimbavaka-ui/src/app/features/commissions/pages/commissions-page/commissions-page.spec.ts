@@ -85,7 +85,6 @@ describe('CommissionsPage', () => {
       fixture.componentRef.setInput('sellerId', sellerId);
     }
     fixture.detectChanges();
-    await fixture.whenStable();
   };
 
   const answer = async (
@@ -179,7 +178,6 @@ describe('CommissionsPage', () => {
 
     select.dispatchEvent(new Event('change'));
     fixture.detectChanges();
-    await fixture.whenStable();
 
     const request = httpMock.expectOne(isFollowUp);
     expect(request.request.params.get('month')).toBe(select.options[1].value);
