@@ -2,6 +2,11 @@ package org.vvs.valimbavaka.feature.invoice.controller;
 
 import java.util.UUID;
 
+import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,13 +20,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.invoice.dto.InvoiceRDto;
+import org.vvs.valimbavaka.feature.invoice.service.InvoiceDocumentService;
+import org.vvs.valimbavaka.feature.invoice.service.InvoiceFile;
 import org.vvs.valimbavaka.feature.invoice.service.InvoiceService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 
 /**
  * Invoices issued by the sales (FAC-01). An invoice is issued by the recording of a sale, never by a request with
  * free lines, and is never modified nor deleted; the only write is the re-edition of the invoice of an existing sale
- * (FAC-02), which takes no body.
+ * (FAC-02), which takes no body. The PDF of an invoice (FAC-03) is a read.
  */
 @Tag(name = "Invoices")
 @ApiResponses({
@@ -35,9 +42,11 @@ import org.vvs.valimbavaka.security.annotation.HasPermission;
 public class InvoiceController {
 
     private final InvoiceService invoiceService;
+    private final InvoiceDocumentService documentService;
 
-    public InvoiceController(InvoiceService invoiceService) {
+    public InvoiceController(InvoiceService invoiceService, InvoiceDocumentService documentService) {
         this.invoiceService = invoiceService;
+        this.documentService = documentService;
     }
 
     @GetMapping("/{id}")
@@ -46,6 +55,14 @@ public class InvoiceController {
     @HasPermission("sales.read")
     public InvoiceRDto getInvoiceById(@PathVariable UUID id) {
         return invoiceService.getInvoiceById(id);
+    }
+
+    @GetMapping("/{id}/pdf")
+    @Operation(summary = "The invoice as a PDF file (print and export, FAC-03)")
+    @ApiResponse(responseCode = "200", description = "PDF file named after the invoice number")
+    @HasPermission("sales.read")
+    public ResponseEntity<Resource> getInvoicePdf(@PathVariable UUID id) {
+        return download(documentService.renderPdf(id));
     }
 
     @GetMapping("/sales/{saleId}")
@@ -62,5 +79,13 @@ public class InvoiceController {
     @HasPermission("invoices.regenerate")
     public InvoiceRDto regenerateForSale(@PathVariable UUID saleId) {
         return invoiceService.regenerateForSale(saleId);
+    }
+
+    private static ResponseEntity<Resource> download(InvoiceFile file) {
+        var disposition = ContentDisposition.attachment().filename(file.filename()).build();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
+                .body(file.content());
     }
 }
