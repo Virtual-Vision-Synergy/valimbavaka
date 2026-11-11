@@ -7,14 +7,17 @@ import {
   PosTicketLineRDto,
   SaleChannel,
 } from './pos-models';
-import { changeDue, lineDiscount, lineTotal, ticketTotals } from './pos-pricing';
+import { bestPromotion, changeDue, lineTotal, ticketTotals } from './pos-pricing';
 
 export interface CartLine {
   readonly article: PosArticleRDto;
   readonly quantity: number;
 }
 
-/** Ligne valorisée : total de la ligne (règle du serveur), taux et montant de remise (arrondi à l'ariary). */
+/**
+ * Ligne valorisée : total de la ligne (règle du serveur), montant de remise (arrondi à l'ariary) et taux
+ * (promotion en pourcentage seulement, 0 sinon).
+ */
 export interface PricedLine extends CartLine {
   readonly gross: number;
   readonly rate: number;
@@ -34,7 +37,7 @@ export interface CartAnnouncement {
 @Injectable()
 export class PosCart {
   private readonly lines = signal<readonly CartLine[]>([]);
-  private readonly promotion = signal<PosPromotionRDto | null>(null);
+  private readonly promotions = signal<readonly PosPromotionRDto[]>([]);
 
   readonly channel = signal<SaleChannel>('SHOP');
   readonly payment = signal<PaymentMethod>('CASH');
@@ -43,24 +46,47 @@ export class PosCart {
   readonly received = signal(0);
   readonly announcement = signal<CartAnnouncement | null>(null);
 
+  private readonly grossLines = computed(() =>
+    this.lines().map((line) => ({
+      ...line,
+      gross: lineTotal(line.article.price, line.quantity),
+    })),
+  );
+  /** Promotion automatique du canal choisie par le poste (PRO-02) : la plus avantageuse, sans cumul. */
+  private readonly applied = computed(() =>
+    bestPromotion(
+      this.promotions(),
+      this.channel(),
+      this.grossLines().map((line) => ({
+        articleId: line.article.id,
+        unitPrice: line.article.price,
+        quantity: line.quantity,
+        gross: line.gross,
+      })),
+    ),
+  );
   readonly priced = computed<readonly PricedLine[]>(() => {
-    const promotion = this.promotion();
-    return this.lines().map((line) => {
-      const gross = lineTotal(line.article.price, line.quantity);
-      const rate = promotion?.articleIds.includes(line.article.id) ? promotion.rate : 0;
-      return { ...line, gross, rate, discount: lineDiscount(gross, rate) };
+    const { promotion, lineDiscounts } = this.applied();
+    const rate = promotion?.kind === 'PERCENT' ? promotion.value : 0;
+    return this.grossLines().map((line, index) => {
+      const discount = lineDiscounts[index] ?? 0;
+      return { ...line, rate: discount > 0 ? rate : 0, discount };
     });
   });
   readonly quantities = computed(
     () => new Map(this.lines().map((line) => [line.article.id, line.quantity])),
   );
   readonly isEmpty = computed(() => this.lines().length === 0);
-  private readonly totals = computed(() => ticketTotals(this.priced()));
+  private readonly totals = computed(() =>
+    ticketTotals(this.priced(), this.applied().ticketDiscount),
+  );
   readonly subtotal = computed(() => this.totals().subtotal);
   readonly discount = computed(() => this.totals().discount);
   readonly total = computed(() => this.totals().total);
   readonly change = computed(() => changeDue(this.received(), this.total()));
-  readonly appliedPromotion = computed(() => (this.discount() > 0 ? this.promotion() : null));
+  readonly appliedPromotion = computed(() =>
+    this.discount() > 0 ? this.applied().promotion : null,
+  );
   readonly canCheckout = computed(
     () =>
       !this.isEmpty() &&
@@ -68,15 +94,15 @@ export class PosCart {
       (this.payment() !== 'CASH' || this.change() >= 0),
   );
 
-  /** Ouvre le poste : promotion active et éventuel ticket repris. */
+  /** Ouvre le poste : promotions automatiques du jour et éventuel ticket repris. */
   start(
     articles: readonly PosArticleRDto[],
-    promotion: PosPromotionRDto | null,
+    promotions: readonly PosPromotionRDto[],
     openTicket: readonly PosTicketLineRDto[],
     received: number,
   ): void {
     const byId = new Map(articles.map((article) => [article.id, article]));
-    this.promotion.set(promotion);
+    this.promotions.set(promotions);
     this.received.set(received);
     this.lines.set(
       openTicket.flatMap((line) => {

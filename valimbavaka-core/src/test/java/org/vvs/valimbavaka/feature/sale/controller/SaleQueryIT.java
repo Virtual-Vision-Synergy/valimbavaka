@@ -60,6 +60,7 @@ class SaleQueryIT extends StockApiTestSupport {
                 .getResponse()
                 .getStatus();
         assertThat(status).isIn(201, 409);
+        endAutomaticPromotions();
         seller = createSeller("Miora", "Rakoto");
         sellerToken = login(seller.getEmail());
         soapName = uniqueName();

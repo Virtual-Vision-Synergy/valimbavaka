@@ -46,7 +46,7 @@ export class PosPage {
     stream: () =>
       this.posService.context().pipe(
         tap((ctx) => {
-          this.cart.start(ctx.articles, ctx.promotion, ctx.openTicket, ctx.openTicketReceived);
+          this.cart.start(ctx.articles, ctx.promotions, ctx.openTicket, ctx.openTicketReceived);
           this.cart.seller.set(ctx.defaultSellerId);
         }),
       ),

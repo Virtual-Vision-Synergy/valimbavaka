@@ -202,6 +202,7 @@ class DeliveryCompletionServiceImplTest {
                 OperationStatus.VALIDATED,
                 total,
                 BigDecimal.ZERO,
+                null,
                 total,
                 List.of(),
                 Instant.now(),
