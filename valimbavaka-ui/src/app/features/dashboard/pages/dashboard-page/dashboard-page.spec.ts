@@ -6,11 +6,12 @@ import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { DEMO_LATENCY_MS } from '../../../../shared/data-access/demo';
-import { DASHBOARD_TEST_VIEW } from '../../data-access/dashboard-testing';
+import { DASHBOARD_TEST_VIEW, REVENUE_TREND_TEST_VIEW } from '../../data-access/dashboard-testing';
 import { DashboardPage } from './dashboard-page';
 
 const ALERTS_URL = '/api/v1/stocks/alerts';
 const DASHBOARD_URL = '/api/v1/dashboard';
+const TREND_URL = '/api/v1/dashboard/revenue-trend';
 
 /** Alerte de seuil telle que calculée par le serveur (STK-04). */
 const ALERT = {
@@ -71,6 +72,11 @@ describe('DashboardPage', () => {
     httpMock.expectOne((req) => req.url === DASHBOARD_URL).flush(DASHBOARD_TEST_VIEW);
   };
 
+  /** Répond à la lecture du CA sur 7 jours (DSH-02), indépendante de l'agrégat. */
+  const answerTrend = (): void => {
+    httpMock.expectOne((req) => req.url === TREND_URL).flush(REVENUE_TREND_TEST_VIEW);
+  };
+
   const render = async (): Promise<void> => {
     await settle();
     await fixture.whenStable();
@@ -82,6 +88,7 @@ describe('DashboardPage', () => {
   it('lit les 100 alertes les plus urgentes et rend chaque article cliquable vers sa fiche', async () => {
     await open('ADMIN');
 
+    answerTrend();
     answerDashboard();
     const request = httpMock.expectOne((req) => req.url === ALERTS_URL);
     expect(request.request.params.get('page')).toBe('1');
@@ -113,6 +120,7 @@ describe('DashboardPage', () => {
 
     httpMock.expectNone((req) => req.url === ALERTS_URL);
     httpMock.expectNone((req) => req.url === DASHBOARD_URL);
+    httpMock.expectNone((req) => req.url === TREND_URL);
     expect(element.querySelector('vvs-stock-alerts-card')).toBeNull();
     expect(element.querySelector('vvs-dashboard-kpis')).toBeNull();
     expect(element.querySelector('.restricted')).not.toBeNull();
@@ -121,6 +129,7 @@ describe('DashboardPage', () => {
   it('affiche les 4 indicateurs lus sur l’API et la date de la journée du serveur', async () => {
     await open('ADMIN');
 
+    answerTrend();
     answerDashboard();
     httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
     await render();
@@ -134,6 +143,7 @@ describe('DashboardPage', () => {
   it('propose de réessayer quand l’agrégat du cockpit échoue', async () => {
     await open('ADMIN');
 
+    answerTrend();
     httpMock
       .expectOne((req) => req.url === DASHBOARD_URL)
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
@@ -154,6 +164,7 @@ describe('DashboardPage', () => {
   it('affiche une erreur dans le bloc sans bloquer le cockpit, puis recharge au réessai', async () => {
     await open('ADMIN');
 
+    answerTrend();
     answerDashboard();
     httpMock
       .expectOne((req) => req.url === ALERTS_URL)
@@ -171,5 +182,48 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
 
     expect(card?.textContent).toContain('Aucun article sous son seuil');
+  });
+
+  it('dessine le CA des 7 derniers jours lu sur l’API, une barre et une infobulle par jour', async () => {
+    await open('ADMIN');
+    fixture.componentRef.setInput('tab', 'analysis');
+
+    answerTrend();
+    answerDashboard();
+    httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
+    await render();
+
+    const card = element.querySelector('vvs-revenue-chart-card');
+    expect(card?.querySelectorAll('.column')).toHaveLength(7);
+    expect(card?.querySelector('.column.highlight .label')?.textContent).toContain('Aujourd');
+    const tips = Array.from(card?.querySelectorAll('.tip') ?? []).map((tip) => tip.textContent);
+    expect(tips[6]).toContain('1 284 000');
+    expect(tips[6]).toContain('47 vente(s)');
+    expect(tips[3]).toContain('0 Ar');
+    expect(tips[3]).toContain('0 vente(s)');
+  });
+
+  it('garde les indicateurs quand le graphique du CA échoue, puis le relit au réessai', async () => {
+    await open('ADMIN');
+    fixture.componentRef.setInput('tab', 'analysis');
+
+    httpMock
+      .expectOne((req) => req.url === TREND_URL)
+      .flush(null, { status: 503, statusText: 'Service Unavailable' });
+    answerDashboard();
+    httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
+    await render();
+
+    const card = element.querySelector('vvs-revenue-chart-card');
+    expect(card?.querySelector('[role="alert"]')).not.toBeNull();
+    expect(element.querySelector('vvs-top-articles-card')).not.toBeNull();
+
+    card?.querySelector<HTMLButtonElement>('[role="alert"] button')?.click();
+    TestBed.tick();
+    answerTrend();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(card?.querySelectorAll('.column')).toHaveLength(7);
   });
 });
