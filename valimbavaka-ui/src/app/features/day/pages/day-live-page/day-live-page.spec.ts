@@ -71,6 +71,8 @@ describe('DayLivePage', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(DayLivePage);
     fixture.detectChanges();
+    // la première lecture part au prochain tour d'horloge (timer(0))
+    vi.advanceTimersByTime(0);
   };
 
   const text = (): string =>

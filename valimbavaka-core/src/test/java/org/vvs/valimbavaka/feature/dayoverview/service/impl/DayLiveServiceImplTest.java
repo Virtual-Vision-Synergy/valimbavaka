@@ -183,7 +183,7 @@ class DayLiveServiceImplTest {
                 .thenReturn(new PageResponse<>(List.of(), 1, 30, 0, 0));
         when(deliveryDayService.getRecentOrders(tomorrow, DayLiveServiceImpl.FEED_LIMIT))
                 .thenReturn(List.of());
-        when(deliveryDayService.countByStatus(tomorrow)).thenReturn(Map.of());
+        when(deliveryDayService.countByStatus(tomorrow)).thenReturn(allStatuses(Map.of()));
         when(serviceRecordService.getServiceRecordsBetween(
                         Instant.parse("2026-11-11T21:00:00Z"), Instant.parse("2026-11-12T21:00:00Z")))
                 .thenReturn(List.of());
@@ -221,12 +221,17 @@ class DayLiveServiceImplTest {
                 .thenReturn(new PageResponse<>(sales, 1, 30, sales.size(), 1));
     }
 
-    private void stubDeliveries(Map<DeliveryStatus, Long> counts, List<DeliveryOrderRDto> orders) {
+    /** Like the real service: every status is present, at zero when no order has it. */
+    private static Map<DeliveryStatus, Long> allStatuses(Map<DeliveryStatus, Long> counts) {
         var complete = new EnumMap<DeliveryStatus, Long>(DeliveryStatus.class);
         for (var status : DeliveryStatus.values()) {
             complete.put(status, counts.getOrDefault(status, 0L));
         }
-        when(deliveryDayService.countByStatus(TODAY)).thenReturn(complete);
+        return complete;
+    }
+
+    private void stubDeliveries(Map<DeliveryStatus, Long> counts, List<DeliveryOrderRDto> orders) {
+        when(deliveryDayService.countByStatus(TODAY)).thenReturn(allStatuses(counts));
         when(deliveryDayService.getRecentOrders(TODAY, DayLiveServiceImpl.FEED_LIMIT))
                 .thenReturn(orders);
     }

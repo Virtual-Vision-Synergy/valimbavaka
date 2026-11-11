@@ -92,7 +92,8 @@ public class BusinessDayServiceImpl implements BusinessDayService {
 
     @Override
     public @Nullable BusinessDayRDto findToday() {
-        return dayRepository.findByBusinessDate(policy.today()).map(dayMapper::toRDto).orElse(null);
+        var day = dayRepository.findByBusinessDate(policy.today());
+        return day.map(dayMapper::toRDto).orElse(null);
     }
 
     @Override

@@ -95,7 +95,8 @@ class DayLiveIT extends StockApiTestSupport {
     @Test
     void getLive_administrator_returnsTodayAndOpenStatus() throws Exception {
         live().andExpect(status().isOk())
-                .andExpect(jsonPath("$.businessDate").value(LocalDate.now(BUSINESS_ZONE).toString()))
+                .andExpect(jsonPath("$.businessDate")
+                        .value(LocalDate.now(BUSINESS_ZONE).toString()))
                 .andExpect(jsonPath("$.status").value("OPEN"))
                 .andExpect(jsonPath("$.generatedAt").isNotEmpty())
                 .andExpect(jsonPath("$.sales.channels").isArray())
@@ -250,18 +251,15 @@ class DayLiveIT extends StockApiTestSupport {
         return userRepository.save(driver).getId();
     }
 
-    private UUID idOf(MockHttpServletRequestBuilder request)
-            throws Exception {
+    private UUID idOf(MockHttpServletRequestBuilder request) throws Exception {
         return UUID.fromString(JsonPath.read(created(request), "$.id"));
     }
 
-    private String numberOf(MockHttpServletRequestBuilder request)
-            throws Exception {
+    private String numberOf(MockHttpServletRequestBuilder request) throws Exception {
         return JsonPath.read(created(request), "$.number");
     }
 
-    private String created(MockHttpServletRequestBuilder request)
-            throws Exception {
+    private String created(MockHttpServletRequestBuilder request) throws Exception {
         return mockMvc.perform(request.header(HttpHeaders.AUTHORIZATION, bearer(adminToken()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())

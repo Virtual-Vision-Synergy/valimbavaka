@@ -26,7 +26,8 @@ public interface BusinessDayService {
     BusinessDayRDto openDay(DayOpeningWDto request);
 
     /** Today's business day whatever its status (JR-03), {@code null} when today is not opened yet. */
-    @Nullable BusinessDayRDto findToday();
+    @Nullable
+    BusinessDayRDto findToday();
 
     /** Today's business day; 409 (CONFLICT) if today is not opened yet or already closed. */
     BusinessDayRDto requireOpenDay();
