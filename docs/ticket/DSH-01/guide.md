@@ -1,6 +1,6 @@
 # Guide d'intégration — DSH-01 · Cockpit journalier
 
-Statut : ✅ rédigé (tests à confirmer en CI, voir « Résultat de l'exécution » du scénario) · Ticket : [#94](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/94) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 11/11/2026 — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#94](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/94) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
