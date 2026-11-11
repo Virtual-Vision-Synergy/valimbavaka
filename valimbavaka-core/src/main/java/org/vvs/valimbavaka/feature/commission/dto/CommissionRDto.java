@@ -35,8 +35,7 @@ public record CommissionRDto(
         UUID salesChannelId,
         @Nullable UUID salonServiceId,
 
-        @ExcelColumn(header = "Date", order = 1, width = 12)
-        LocalDate businessDate,
+        @ExcelColumn(header = "Date", order = 1, width = 12) LocalDate businessDate,
 
         @ExcelColumn(header = "CA (Ar)", order = 4, format = "#,##0.00", width = 16)
         BigDecimal revenue,

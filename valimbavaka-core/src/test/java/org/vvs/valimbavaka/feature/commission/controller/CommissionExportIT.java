@@ -112,7 +112,8 @@ class CommissionExportIT extends StockApiTestSupport {
             Sheet sheet = workbook.getSheet("Relevé");
             assertThat(texts(sheet.getRow(0))).containsExactlyElementsOf(HEADERS);
             assertThat(sheet.getLastRowNum()).isEqualTo(2);
-            var numbers = List.of(texts(sheet.getRow(1)).get(1), texts(sheet.getRow(2)).get(1));
+            var numbers = List.of(
+                    texts(sheet.getRow(1)).get(1), texts(sheet.getRow(2)).get(1));
             assertThat(numbers).containsExactlyInAnyOrder(first, second);
             for (int index = 1; index <= 2; index++) {
                 assertThat(texts(sheet.getRow(index)).get(2)).isEqualTo("Miora Rakoto");
@@ -282,18 +283,21 @@ class CommissionExportIT extends StockApiTestSupport {
     }
 
     private static MockHttpServletRequestBuilder statementRequest(String token, UUID sellerId) {
-        var request = get(STATEMENT_EXPORT)
-                .param("month", YearMonth.now(MADAGASCAR).toString())
-                .header(HttpHeaders.AUTHORIZATION, bearer(token));
-        return sellerId == null ? request : request.param("sellerId", sellerId.toString());
+        var request = get(STATEMENT_EXPORT).param("month", YearMonth.now(MADAGASCAR).toString());
+        request.header(HttpHeaders.AUTHORIZATION, bearer(token));
+        if (sellerId != null) {
+            request.param("sellerId", sellerId.toString());
+        }
+        return request;
     }
 
     private static MockHttpServletRequestBuilder adminRequest(String token, UUID sellerId) {
-        var request = get(ADMIN_EXPORT)
-                .param("from", FROM)
-                .param("to", TO)
-                .header(HttpHeaders.AUTHORIZATION, bearer(token));
-        return sellerId == null ? request : request.param("sellerId", sellerId.toString());
+        var request = get(ADMIN_EXPORT).param("from", FROM).param("to", TO);
+        request.header(HttpHeaders.AUTHORIZATION, bearer(token));
+        if (sellerId != null) {
+            request.param("sellerId", sellerId.toString());
+        }
+        return request;
     }
 
     private byte[] download(MockHttpServletRequestBuilder request) throws Exception {

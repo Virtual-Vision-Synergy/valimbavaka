@@ -111,7 +111,8 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         // Arrange
         var saleNumber = createSale();
         setSellerRate("8.00");
-        recalculation(sellerId, PERIOD_FROM, PERIOD_TO).andExpect(jsonPath("$.updatedCount").value(1));
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
+                .andExpect(jsonPath("$.updatedCount").value(1));
 
         // Act + Assert : rien à changer la deuxième fois
         recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
@@ -199,7 +200,8 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         jdbcTemplate.update("update users set commission_rate = 8.00 where id = ?", other.getId());
 
         // Act
-        recalculation(sellerId, PERIOD_FROM, PERIOD_TO).andExpect(jsonPath("$.updatedCount").value(1));
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
+                .andExpect(jsonPath("$.updatedCount").value(1));
 
         // Assert : seule la vendeuse désignée est recalculée
         commissions().andExpect(jsonPath("$.items[0].amount").value(680.0));
