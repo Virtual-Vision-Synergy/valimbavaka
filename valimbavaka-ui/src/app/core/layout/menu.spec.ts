@@ -18,6 +18,7 @@ describe('visibleSections', () => {
     expect(labels).toContain('menu.item.commissionList');
     expect(labels).toContain('menu.item.salonCatalog');
     expect(labels).toContain('menu.item.dayLive');
+    expect(labels).toContain('menu.item.dayClose');
   });
 
   it('should show sales, deliveries, catalogue and production modules but no administration to a seller', () => {
@@ -39,6 +40,7 @@ describe('visibleSections', () => {
     expect(labels).not.toContain('menu.item.journal');
     expect(labels).not.toContain('menu.item.dayOpen');
     expect(labels).not.toContain('menu.item.dayLive');
+    expect(labels).not.toContain('menu.item.dayClose');
     expect(labels).not.toContain('menu.item.commissionRules');
     expect(labels).not.toContain('menu.item.commissionList');
   });
