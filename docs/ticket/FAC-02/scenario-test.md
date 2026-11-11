@@ -57,7 +57,7 @@ Hypothèses prises (à valider par le PO) : « régénérer » rend le **même d
 
 ## Tests existants
 
-- Backend : `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/invoice/controller/InvoiceIT.java` (11 tests ajoutés `regenerateInvoice_*`), `.../feature/invoice/service/impl/InvoiceServiceImplTest.java` (6 tests ajoutés `regenerateForSale_*`).
+- Backend : `valimbavaka-core/src/test/java/org/vvs/valimbavaka/feature/invoice/controller/InvoiceIT.java` (13 tests ajoutés `regenerateInvoice_*`), `.../feature/invoice/service/impl/InvoiceServiceImplTest.java` (6 tests ajoutés `regenerateForSale_*`).
 - Frontend : `valimbavaka-ui/src/app/features/sales/components/invoice-panel/invoice-panel.spec.ts` (3 tests ajoutés), `.../data-access/invoice-service.spec.ts` (1 test ajouté).
 
 ## Recette manuelle (🧪)
