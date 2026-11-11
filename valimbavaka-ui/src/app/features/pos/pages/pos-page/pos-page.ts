@@ -21,26 +21,7 @@ import { PosCart } from '../../data-access/pos-cart';
 import { toSaleWDto } from '../../data-access/pos-mapping';
 import { PosArticleRDto, SaleRDto } from '../../data-access/pos-models';
 import { PosService } from '../../data-access/pos-service';
-
-type ShortcutAction = 'search' | 'promo' | 'hold' | 'checkout' | 'increase' | 'decrease';
-
-const FUNCTION_KEYS: Readonly<Record<string, ShortcutAction>> = {
-  F2: 'search',
-  F6: 'promo',
-  F8: 'hold',
-  F12: 'checkout',
-};
-
-const QUANTITY_KEYS: Readonly<Record<string, ShortcutAction>> = {
-  '+': 'increase',
-  '-': 'decrease',
-};
-
-/** Vrai quand la frappe vise un champ de saisie : les touches + / − y restent du texte. */
-function isTyping(event: KeyboardEvent): boolean {
-  const target = event.target as HTMLElement | null;
-  return !!target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
-}
+import { ShortcutAction, shortcutAction } from '../../data-access/pos-shortcuts';
 
 /**
  * Poste de caisse (VTE-02 à VTE-06), desktop et tablette : un seul écran qui s'adapte au pointeur
@@ -76,8 +57,7 @@ export class PosPage {
   protected readonly submitting = signal(false);
 
   protected onKeydown(event: KeyboardEvent): void {
-    const action =
-      FUNCTION_KEYS[event.key] ?? (isTyping(event) ? undefined : QUANTITY_KEYS[event.key]);
+    const action = shortcutAction(event);
     if (!action || !this.context.value()) {
       return;
     }
@@ -137,7 +117,7 @@ export class PosPage {
       promo: () => this.demoAction(),
       hold: () => this.hold(),
       checkout: () => this.checkout(),
-      increase: () => last && this.cart.add(last),
+      increase: () => (last ? this.cart.add(last) : this.catalog()?.focusSearch()),
       decrease: () => last && this.cart.decrement(last.id),
     };
     handlers[action]();
