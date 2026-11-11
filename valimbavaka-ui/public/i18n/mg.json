@@ -1911,10 +1911,9 @@
     },
     "vs": "vs {{value}} vanim-potoana teo aloha",
     "revenueTitle": "Fivoaran'ny vola miditra",
-    "current": "Vanim-potoana ankehitriny",
-    "previous": "Vanim-potoana teo aloha",
     "chart": {
-      "day": "Andro"
+      "day": "Andro",
+      "month": "Volana"
     },
     "ranges": {
       "title": "Vola miditra isaky ny karazana",
