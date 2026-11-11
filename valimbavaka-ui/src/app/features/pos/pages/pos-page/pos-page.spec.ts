@@ -33,7 +33,7 @@ const CONTEXT: PosContextRDto = {
   openedAt: '08:30',
   heldTickets: 0,
   articles: [SAVON],
-  promotion: null,
+  promotions: [],
   openTicket: [],
   openTicketReceived: 0,
 };
@@ -50,6 +50,7 @@ const sale = (total: number): SaleRDto => ({
   status: 'VALIDATED',
   subtotal: total,
   discountAmount: 0,
+  promotionId: null,
   total,
   lines: [{ articleId: SAVON.id, quantity: 1, unitPrice: total, lineTotal: total }],
   createdAt: '2026-11-08T08:35:00Z',

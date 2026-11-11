@@ -42,7 +42,7 @@ describe('PosTicket', () => {
       providers: [PosCart, provideTestTranslations()],
     }).compileComponents();
     cart = TestBed.inject(PosCart);
-    cart.start([SAVON], null, [], 0);
+    cart.start([SAVON], [], [], 0);
     fixture = TestBed.createComponent(PosTicket);
     fixture.componentRef.setInput('ticketNumber', 42);
     fixture.componentRef.setInput('cashierName', 'Miora Rakoto');

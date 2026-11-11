@@ -13,6 +13,7 @@ const FORM: SaleFormRDto = {
   channels: [{ id: 'channel-store', code: 'STORE', label: 'Boutique', stockLocationId: 'store' }],
   sellers: [],
   articles: [],
+  promotions: [],
 };
 
 describe('PosService', () => {

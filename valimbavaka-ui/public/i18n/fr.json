@@ -447,6 +447,7 @@
       "increase": "Ajouter une unité : {{name}}",
       "quantity": "Quantité",
       "lineDiscount": "−{{rate}} % · −{{amount}}",
+      "lineDiscountFree": "Offert · −{{amount}}",
       "promoApplied": "{{name}} appliquée automatiquement",
       "subtotal": "Sous-total",
       "discount": "Remise",
