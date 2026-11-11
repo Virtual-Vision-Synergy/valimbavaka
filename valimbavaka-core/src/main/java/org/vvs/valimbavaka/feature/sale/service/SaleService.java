@@ -24,6 +24,15 @@ public interface SaleService {
      */
     SaleRDto record(SaleCommand command);
 
+    /**
+     * Hot cancellation of a validated sale (JNL-02), port of the undo of a delivery (LIV-05): the sale becomes
+     * {@code CANCELLED}, its articles go back into the location they left ({@code RETURN} movements referencing the
+     * sale), a {@code CANCEL} line is added to the journal and {@code SaleCancelledEvent} is published, all or
+     * nothing. 404 if the sale is unknown; 409 if it is no longer validated or if its business day is not the opened
+     * day any more. Must be called in a transaction.
+     */
+    SaleRDto cancel(UUID saleId, String reason);
+
     /** Sale entered at the counter: {@link #record} with the current prices of the articles. */
     SaleRDto createSale(SaleWDto request);
 

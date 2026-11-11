@@ -39,6 +39,11 @@ public enum DeliveryStatus {
         return this == DELIVERED || this == FAILED || this == CANCELLED;
     }
 
+    /** True for the statuses that the time-limited undo of LIV-05 can leave: delivered or failed. */
+    public boolean isUndoable() {
+        return this == DELIVERED || this == FAILED;
+    }
+
     /** Transition table of the order; a status never moves to itself. */
     public boolean canMoveTo(DeliveryStatus target) {
         return switch (this) {

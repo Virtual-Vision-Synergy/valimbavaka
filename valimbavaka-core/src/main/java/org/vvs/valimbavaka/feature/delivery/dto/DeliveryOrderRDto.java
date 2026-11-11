@@ -15,6 +15,8 @@ import org.vvs.valimbavaka.feature.delivery.domain.DeliveryStatus;
  * Order to deliver. {@code scheduledDate} + {@code driverId} identify the round, {@code stopNumber} the position in
  * it; {@code amount} is the amount to collect; {@code createdBy} is the seller who entered the order. A failed order
  * carries its {@code failureReason}, the driver's {@code failureNote} and the stock return {@code returnTransferId}.
+ * A delivered or failed order can be undone (LIV-05) for a limited time after {@code updatedAt}, back to
+ * {@code previousStatus}.
  */
 public record DeliveryOrderRDto(
         UUID id,
@@ -36,4 +38,6 @@ public record DeliveryOrderRDto(
         Instant createdAt,
         @Nullable UUID createdBy,
         @Nullable UUID saleId,
+        @Nullable DeliveryStatus previousStatus,
+        Instant updatedAt,
         long version) {}
