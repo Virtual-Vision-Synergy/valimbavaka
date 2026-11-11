@@ -35,6 +35,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.core.exception.UnauthorizedException;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
+import org.vvs.valimbavaka.feature.commission.service.CommissionService;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.salonservice.domain.ServiceRecord;
@@ -82,6 +85,9 @@ class ServiceRecordServiceImplTest {
     @Mock
     private AuditorAware<UUID> auditorAware;
 
+    @Mock
+    private CommissionService commissionService;
+
     private ServiceRecordServiceImpl sut;
 
     @BeforeEach
@@ -93,7 +99,8 @@ class ServiceRecordServiceImplTest {
                 stockMovementService,
                 journalService,
                 auditorAware,
-                LATE_EVENING_UTC);
+                LATE_EVENING_UTC,
+                commissionService);
     }
 
     @Test
@@ -144,6 +151,33 @@ class ServiceRecordServiceImplTest {
         verify(serviceRecordMapper).toRDto(mapped.capture());
         assertThat(mapped.getValue().getNumber()).isEqualTo("PRE-0007");
         assertThat(mapped.getValue().getPrice()).isEqualByComparingTo("35000");
+    }
+
+    @Test
+    void recordService_validRecord_creditsTheCommissionOnThePriceOfTheServiceAndTheBusinessDay() {
+        // Arrange : 22:30 UTC le 8 = 01:30 le 9 novembre à Antananarivo
+        var request = request();
+        var draft = draft();
+        when(policy.draft(request)).thenReturn(draft);
+        when(serviceRecordRepository.nextNumber()).thenReturn(42L);
+        when(serviceRecordRepository.save(any(ServiceRecord.class)))
+                .thenAnswer(invocation -> withId(invocation.getArgument(0)));
+
+        // Act
+        sut.recordService(request);
+
+        // Assert
+        var source = ArgumentCaptor.forClass(CommissionSource.class);
+        verify(commissionService).calculate(source.capture());
+        assertThat(source.getValue().type()).isEqualTo(CommissionSourceType.SERVICE_RECORD);
+        assertThat(source.getValue().id()).isEqualTo(RECORD_ID);
+        assertThat(source.getValue().number()).isEqualTo("PRE-0042");
+        assertThat(source.getValue().sellerId()).isEqualTo(draft.seller().id());
+        assertThat(source.getValue().salesChannelId()).isEqualTo(draft.place().salesChannelId());
+        assertThat(source.getValue().salonServiceId()).isEqualTo(SERVICE_ID);
+        assertThat(source.getValue().businessDate()).isEqualTo(LocalDate.of(2026, 11, 9));
+        assertThat(source.getValue().revenue()).isEqualByComparingTo("35000");
+        assertThat(source.getValue().purchaseCost()).isNull();
     }
 
     @Test

@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.sale.service.impl;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -103,6 +104,11 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public SaleRDto getSaleById(UUID saleId) {
         return saleMapper.toRDto(findSale(saleId));
+    }
+
+    @Override
+    public BigDecimal getPurchaseCost(UUID saleId) {
+        return findSale(saleId).purchaseCost();
     }
 
     private Sale findSale(UUID saleId) {

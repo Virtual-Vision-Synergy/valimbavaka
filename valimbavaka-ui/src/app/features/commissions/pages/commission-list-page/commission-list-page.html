@@ -1,0 +1,96 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'commissionList.title' | translate"
+    [subtitle]="'commissionList.subtitle' | translate"
+    [codes]="['COM-02']"
+  />
+
+  <section class="card list" [attr.aria-label]="'commissionList.title' | translate">
+    <div class="toolbar">
+      <label class="month">
+        <span class="month-label">{{ 'commissionList.month' | translate }}</span>
+        <select #monthSelect class="input" (change)="selectMonth(monthSelect.value)">
+          @for (item of months(); track item.value) {
+            <option [value]="item.value" [selected]="item.value === month()">
+              {{ item.label }}
+            </option>
+          }
+        </select>
+      </label>
+      <p class="count" role="status">
+        {{ 'commissionList.count' | translate: { count: totalCount() } }}
+      </p>
+    </div>
+
+    @if (errorMessage(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+
+    @if (commissions().length > 0) {
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'commissionList.col.operation' | translate }}</th>
+              <th scope="col">{{ 'commissionList.col.date' | translate }}</th>
+              <th scope="col">{{ 'commissionList.col.seller' | translate }}</th>
+              <th scope="col" class="num">{{ 'commissionList.col.base' | translate }}</th>
+              <th scope="col" class="num">{{ 'commissionList.col.rate' | translate }}</th>
+              <th scope="col" class="num">{{ 'commissionList.col.amount' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (commission of commissions(); track commission.id) {
+              <tr>
+                <th scope="row" class="mono">
+                  {{ commission.sourceNumber }}
+                  <span class="muted">{{
+                    'commissionList.source.' + commission.sourceType | translate
+                  }}</span>
+                  @if (commission.status === 'CANCELLED') {
+                    <span class="muted cancelled">{{
+                      'commissionList.status.CANCELLED' | translate
+                    }}</span>
+                  }
+                </th>
+                <td>{{ commission.businessDate | shortDate }}</td>
+                <td>{{ commission.sellerName }}</td>
+                <td class="num">
+                  {{ commission.baseAmount | ariary: 'plain' }}
+                  <span class="muted">{{
+                    'commissionList.base.' + commission.base | translate
+                  }}</span>
+                </td>
+                <td class="num">
+                  {{ commission.rate }} %
+                  <span class="muted">{{
+                    'commissionList.rateSource.' + commission.rateSource | translate
+                  }}</span>
+                </td>
+                <td class="num">
+                  <strong>{{ commission.amount | ariary }}</strong>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <vvs-pagination
+        [page]="page()"
+        [size]="pageSize"
+        [total]="totalCount()"
+        (pageChange)="goToPage($event)"
+      />
+    } @else if (isLoading()) {
+      <vvs-list-state kind="loading" [rows]="6" />
+    } @else if (errorMessage()) {
+      <vvs-list-state kind="error" (retry)="loadCommissions()" />
+    } @else {
+      <vvs-list-state
+        kind="empty"
+        titleKey="commissionList.empty.title"
+        messageKey="commissionList.empty.message"
+      />
+    }
+  </section>
+</div>

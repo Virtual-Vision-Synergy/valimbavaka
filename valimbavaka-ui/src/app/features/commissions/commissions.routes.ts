@@ -3,8 +3,8 @@ import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
  * Mes commissions : données de démonstration tant que le calcul (COM-02) n'existe pas.
- * Règles de commission par canal (COM-01) : administrateur seulement, le serveur décide (permissions
- * `commission-rules.*`).
+ * Règles de commission par canal (COM-01) et commissions calculées (COM-02) : administrateur seulement, le serveur
+ * décide (permissions `commission-rules.*`, `commissions.read-all`).
  */
 export const COMMISSIONS_ROUTES: Routes = [
   {
@@ -13,6 +13,13 @@ export const COMMISSIONS_ROUTES: Routes = [
     data: { underConstruction: true },
     loadComponent: () =>
       import('./pages/commissions-page/commissions-page').then((m) => m.CommissionsPage),
+  },
+  {
+    path: 'calculated',
+    title: 'commissionList.title',
+    canActivate: [permissionGuard('commissions.read-all')],
+    loadComponent: () =>
+      import('./pages/commission-list-page/commission-list-page').then((m) => m.CommissionListPage),
   },
   {
     path: 'rules',
