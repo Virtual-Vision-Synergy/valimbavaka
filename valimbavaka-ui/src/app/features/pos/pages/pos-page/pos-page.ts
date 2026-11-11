@@ -96,8 +96,16 @@ export class PosPage {
     });
   }
 
+  /**
+   * Met le ticket en attente (VTE-06) : aucune vente n'est enregistrée, le panier est vidé et le
+   * numéro suivant est proposé. Refusé pendant l'envoi d'un encaissement (le panier part avec la vente).
+   */
   protected hold(): void {
+    if (this.submitting()) {
+      return;
+    }
     if (this.cart.isEmpty()) {
+      this.toast.show('pos.toast.holdEmpty', {}, 'warning');
       return;
     }
     this.toast.show('pos.toast.held', { ticket: `VTE-${this.ticketNumber()}` }, 'info');

@@ -487,6 +487,7 @@
       "paid": "Vente {{ticket}} encaissée · {{amount}}",
       "totalAdjusted": "Vente {{ticket}} encaissée au prix du serveur : {{amount}} (affiché {{displayed}}). Vérifiez le rendu.",
       "held": "Ticket {{ticket}} mis en attente",
+      "holdEmpty": "Ticket vide : rien à mettre en attente",
       "cannotCheckout": "Montant reçu insuffisant pour encaisser",
       "outOfStock": "Stock insuffisant pour {{name}}",
       "sellerRequired": "Choisissez la vendeuse avant d’encaisser",
@@ -494,6 +495,22 @@
     }
   },
   "sales": {
+    "dashboard": {
+      "title": "Ventes par canal",
+      "subtitle": "Chiffre d'affaires, nombre de ventes et part du total de chaque canal (ventes validées).",
+      "back": "Ventes du jour",
+      "link": "Ventes par canal",
+      "from": "Du",
+      "to": "Au",
+      "invalidPeriod": "La date de début doit précéder la date de fin.",
+      "totalRevenue": "Chiffre d'affaires",
+      "totalCount": "Ventes",
+      "listLabel": "Performance de chaque canal de vente",
+      "revenue": "CA",
+      "salesCount": "Ventes",
+      "share": "Part du CA total",
+      "retired": "Canal désactivé"
+    },
     "title": "Ventes du jour",
     "subtitle": "{{count}} ventes",
     "book": "Livre des ventes",

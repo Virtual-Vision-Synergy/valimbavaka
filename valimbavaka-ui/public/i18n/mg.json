@@ -487,6 +487,7 @@
       "paid": "Voaray ny varotra {{ticket}} · {{amount}}",
       "totalAdjusted": "Voaray ny varotra {{ticket}} amin'ny vidin'ny mpizara : {{amount}} ({{displayed}} no naseho). Hamarino ny famerenana.",
       "held": "Nampiandrasina ny tapakila {{ticket}}",
+      "holdEmpty": "Tapakila foana: tsy misy hampiandrasana",
       "cannotCheckout": "Tsy ampy ny vola voaray",
       "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}",
       "sellerRequired": "Safidio aloha ny mpivarotra vao mandoa",
@@ -494,6 +495,22 @@
     }
   },
   "sales": {
+    "dashboard": {
+      "title": "Varotra isaky ny fantsona",
+      "subtitle": "Vola azo, isan'ny varotra ary anjara amin'ny totaly isaky ny fantsona (varotra nekena).",
+      "back": "Varotra androany",
+      "link": "Varotra isaky ny fantsona",
+      "from": "Manomboka",
+      "to": "Hatramin'ny",
+      "invalidPeriod": "Tsy maintsy alohan'ny daty farany ny daty fanombohana.",
+      "totalRevenue": "Vola azo",
+      "totalCount": "Varotra",
+      "listLabel": "Vokatra isaky ny fantsona fivarotana",
+      "revenue": "Vola azo",
+      "salesCount": "Varotra",
+      "share": "Anjara amin'ny totaly",
+      "retired": "Fantsona tsy mandeha"
+    },
     "title": "Varotra androany",
     "subtitle": "Varotra {{count}}",
     "book": "Bokin'ny varotra",
