@@ -9,7 +9,7 @@
       [tone]="tones[doc.status]"
       [label]="'sales.status.' + doc.status | translate"
     />
-    <span class="code-chip" aria-hidden="true">FAC-02 → FAC-05</span>
+    <span class="code-chip" aria-hidden="true">FAC-03 → FAC-05</span>
   </header>
 
   @if (issued.isLoading()) {
@@ -29,7 +29,12 @@
       </button>
     </div>
     <div class="actions two">
-      <button class="btn btn-secondary" type="button" (click)="demoAction()">
+      <button
+        class="btn btn-secondary"
+        type="button"
+        [disabled]="regenerating()"
+        (click)="regenerate()"
+      >
         {{ 'sales.invoice.regenerate' | translate }}
       </button>
       <button
