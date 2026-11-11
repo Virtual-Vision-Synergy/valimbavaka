@@ -182,7 +182,8 @@ class InvoiceStatusIT extends StockApiTestSupport {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        return new BigDecimal(JsonPath.read(json, "$.statuses[%d].amount".formatted(statusIndex)).toString());
+        return new BigDecimal(JsonPath.read(json, "$.statuses[%d].amount".formatted(statusIndex))
+                .toString());
     }
 
     /** An invoice written directly (no foreign key), on a day no other test uses. */
