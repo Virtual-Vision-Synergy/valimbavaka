@@ -89,6 +89,12 @@ describe('DriverRoundPage', () => {
     HTMLDialogElement.prototype.close = vi.fn();
   };
 
+  /** Le prototype est partagé entre les fichiers de test : les bouchons sont retirés après chaque test. */
+  afterEach(() => {
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
+  });
+
   /** Ouvre la feuille « Échec » du prochain arrêt, choisit le motif, écrit le commentaire et valide. */
   /** Choisit le motif par son libellé visible, comme le livreur. */
   const reportFailure = (reasonLabel: string, note: string): void => {
