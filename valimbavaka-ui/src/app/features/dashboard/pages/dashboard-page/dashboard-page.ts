@@ -23,6 +23,7 @@ import { RevenueChartCard } from '../../components/revenue-chart-card/revenue-ch
 import { RevenueSplitCard } from '../../components/revenue-split-card/revenue-split-card';
 import { StockAlertsCard } from '../../components/stock-alerts-card/stock-alerts-card';
 import { TopArticlesCard } from '../../components/top-articles-card/top-articles-card';
+import { DashboardDemoRDto, DashboardRDto } from '../../data-access/dashboard-models';
 import { DashboardService } from '../../data-access/dashboard-service';
 import { StockService } from '../../../stocks/data-access/stock-service';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -34,9 +35,36 @@ const TABS: readonly TabItem<DashboardTab>[] = [
   { id: 'analysis', labelKey: 'dashboard.tab.analysis' },
 ];
 
+/** Heure de Madagascar (« 13:05 ») d'un instant ISO : le serveur travaille dans ce fuseau. */
+function clockTime(instant: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Indian/Antananarivo',
+  }).format(new Date(instant));
+}
+
+/** Les zones simulées, avec la date, l'heure de lecture et les étapes alignées sur les vrais indicateurs (DSH-01). */
+function alignedOnLive(demo: DashboardDemoRDto, live: DashboardRDto): DashboardDemoRDto {
+  const { delivered, total } = live.deliveries;
+  return {
+    ...demo,
+    businessDate: live.businessDate,
+    updatedAt: clockTime(live.generatedAt),
+    steps: demo.steps.map((step) => {
+      if (step.code === 'SALES') {
+        return { ...step, params: { tickets: live.sales.count } };
+      }
+      return step.code === 'DELIVERIES' ? { ...step, params: { done: delivered, total } } : step;
+    }),
+  };
+}
+
 /**
- * Cockpit du jour (DSH-01 à DSH-04) : vue d'ensemble pour agir, analyse détaillée pour comprendre. Les alertes de
- * stock (DSH-03) viennent de `GET /api/v1/stocks/alerts` ; le reste reste sur l'agrégat de démonstration.
+ * Cockpit du jour (DSH-01 à DSH-04) : vue d'ensemble pour agir, analyse détaillée pour comprendre. Les 4
+ * indicateurs (DSH-01) viennent de `GET /api/v1/dashboard`, réservé à l'administrateur (`reports.read`) ; les alertes
+ * de stock (DSH-03) de `GET /api/v1/stocks/alerts`. Les autres zones (`demoZones`) restent simulées : chacune sera
+ * branchée par son ticket (graphique DSH-02, répartition DSH-04) sans toucher aux indicateurs.
  */
 @Component({
   selector: 'vvs-dashboard-page',
@@ -75,9 +103,23 @@ export class DashboardPage {
   protected readonly selectedTab = linkedSignal<DashboardTab>(() =>
     this.tab() === 'analysis' ? 'analysis' : 'overview',
   );
-  protected readonly dashboard = rxResource({ stream: () => this.dashboardService.get() });
+  /** Les indicateurs du jour sont ceux de l'administrateur : le serveur refuse les autres rôles (403). */
+  protected readonly canSeeCockpit = computed(() => this.authStore.hasPermission('reports.read'));
+  protected readonly dashboard = rxResource({
+    params: () => (this.canSeeCockpit() ? true : undefined),
+    stream: () => this.dashboardService.get(),
+  });
+  protected readonly demoZones = rxResource({
+    params: () => (this.canSeeCockpit() ? true : undefined),
+    stream: () => this.dashboardService.demoZones(),
+  });
+  /** Indicateurs réels et zones simulées, prêts ensemble ; absent tant que l'un des deux charge. */
+  protected readonly view = computed(() => {
+    const live = this.dashboard.hasValue() ? this.dashboard.value() : undefined;
+    const demo = this.demoZones.hasValue() ? this.demoZones.value() : undefined;
+    return live && demo ? { live, demo: alignedOnLive(demo, live) } : undefined;
+  });
   protected readonly firstName = computed(() => this.authStore.currentUser()?.firstName ?? '');
-  protected readonly canSeeSellers = computed(() => this.authStore.hasPermission('reports.read'));
   /** Alertes de stock (DSH-03) : réservées à `stocks.read`, sinon aucun appel (le livreur n'y a pas droit). */
   protected readonly canSeeStockAlerts = computed(() =>
     this.authStore.hasPermission('stocks.read'),
@@ -95,7 +137,7 @@ export class DashboardPage {
   );
   protected readonly stockAlertsFailed = computed(() => this.stockAlerts.status() === 'error');
   protected readonly steps = computed<StepItem[]>(() =>
-    (this.dashboard.value()?.steps ?? []).map((step) => ({
+    (this.view()?.demo.steps ?? []).map((step) => ({
       labelKey: `dashboard.step.${step.code}.label`,
       captionKey: `dashboard.step.${step.code}.caption`,
       params: step.params,

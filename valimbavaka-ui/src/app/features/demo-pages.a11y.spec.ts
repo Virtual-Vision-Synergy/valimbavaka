@@ -8,6 +8,7 @@ import { AuthStore } from '../core/auth/auth-store';
 import { buildUser } from '../core/auth/auth-testing';
 import { provideTestTranslations } from '../core/i18n/i18n-testing';
 import { DEMO_LATENCY_MS } from '../shared/data-access/demo';
+import { DASHBOARD_TEST_VIEW } from './dashboard/data-access/dashboard-testing';
 
 /** Pages alimentées par des données de démonstration : chacune se charge puis ne doit violer aucune règle axe. */
 const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
@@ -54,9 +55,11 @@ const answerApiCalls = async (): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve));
   for (const request of TestBed.inject(HttpTestingController).match(() => true)) {
     request.flush(
-      request.request.url === '/api/v1/reports'
-        ? { sales: { revenue: 0, salesCount: 0, averageBasket: 0 } }
-        : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
+      request.request.url === '/api/v1/dashboard'
+        ? DASHBOARD_TEST_VIEW
+        : request.request.url === '/api/v1/reports'
+          ? { sales: { revenue: 0, salesCount: 0, averageBasket: 0 } }
+          : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
     );
   }
 };

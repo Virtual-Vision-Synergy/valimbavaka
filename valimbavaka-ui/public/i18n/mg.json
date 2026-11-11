@@ -289,6 +289,7 @@
   "dashboard": {
     "title": "Tabilao fitantanana",
     "subtitle": "Fanaraha-maso ny andro mivantana",
+    "restricted": "Ny sary ankapobeny isan'andro dia natokana ho an'ny mpitantana ihany.",
     "tab": {
       "label": "Fijery ny tabilao",
       "overview": "Topy maso ankapobeny",
@@ -328,19 +329,20 @@
     },
     "kpi": {
       "revenue": "Vola niditra",
-      "revenueCompare": "raha oharina amin'ny herinandro lasa · {{amount}}",
-      "revenueGoal": "{{percent}} % amin'ny tanjona isan'andro ({{target}})",
+      "revenueCompare": "raha oharina amin'ny omaly · {{amount}}",
       "sales": "Varotra",
       "tickets": "tapakila",
       "averageBasket": "Salan'ny harona {{amount}}",
       "deliveries": "Fanaterana",
       "failures": "Tsy nahomby {{count}}",
-      "deliveriesDetail": "{{inProgress}} an-dalana · fihodinana {{rounds}} mandeha",
-      "collected": "Voaray tamin'ny fanaterana : {{amount}}",
+      "deliveriesDetail": "{{inProgress}} an-dalana · {{toPrepare}} hanomanana",
+      "deliveriesCancelled": "{{count}} nofoanana, tsy ao anaty fitambarany",
       "stockGap": "Elanelan'ny tahiry",
       "units": "isa",
       "toJustify": "Hohazavaina",
-      "stockGapDetail": "amin'ny entana {{count}} · tombana alohan'ny fanakatonana",
+      "stockGapDetail": "amin'ny entana {{count}} · alohan'ny fanisana hariva",
+      "stockGapNone": "Tsy mbola nisokatra ny andro : tsy misy hampifanarahana",
+      "unknownChannel": "Fantsona nofoanana",
       "reconcile": "Jereo ny fampifanarahana",
       "failure": "Tsy nahomby {{count}}"
     },
