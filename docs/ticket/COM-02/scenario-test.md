@@ -12,7 +12,7 @@ Règle appliquée (**décision PO du 07/11/2026**) : la commission la plus préc
 |---|---|
 | Rôle(s) utilisé(s) | `ADMIN` (`admin.test@valimbavaka.mg`) : saisie des ventes et lecture des commissions ; `SELLER` et `DELIVERY_DRIVER` pour les refus 403 |
 | Données de départ | journée du jour ouverte (JR-01) ; un canal neuf par test (`IT-xxxxxxxx`, `CommissionCalculationIT.createChannel`, la base est partagée) ; vendeuse « Miora Rakoto » à 5,00 % sur ce canal ; article fini à 8 500 Ar, coût 3 120,50 Ar, 10 en stock Boutique ; service salon « Soin-… » à 35 000 Ar et 10 % (`ServiceRecordCommissionIT.createServiceWithRate`) |
-| Tickets à avoir déployés avant | COM-01 (résolveur), SRV-01/SRV-02 (prestations), VTE-01 (`SaleRecordedEvent`, PR empilée), SYS-05 ; migration `2026_11_08-83` |
+| Tickets à avoir déployés avant | COM-01 (résolveur), SRV-01/SRV-02 (prestations), VTE-01 (`SaleRecordedEvent`), PRO-02 (total remisé), LIV-05 (`SaleCancelledEvent`), SYS-05 ; migration `2026_11_08-83` |
 
 ## Scénarios issus des critères d'acceptation
 
@@ -27,6 +27,9 @@ Règle appliquée (**décision PO du 07/11/2026**) : la commission la plus préc
 | 1g | Données transmises au calcul | vente VTE-0042, total 25 500, coût 9 361,50 | `CommissionSource(SALE, id, VTE-0042, vendeuse, canal, null, journée, 25500.00, 9361.50)` | `SaleCommissionListenerTest.onSaleRecorded_saleWithSeller_calculatesOnTheTotalWithThePurchaseCost` | ☐ |
 | 1h | Montant affiché à l'administrateur | page `/commissions/calculated` | opération (+ « Vente » / « Prestation salon »), date, vendeuse, base (+ CA / marge), taux (+ origine), commission ; compteur | `commission-list-page.spec.ts` › should show the operation, the seller, the base, the rate with its origin and the commission | ☐ |
 | 1i | Mois courant demandé, plus récentes d'abord | ouverture de la page | `from` = 1er du mois, `to` = dernier jour, `sortBy=createdAt`, `DESC` | `commission-list-page.spec.ts` › should request the current month, newest first ; `commission-service.spec.ts` (2 tests) | ☐ |
+| 1j | Base de calcul = total remisé (PRO-02) | vente de 28 000 Ar avec 2 500 Ar de remise, total 25 500 Ar | la commission est calculée sur `sale.total()` (25 500), jamais sur le sous-total | `SaleCommissionListenerTest.onSaleRecorded_saleWithSeller_calculatesOnTheTotalWithThePurchaseCost` | ☐ |
+| 1k | Vente annulée (LIV-05) : la commission est annulée | vente de 8 500 Ar (commission 425 Ar) puis `SaleService.cancel` | commission au statut `CANCELLED` (montant conservé pour la trace), une ligne `CANCEL` au journal ; écran : mention « Annulée avec la vente » | `CommissionCalculationIT.cancel_saleWithACommission_commissionIsCancelledAndTraced` ; `SaleCommissionListenerTest.onSaleCancelled_anySale_cancelsTheCommissionOfTheSale` ; `CommissionServiceImplTest.cancelBySource_calculatedCommission_becomesCancelledAndIsJournaled` ; `CommissionTest.cancel_calculatedCommission_becomesCancelledAndKeepsItsAmount` ; `commission-list-page.spec.ts` › should mark the commission of a cancelled sale and only that one | ☐ |
+| 1l | Commission neuve au statut `CALCULATED` | vente de 8 500 Ar | `status = CALCULATED` | `CommissionCalculationIT.createSale_validSale_commissionIsCalculated` | ☐ |
 
 ## Sécurité et erreurs
 
@@ -38,6 +41,7 @@ Règle appliquée (**décision PO du 07/11/2026**) : la commission la plus préc
 | Taille de page hors borne | `size=101` | 422 `VALIDATION_FAILED` | `CommissionCalculationIT.getCommissions_fromAfterToOrSizeAbove100_returns422` | ☐ |
 | Mass assignment | aucun endpoint d'écriture : la commission n'est jamais saisie, seulement calculée par le serveur | — | ArchUnit (`no_delete_endpoints`, contrôleur en lecture seule) | ⏭ sans objet |
 | Ressource introuvable | — | pas d'endpoint par id (lecture par opération via le port `findBySource`, VTE-09) | — | ⏭ VTE-09 |
+| Annulation répétée ou opération sans commission | rejeu de `SaleCancelledEvent`, vente sans vendeuse | rien n'est modifié ni journalisé | `CommissionServiceImplTest.cancelBySource_alreadyCancelledOrUnknown_doesNothing` | ☐ |
 | Doublon | même opération calculée deux fois (rejeu de l'événement) | la commission existante est renvoyée, rien n'est recalculé ni journalisé ; contrainte `uq_commissions_source` | `CommissionServiceImplTest.calculate_operationAlreadyCommissioned_returnsTheExistingCommissionWithoutRecalculating` | ☐ |
 | Journal | vente de 8 500 Ar, vendeuse 5 % | ligne `CREATE`, `resourceType = COMMISSION`, « Commission VTE-… · Miora Rakoto · 5.00 % de 8500.00 Ar (CA) = 425.00 Ar » | `CommissionCalculationIT.createSale_validSale_commissionIsTracedInTheJournal` | ☐ |
 | Ligne de la prestation au journal | recherche « Prestation PRE-… » | la ligne `SERVICE_RECORD` reste trouvable (la commission la cite aussi) | `ServiceRecordIT.recordService_bySellerWithAdjustedProducts_deductsSalonStockAndTracesJournal` | ☐ |

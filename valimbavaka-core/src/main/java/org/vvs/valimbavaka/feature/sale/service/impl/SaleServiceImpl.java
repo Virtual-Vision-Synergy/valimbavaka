@@ -118,10 +118,4 @@ public class SaleServiceImpl implements SaleService {
     public SaleFormRDto getForm() {
         return formAssembler.build(saleRepository.peekNextNumber());
     }
-
-    private Sale findSale(UUID saleId) {
-        return saleRepository
-                .findById(saleId)
-                .orElseThrow(() -> new NotFoundException("Vente introuvable : " + saleId));
-    }
 }
