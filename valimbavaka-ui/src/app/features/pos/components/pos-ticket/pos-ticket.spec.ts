@@ -130,6 +130,7 @@ describe('PosTicket', () => {
 
     it('masque la saisie du reçu hors espèces et encaisse sans montant reçu', async () => {
       cart.add(SAVON);
+      cart.seller.set('seller-miora');
       fixture.detectChanges();
       await fixture.whenStable();
       expect(element.querySelector('#pos-received')).not.toBeNull();
