@@ -108,6 +108,27 @@ class DeliveryCompletionIT extends DeliveryApiTestSupport {
         assertThat(sale.get("seller_id")).isEqualTo(sellerId);
     }
 
+    /** Decision of the product owner (07/11/2026): the delivered order becomes a sale with its invoice (FAC-01). */
+    @Test
+    void markDelivered_ownOrder_issuesTheInvoiceOfTheDeliverySaleWithoutSeller() throws Exception {
+        // Arrange
+        var driverId = createDriver();
+        var articleId = createArticle(uniqueName());
+        move(articleId, "DELIVERY", StockMovementType.RECEIPT, "2");
+        var orderId = createdOrderId(adminToken(), body(driverId, today(), line(articleId, "2")));
+
+        // Act
+        var saleId = deliveredSaleId(tokenOfDriver(driverId), orderId);
+
+        // Assert
+        var invoice = jdbcTemplate.queryForMap(
+                "select number, payment_method, seller_id, total from invoices where sale_id = ?", saleId);
+        assertThat((String) invoice.get("number")).startsWith("FAC-");
+        assertThat(invoice.get("payment_method")).isEqualTo("ON_DELIVERY");
+        assertThat(invoice.get("seller_id")).isNull();
+        assertThat((BigDecimal) invoice.get("total")).isEqualByComparingTo("17000.00");
+    }
+
     @Test
     void markDelivered_priceChangedSinceTheOrder_sellsAtTheOrderPrice() throws Exception {
         // Arrange

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
-import { InvoiceRDto } from '../../data-access/sales-models';
+import { InvoiceView } from '../../data-access/sales-models';
 
 /**
  * Facture au format papier (FAC-01) : toujours sur fond blanc, y compris en thème sombre,
@@ -16,5 +16,5 @@ import { InvoiceRDto } from '../../data-access/sales-models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceDocument {
-  readonly invoice = input.required<InvoiceRDto>();
+  readonly invoice = input.required<InvoiceView>();
 }
