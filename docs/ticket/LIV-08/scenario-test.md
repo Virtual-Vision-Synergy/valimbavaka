@@ -1,6 +1,6 @@
 # Scénarios de test — LIV-08 · Fonctionnement hors ligne de la tournée
 
-Statut : ✍ rédigé le 2026-11-11, tests à lancer · Ticket : [#53](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/53) · [description](description.md) · [guide](guide.md)
+Statut : ✅ CI verte le 2026-11-11 · Ticket : [#53](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/53) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests frontend Vitest sur le comportement visible. Ce ticket est **frontend seul** : aucun
 endpoint, aucune migration, aucun changement backend (voir « Écart » dans le guide).
@@ -17,10 +17,10 @@ endpoint, aucune migration, aucun changement backend (voir « Écart » dans le 
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | Les actions hors connexion se synchronisent automatiquement au retour du réseau (s'appuie sur SYS-02). | Réseau coupé, le livreur touche « Livrée » puis « Échec » : après 5 s les saisies vont dans la file ; réseau revenu | La file part seule, dans l'ordre (SYS-10), sans action du livreur ; héritage LIV-03/04/05 | `DeliveryServiceSpec` : « marque la livraison livrée par la file hors ligne, sans corps… », « envoie l’échec et son motif par la file hors ligne… » ; `outbox-service.spec.ts` (SYS-02) ; `sync-order.spec.ts` (SYS-10) | ☐ |
-| 1b | idem : la tournée reste juste pendant l'attente | Une saisie attend le réseau, la tournée est relue (retour sur la page) | L'arrêt reste « livré » ou « en échec » avec son motif, pas « à faire » | `delivery-queue.spec.ts` : « montre livrée une commande dont le marquage attend le réseau, sans toucher aux autres », « montre en échec avec son motif une commande dont l’échec attend le réseau » ; `delivery-service.spec.ts` : « reporte sur la tournée lue les saisies qui attendent encore le réseau (LIV-08) » | ☐ |
-| 1c | idem : au retour du réseau l'écran montre l'état du serveur | La file passe de 2 saisies à 0 | La tournée est relue une fois (une saisie refusée par le serveur réapparaît « à faire ») | `driver-round-page.spec.ts` : « relit la tournée quand la file hors ligne se vide au retour du réseau » | ☐ |
-| 1d | idem : rien ne se perd si l'onglet se ferme dans les 5 s | « Livrée » touché, onglet fermé avant la fin du délai d'annulation | La saisie part dans la file à la fermeture (`pagehide`) | `driver-round-page.spec.ts` : « envoie tout de suite la saisie en attente quand la page est masquée (onglet fermé) » | ☐ |
+| 1 | Les actions hors connexion se synchronisent automatiquement au retour du réseau (s'appuie sur SYS-02). | Réseau coupé, le livreur touche « Livrée » puis « Échec » : après 5 s les saisies vont dans la file ; réseau revenu | La file part seule, dans l'ordre (SYS-10), sans action du livreur ; héritage LIV-03/04/05 | `DeliveryServiceSpec` : « marque la livraison livrée par la file hors ligne, sans corps… », « envoie l’échec et son motif par la file hors ligne… » ; `outbox-service.spec.ts` (SYS-02) ; `sync-order.spec.ts` (SYS-10) | ✅ auto |
+| 1b | idem : la tournée reste juste pendant l'attente | Une saisie attend le réseau, la tournée est relue (retour sur la page) | L'arrêt reste « livré » ou « en échec » avec son motif, pas « à faire » | `delivery-queue.spec.ts` : « montre livrée une commande dont le marquage attend le réseau, sans toucher aux autres », « montre en échec avec son motif une commande dont l’échec attend le réseau » ; `delivery-service.spec.ts` : « reporte sur la tournée lue les saisies qui attendent encore le réseau (LIV-08) » | ✅ auto |
+| 1c | idem : au retour du réseau l'écran montre l'état du serveur | La file passe de 2 saisies à 0 | La tournée est relue une fois (une saisie refusée par le serveur réapparaît « à faire ») | `driver-round-page.spec.ts` : « relit la tournée quand la file hors ligne se vide au retour du réseau » | ✅ auto |
+| 1d | idem : rien ne se perd si l'onglet se ferme dans les 5 s | « Livrée » touché, onglet fermé avant la fin du délai d'annulation | La saisie part dans la file à la fermeture (`pagehide`) | `driver-round-page.spec.ts` : « envoie tout de suite la saisie en attente quand la page est masquée (onglet fermé) » | ✅ auto |
 
 ## Sécurité et erreurs
 
@@ -53,6 +53,6 @@ Aucun endpoint ajouté : les contrôles 401/403/404/409 sont ceux de LIV-03/04/0
 
 ## Résultat de l'exécution
 
-- Date : à lancer
-- Environnement : à lancer (CI ou local) ; `ng test` non lancé (règle n°3)
+- Date : 2026-11-11 (commit `f0a2da8f`)
+- Environnement : CI GitHub (ci.yml frontend et backend, conventions.yml, Qodana : tous verts, 0 annotation Qodana) ; `ng test` non lancé en local (règle n°3)
 - Anomalies ouvertes : aucune connue ; 3 étapes 🧪 restantes
