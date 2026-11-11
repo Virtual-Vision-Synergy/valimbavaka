@@ -32,6 +32,7 @@ import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
 import org.vvs.valimbavaka.feature.sale.domain.PricedSaleLine;
 import org.vvs.valimbavaka.feature.sale.domain.Sale;
 import org.vvs.valimbavaka.feature.sale.domain.SaleCommand;
+import org.vvs.valimbavaka.feature.sale.domain.SaleDiscount;
 import org.vvs.valimbavaka.feature.sale.domain.SaleHeader;
 import org.vvs.valimbavaka.feature.sale.dto.SaleChannelOptionRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleLineWDto;
@@ -69,11 +70,15 @@ class SaleServiceImplTest {
     @Mock
     private SaleFormAssembler formAssembler;
 
+    @Mock
+    private SaleDiscounts discounts;
+
     private SaleServiceImpl sut;
 
     @BeforeEach
     void setUp() {
-        sut = new SaleServiceImpl(saleRepository, saleMapper, businessDayService, policy, ledger, formAssembler);
+        sut = new SaleServiceImpl(
+                saleRepository, saleMapper, businessDayService, policy, ledger, formAssembler, discounts);
     }
 
     @Test
@@ -83,6 +88,7 @@ class SaleServiceImplTest {
         var line = new PricedSaleLine(SOAP, new BigDecimal("2"), new BigDecimal("8500"), null);
         var channel = new SaleChannelOptionRDto(CHANNEL, "FACEBOOK", "Facebook", STORE);
         when(policy.check(any())).thenReturn(new CheckedSale(channel, List.of(line)));
+        when(discounts.of(any(), any())).thenReturn(SaleDiscount.NONE);
         when(saleRepository.nextNumber()).thenReturn(42L);
         when(saleRepository.save(any(Sale.class))).then(returnsFirstArg());
         var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));
@@ -105,6 +111,33 @@ class SaleServiceImplTest {
         assertThat(sale.getSellerId()).isEqualTo(SELLER);
         assertThat(sale.getPaymentMethod()).isEqualTo(PaymentMethod.CARD);
         assertThat(sale.getTotal()).isEqualByComparingTo("17000");
+    }
+
+    @Test
+    void createSale_automaticPromotion_recordsTheDiscountAndThePromotionDecidedByTheServer() {
+        // Arrange
+        when(businessDayService.requireOpenDay()).thenReturn(openDay());
+        var line = new PricedSaleLine(SOAP, new BigDecimal("2"), new BigDecimal("8500"), null);
+        var channel = new SaleChannelOptionRDto(CHANNEL, "STORE", "Boutique", STORE);
+        when(policy.check(any())).thenReturn(new CheckedSale(channel, List.of(line)));
+        var promotionId = UUID.randomUUID();
+        when(discounts.of(any(), eq(List.of(line))))
+                .thenReturn(new SaleDiscount(promotionId, new BigDecimal("2550")));
+        when(saleRepository.nextNumber()).thenReturn(43L);
+        when(saleRepository.save(any(Sale.class))).then(returnsFirstArg());
+        var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));
+
+        // Act
+        sut.createSale(new SaleWDto(CHANNEL, SELLER, PaymentMethod.CASH, lines));
+
+        // Assert
+        var sales = ArgumentCaptor.forClass(Sale.class);
+        verify(ledger).post(sales.capture(), eq("Boutique"));
+        var sale = sales.getValue();
+        assertThat(sale.getSubtotal()).isEqualByComparingTo("17000");
+        assertThat(sale.getDiscountAmount()).isEqualByComparingTo("2550");
+        assertThat(sale.getPromotionId()).isEqualTo(promotionId);
+        assertThat(sale.getTotal()).isEqualByComparingTo("14450");
     }
 
     @Test

@@ -57,6 +57,7 @@ class SaleIT extends StockApiTestSupport {
     void openTodayAndCreateSeller() throws Exception {
         var status = openDay().andReturn().getResponse().getStatus();
         assertThat(status).isIn(201, 409);
+        endAutomaticPromotions();
         seller = createSeller();
         sellerToken = login(seller.getEmail());
     }
