@@ -1,6 +1,6 @@
 # Guide d'intégration — LIV-05 · Annulation d'une action récente
 
-Statut : ✅ rédigé, tests à lancer (CI ou local) · Ticket : [#50](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/50) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé, tests verts en CI (commit `a5862862`) · Ticket : [#50](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/50) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
