@@ -149,7 +149,8 @@ class InvoiceIT extends StockApiTestSupport {
         var saleId = recordSale(sellerToken, "ORANGE_MONEY", soap, "1");
 
         // Assert
-        getInvoiceOfSale(sellerToken, saleId).andExpect(jsonPath("$.paymentMethod").value("ORANGE_MONEY"));
+        getInvoiceOfSale(sellerToken, saleId)
+                .andExpect(jsonPath("$.paymentMethod").value("ORANGE_MONEY"));
     }
 
     @Test
@@ -233,7 +234,10 @@ class InvoiceIT extends StockApiTestSupport {
         }
 
         // Assert
-        var sequences = saleIds.stream().map(id -> sequenceOf(invoiceNumber(id))).sorted().toList();
+        var sequences = saleIds.stream()
+                .map(id -> sequenceOf(invoiceNumber(id)))
+                .sorted()
+                .toList();
         assertThat(sequences).doesNotHaveDuplicates();
         assertThat(sequences.getLast() - sequences.getFirst()).isEqualTo(5L);
     }

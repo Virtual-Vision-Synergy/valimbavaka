@@ -91,10 +91,8 @@ class InvoiceDraftsTest {
         assertThat(result.lines())
                 .extracting(InvoiceLineDraft::label, InvoiceLineDraft::unitPrice, InvoiceLineDraft::lineTotal)
                 .containsExactly(
-                        tuple(
-                                "Savon coco", new BigDecimal("8500.00"), new BigDecimal("17000.00")),
-                        tuple(
-                                "Huile de ricin", new BigDecimal("12000.00"), new BigDecimal("12000.00")));
+                        tuple("Savon coco", new BigDecimal("8500.00"), new BigDecimal("17000.00")),
+                        tuple("Huile de ricin", new BigDecimal("12000.00"), new BigDecimal("12000.00")));
     }
 
     @Test
@@ -170,7 +168,8 @@ class InvoiceDraftsTest {
     }
 
     private static SaleLineRDto line(UUID articleId, String quantity, String unitPrice, String lineTotal) {
-        return new SaleLineRDto(articleId, new BigDecimal(quantity), new BigDecimal(unitPrice), new BigDecimal(lineTotal));
+        return new SaleLineRDto(
+                articleId, new BigDecimal(quantity), new BigDecimal(unitPrice), new BigDecimal(lineTotal));
     }
 
     private static UserRDto user() {

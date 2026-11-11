@@ -98,6 +98,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     /** E.g. {@code Facture FAC-2026-0042 · vente VTE-0042 · 64000.00 Ar · Espèces}. */
     private static String description(String number, SaleRDto sale) {
         return "Facture %s · vente %s · %s Ar · %s"
-                .formatted(number, sale.number(), sale.total().toPlainString(), sale.paymentMethod().label());
+                .formatted(
+                        number,
+                        sale.number(),
+                        sale.total().toPlainString(),
+                        sale.paymentMethod().label());
     }
 }
