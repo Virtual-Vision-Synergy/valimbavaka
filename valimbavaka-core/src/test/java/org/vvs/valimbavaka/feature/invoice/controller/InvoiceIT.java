@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -14,6 +15,8 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +39,10 @@ import org.vvs.valimbavaka.feature.user.domain.UserProfile;
 import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 
-/** FAC-01: every recorded sale produces its numbered invoice; FAC-02: the invoice of a sale can be regenerated. */
+/**
+ * FAC-01: every recorded sale produces its numbered invoice; FAC-02: the invoice of a sale can be regenerated; FAC-03:
+ * the invoice can be downloaded as a PDF.
+ */
 class InvoiceIT extends StockApiTestSupport {
 
     private static final String INVOICES = "/api/v1/invoices";
@@ -547,6 +553,115 @@ class InvoiceIT extends StockApiTestSupport {
         assertThat(countInvoicesOf(saleId)).isZero();
     }
 
+    @Test
+    void getInvoicePdf_issuedInvoice_returnsAPdfNamedAfterTheNumberWithTheFrozenContent() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "MVOLA", soap, "3");
+        var number = invoiceNumber(saleId);
+
+        // Act
+        var response = getPdf(sellerToken, invoiceId(saleId))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andReturn()
+                .getResponse();
+        var bytes = response.getContentAsByteArray();
+        var disposition = response.getHeader(HttpHeaders.CONTENT_DISPOSITION);
+
+        // Assert
+        assertThat(disposition).startsWith("attachment").contains(number + ".pdf");
+        assertThat(textOf(bytes))
+                .contains("Facture " + number)
+                .contains("By Valimbavaka Cosmetics")
+                .contains("règlement : MVola")
+                .contains("Vendeuse : Miora Rakoto")
+                .contains("Total à payer : 25 500 Ar");
+    }
+
+    @Test
+    void getInvoicePdf_downloadedTwice_changesNothingAndUsesNoNumber() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        var invoiceId = invoiceId(saleId);
+        var counterBefore = currentCounter();
+        var invoicesBefore = countInvoices();
+
+        // Act
+        getPdf(sellerToken, invoiceId).andExpect(status().isOk());
+        getPdf(adminToken(), invoiceId).andExpect(status().isOk());
+
+        // Assert
+        assertThat(currentCounter()).isEqualTo(counterBefore);
+        assertThat(countInvoices()).isEqualTo(invoicesBefore);
+        assertThat(invoiceNumber(saleId)).matches(NUMBER_FORMAT);
+    }
+
+    @Test
+    void getInvoicePdf_afterAnArticleRenameAndAPriceChange_keepsTheIssuedContent() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "2");
+        var invoiceId = invoiceId(saleId);
+        var issuedLabel = jdbcTemplate.queryForObject(
+                "select label from invoice_lines where invoice_id = ?", String.class, invoiceId);
+        jdbcTemplate.update("update articles set name = 'Renommé', price = 9900 where id = ?", soap);
+
+        // Act
+        var bytes = getPdf(sellerToken, invoiceId).andReturn().getResponse().getContentAsByteArray();
+
+        // Assert
+        assertThat(textOf(bytes)).contains(issuedLabel).contains("17 000 Ar").doesNotContain("Renommé");
+    }
+
+    @Test
+    void getInvoicePdf_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(INVOICES + "/" + UUID.randomUUID() + "/pdf"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void getInvoicePdf_deliveryDriver_returns403() throws Exception {
+        getPdf(tokenOf(RoleName.DELIVERY_DRIVER), UUID.randomUUID())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    void getInvoicePdf_unknownInvoice_returns404() throws Exception {
+        getPdf(adminToken(), UUID.randomUUID())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+    }
+
+    @Test
+    void getInvoicePdf_malformedId_returns400() throws Exception {
+        mockMvc.perform(get(INVOICES + "/pas-un-uuid/pdf").header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    }
+
+    @Test
+    void getInvoicePdf_sellerAskingForAColleagueInvoice_returns404ButAdministratorReadsIt() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        var invoiceId = invoiceId(saleId);
+        var colleagueToken = login(createSeller("Lova").getEmail());
+
+        // Act + Assert
+        getPdf(colleagueToken, invoiceId)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+        getPdf(adminToken(), invoiceId).andExpect(status().isOk());
+    }
+
     private void deleteInvoiceOf(UUID saleId) {
         jdbcTemplate.update(
                 "delete from invoice_lines where invoice_id in (select id from invoices where sale_id = ?)", saleId);
@@ -563,6 +678,21 @@ class InvoiceIT extends StockApiTestSupport {
 
     private static double amount(String json, String path) {
         return JsonPath.<Number>read(json, path).doubleValue();
+    }
+
+    private ResultActions getPdf(String token, UUID invoiceId) throws Exception {
+        return mockMvc.perform(
+                get(INVOICES + "/" + invoiceId + "/pdf").header(HttpHeaders.AUTHORIZATION, bearer(token)));
+    }
+
+    private UUID invoiceId(UUID saleId) {
+        return jdbcTemplate.queryForObject("select id from invoices where sale_id = ?", UUID.class, saleId);
+    }
+
+    private static String textOf(byte[] pdf) throws Exception {
+        try (var document = Loader.loadPDF(pdf)) {
+            return new PDFTextStripper().getText(document);
+        }
     }
 
     private ResultActions regenerate(String token, UUID saleId) throws Exception {
