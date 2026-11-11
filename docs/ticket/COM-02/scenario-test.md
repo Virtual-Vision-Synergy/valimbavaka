@@ -1,6 +1,6 @@
 # Scénarios de test — COM-02 · Calcul automatique de la commission
 
-Statut : ✅ rédigé · Ticket : [#86](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/86) · [description](description.md) · [guide](guide.md)
+Statut : ✅ rédigé et exécuté en CI · Ticket : [#86](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/86) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -18,50 +18,50 @@ Règle appliquée (**décision PO du 07/11/2026**) : la commission la plus préc
 
 | # | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | Montant = CA × taux applicable (règle du canal sur le CA) | règle du canal 4 %, vendeuse 5 %, vente 3 × 8 500 = 25 500 Ar | commission 1 020 Ar, base `REVENUE` 25 500, taux 4, `rateSource = SALES_CHANNEL`, `ruleId` de la règle, numéro de la vente, « Miora Rakoto » | `CommissionCalculationIT.createSale_channelRuleOnRevenue_commissionIsTheTotalTimesTheRuleRate` ; `CommissionServiceImplTest.calculate_activeSeller_savesRevenueTimesResolvedRateAndTracesTheJournal` | ☐ |
-| 1b | Règle du canal sur la marge | règle 10 % `MARGIN`, 2 × 8 500 = 17 000 Ar, coût 2 × 3 120,50 = 6 241 Ar | base `MARGIN` 10 759 Ar, commission 1 076 Ar (1 075,90 arrondi) | `CommissionCalculationIT.createSale_channelRuleOnMargin_commissionIsTheMarginTimesTheRuleRate` ; `CommissionTest.calculate_marginRuleWithCost_appliesTheRateToRevenueMinusCost` | ☐ |
-| 1c | Pas de règle sur le canal : taux de la vendeuse | canal sans règle, vendeuse 5 %, 25 500 Ar | 1 275 Ar, `rateSource = SELLER`, pas de `ruleId` | `CommissionCalculationIT.createSale_noRuleOnTheChannel_commissionUsesTheSellerRate` | ☐ |
-| 1d | Prestation salon : le taux du service gagne | service 35 000 Ar à 10 %, vendeuse 5 % | 3 500 Ar, `SALON_SERVICE`, `source_type = SERVICE_RECORD`, `salon_service_id` renseigné | `ServiceRecordCommissionIT.recordService_serviceWithItsOwnRate_commissionIsThePriceTimesTheServiceRate` ; `ServiceRecordServiceImplTest.recordService_validRecord_creditsTheCommissionOnThePriceOfTheServiceAndTheBusinessDay` | ☐ |
-| 1e | Vente sans vendeuse (décision PO) | `SaleService.record` avec `sellerId = null` | vente enregistrée, aucune ligne dans `commissions` | `CommissionCalculationIT.record_saleWithoutSeller_createsNoCommission` ; `SaleCommissionListenerTest.onSaleRecorded_saleWithoutSeller_calculatesNothing` | ☐ |
-| 1f | Prestation saisie par l'administrateur | admin enregistre une prestation | aucune commission (le compte n'est pas une vendeuse) | `ServiceRecordCommissionIT.recordService_byAdministrator_createsNoCommission` ; `CommissionServiceImplTest.calculate_accountIsNotAnActiveSeller_returnsEmptyAndSavesNothing` | ☐ |
-| 1g | Données transmises au calcul | vente VTE-0042, total 25 500, coût 9 361,50 | `CommissionSource(SALE, id, VTE-0042, vendeuse, canal, null, journée, 25500.00, 9361.50)` | `SaleCommissionListenerTest.onSaleRecorded_saleWithSeller_calculatesOnTheTotalWithThePurchaseCost` | ☐ |
-| 1h | Montant affiché à l'administrateur | page `/commissions/calculated` | opération (+ « Vente » / « Prestation salon »), date, vendeuse, base (+ CA / marge), taux (+ origine), commission ; compteur | `commission-list-page.spec.ts` › should show the operation, the seller, the base, the rate with its origin and the commission | ☐ |
-| 1i | Mois courant demandé, plus récentes d'abord | ouverture de la page | `from` = 1er du mois, `to` = dernier jour, `sortBy=createdAt`, `DESC` | `commission-list-page.spec.ts` › should request the current month, newest first ; `commission-service.spec.ts` (2 tests) | ☐ |
-| 1j | Base de calcul = total remisé (PRO-02) | vente de 28 000 Ar avec 2 500 Ar de remise, total 25 500 Ar | la commission est calculée sur `sale.total()` (25 500), jamais sur le sous-total | `SaleCommissionListenerTest.onSaleRecorded_saleWithSeller_calculatesOnTheTotalWithThePurchaseCost` | ☐ |
-| 1k | Vente annulée (LIV-05) : la commission est annulée | vente de 8 500 Ar (commission 425 Ar) puis `SaleService.cancel` | commission au statut `CANCELLED` (montant conservé pour la trace), une ligne `CANCEL` au journal ; écran : mention « Annulée avec la vente » | `CommissionCalculationIT.cancel_saleWithACommission_commissionIsCancelledAndTraced` ; `SaleCommissionListenerTest.onSaleCancelled_anySale_cancelsTheCommissionOfTheSale` ; `CommissionServiceImplTest.cancelBySource_calculatedCommission_becomesCancelledAndIsJournaled` ; `CommissionTest.cancel_calculatedCommission_becomesCancelledAndKeepsItsAmount` ; `commission-list-page.spec.ts` › should mark the commission of a cancelled sale and only that one | ☐ |
-| 1l | Commission neuve au statut `CALCULATED` | vente de 8 500 Ar | `status = CALCULATED` | `CommissionCalculationIT.createSale_validSale_commissionIsCalculated` | ☐ |
+| 1 | Montant = CA × taux applicable (règle du canal sur le CA) | règle du canal 4 %, vendeuse 5 %, vente 3 × 8 500 = 25 500 Ar | commission 1 020 Ar, base `REVENUE` 25 500, taux 4, `rateSource = SALES_CHANNEL`, `ruleId` de la règle, numéro de la vente, « Miora Rakoto » | `CommissionCalculationIT.createSale_channelRuleOnRevenue_commissionIsTheTotalTimesTheRuleRate` ; `CommissionServiceImplTest.calculate_activeSeller_savesRevenueTimesResolvedRateAndTracesTheJournal` | ✅ auto |
+| 1b | Règle du canal sur la marge | règle 10 % `MARGIN`, 2 × 8 500 = 17 000 Ar, coût 2 × 3 120,50 = 6 241 Ar | base `MARGIN` 10 759 Ar, commission 1 076 Ar (1 075,90 arrondi) | `CommissionCalculationIT.createSale_channelRuleOnMargin_commissionIsTheMarginTimesTheRuleRate` ; `CommissionTest.calculate_marginRuleWithCost_appliesTheRateToRevenueMinusCost` | ✅ auto |
+| 1c | Pas de règle sur le canal : taux de la vendeuse | canal sans règle, vendeuse 5 %, 25 500 Ar | 1 275 Ar, `rateSource = SELLER`, pas de `ruleId` | `CommissionCalculationIT.createSale_noRuleOnTheChannel_commissionUsesTheSellerRate` | ✅ auto |
+| 1d | Prestation salon : le taux du service gagne | service 35 000 Ar à 10 %, vendeuse 5 % | 3 500 Ar, `SALON_SERVICE`, `source_type = SERVICE_RECORD`, `salon_service_id` renseigné | `ServiceRecordCommissionIT.recordService_serviceWithItsOwnRate_commissionIsThePriceTimesTheServiceRate` ; `ServiceRecordServiceImplTest.recordService_validRecord_creditsTheCommissionOnThePriceOfTheServiceAndTheBusinessDay` | ✅ auto |
+| 1e | Vente sans vendeuse (décision PO) | `SaleService.record` avec `sellerId = null` | vente enregistrée, aucune ligne dans `commissions` | `CommissionCalculationIT.record_saleWithoutSeller_createsNoCommission` ; `SaleCommissionListenerTest.onSaleRecorded_saleWithoutSeller_calculatesNothing` | ✅ auto |
+| 1f | Prestation saisie par l'administrateur | admin enregistre une prestation | aucune commission (le compte n'est pas une vendeuse) | `ServiceRecordCommissionIT.recordService_byAdministrator_createsNoCommission` ; `CommissionServiceImplTest.calculate_accountIsNotAnActiveSeller_returnsEmptyAndSavesNothing` | ✅ auto |
+| 1g | Données transmises au calcul | vente VTE-0042, total 25 500, coût 9 361,50 | `CommissionSource(SALE, id, VTE-0042, vendeuse, canal, null, journée, 25500.00, 9361.50)` | `SaleCommissionListenerTest.onSaleRecorded_saleWithSeller_calculatesOnTheTotalWithThePurchaseCost` | ✅ auto |
+| 1h | Montant affiché à l'administrateur | page `/commissions/calculated` | opération (+ « Vente » / « Prestation salon »), date, vendeuse, base (+ CA / marge), taux (+ origine), commission ; compteur | `commission-list-page.spec.ts` › should show the operation, the seller, the base, the rate with its origin and the commission | ✅ auto |
+| 1i | Mois courant demandé, plus récentes d'abord | ouverture de la page | `from` = 1er du mois, `to` = dernier jour, `sortBy=createdAt`, `DESC` | `commission-list-page.spec.ts` › should request the current month, newest first ; `commission-service.spec.ts` (2 tests) | ✅ auto |
+| 1j | Base de calcul = total remisé (PRO-02) | vente de 28 000 Ar avec 2 500 Ar de remise, total 25 500 Ar | la commission est calculée sur `sale.total()` (25 500), jamais sur le sous-total | `SaleCommissionListenerTest.onSaleRecorded_saleWithSeller_calculatesOnTheTotalWithThePurchaseCost` | ✅ auto |
+| 1k | Vente annulée (LIV-05) : la commission est annulée | vente de 8 500 Ar (commission 425 Ar) puis `SaleService.cancel` | commission au statut `CANCELLED` (montant conservé pour la trace), une ligne `CANCEL` au journal ; écran : mention « Annulée avec la vente » | `CommissionCalculationIT.cancel_saleWithACommission_commissionIsCancelledAndTraced` ; `SaleCommissionListenerTest.onSaleCancelled_anySale_cancelsTheCommissionOfTheSale` ; `CommissionServiceImplTest.cancelBySource_calculatedCommission_becomesCancelledAndIsJournaled` ; `CommissionTest.cancel_calculatedCommission_becomesCancelledAndKeepsItsAmount` ; `commission-list-page.spec.ts` › should mark the commission of a cancelled sale and only that one | ✅ auto |
+| 1l | Commission neuve au statut `CALCULATED` | vente de 8 500 Ar | `status = CALCULATED` | `CommissionCalculationIT.createSale_validSale_commissionIsCalculated` | ✅ auto |
 
 ## Sécurité et erreurs
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Sans jeton | GET `/api/v1/commissions` | 401 `UNAUTHENTICATED` | `CommissionCalculationIT.getCommissions_withoutToken_returns401` | ☐ |
-| Mauvais rôle | jeton vendeuse, jeton livreur | 403 `FORBIDDEN` (`commissions.read-all` réservé à `ADMIN`) | `CommissionCalculationIT.getCommissions_sellerOrDeliveryDriver_returns403` | ☐ |
-| Période invalide | `from=2026-11-30&to=2026-11-01` | 422 `VALIDATION_FAILED` | `CommissionCalculationIT.getCommissions_fromAfterToOrSizeAbove100_returns422` ; `CommissionServiceImplTest.getCommissions_fromAfterTo_throwsBusinessException` | ☐ |
-| Taille de page hors borne | `size=101` | 422 `VALIDATION_FAILED` | `CommissionCalculationIT.getCommissions_fromAfterToOrSizeAbove100_returns422` | ☐ |
+| Sans jeton | GET `/api/v1/commissions` | 401 `UNAUTHENTICATED` | `CommissionCalculationIT.getCommissions_withoutToken_returns401` | ✅ auto |
+| Mauvais rôle | jeton vendeuse, jeton livreur | 403 `FORBIDDEN` (`commissions.read-all` réservé à `ADMIN`) | `CommissionCalculationIT.getCommissions_sellerOrDeliveryDriver_returns403` | ✅ auto |
+| Période invalide | `from=2026-11-30&to=2026-11-01` | 422 `VALIDATION_FAILED` | `CommissionCalculationIT.getCommissions_fromAfterToOrSizeAbove100_returns422` ; `CommissionServiceImplTest.getCommissions_fromAfterTo_throwsBusinessException` | ✅ auto |
+| Taille de page hors borne | `size=101` | 422 `VALIDATION_FAILED` | `CommissionCalculationIT.getCommissions_fromAfterToOrSizeAbove100_returns422` | ✅ auto |
 | Mass assignment | aucun endpoint d'écriture : la commission n'est jamais saisie, seulement calculée par le serveur | — | ArchUnit (`no_delete_endpoints`, contrôleur en lecture seule) | ⏭ sans objet |
 | Ressource introuvable | — | pas d'endpoint par id (lecture par opération via le port `findBySource`, VTE-09) | — | ⏭ VTE-09 |
-| Annulation répétée ou opération sans commission | rejeu de `SaleCancelledEvent`, vente sans vendeuse | rien n'est modifié ni journalisé | `CommissionServiceImplTest.cancelBySource_alreadyCancelledOrUnknown_doesNothing` | ☐ |
-| Doublon | même opération calculée deux fois (rejeu de l'événement) | la commission existante est renvoyée, rien n'est recalculé ni journalisé ; contrainte `uq_commissions_source` | `CommissionServiceImplTest.calculate_operationAlreadyCommissioned_returnsTheExistingCommissionWithoutRecalculating` | ☐ |
-| Journal | vente de 8 500 Ar, vendeuse 5 % | ligne `CREATE`, `resourceType = COMMISSION`, « Commission VTE-… · Miora Rakoto · 5.00 % de 8500.00 Ar (CA) = 425.00 Ar » | `CommissionCalculationIT.createSale_validSale_commissionIsTracedInTheJournal` | ☐ |
-| Ligne de la prestation au journal | recherche « Prestation PRE-… » | la ligne `SERVICE_RECORD` reste trouvable (la commission la cite aussi) | `ServiceRecordIT.recordService_bySellerWithAdjustedProducts_deductsSalonStockAndTracesJournal` | ☐ |
-| Menu | admin / vendeuse | entrée « Commissions calculées » visible pour l'admin seulement | `menu.spec.ts` (2 tests modifiés) | ☐ |
+| Annulation répétée ou opération sans commission | rejeu de `SaleCancelledEvent`, vente sans vendeuse | rien n'est modifié ni journalisé | `CommissionServiceImplTest.cancelBySource_alreadyCancelledOrUnknown_doesNothing` | ✅ auto |
+| Doublon | même opération calculée deux fois (rejeu de l'événement) | la commission existante est renvoyée, rien n'est recalculé ni journalisé ; contrainte `uq_commissions_source` | `CommissionServiceImplTest.calculate_operationAlreadyCommissioned_returnsTheExistingCommissionWithoutRecalculating` | ✅ auto |
+| Journal | vente de 8 500 Ar, vendeuse 5 % | ligne `CREATE`, `resourceType = COMMISSION`, « Commission VTE-… · Miora Rakoto · 5.00 % de 8500.00 Ar (CA) = 425.00 Ar » | `CommissionCalculationIT.createSale_validSale_commissionIsTracedInTheJournal` | ✅ auto |
+| Ligne de la prestation au journal | recherche « Prestation PRE-… » | la ligne `SERVICE_RECORD` reste trouvable (la commission la cite aussi) | `ServiceRecordIT.recordService_bySellerWithAdjustedProducts_deductsSalonStockAndTracesJournal` | ✅ auto |
+| Menu | admin / vendeuse | entrée « Commissions calculées » visible pour l'admin seulement | `menu.spec.ts` (2 tests modifiés) | ✅ auto |
 
 ## Cas limites et hors ligne
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| Arrondi à l'ariary (HALF_UP) | 25 500 × 3,33 % = 849,15 ; 50 × 1 % = 0,50 | 849 Ar ; 1 Ar | `CommissionTest.calculate_fractionOfAriary_isRoundedHalfUpToTheAriary` | ☐ |
-| Vendu sous le coût (marge négative) | CA 5 000, coût 6 000, règle marge 10 % | base 0, commission 0 (jamais négative) | `CommissionTest.calculate_marginRuleSoldBelowCost_baseAndAmountAreZero` | ☐ |
-| Règle « marge » sans coût connu | prestation salon (aucun coût figé), règle du canal boutique en marge | taux appliqué au prix, base enregistrée `REVENUE` | `CommissionTest.calculate_marginRuleWithoutKnownCost_appliesTheRateToTheRevenue` | ☐ |
-| Aucun taux trouvé | ni service, ni règle, ni taux vendeuse | commission 0 Ar, `rateSource = NONE` (ligne gardée pour la traçabilité) | `CommissionTest.calculate_noRateFound_amountIsZero` | ☐ |
-| Champs copiés | vente VTE-0042 | type, id, numéro, vendeuse, nom figé, journée, règle | `CommissionTest.calculate_revenueRule_appliesTheRateToTheRevenue` | ☐ |
-| Coût d'achat de la vente | 2 × 3 120,50 + 1,5 × 1 000,005 + ligne sans coût | 7 741,01 Ar ; aucune ligne avec coût → 0,00 | `SaleTest.purchaseCost_linesWithAndWithoutCost_sumsQuantityTimesUnitCostOfTheCostedLines` ; `SaleTest.purchaseCost_noLineWithCost_isZero` | ☐ |
-| Journée d'une prestation après minuit | 22:30 UTC le 8/11 = 01:30 le 9/11 à Antananarivo | `businessDate = 2026-11-09` | `ServiceRecordServiceImplTest.recordService_validRecord_creditsTheCommissionOnThePriceOfTheServiceAndTheBusinessDay` | ☐ |
-| Période vide | `from=2020-01-01&to=2020-01-31` | 200, page vide | `CommissionCalculationIT.getCommissions_periodWithoutTheSale_returnsAnEmptyPage` | ☐ |
-| Sans période | ni `from` ni `to` | toutes les journées (bornes 2000-01-01 → 9999-12-31) | `CommissionServiceImplTest.getCommissions_withoutPeriod_searchesEveryBusinessDayOfTheSeller` | ☐ |
-| Bornes de mois | février bissextile, changement d'année | `2028-02` → 01 au 29 ; janvier − 1 mois → décembre précédent | `commission-list-page.spec.ts` › should give the month key with an offset and the first and last days of the month | ☐ |
-| Changement de mois | mois précédent choisi | rechargement en page 1, état vide « Aucune commission ce mois-ci » | `commission-list-page.spec.ts` › should reload the chosen month from its first page | ☐ |
+| Arrondi à l'ariary (HALF_UP) | 25 500 × 3,33 % = 849,15 ; 50 × 1 % = 0,50 | 849 Ar ; 1 Ar | `CommissionTest.calculate_fractionOfAriary_isRoundedHalfUpToTheAriary` | ✅ auto |
+| Vendu sous le coût (marge négative) | CA 5 000, coût 6 000, règle marge 10 % | base 0, commission 0 (jamais négative) | `CommissionTest.calculate_marginRuleSoldBelowCost_baseAndAmountAreZero` | ✅ auto |
+| Règle « marge » sans coût connu | prestation salon (aucun coût figé), règle du canal boutique en marge | taux appliqué au prix, base enregistrée `REVENUE` | `CommissionTest.calculate_marginRuleWithoutKnownCost_appliesTheRateToTheRevenue` | ✅ auto |
+| Aucun taux trouvé | ni service, ni règle, ni taux vendeuse | commission 0 Ar, `rateSource = NONE` (ligne gardée pour la traçabilité) | `CommissionTest.calculate_noRateFound_amountIsZero` | ✅ auto |
+| Champs copiés | vente VTE-0042 | type, id, numéro, vendeuse, nom figé, journée, règle | `CommissionTest.calculate_revenueRule_appliesTheRateToTheRevenue` | ✅ auto |
+| Coût d'achat de la vente | 2 × 3 120,50 + 1,5 × 1 000,005 + ligne sans coût | 7 741,01 Ar ; aucune ligne avec coût → 0,00 | `SaleTest.purchaseCost_linesWithAndWithoutCost_sumsQuantityTimesUnitCostOfTheCostedLines` ; `SaleTest.purchaseCost_noLineWithCost_isZero` | ✅ auto |
+| Journée d'une prestation après minuit | 22:30 UTC le 8/11 = 01:30 le 9/11 à Antananarivo | `businessDate = 2026-11-09` | `ServiceRecordServiceImplTest.recordService_validRecord_creditsTheCommissionOnThePriceOfTheServiceAndTheBusinessDay` | ✅ auto |
+| Période vide | `from=2020-01-01&to=2020-01-31` | 200, page vide | `CommissionCalculationIT.getCommissions_periodWithoutTheSale_returnsAnEmptyPage` | ✅ auto |
+| Sans période | ni `from` ni `to` | toutes les journées (bornes 2000-01-01 → 9999-12-31) | `CommissionServiceImplTest.getCommissions_withoutPeriod_searchesEveryBusinessDayOfTheSeller` | ✅ auto |
+| Bornes de mois | février bissextile, changement d'année | `2028-02` → 01 au 29 ; janvier − 1 mois → décembre précédent | `commission-list-page.spec.ts` › should give the month key with an offset and the first and last days of the month | ✅ auto |
+| Changement de mois | mois précédent choisi | rechargement en page 1, état vide « Aucune commission ce mois-ci » | `commission-list-page.spec.ts` › should reload the chosen month from its first page | ✅ auto |
 | Tri hors liste blanche | `sortBy=password` | tri par défaut `createdAt` décroissant (`PageQuery.toPageable`) | — (comportement commun de `PageQuery`) | 🔍 code |
 | Vente refusée | stock insuffisant, journée fermée | rien n'est écrit, ni vente ni commission (même transaction, écouteur synchrone) | `SaleIT.createSale_notEnoughStock_returns409AndRecordsNothing` (la commission est calculée après le contrôle) | 🔍 code |
 | Hors ligne | vente saisie hors connexion puis rejouée (`Idempotency-Key`) | la vente n'est enregistrée qu'une fois (SYS-12), donc une seule commission ; contrainte unique en dernier recours | — | 🔍 code |
@@ -82,6 +82,6 @@ Règle appliquée (**décision PO du 07/11/2026**) : la commission la plus préc
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local).
-- Environnement : CI GitHub (`ci.yml`, `conventions.yml`, `qodana_code_quality.yml`).
-- Anomalies ouvertes : aucune connue.
+- Date : 11/11/2026, commit `29616059` de la branche (après fusion de `develop`).
+- Environnement : CI GitHub : `ci.yml` vert (backend 754 tests, 0 échec ; frontend 122 fichiers de test, tous réussis), `conventions.yml` vert (Spotless, Checkstyle, Prettier, ESLint, gitleaks), `qodana_code_quality.yml` vert, 0 annotation sur « Qodana for JVM ».
+- Anomalies ouvertes : aucune connue. Les lignes 🔍 (code) et 🧪 (recette Njara) restent à confirmer à la main.
