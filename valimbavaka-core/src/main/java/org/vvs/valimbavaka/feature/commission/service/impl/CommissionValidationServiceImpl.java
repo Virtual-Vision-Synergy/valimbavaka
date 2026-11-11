@@ -38,6 +38,7 @@ import org.vvs.valimbavaka.shared.dto.PageResponse;
 public class CommissionValidationServiceImpl implements CommissionValidationService {
 
     private static final String PERIOD_INVERTED = "La date de début doit précéder la date de fin.";
+    private static final BigDecimal ZERO_AMOUNT = new BigDecimal("0.00");
 
     private final CommissionRepository commissionRepository;
     private final JournalService journalService;
@@ -134,7 +135,7 @@ public class CommissionValidationServiceImpl implements CommissionValidationServ
     }
 
     private static BigDecimal amountOf(@Nullable SellerStatusTotal total) {
-        return total == null ? BigDecimal.ZERO.setScale(2) : total.getTotalAmount();
+        return total == null ? ZERO_AMOUNT : total.getTotalAmount();
     }
 
     private static void checkPeriod(LocalDate from, LocalDate to) {
