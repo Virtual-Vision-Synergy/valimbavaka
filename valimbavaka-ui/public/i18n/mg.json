@@ -494,7 +494,7 @@
   },
   "sales": {
     "title": "Varotra androany",
-    "subtitle": "Varotra {{count}} · {{amount}}",
+    "subtitle": "Varotra {{count}}",
     "book": "Bokin'ny varotra",
     "newSale": "Varotra vaovao",
     "listLabel": "Varotra tamin'ny andro",
@@ -505,8 +505,10 @@
       "channel": "Fantsona",
       "seller": "Mpivarotra",
       "payment": "Fandoavana",
-      "amount": "Vola",
-      "invoice": "Faktiora"
+      "invoice": "Faktiora",
+      "articles": "Entana",
+      "promo": "Fihenam-bidy",
+      "total": "Totaly"
     },
     "channel": {
       "filterLabel": "Sivanina araka ny fantsona",
@@ -547,7 +549,19 @@
       "send": "Handefa",
       "regenerate": "Hamorona indray",
       "credit": "Hamoaka avoir…",
-      "creditNote": "Tsy fafana ny faktiora efa navoaka : avoir misy antony no manafoana azy amin'ny ampahany na manontolo."
+      "creditNote": "Tsy fafana ny faktiora efa navoaka : avoir misy antony no manafoana azy amin'ny ampahany na manontolo.",
+      "open": "Hijery",
+      "pendingNumber": "Mbola hamoahina",
+      "previewNote": "Topimaso avy amin'ny varotra : ny faktiora misy laharana dia havoakan'ny môdiolin'ny faktiora."
+    },
+    "noSeller": "Tsy misy mpivarotra",
+    "filters": {
+      "date": "Andro"
+    },
+    "saleStatus": {
+      "VALIDATED": "Voamarina",
+      "CANCELLED": "Nofoanana",
+      "REVERSED": "Nofoanana tamin'ny avoir"
     }
   },
   "stocks": {
@@ -923,6 +937,9 @@
       "failedToast": "{{name}} : voasoratra ny tsy fahatontosana",
       "refusedToast": "{{name}} : tsy voaray ny fampidirana. {{message}}",
       "undo": "Foano",
+      "undoLast": "Foano ny asa momba an'i {{name}}",
+      "undoneToast": "{{name}} : nofoanana ny asa",
+      "undoRefusedToast": "{{name}} : tsy azo foanana. {{message}}",
       "failureTitle": "Tsy tontosa ny fanaterana · {{name}}",
       "reason": "Inona no nitranga ?",
       "note": "Fanamarihana ho an'ny fivarotana",

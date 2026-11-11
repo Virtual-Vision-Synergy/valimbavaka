@@ -494,7 +494,7 @@
   },
   "sales": {
     "title": "Ventes du jour",
-    "subtitle": "{{count}} ventes · {{amount}}",
+    "subtitle": "{{count}} ventes",
     "book": "Livre des ventes",
     "newSale": "Nouvelle vente",
     "listLabel": "Ventes de la journée",
@@ -505,8 +505,10 @@
       "channel": "Canal",
       "seller": "Vendeuse",
       "payment": "Règlement",
-      "amount": "Montant",
-      "invoice": "Facture"
+      "invoice": "Facture",
+      "articles": "Articles",
+      "promo": "Promo",
+      "total": "Total"
     },
     "channel": {
       "filterLabel": "Filtrer par canal",
@@ -547,7 +549,19 @@
       "send": "Envoyer",
       "regenerate": "Régénérer",
       "credit": "Émettre un avoir…",
-      "creditNote": "Une facture émise ne se supprime pas : un avoir motivé l'annule partiellement ou totalement."
+      "creditNote": "Une facture émise ne se supprime pas : un avoir motivé l'annule partiellement ou totalement.",
+      "open": "Voir",
+      "pendingNumber": "À émettre",
+      "previewNote": "Aperçu établi depuis la vente : la facture numérotée sera émise par le module de facturation."
+    },
+    "noSeller": "Sans vendeuse",
+    "filters": {
+      "date": "Jour"
+    },
+    "saleStatus": {
+      "VALIDATED": "Validée",
+      "CANCELLED": "Annulée",
+      "REVERSED": "Contre-passée"
     }
   },
   "stocks": {
@@ -923,6 +937,9 @@
       "failedToast": "{{name}} : échec enregistré",
       "refusedToast": "{{name}} : saisie refusée. {{message}}",
       "undo": "Annuler",
+      "undoLast": "Annuler l'action sur {{name}}",
+      "undoneToast": "{{name}} : action annulée",
+      "undoRefusedToast": "{{name}} : annulation refusée. {{message}}",
       "failureTitle": "Échec de livraison · {{name}}",
       "reason": "Que s'est-il passé ?",
       "note": "Note pour la boutique",

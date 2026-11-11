@@ -49,6 +49,8 @@ function order(
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
     saleId: null,
+    previousStatus: null,
+    updatedAt: '2026-11-09T05:32:00Z',
     version: 0,
   };
 }
@@ -88,6 +90,12 @@ describe('DriverRoundPage', () => {
     HTMLDialogElement.prototype.showModal = vi.fn();
     HTMLDialogElement.prototype.close = vi.fn();
   };
+
+  /** Le prototype est partagé entre les fichiers de test : les bouchons sont retirés après chaque test. */
+  afterEach(() => {
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
+    Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
+  });
 
   /** Ouvre la feuille « Échec » du prochain arrêt, choisit le motif, écrit le commentaire et valide. */
   /** Choisit le motif par son libellé visible, comme le livreur. */

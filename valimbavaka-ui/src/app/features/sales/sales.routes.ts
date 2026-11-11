@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Ventes et factures : données de démonstration tant que le module de vente backend n'existe pas. */
+/** Ventes du jour (VTE-07, API) ; « en construction » tant que factures (FAC-01) et livre des ventes manquent. */
 export const SALES_ROUTES: Routes = [
   {
     path: '',

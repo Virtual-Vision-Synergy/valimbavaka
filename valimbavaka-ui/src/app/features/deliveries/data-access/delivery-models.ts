@@ -70,6 +70,8 @@ export interface DeliveryRDto {
   readonly scheduledDate: string;
   readonly note: string | null;
   readonly failureReason: FailureReason | null;
+  /** Instant de la dernière modification côté serveur (ISO) ; sert au délai d'annulation (LIV-05). */
+  readonly changedAt: string;
 }
 
 /** Tableau de suivi d'un jour (LIV-01, LIV-06) : commandes annulées comprises, montrées par le filtre « Annulée ». */
@@ -129,6 +131,10 @@ export interface DeliveryOrderRDto {
   readonly createdBy: string | null;
   /** Vente (canal Livraison) créée quand la commande a été marquée livrée (LIV-03). */
   readonly saleId: string | null;
+  /** Statut avant la dernière action (livrée ou échec) : celui que l'annulation restaure (LIV-05). */
+  readonly previousStatus: DeliveryOrderStatus | null;
+  /** Dernière modification : début du délai pendant lequel la dernière action peut être annulée (LIV-05). */
+  readonly updatedAt: string;
   readonly version: number;
 }
 

@@ -1,35 +1,33 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { Printer } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Icon } from '../../../../shared/components/icon/icon';
-import { ListState } from '../../../../shared/components/list-state/list-state';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
-import { SalesService } from '../../data-access/sales-service';
+import { toInvoicePreview } from '../../data-access/sales-mapping';
+import { SaleSummaryRDto } from '../../data-access/sales-models';
 import { InvoiceDocument } from '../invoice-document/invoice-document';
 import { INVOICE_TONES } from '../invoice-tones';
 
-/** Panneau facture de la vente sélectionnée (FAC-01 à FAC-05) : aperçu papier et actions. */
+/**
+ * Panneau facture de la vente sélectionnée (accès facture, VTE-07) : aperçu papier construit depuis la vente tant
+ * que les factures ne sont pas émises par le serveur (FAC-01 à FAC-05), et actions.
+ */
 @Component({
   selector: 'vvs-invoice-panel',
-  imports: [TranslatePipe, Icon, ListState, StatusBadge, InvoiceDocument],
+  imports: [TranslatePipe, Icon, StatusBadge, InvoiceDocument],
   templateUrl: './invoice-panel.html',
   styleUrl: './invoice-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoicePanel {
-  private readonly salesService = inject(SalesService);
   private readonly toast = inject(ToastService);
 
   protected readonly icons = { Printer };
   protected readonly tones = INVOICE_TONES;
-  readonly saleNumber = input.required<string>();
+  readonly sale = input.required<SaleSummaryRDto>();
 
-  protected readonly invoice = rxResource({
-    params: () => this.saleNumber(),
-    stream: ({ params }) => this.salesService.invoice(params),
-  });
+  protected readonly invoice = computed(() => toInvoicePreview(this.sale()));
 
   protected print(): void {
     window.print();

@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.vvs.valimbavaka.core.exception.ConflictException;
+import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.day.domain.DayStatus;
 import org.vvs.valimbavaka.feature.day.dto.BusinessDayRDto;
 import org.vvs.valimbavaka.feature.day.service.BusinessDayService;
@@ -30,11 +32,13 @@ import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
 import org.vvs.valimbavaka.feature.sale.domain.PricedSaleLine;
 import org.vvs.valimbavaka.feature.sale.domain.Sale;
 import org.vvs.valimbavaka.feature.sale.domain.SaleCommand;
+import org.vvs.valimbavaka.feature.sale.domain.SaleHeader;
 import org.vvs.valimbavaka.feature.sale.dto.SaleChannelOptionRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleLineWDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleWDto;
 import org.vvs.valimbavaka.feature.sale.mapper.SaleMapper;
 import org.vvs.valimbavaka.feature.sale.repository.SaleRepository;
+import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
 @ExtendWith(MockitoExtension.class)
 class SaleServiceImplTest {
@@ -45,6 +49,7 @@ class SaleServiceImplTest {
     private static final UUID STORE = UUID.randomUUID();
     private static final UUID SELLER = UUID.randomUUID();
     private static final UUID SOAP = UUID.randomUUID();
+    private static final UUID SALE_ID = UUID.randomUUID();
 
     @Mock
     private SaleRepository saleRepository;
@@ -112,6 +117,62 @@ class SaleServiceImplTest {
         // Act + Assert
         assertThatThrownBy(() -> sut.record(command)).isInstanceOf(ConflictException.class);
         verifyNoInteractions(policy, saleRepository, ledger);
+    }
+
+    @Test
+    void cancel_saleOfTheOpenDay_cancelsItAndPutsTheStockBack() {
+        // Arrange
+        var sale = validatedSale(DAY);
+        when(saleRepository.findById(SALE_ID)).thenReturn(Optional.of(sale));
+        when(businessDayService.requireOpenDay()).thenReturn(openDay());
+
+        // Act
+        sut.cancel(SALE_ID, " erreur de saisie ");
+
+        // Assert
+        assertThat(sale.getStatus()).isEqualTo(OperationStatus.CANCELLED);
+        verify(ledger).unpost(sale, "erreur de saisie");
+    }
+
+    @Test
+    void cancel_saleOfAClosedDay_throwsConflictAndKeepsTheSale() {
+        // Arrange
+        var sale = validatedSale(UUID.randomUUID());
+        when(saleRepository.findById(SALE_ID)).thenReturn(Optional.of(sale));
+        when(businessDayService.requireOpenDay()).thenReturn(openDay());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.cancel(SALE_ID, "erreur")).isInstanceOf(ConflictException.class);
+        assertThat(sale.getStatus()).isEqualTo(OperationStatus.VALIDATED);
+        verifyNoInteractions(ledger);
+    }
+
+    @Test
+    void cancel_alreadyCancelledSale_throwsConflictAndMovesNoStock() {
+        // Arrange
+        var sale = validatedSale(DAY);
+        sale.cancel();
+        when(saleRepository.findById(SALE_ID)).thenReturn(Optional.of(sale));
+        when(businessDayService.requireOpenDay()).thenReturn(openDay());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.cancel(SALE_ID, "erreur")).isInstanceOf(ConflictException.class);
+        verifyNoInteractions(ledger);
+    }
+
+    @Test
+    void cancel_unknownSale_throwsNotFound() {
+        // Arrange
+        when(saleRepository.findById(SALE_ID)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.cancel(SALE_ID, "erreur")).isInstanceOf(NotFoundException.class);
+    }
+
+    private static Sale validatedSale(UUID businessDayId) {
+        var header = new SaleHeader(businessDayId, TODAY, CHANNEL, STORE, SELLER, PaymentMethod.ON_DELIVERY);
+        var line = new PricedSaleLine(SOAP, new BigDecimal("1"), new BigDecimal("8500"), null);
+        return Sale.record("VTE-0042", header, List.of(line));
     }
 
     private static BusinessDayRDto openDay() {

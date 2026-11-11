@@ -24,6 +24,7 @@ import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
 import org.vvs.valimbavaka.feature.sale.domain.PricedSaleLine;
 import org.vvs.valimbavaka.feature.sale.domain.Sale;
+import org.vvs.valimbavaka.feature.sale.domain.SaleCancelledEvent;
 import org.vvs.valimbavaka.feature.sale.domain.SaleHeader;
 import org.vvs.valimbavaka.feature.sale.domain.SaleRecordedEvent;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementCommand;
@@ -90,5 +91,41 @@ class SaleLedgerTest {
                         eq(sale.getId()),
                         eq("Vente VTE-0042 · Boutique · 2 article(s) · 37500.00 Ar · MVola"));
         verify(events).publishEvent(new SaleRecordedEvent(sale.getId(), "VTE-0042"));
+    }
+
+    @Test
+    void unpost_twoLines_putsTheStockBackInTheLocationTracesAndPublishes() {
+        // Arrange
+        var header = new SaleHeader(
+                UUID.randomUUID(),
+                LocalDate.of(2026, 11, 8),
+                UUID.randomUUID(),
+                STORE,
+                UUID.randomUUID(),
+                PaymentMethod.ON_DELIVERY);
+        var lines = List.of(
+                new PricedSaleLine(SOAP, new BigDecimal("3"), new BigDecimal("8500"), null),
+                new PricedSaleLine(OIL, new BigDecimal("1"), new BigDecimal("12000"), null));
+        var sale = Sale.record("VTE-0042", header, lines);
+
+        // Act
+        sut.unpost(sale, "annulation de la livraison LIV-0007");
+
+        // Assert
+        verify(stockMovementService).recordAll(movements.capture());
+        assertThat(movements.getValue())
+                .extracting(StockMovementCommand::articleId, StockMovementCommand::type)
+                .containsExactly(tuple(SOAP, StockMovementType.RETURN), tuple(OIL, StockMovementType.RETURN));
+        assertThat(movements.getValue())
+                .extracting(StockMovementCommand::locationId)
+                .containsOnly(STORE);
+        assertThat(movements.getValue().getFirst().quantity()).isEqualByComparingTo("3");
+        verify(journalService)
+                .record(
+                        eq(JournalAction.CANCEL),
+                        eq("SALE"),
+                        eq(sale.getId()),
+                        eq("Annulation de la vente VTE-0042 : annulation de la livraison LIV-0007"));
+        verify(events).publishEvent(new SaleCancelledEvent(sale.getId(), "VTE-0042"));
     }
 }

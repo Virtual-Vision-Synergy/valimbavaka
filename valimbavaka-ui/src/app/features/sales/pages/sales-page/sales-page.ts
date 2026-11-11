@@ -11,21 +11,35 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { Download, Plus } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ReferentialService } from '../../../referential/data-access/referential-service';
+import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
+import { Tone } from '../../../../shared/models/tone';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
-import { ChannelFilter, ChannelSummary } from '../../components/channel-summary/channel-summary';
 import { InvoicePanel } from '../../components/invoice-panel/invoice-panel';
-import { INVOICE_TONES } from '../../components/invoice-tones';
+import { localIsoDate, toSaleRow } from '../../data-access/sales-mapping';
+import { SaleStatus } from '../../data-access/sales-models';
 import { SalesService } from '../../data-access/sales-service';
 
 const PAGE_SIZE = 10;
+const ALL_CHANNELS = 'ALL';
 
-/** Ventes du jour (VTE-07 à VTE-09) et facture de la vente sélectionnée (FAC-01 à FAC-05). */
+/** Tonalité du badge d'une vente annulée ou contre-passée (une vente validée n'en affiche pas). */
+const STATUS_TONES: Readonly<Record<SaleStatus, Tone>> = {
+  VALIDATED: 'success',
+  CANCELLED: 'muted',
+  REVERSED: 'danger',
+};
+
+/**
+ * Ventes du jour (VTE-07) : liste paginée par le serveur, filtrée par jour et par canal, et facture de la vente
+ * sélectionnée. Une vendeuse ne voit que ses ventes (filtre imposé par le serveur), l'administrateur toutes.
+ */
 @Component({
   selector: 'vvs-sales-page',
   imports: [
@@ -34,10 +48,10 @@ const PAGE_SIZE = 10;
     AriaryPipe,
     Icon,
     PageHeader,
+    FilterChips,
     ListState,
     Pagination,
     StatusBadge,
-    ChannelSummary,
     InvoicePanel,
   ],
   templateUrl: './sales-page.html',
@@ -46,30 +60,52 @@ const PAGE_SIZE = 10;
 })
 export class SalesPage {
   private readonly salesService = inject(SalesService);
+  private readonly referentialService = inject(ReferentialService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
 
-  /** Paramètre `?sale=` : lien partageable vers une facture. */
+  /** Paramètre `?sale=` : lien partageable vers la facture d'une vente de la page. */
   readonly sale = input<string>();
 
   protected readonly icons = { Download, Plus };
-  protected readonly tones = INVOICE_TONES;
+  protected readonly tones = STATUS_TONES;
   protected readonly pageSize = PAGE_SIZE;
-  protected readonly day = rxResource({ stream: () => this.salesService.day() });
-  protected readonly channel = signal<ChannelFilter>('ALL');
-  protected readonly page = linkedSignal({ source: this.channel, computation: () => 1 });
-
-  protected readonly filtered = computed(() => {
-    const channel = this.channel();
-    const sales = this.day.value()?.sales ?? [];
-    return channel === 'ALL' ? sales : sales.filter((sale) => sale.channel === channel);
+  protected readonly date = signal(localIsoDate(new Date()));
+  protected readonly channel = signal(ALL_CHANNELS);
+  protected readonly page = linkedSignal({
+    source: () => [this.date(), this.channel()],
+    computation: () => 1,
   });
-  protected readonly rows = computed(() =>
-    this.filtered().slice((this.page() - 1) * PAGE_SIZE, this.page() * PAGE_SIZE),
+
+  private readonly channels = rxResource({
+    stream: () => this.referentialService.listSalesChannels(),
+  });
+  protected readonly channelOptions = computed<readonly ChipOption<string>[]>(() => [
+    { value: ALL_CHANNELS, labelKey: 'sales.channel.ALL' },
+    ...(this.channels.value() ?? []).map((channel) => ({
+      value: channel.id,
+      label: channel.label,
+    })),
+  ]);
+
+  protected readonly sales = rxResource({
+    params: () => ({
+      page: this.page(),
+      size: PAGE_SIZE,
+      date: this.date() || undefined,
+      salesChannelId: this.channel() === ALL_CHANNELS ? undefined : this.channel(),
+    }),
+    stream: ({ params }) => this.salesService.list(params),
+  });
+  protected readonly rows = computed(() => (this.sales.value()?.items ?? []).map(toSaleRow));
+  protected readonly selected = linkedSignal(() => this.sale() ?? null);
+  protected readonly selectedSale = computed(() =>
+    this.sales.value()?.items.find((sale) => sale.number === this.selected()),
   );
-  protected readonly selected = linkedSignal(
-    () => this.sale() ?? this.day.value()?.sales.at(1)?.number ?? null,
-  );
+
+  protected onDateChange(event: Event): void {
+    this.date.set((event.target as HTMLInputElement).value);
+  }
 
   protected select(number: string): void {
     this.selected.set(number);
