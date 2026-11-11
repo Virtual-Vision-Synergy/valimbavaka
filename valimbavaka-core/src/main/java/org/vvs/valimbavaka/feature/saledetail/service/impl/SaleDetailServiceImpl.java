@@ -130,7 +130,9 @@ public class SaleDetailServiceImpl implements SaleDetailService {
         var ids = lines.stream().map(SaleLineRDto::articleId).collect(Collectors.toSet());
         var articles = articleService.getArticlesByIds(ids).stream()
                 .collect(Collectors.toMap(ArticleRDto::id, Function.identity()));
-        return lines.stream().map(line -> toLineRDto(line, articles.get(line.articleId()))).toList();
+        return lines.stream()
+                .map(line -> toLineRDto(line, articles.get(line.articleId())))
+                .toList();
     }
 
     private static SaleDetailLineRDto toLineRDto(SaleLineRDto line, @Nullable ArticleRDto article) {
@@ -144,7 +146,10 @@ public class SaleDetailServiceImpl implements SaleDetailService {
     }
 
     private @Nullable SaleDetailInvoiceRDto invoice(UUID saleId) {
-        return invoiceService.findInvoiceBySaleId(saleId).map(SaleDetailServiceImpl::toInvoiceRDto).orElse(null);
+        return invoiceService
+                .findInvoiceBySaleId(saleId)
+                .map(SaleDetailServiceImpl::toInvoiceRDto)
+                .orElse(null);
     }
 
     private static SaleDetailInvoiceRDto toInvoiceRDto(InvoiceRDto invoice) {
@@ -160,7 +165,9 @@ public class SaleDetailServiceImpl implements SaleDetailService {
 
     private SaleDetailCommissionRDto toCommissionRDto(CommissionRDto commission) {
         var ruleId = commission.ruleId();
-        var ruleName = ruleId == null ? null : commissionRuleService.getRuleById(ruleId).name();
+        var ruleName = ruleId == null
+                ? null
+                : commissionRuleService.getRuleById(ruleId).name();
         return new SaleDetailCommissionRDto(
                 commission.id(),
                 commission.revenue(),
