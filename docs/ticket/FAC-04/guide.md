@@ -1,6 +1,6 @@
 # Guide d'intégration — FAC-04 · Émission d'un avoir motivé
 
-Statut : ☐ implémenté, tests à lancer (CI) · Ticket : [#74](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/74) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ implémenté, CI verte · Ticket : [#74](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/74) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -59,4 +59,4 @@ L'administrateur contre-passe une facture émise par un avoir motivé (`AV-<ann�
 - Hypothèse : le motif d'un avoir automatique (annulation de livraison) est « Annulation de la vente VTE-… ».
 - Les ventes annulées à chaud avant FAC-04 dont la facture reste `VALIDATED` : l'administrateur peut émettre leur avoir ; le stock n'est pas rendu une seconde fois.
 - Journée de la vente clôturée : 409, rien n'est émis.
-- Les tests n'ont pas été lancés en local ; résultat CI à reporter dans le scénario.
+- CI verte sur 72a8d47 (backend 807 tests, Qodana 0 annotation) ; aucun test lancé en local.
