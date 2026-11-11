@@ -70,4 +70,16 @@ describe('InvoiceService', () => {
     expect(request.request.method).toBe('GET');
     request.flush(INVOICE);
   });
+
+  it("télécharge le PDF d'une facture en blob par un GET", () => {
+    let received: Blob | undefined;
+    service.downloadPdf('facture-1').subscribe((file) => (received = file));
+
+    const request = httpMock.expectOne('/api/v1/invoices/facture-1/pdf');
+    expect(request.request.method).toBe('GET');
+    expect(request.request.responseType).toBe('blob');
+    request.flush(new Blob(['%PDF'], { type: 'application/pdf' }));
+
+    expect(received?.type).toBe('application/pdf');
+  });
 });
