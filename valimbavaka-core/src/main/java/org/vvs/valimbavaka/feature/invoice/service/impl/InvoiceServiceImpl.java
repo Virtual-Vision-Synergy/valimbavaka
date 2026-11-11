@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.invoice.service.impl;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -107,6 +108,11 @@ public class InvoiceServiceImpl implements InvoiceService {
                 .findBySaleId(saleId)
                 .orElseThrow(() -> new NotFoundException("Facture introuvable pour la vente : " + saleId));
         return invoiceMapper.toRDto(readable(invoice));
+    }
+
+    @Override
+    public Optional<InvoiceRDto> findInvoiceBySaleId(UUID saleId) {
+        return invoiceRepository.findBySaleId(saleId).map(invoice -> invoiceMapper.toRDto(readable(invoice)));
     }
 
     /** An active seller only reads the invoices of the sales credited to her (as for the sales list, VTE-07). */

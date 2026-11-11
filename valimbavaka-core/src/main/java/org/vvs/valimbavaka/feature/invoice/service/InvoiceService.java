@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.invoice.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.invoice.dto.InvoiceRDto;
@@ -31,4 +32,10 @@ public interface InvoiceService {
 
     /** The invoice of a sale (same 404 rules as {@link #getInvoiceById}). */
     InvoiceRDto getInvoiceBySaleId(UUID saleId);
+
+    /**
+     * The invoice of a sale, empty if none was issued (VTE-09); an active seller who asks for the invoice of another
+     * seller's sale gets 404, as for {@link #getInvoiceById}.
+     */
+    Optional<InvoiceRDto> findInvoiceBySaleId(UUID saleId);
 }

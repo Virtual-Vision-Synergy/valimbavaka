@@ -43,4 +43,12 @@ describe('SalesService', () => {
     expect(request.request.params.has('salesChannelId')).toBe(false);
     request.flush(EMPTY_PAGE);
   });
+
+  it("lit le détail d'une vente par son identifiant", () => {
+    service.detail('vente-42').subscribe();
+
+    const request = httpMock.expectOne(`${SALES_URL}/vente-42/detail`);
+    expect(request.request.method).toBe('GET');
+    request.flush({ id: 'vente-42' });
+  });
 });
