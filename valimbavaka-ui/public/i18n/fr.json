@@ -593,6 +593,17 @@
       "pendingNumber": "À émettre",
       "previewNote": "Aucune facture n'a été émise pour cette vente (vente antérieure à la facturation automatique) : aperçu établi depuis la vente."
     },
+    "credit": {
+      "title": "Avoir de la facture {{number}}",
+      "intro": "L'avoir contre-passe la facture, annule la vente et remet les articles en stock. Cette action est définitive.",
+      "reason": "Motif de l'avoir",
+      "reasonHint": "Obligatoire, {{max}} caractères au plus.",
+      "reasonInvalid": "Saisissez un motif de {{max}} caractères au plus.",
+      "confirm": "Émettre l'avoir",
+      "issued": "Avoir {{number}} émis : la vente est annulée et les articles sont remis en stock.",
+      "noticeTitle": "Avoir {{number}} du {{date}}",
+      "noticeReason": "Motif : {{reason}}"
+    },
     "noSeller": "Sans vendeuse",
     "filters": {
       "date": "Jour"
