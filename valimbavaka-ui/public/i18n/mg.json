@@ -566,6 +566,8 @@
       "pdf": "PDF",
       "send": "Handefa",
       "regenerate": "Hamorona indray",
+      "regenerated": "Faktiora {{number}} noforonina indray : isa mitovy, votoaty mitovy.",
+      "regenerateFailed": "Tsy afaka nanamboatra indray : {{message}}",
       "credit": "Hamoaka avoir…",
       "creditNote": "Tsy fafana ny faktiora efa navoaka : avoir misy antony no manafoana azy amin'ny ampahany na manontolo.",
       "open": "Hijery",

@@ -51,6 +51,18 @@ describe('InvoiceService', () => {
     expect(received?.number).toBe('FAC-2026-0042');
   });
 
+  it("régénère la facture d'une vente par un POST sans corps", () => {
+    let received: InvoiceRDto | undefined;
+    service.regenerate('vente-42').subscribe((invoice) => (received = invoice));
+
+    const request = httpMock.expectOne('/api/v1/invoices/sales/vente-42/regenerate');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeNull();
+    request.flush(INVOICE);
+
+    expect(received?.number).toBe('FAC-2026-0042');
+  });
+
   it('lit une facture par son identifiant', () => {
     service.getById('facture-1').subscribe();
 
