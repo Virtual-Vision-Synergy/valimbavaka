@@ -25,6 +25,7 @@ import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,12 @@ class CommissionExportIT extends StockApiTestSupport {
     private String sellerToken;
 
     /** A sale needs today's day opened (JR-01); another test class may have removed it. */
+    /** Les canaux de ces tests sont désactivés : la vente ne lit que les 100 premiers canaux actifs. */
+    @AfterEach
+    void deactivateTestChannels() {
+        jdbcTemplate.update("update sales_channels set is_active = false where code like 'IT-%'");
+    }
+
     @BeforeEach
     void openTodayWithAChannelAndTwoSellers() throws Exception {
         var status = mockMvc.perform(post("/api/v1/days")
