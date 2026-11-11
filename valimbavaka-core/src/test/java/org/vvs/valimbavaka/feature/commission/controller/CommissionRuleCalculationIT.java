@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -67,6 +68,12 @@ class CommissionRuleCalculationIT {
 
     @Autowired
     private CommissionRateResolver sut;
+
+    /** Les canaux de ces tests sont désactivés : la vente ne lit que les 100 premiers canaux actifs. */
+    @AfterEach
+    void deactivateTestChannels() {
+        jdbcTemplate.update("update sales_channels set is_active = false where code like 'IT-%'");
+    }
 
     @Test
     void createRule_byAdmin_isStoredAndAppliedWithItsRateAndBase() throws Exception {

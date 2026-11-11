@@ -174,6 +174,73 @@ class CommissionTest {
         assertThat(sut.getRateSource()).isEqualTo(CommissionRateSource.NONE);
     }
 
+    @Test
+    void recalculate_newRate_appliesItToTheSameRevenueAndReportsTheChange() {
+        // Arrange : 25 500 Ar à 4 % = 1 020 Ar, puis le taux de la vendeuse passe à 5 %
+        var sut = Commission.calculate(
+                sale("25500.00", null),
+                "Miora Rakoto",
+                terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID));
+
+        // Act
+        var changed = sut.recalculate(null, terms("5", CommissionBase.REVENUE, CommissionRateSource.SELLER, null));
+
+        // Assert : 25 500 × 5 % = 1 275 Ar, l'origine du taux suit, la règle de canal n'est plus citée
+        assertThat(changed).isTrue();
+        assertThat(sut.getAmount()).isEqualTo(new BigDecimal("1275.00"));
+        assertThat(sut.getRate()).isEqualTo(new BigDecimal("5.00"));
+        assertThat(sut.getRateSource()).isEqualTo(CommissionRateSource.SELLER);
+        assertThat(sut.getRuleId()).isNull();
+        assertThat(sut.getRevenue()).isEqualTo(new BigDecimal("25500.00"));
+        assertThat(sut.getStatus()).isEqualTo(CommissionStatus.CALCULATED);
+    }
+
+    @Test
+    void recalculate_sameTerms_changesNothing() {
+        // Arrange
+        var terms = terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var sut = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+
+        // Act
+        var changed = sut.recalculate(null, terms);
+
+        // Assert
+        assertThat(changed).isFalse();
+        assertThat(sut.getAmount()).isEqualTo(new BigDecimal("1020.00"));
+    }
+
+    @Test
+    void recalculate_marginRule_usesThePurchaseCostGivenAgain() {
+        // Arrange : revenu 25 500, coût 20 000 : marge 5 500 × 10 % = 550 Ar
+        var margin = terms("10", CommissionBase.MARGIN, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var sut = Commission.calculate(sale("25500.00", "20000.00"), "Miora Rakoto", margin);
+
+        // Act : le coût d'achat réel est relu à 22 000
+        var changed = sut.recalculate(new BigDecimal("22000.00"), margin);
+
+        // Assert : 3 500 × 10 % = 350 Ar
+        assertThat(changed).isTrue();
+        assertThat(sut.getBaseAmount()).isEqualTo(new BigDecimal("3500.00"));
+        assertThat(sut.getAmount()).isEqualTo(new BigDecimal("350.00"));
+    }
+
+    @Test
+    void recalculate_validatedOrCancelledCommission_throwsAndKeepsItsAmount() {
+        // Arrange
+        var terms = terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var other = terms("9", CommissionBase.REVENUE, CommissionRateSource.SELLER, null);
+        var validated = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        validated.validate(Instant.parse("2026-11-11T08:00:00Z"));
+        var cancelled = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        cancelled.cancel();
+
+        // Act + Assert
+        assertThatThrownBy(() -> validated.recalculate(null, other)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> cancelled.recalculate(null, other)).isInstanceOf(IllegalStateException.class);
+        assertThat(validated.getAmount()).isEqualTo(new BigDecimal("1020.00"));
+        assertThat(cancelled.getAmount()).isEqualTo(new BigDecimal("1020.00"));
+    }
+
     private static CommissionTerms terms(
             String rate, CommissionBase base, CommissionRateSource source, @Nullable UUID ruleId) {
         return new CommissionTerms(new BigDecimal(rate), base, source, ruleId);

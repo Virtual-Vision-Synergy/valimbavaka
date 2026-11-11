@@ -1,4 +1,4 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpHeaders, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -6,6 +6,7 @@ import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { PageResponse } from '../../../../shared/models/page-response';
 import { CommissionFollowUpRDto, CommissionRDto } from '../../data-access/commission-models';
 import { CommissionsPage } from './commissions-page';
@@ -202,5 +203,74 @@ describe('CommissionsPage', () => {
     const lines = httpMock.expectOne(isLines);
     expect(lines.request.params.get('sellerId')).toBe('u1');
     lines.flush(pageOf([]));
+  });
+
+  describe('export du relevé (COM-05)', () => {
+    let anchorClick: ReturnType<typeof vi.spyOn>;
+    const exportButtons = (): NodeListOf<HTMLButtonElement> =>
+      element.querySelectorAll<HTMLButtonElement>('.export-actions button');
+    const isExport = (req: { url: string }): boolean => req.url === `${LINES_URL}/export`;
+
+    beforeEach(() => {
+      URL.createObjectURL = vi.fn(() => 'blob:export');
+      URL.revokeObjectURL = vi.fn();
+      anchorClick = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+    });
+
+    afterEach(() => anchorClick.mockRestore());
+
+    it('should download the xlsx of the month without naming any seller, then confirm it', async () => {
+      await open('SELLER', 'u-other');
+      await answer(followUp());
+
+      exportButtons()[0].click();
+
+      const request = httpMock.expectOne(isExport);
+      expect(request.request.params.get('month')).toMatch(/^\d{4}-\d{2}$/);
+      expect(request.request.params.has('sellerId')).toBe(false);
+      request.flush(new Blob(['xlsx']), {
+        headers: new HttpHeaders({
+          'Content-Disposition': 'attachment; filename="releve-commissions.xlsx"',
+        }),
+      });
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+      expect(TestBed.inject(ToastService).toasts()).toEqual([
+        expect.objectContaining({
+          messageKey: 'export.done',
+          params: { filename: 'releve-commissions.xlsx' },
+        }),
+      ]);
+    });
+
+    it('should export the seller and the month chosen by the administrator, as PDF too', async () => {
+      await open('ADMIN', 'u1');
+      await answer(followUp());
+
+      exportButtons()[1].click();
+
+      const request = httpMock.expectOne((req) => req.url === `${LINES_URL}/export/pdf`);
+      expect(request.request.params.get('sellerId')).toBe('u1');
+      request.flush(new Blob(['%PDF']));
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+    });
+
+    it('should tell the user when the export is refused and let her try again', async () => {
+      await open('SELLER');
+      await answer(followUp());
+
+      exportButtons()[0].click();
+      httpMock
+        .expectOne(isExport)
+        .flush(new Blob(['{}']), { status: 403, statusText: 'Forbidden' });
+      fixture.detectChanges();
+
+      expect(anchorClick).not.toHaveBeenCalled();
+      expect(TestBed.inject(ToastService).toasts()).toEqual([
+        expect.objectContaining({ messageKey: 'export.forbidden', tone: 'danger' }),
+      ]);
+      expect(exportButtons()[0].disabled).toBe(false);
+    });
   });
 });
