@@ -1184,6 +1184,13 @@
       "footer": "Entana {{count}} · {{clean}} tsy misy elanelana",
       "onlyGaps": "Ny elanelana ihany",
       "showAll": "Ny entana rehetra",
+      "count": {
+        "title": "Isaina ho an'ny hariva",
+        "save": "Tahiry ny isa",
+        "saved": "Voatahiry ny isa ({{count}} andalana)",
+        "missing": "{{count}} elanelana tsy misy antony : mifidiana antony vao afaka mitahiry.",
+        "ready": "Ny elanelana rehetra dia misy antony : azo tahirina ny isa."
+      },
       "cash": {
         "title": "Kesy {{location}}",
         "expected": "Vola andrasana",

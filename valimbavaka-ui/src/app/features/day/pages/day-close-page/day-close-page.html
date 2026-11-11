@@ -200,6 +200,28 @@
           </section>
         }
 
+        <section class="card pad count" aria-labelledby="count-title">
+          <h2 id="count-title" class="caption">{{ 'day.close.count.title' | translate }}</h2>
+          <p id="count-hint" class="hint">
+            {{
+              (state.missingReasons() ? 'day.close.count.missing' : 'day.close.count.ready')
+                | translate: { count: state.missingReasons() }
+            }}
+          </p>
+          <button
+            class="btn btn-secondary btn-block"
+            type="button"
+            [disabled]="!canSave()"
+            aria-describedby="count-hint"
+            (click)="saveCounts()"
+          >
+            {{ 'day.close.count.save' | translate }}
+          </button>
+          @if (saveError(); as message) {
+            <p class="count-error" role="alert">{{ message }}</p>
+          }
+        </section>
+
         <section class="card pad lock" [class.done]="!!lockedAt()" aria-labelledby="lock-title">
           <p id="lock-title" class="lock-text">
             <svg [vvsIcon]="icons.Lock" [size]="20"></svg>

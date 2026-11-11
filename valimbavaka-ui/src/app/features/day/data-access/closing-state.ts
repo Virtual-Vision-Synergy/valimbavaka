@@ -2,6 +2,7 @@ import { Injectable, computed, linkedSignal, signal } from '@angular/core';
 import {
   ClosingLine,
   DayClosing,
+  DayClosingCountsWDto,
   DayLockWDto,
   DiscrepancyReason,
   DispatchDestination,
@@ -11,6 +12,7 @@ import {
 export interface ClosingRow {
   readonly key: string;
   readonly location: DispatchDestination;
+  readonly locationId: string;
   readonly line: ClosingLine;
   readonly theoretical: number;
   readonly counted: number;
@@ -41,7 +43,7 @@ export class ClosingState {
   readonly lateShootings = linkedSignal(() => this.data()?.checklist.lateShootings ?? 0);
 
   readonly rows = computed<readonly ClosingRow[]>(() =>
-    (this.data()?.locations ?? []).flatMap(({ location, lines }) =>
+    (this.data()?.locations ?? []).flatMap(({ location, locationId, lines }) =>
       lines.map((line) => {
         const key = keyOf(location, line);
         const counted = this.counts()[key] ?? line.counted;
@@ -50,6 +52,7 @@ export class ClosingState {
         return {
           key,
           location,
+          locationId,
           line,
           theoretical: expected,
           counted,
@@ -75,6 +78,18 @@ export class ClosingState {
   setCash(location: DispatchDestination, raw: string): void {
     const value = Math.max(0, Math.round(Number(raw.replace(/\s/g, '')) || 0));
     this.cash.update((all) => ({ ...all, [location]: value }));
+  }
+
+  /** Comptage de toutes les lignes ; le motif n'est envoyé que s'il y a un écart (le serveur l'exige alors). */
+  toCountsRequest(): DayClosingCountsWDto {
+    return {
+      counts: this.rows().map((row) => ({
+        locationId: row.locationId,
+        articleId: row.line.articleId,
+        counted: row.counted,
+        reason: row.gap === 0 ? null : row.reason,
+      })),
+    };
   }
 
   toRequest(date: string): DayLockWDto {
