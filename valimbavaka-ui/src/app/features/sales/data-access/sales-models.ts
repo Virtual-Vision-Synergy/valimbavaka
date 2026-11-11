@@ -1,4 +1,4 @@
-import { PaymentMethod, SaleChannel } from '../../../shared/models/commerce';
+import { PaymentMethod } from '../../../shared/models/commerce';
 import { PageQuery } from '../../../shared/models/page-response';
 
 /** Statut d'une vente (miroir de `OperationStatus` backend) : une vente ne se supprime jamais (JNL-02). */
@@ -60,21 +60,6 @@ export interface SaleRowRDto {
 
 /** Statut de facturation d'une vente (miroir de l'énumération backend InvoiceStatus, FAC-01). */
 export type InvoiceStatus = 'PAID' | 'SENT' | 'PENDING' | 'CREDITED';
-
-/** Totaux d'un canal pour la journée (maquette VTE-08, pas encore servie par l'API). */
-export interface ChannelTotalRDto {
-  readonly channel: SaleChannel;
-  readonly amount: number;
-  readonly count: number;
-}
-
-/** Totaux de la journée par canal (maquette VTE-08, pas encore servie par l'API). */
-export interface SalesDayRDto {
-  readonly date: string;
-  readonly total: number;
-  readonly count: number;
-  readonly byChannel: readonly ChannelTotalRDto[];
-}
 
 /** Ligne d'une facture émise (miroir de `InvoiceLineRDto`) : nom de l'article et prix tels qu'à l'émission. */
 export interface InvoiceLineRDto {
