@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -100,35 +99,36 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     @Override
     public BusinessDayRDto requireOpenDay() {
         var date = policy.today();
-        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDate(date)));
+        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDate(date).orElse(null)));
     }
 
     @Override
     @Transactional
     public BusinessDayRDto lockOpenDay() {
         var date = policy.today();
-        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDateForUpdate(date)));
+        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDateForUpdate(date).orElse(null)));
     }
 
     @Override
     @Transactional
     public BusinessDayRDto closeDay() {
         var date = policy.today();
-        var day = requireOpen(date, dayRepository.findByBusinessDateForUpdate(date));
+        var day = requireOpen(date, dayRepository.findByBusinessDateForUpdate(date).orElse(null));
         day.close();
         var saved = dayRepository.saveAndFlush(day);
         log.info("Journée du {} clôturée", date);
         return dayMapper.toRDto(saved);
     }
 
-    /** The day found for the date, if it is open; 409 when it is missing or already closed. */
-    private static BusinessDay requireOpen(LocalDate date, Optional<BusinessDay> found) {
-        var day = found.orElseThrow(
-                () -> new ConflictException("La journée du %s n'est pas ouverte.".formatted(format(date))));
-        if (!day.isOpen()) {
+    /** The day found for the date ({@code null} if none), if it is open; 409 when it is missing or already closed. */
+    private static BusinessDay requireOpen(LocalDate date, @Nullable BusinessDay found) {
+        if (found == null) {
+            throw new ConflictException("La journée du %s n'est pas ouverte.".formatted(format(date)));
+        }
+        if (!found.isOpen()) {
             throw new ConflictException("La journée du %s est déjà clôturée.".formatted(format(date)));
         }
-        return day;
+        return found;
     }
 
     private static TransferCommand morningTransfer(

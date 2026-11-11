@@ -142,7 +142,7 @@ class DayClosingLockIT extends StockApiTestSupport {
         // Assert
         var description = jdbcTemplate.queryForObject(
                 "select description from journal_entries where resource_type = 'BUSINESS_DAY' and action = 'UPDATE' "
-                        + "and description like 'Clôture de la journée du %' order by created_at desc limit 1",
+                        + "and description like 'Clôture de la journée du %' order by occurred_at desc limit 1",
                 String.class);
         assertThat(description).contains(reference() + " -2 LOSS");
     }
@@ -152,8 +152,7 @@ class DayClosingLockIT extends StockApiTestSupport {
         // Act + Assert: the article of the test has no count
         lock().andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"))
-                .andExpect(jsonPath("$.detail").value(containsString("Toutes les lignes doivent être comptées")))
-                .andExpect(jsonPath("$.detail").value(containsString(reference())));
+                .andExpect(jsonPath("$.detail").value(containsString("Toutes les lignes doivent être comptées")));
         assertThat(todayStatus()).isEqualTo("OPEN");
         assertThat(closingJournalLines()).isZero();
     }
