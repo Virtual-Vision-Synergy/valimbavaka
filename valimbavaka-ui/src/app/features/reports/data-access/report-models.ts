@@ -1,14 +1,37 @@
 import { ProductRange } from '../../../shared/models/tone';
-import { SaleChannel } from '../../../shared/models/commerce';
 
-export type ReportPeriod = 'DAY' | 'MONTH' | 'YEAR';
+/** Durée de la période d'un rapport (RPT-01) : le jour, le mois ou l'année civile qui contient la date. */
+export type ReportGranularity = 'DAY' | 'MONTH' | 'YEAR';
 
-/** Filtres du rapport (RPT-01) : `ALL` = pas de restriction. */
-export interface ReportFilterWDto {
-  readonly period: ReportPeriod;
-  readonly channel: SaleChannel | 'ALL';
-  readonly range: ProductRange | 'ALL';
-  readonly seller: string;
+/** Paramètres de `GET /api/v1/reports` (RPT-01) : tout est facultatif (mois en cours, tous canaux, toutes gammes). */
+export interface ReportQuery {
+  readonly granularity?: ReportGranularity;
+  /** Un jour de la période, `yyyy-MM-dd` (aujourd'hui par défaut). */
+  readonly date?: string;
+  readonly salesChannelId?: string;
+  readonly rangeId?: string;
+}
+
+/** Indicateurs de ventes d'une période (RPT-01) : CA, ventes validées et panier moyen. */
+export interface ReportSalesRDto {
+  readonly revenue: number;
+  readonly salesCount: number;
+  readonly averageBasket: number;
+}
+
+/** Rapport d'une période (RPT-01) : période effective `[from, to]`, filtres appliqués et indicateurs de ventes. */
+export interface ReportRDto {
+  readonly granularity: ReportGranularity;
+  readonly from: string;
+  readonly to: string;
+  readonly salesChannelId: string | null;
+  readonly rangeId: string | null;
+  readonly sales: ReportSalesRDto;
+}
+
+/** Filtre de la démonstration des sections RPT-02 à RPT-05, branchées une à une par leurs tickets. */
+export interface ReportDemoFilter {
+  readonly granularity: ReportGranularity;
 }
 
 export interface ReportKpiRDto {
@@ -44,7 +67,8 @@ export interface ReportTopArticleRDto {
   readonly revenue: number;
 }
 
-export interface ReportRDto {
+/** Sections de démonstration (RPT-02 à RPT-05) : remplacées par l'API ticket par ticket. */
+export interface ReportDemoRDto {
   readonly kpis: ReportKpisRDto;
   readonly points: readonly ReportPointRDto[];
   readonly ranges: readonly ReportRangeRDto[];

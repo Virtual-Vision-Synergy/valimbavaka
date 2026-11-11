@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Rapports : données de démonstration tant que le module backend n'existe pas. */
+/** Rapports : synthèse réelle (RPT-01) ; les autres sections restent en démonstration jusqu'à RPT-02 à RPT-05. */
 export const REPORTS_ROUTES: Routes = [
   {
     path: '',

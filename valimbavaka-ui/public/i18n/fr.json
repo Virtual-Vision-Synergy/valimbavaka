@@ -1872,12 +1872,15 @@
       "MONTH": "Mois",
       "YEAR": "Année"
     },
+    "date": "Date de référence",
+    "summary": {
+      "title": "Synthèse de la période",
+      "period": "Du {{from}} au {{to}}"
+    },
     "channel": "Canal",
     "allChannels": "Tous les canaux",
     "range": "Gamme",
     "allRanges": "Toutes les gammes",
-    "seller": "Vendeuse",
-    "allSellers": "Toutes les vendeuses",
     "reset": "Réinitialiser",
     "kpis": "Indicateurs",
     "kpi": {

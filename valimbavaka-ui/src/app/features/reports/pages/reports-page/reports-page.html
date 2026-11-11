@@ -22,41 +22,43 @@
     <vvs-segmented-control
       [label]="'reports.periodLabel' | translate"
       [options]="periods"
-      [value]="period()"
-      (valueChange)="setPeriod($event)"
+      [value]="granularity()"
+      (valueChange)="setGranularity($event)"
     />
     <label class="field">
+      <span>{{ 'reports.date' | translate }}</span>
+      <input
+        #date
+        class="input"
+        type="date"
+        [value]="filter().date"
+        [max]="today"
+        (change)="setDate(date.value)"
+      />
+    </label>
+    <label class="field">
       <span>{{ 'reports.channel' | translate }}</span>
-      <select #channel class="input" (change)="setFilter('channel', channel.value)">
-        <option value="ALL" [selected]="filter().channel === 'ALL'">
+      <select #channel class="input" (change)="setFilter('salesChannelId', channel.value)">
+        <option value="" [selected]="filter().salesChannelId === ''">
           {{ 'reports.allChannels' | translate }}
         </option>
-        @for (item of channels; track item) {
-          <option [value]="item" [selected]="filter().channel === item">
-            {{ 'sales.channel.' + item | translate }}
+        @for (item of channels.value() ?? []; track item.id) {
+          <option [value]="item.id" [selected]="filter().salesChannelId === item.id">
+            {{ item.label }}
           </option>
         }
       </select>
     </label>
     <label class="field">
       <span>{{ 'reports.range' | translate }}</span>
-      <select #range class="input" (change)="setFilter('range', range.value)">
-        <option value="ALL" [selected]="filter().range === 'ALL'">
+      <select #range class="input" (change)="setFilter('rangeId', range.value)">
+        <option value="" [selected]="filter().rangeId === ''">
           {{ 'reports.allRanges' | translate }}
         </option>
-        @for (item of ranges; track item) {
-          <option [value]="item" [selected]="filter().range === item">{{ item }}</option>
-        }
-      </select>
-    </label>
-    <label class="field">
-      <span>{{ 'reports.seller' | translate }}</span>
-      <select #seller class="input" (change)="setFilter('seller', seller.value)">
-        <option value="ALL" [selected]="filter().seller === 'ALL'">
-          {{ 'reports.allSellers' | translate }}
-        </option>
-        @for (item of sellers; track item) {
-          <option [value]="item" [selected]="filter().seller === item">{{ item }}</option>
+        @for (item of ranges.value() ?? []; track item.id) {
+          <option [value]="item.id" [selected]="filter().rangeId === item.id">
+            {{ item.label }}
+          </option>
         }
       </select>
     </label>
@@ -64,6 +66,44 @@
       {{ 'reports.reset' | translate }}
     </button>
   </form>
+
+  <section class="summary" aria-labelledby="summary-title" aria-live="polite">
+    <h2 id="summary-title">
+      {{ 'reports.summary.title' | translate }}
+      <span class="code-chip" aria-hidden="true">RPT-01</span>
+    </h2>
+    @if (summary.value(); as data) {
+      <p class="muted">
+        {{ 'reports.summary.period' | translate: { from: data.from, to: data.to } }}
+      </p>
+      <ul class="kpis" [attr.aria-label]="'reports.summary.title' | translate">
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.revenue' | translate"
+            [value]="data.sales.revenue | ariary: 'plain'"
+            unit="Ar"
+          />
+        </li>
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.sales' | translate"
+            [value]="data.sales.salesCount.toString()"
+          />
+        </li>
+        <li>
+          <vvs-kpi-card
+            [label]="'reports.kpi.basket' | translate"
+            [value]="data.sales.averageBasket | ariary: 'plain'"
+            unit="Ar"
+          />
+        </li>
+      </ul>
+    } @else if (summary.error()) {
+      <div class="card"><vvs-list-state kind="error" (retry)="summary.reload()" /></div>
+    } @else {
+      <div class="card"><vvs-list-state kind="loading" [rows]="2" /></div>
+    }
+  </section>
 
   <div aria-live="polite">
     @if (report.value(); as data) {

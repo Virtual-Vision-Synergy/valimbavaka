@@ -1,4 +1,4 @@
-import { ReportPointRDto, ReportRDto } from './report-models';
+import { ReportDemoRDto, ReportPointRDto } from './report-models';
 
 /** Chiffre d'affaires d'un jour de démonstration : creux en début de semaine, pic le week-end. */
 function dayRevenue(day: number, seed: number): number {
@@ -15,7 +15,7 @@ function points(count: number, todayIndex: number): readonly ReportPointRDto[] {
   }));
 }
 
-export const REPORT_FIXTURE: ReportRDto = {
+export const REPORT_FIXTURE: ReportDemoRDto = {
   kpis: {
     revenue: { value: 24_600_000, previous: 21_540_000 },
     sales: { value: 912, previous: 844 },
@@ -36,5 +36,3 @@ export const REPORT_FIXTURE: ReportRDto = {
     { name: 'Baume lèvres miel 15 g', units: 88, revenue: 400_000 },
   ],
 };
-
-export const REPORT_SELLERS: readonly string[] = ['Miora Andriamasy', 'Lova Rakoto', 'Fara Razafy'];
