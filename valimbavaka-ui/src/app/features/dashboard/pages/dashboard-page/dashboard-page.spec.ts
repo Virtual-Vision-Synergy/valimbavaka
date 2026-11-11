@@ -196,7 +196,9 @@ describe('DashboardPage', () => {
     const card = element.querySelector('vvs-revenue-chart-card');
     expect(card?.querySelectorAll('.column')).toHaveLength(7);
     expect(card?.querySelector('.column.highlight .label')?.textContent).toContain('Aujourd');
-    const tips = Array.from(card?.querySelectorAll('.tip') ?? []).map((tip) => tip.textContent);
+    const tips = Array.from(card?.querySelectorAll('.tip') ?? []).map((tip) =>
+      (tip.textContent ?? '').replace(/[\u202f\u00a0]/g, ' '),
+    );
     expect(tips[6]).toContain('1 284 000');
     expect(tips[6]).toContain('47 vente(s)');
     expect(tips[3]).toContain('0 Ar');
