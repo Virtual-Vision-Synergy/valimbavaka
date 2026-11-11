@@ -1,0 +1,12 @@
+@if (creditNote.hasValue()) {
+  @let note = creditNote.value();
+  <section class="notice" aria-labelledby="credit-note-title">
+    <h3 id="credit-note-title">
+      {{
+        'sales.credit.noticeTitle'
+          | translate: { number: note.number, date: localDateTime(note.issuedAt) }
+      }}
+    </h3>
+    <p>{{ 'sales.credit.noticeReason' | translate: { reason: note.reason } }}</p>
+  </section>
+}

@@ -1,0 +1,48 @@
+<dialog
+  #dialog
+  class="dialog"
+  aria-labelledby="credit-title"
+  aria-describedby="credit-intro"
+  (cancel)="$event.preventDefault(); cancel()"
+>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h2 id="credit-title">{{ 'sales.credit.title' | translate: { number: invoiceNumber() } }}</h2>
+    <p id="credit-intro" class="intro">{{ 'sales.credit.intro' | translate }}</p>
+
+    <div class="field">
+      <label for="credit-reason">{{ 'sales.credit.reason' | translate }}</label>
+      <textarea
+        id="credit-reason"
+        class="input"
+        rows="3"
+        formControlName="reason"
+        aria-required="true"
+        [attr.aria-invalid]="showReasonError()"
+        [attr.aria-describedby]="
+          showReasonError() ? 'credit-reason-hint credit-reason-error' : 'credit-reason-hint'
+        "
+      ></textarea>
+      <span id="credit-reason-hint" class="field-hint">
+        {{ 'sales.credit.reasonHint' | translate: { max: maxLength } }}
+      </span>
+      @if (showReasonError()) {
+        <span id="credit-reason-error" class="field-error" role="alert">
+          {{ 'sales.credit.reasonInvalid' | translate: { max: maxLength } }}
+        </span>
+      }
+    </div>
+
+    @if (failure(); as message) {
+      <p class="alert alert-danger failure" role="alert">{{ message }}</p>
+    }
+
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" [disabled]="submitting()" (click)="cancel()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button class="btn btn-danger" type="submit" [disabled]="submitting()">
+        {{ 'sales.credit.confirm' | translate }}
+      </button>
+    </div>
+  </form>
+</dialog>

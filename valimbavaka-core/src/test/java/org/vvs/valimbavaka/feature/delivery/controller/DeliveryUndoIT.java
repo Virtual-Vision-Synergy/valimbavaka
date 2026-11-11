@@ -63,6 +63,29 @@ class DeliveryUndoIT extends DeliveryApiTestSupport {
     }
 
     @Test
+    void undo_deliveredOrder_reversesItsInvoiceWithACreditNoteInsteadOfLeavingItValidated() throws Exception {
+        // Arrange (FAC-04)
+        var driverId = createDriver();
+        var articleId = createArticle(uniqueName());
+        move(articleId, "DELIVERY", StockMovementType.RECEIPT, "5");
+        var orderId = createdOrderId(adminToken(), body(driverId, today(), line(articleId, "2")));
+        var token = tokenOfDriver(driverId);
+        markDelivered(token, orderId).andExpect(status().isOk());
+        var saleId = saleIdOf(orderId);
+
+        // Act
+        undo(token, orderId).andExpect(status().isOk());
+
+        // Assert
+        var invoiceStatus =
+                jdbcTemplate.queryForObject("select status from invoices where sale_id = ?", String.class, saleId);
+        assertThat(invoiceStatus).isEqualTo("REVERSED");
+        var creditNote = jdbcTemplate.queryForMap("select number, reason from credit_notes where sale_id = ?", saleId);
+        assertThat((String) creditNote.get("number")).startsWith("AV-");
+        assertThat((String) creditNote.get("reason")).startsWith("Annulation de la vente VTE-");
+    }
+
+    @Test
     void undo_orderDeliveredFromARound_restoresOnRound() throws Exception {
         // Arrange
         var driverId = createDriver();

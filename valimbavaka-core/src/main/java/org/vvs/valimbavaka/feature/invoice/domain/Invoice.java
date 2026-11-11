@@ -111,6 +111,12 @@ public class Invoice extends BaseEntity {
         return invoice;
     }
 
+    /** Reversal by a credit note (FAC-04): the only change an issued invoice ever gets; 409 unless still validated. */
+    public void reverse() {
+        status.ensureCanReverse();
+        status = OperationStatus.REVERSED;
+    }
+
     /** Lines in the order of the sale; they never change once issued. */
     public List<InvoiceLine> getLines() {
         return Collections.unmodifiableList(lines);

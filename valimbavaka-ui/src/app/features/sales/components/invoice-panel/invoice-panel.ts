@@ -5,6 +5,7 @@ import {
   computed,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -18,6 +19,9 @@ import { ToastService } from '../../../../shared/components/toast/toast-service'
 import { InvoiceService } from '../../data-access/invoice-service';
 import { toInvoicePreview, toInvoiceView } from '../../data-access/sales-mapping';
 import { SaleSummaryRDto } from '../../data-access/sales-models';
+import { CreditNoteRDto } from '../../data-access/credit-note-models';
+import { CreditNoteDialog } from '../credit-note-dialog/credit-note-dialog';
+import { CreditNoteNotice } from '../credit-note-notice/credit-note-notice';
 import { InvoiceDocument } from '../invoice-document/invoice-document';
 import { INVOICE_TONES } from '../invoice-tones';
 
@@ -29,7 +33,7 @@ import { INVOICE_TONES } from '../invoice-tones';
  */
 @Component({
   selector: 'vvs-invoice-panel',
-  imports: [TranslatePipe, Icon, StatusBadge, InvoiceDocument],
+  imports: [TranslatePipe, Icon, StatusBadge, InvoiceDocument, CreditNoteDialog, CreditNoteNotice],
   templateUrl: './invoice-panel.html',
   styleUrl: './invoice-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,7 +46,9 @@ export class InvoicePanel {
   protected readonly icons = { Printer };
   protected readonly tones = INVOICE_TONES;
   readonly sale = input.required<SaleSummaryRDto>();
+  readonly credited = output<CreditNoteRDto>();
   protected readonly regenerating = signal(false);
+  protected readonly creditDialogOpen = signal(false);
 
   protected readonly issued = rxResource({
     params: () => this.sale().id,
@@ -76,6 +82,13 @@ export class InvoicePanel {
             'danger',
           ),
       });
+  }
+
+  protected onCredited(creditNote: CreditNoteRDto): void {
+    this.creditDialogOpen.set(false);
+    this.toast.show('sales.credit.issued', { number: creditNote.number });
+    this.issued.reload();
+    this.credited.emit(creditNote);
   }
 
   protected demoAction(): void {
