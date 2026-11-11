@@ -50,22 +50,16 @@ public class ReportController {
     @ApiResponse(responseCode = "422", description = "Period that has not begun yet (VALIDATION_FAILED)")
     @HasPermission("reports.read")
     public ReportRDto getReport(
-            @Parameter(description = "DAY, MONTH (default) or YEAR")
-                    @RequestParam(required = false)
-                    @Nullable
+            @Parameter(description = "DAY, MONTH (default) or YEAR") @RequestParam(required = false) @Nullable
                     ReportGranularity granularity,
             @Parameter(description = "A business day of the period, yyyy-MM-dd (default: today)")
                     @RequestParam(required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     @Nullable
                     LocalDate date,
-            @Parameter(description = "Only this sales channel (default: all)")
-                    @RequestParam(required = false)
-                    @Nullable
+            @Parameter(description = "Only this sales channel (default: all)") @RequestParam(required = false) @Nullable
                     UUID salesChannelId,
-            @Parameter(description = "Only this product range (default: all)")
-                    @RequestParam(required = false)
-                    @Nullable
+            @Parameter(description = "Only this product range (default: all)") @RequestParam(required = false) @Nullable
                     UUID rangeId) {
         return reportService.getReport(granularity, date, salesChannelId, rangeId);
     }

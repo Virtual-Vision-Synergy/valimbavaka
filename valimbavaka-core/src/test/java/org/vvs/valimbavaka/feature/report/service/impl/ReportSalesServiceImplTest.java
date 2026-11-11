@@ -20,7 +20,6 @@ import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 import org.vvs.valimbavaka.feature.report.domain.ReportPeriod;
 import org.vvs.valimbavaka.feature.report.repository.ReportSaleRepository;
 import org.vvs.valimbavaka.feature.report.repository.SalesTotal;
-import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
 @ExtendWith(MockitoExtension.class)
 class ReportSalesServiceImplTest {
@@ -45,8 +44,7 @@ class ReportSalesServiceImplTest {
     @Test
     void getSales_withoutRange_readsTheTotalsOfValidatedSalesOfThePeriod() {
         // Arrange
-        when(reportSaleRepository.totals(FIRST, LAST, OperationStatus.VALIDATED, STORE))
-                .thenReturn(new SalesTotal(new BigDecimal("30000.00"), 3));
+        when(reportSaleRepository.totals(FIRST, LAST, STORE)).thenReturn(new SalesTotal(new BigDecimal("30000.00"), 3));
 
         // Act
         var result = sut.getSales(new ReportFilter(NOVEMBER, STORE, null));
@@ -55,14 +53,14 @@ class ReportSalesServiceImplTest {
         assertThat(result.revenue()).isEqualByComparingTo("30000");
         assertThat(result.salesCount()).isEqualTo(3);
         assertThat(result.averageBasket()).isEqualByComparingTo("10000");
-        verify(reportSaleRepository).totals(FIRST, LAST, OperationStatus.VALIDATED, STORE);
+        verify(reportSaleRepository).totals(FIRST, LAST, STORE);
         verifyNoMoreInteractions(reportSaleRepository);
     }
 
     @Test
     void getSales_withRange_readsTheTotalsOfThatRange() {
         // Arrange
-        when(reportSaleRepository.totalsByRange(FIRST, LAST, OperationStatus.VALIDATED, null, BOTANIKA))
+        when(reportSaleRepository.totalsByRange(FIRST, LAST, null, BOTANIKA))
                 .thenReturn(new SalesTotal(new BigDecimal("17000.00"), 2));
 
         // Act
@@ -77,8 +75,7 @@ class ReportSalesServiceImplTest {
     @Test
     void getSales_noSale_returnsZerosWithoutDividingByZero() {
         // Arrange
-        when(reportSaleRepository.totals(FIRST, LAST, OperationStatus.VALIDATED, null))
-                .thenReturn(new SalesTotal(null, 0));
+        when(reportSaleRepository.totals(FIRST, LAST, null)).thenReturn(new SalesTotal(null, 0));
 
         // Act
         var result = sut.getSales(new ReportFilter(NOVEMBER, null, null));
@@ -92,8 +89,7 @@ class ReportSalesServiceImplTest {
     @Test
     void getSales_basketNotRound_isRoundedToTheCent() {
         // Arrange
-        when(reportSaleRepository.totals(FIRST, LAST, OperationStatus.VALIDATED, null))
-                .thenReturn(new SalesTotal(new BigDecimal("10000.00"), 3));
+        when(reportSaleRepository.totals(FIRST, LAST, null)).thenReturn(new SalesTotal(new BigDecimal("10000.00"), 3));
 
         // Act
         var result = sut.getSales(new ReportFilter(NOVEMBER, null, null));

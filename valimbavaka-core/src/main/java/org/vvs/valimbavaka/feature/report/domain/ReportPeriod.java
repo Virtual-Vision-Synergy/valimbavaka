@@ -14,8 +14,14 @@ public record ReportPeriod(ReportGranularity granularity, LocalDate from, LocalD
     public static ReportPeriod containing(ReportGranularity granularity, LocalDate date) {
         return switch (granularity) {
             case DAY -> new ReportPeriod(granularity, date, date);
-            case MONTH -> new ReportPeriod(granularity, date.withDayOfMonth(1), YearMonth.from(date).atEndOfMonth());
-            case YEAR -> new ReportPeriod(granularity, date.withDayOfYear(1), date.withMonth(12).withDayOfMonth(31));
+            case MONTH ->
+                new ReportPeriod(
+                        granularity,
+                        date.withDayOfMonth(1),
+                        YearMonth.from(date).atEndOfMonth());
+            case YEAR ->
+                new ReportPeriod(
+                        granularity, date.withDayOfYear(1), date.withMonth(12).withDayOfMonth(31));
         };
     }
 

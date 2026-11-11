@@ -11,7 +11,6 @@ import org.vvs.valimbavaka.feature.report.dto.ReportSalesRDto;
 import org.vvs.valimbavaka.feature.report.repository.ReportSaleRepository;
 import org.vvs.valimbavaka.feature.report.repository.SalesTotal;
 import org.vvs.valimbavaka.feature.report.service.ReportSalesService;
-import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,19 +28,18 @@ public class ReportSalesServiceImpl implements ReportSalesService {
     public ReportSalesRDto getSales(ReportFilter filter) {
         var from = filter.period().from();
         var to = filter.period().to();
-        var status = OperationStatus.VALIDATED;
         var channelId = filter.salesChannelId();
         var rangeId = filter.rangeId();
         if (rangeId == null) {
-            return toIndicators(reportSaleRepository.totals(from, to, status, channelId));
+            return toIndicators(reportSaleRepository.totals(from, to, channelId));
         }
-        return toIndicators(reportSaleRepository.totalsByRange(from, to, status, channelId, rangeId));
+        return toIndicators(reportSaleRepository.totalsByRange(from, to, channelId, rangeId));
     }
 
     private static ReportSalesRDto toIndicators(SalesTotal total) {
         var revenue = total.revenue() == null ? BigDecimal.ZERO : total.revenue();
         revenue = revenue.setScale(MONEY_SCALE, RoundingMode.HALF_UP);
-        var basket = BigDecimal.ZERO.setScale(MONEY_SCALE);
+        var basket = revenue;
         if (total.salesCount() > 0) {
             basket = revenue.divide(BigDecimal.valueOf(total.salesCount()), MONEY_SCALE, RoundingMode.HALF_UP);
         }

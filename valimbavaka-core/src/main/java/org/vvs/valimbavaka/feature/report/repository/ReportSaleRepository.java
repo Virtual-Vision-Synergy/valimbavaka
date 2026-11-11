@@ -8,11 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 
 import org.vvs.valimbavaka.feature.sale.domain.Sale;
-import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
 /**
- * Read side of the reports (RPT-01): sales aggregated in SQL, never loaded in memory. Only the sales with the given
- * status count, over the business days {@code [from, to]}; a {@code null} channel = all channels. Read only.
+ * Read side of the reports (RPT-01): sales aggregated in SQL, never loaded in memory. Only the validated sales count,
+ * over the business days {@code [from, to]}; a {@code null} channel = all channels. Read only.
  */
 public interface ReportSaleRepository extends Repository<Sale, UUID> {
 
@@ -20,10 +19,11 @@ public interface ReportSaleRepository extends Repository<Sale, UUID> {
     @Query("""
             select new org.vvs.valimbavaka.feature.report.repository.SalesTotal(sum(s.total), count(s))
             from Sale s
-            where s.businessDate between :from and :to and s.status = :status
+            where s.businessDate between :from and :to
+              and s.status = org.vvs.valimbavaka.shared.operation.OperationStatus.VALIDATED
               and (:salesChannelId is null or s.salesChannelId = :salesChannelId)
             """)
-    SalesTotal totals(LocalDate from, LocalDate to, OperationStatus status, @Nullable UUID salesChannelId);
+    SalesTotal totals(LocalDate from, LocalDate to, @Nullable UUID salesChannelId);
 
     /**
      * Turnover of the lines of the articles of one range (line totals, before the discount of the whole sale) and
@@ -35,9 +35,10 @@ public interface ReportSaleRepository extends Repository<Sale, UUID> {
             from Sale s
             join s.lines l
             join Article a on a.id = l.articleId
-            where s.businessDate between :from and :to and s.status = :status and a.rangeId = :rangeId
+            where s.businessDate between :from and :to
+              and s.status = org.vvs.valimbavaka.shared.operation.OperationStatus.VALIDATED
+              and a.rangeId = :rangeId
               and (:salesChannelId is null or s.salesChannelId = :salesChannelId)
             """)
-    SalesTotal totalsByRange(
-            LocalDate from, LocalDate to, OperationStatus status, @Nullable UUID salesChannelId, UUID rangeId);
+    SalesTotal totalsByRange(LocalDate from, LocalDate to, @Nullable UUID salesChannelId, UUID rangeId);
 }
