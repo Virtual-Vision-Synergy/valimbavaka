@@ -43,7 +43,7 @@
 }
 .reco {
   width: 100%;
-  min-width: 860px;
+  min-width: 1040px;
   border-collapse: collapse;
 }
 .reco th,
@@ -89,11 +89,6 @@ tbody th {
 }
 .zero {
   color: var(--gris-moyen);
-}
-.breakdown {
-  display: block;
-  color: var(--gris-moyen);
-  font-size: var(--text-xs);
 }
 .qty {
   width: 72px;

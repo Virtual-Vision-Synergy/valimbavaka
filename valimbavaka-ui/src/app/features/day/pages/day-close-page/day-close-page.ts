@@ -10,9 +10,11 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Lock, LockKeyhole } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ApiError } from '../../../../core/http/problem-detail';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -31,6 +33,14 @@ import {
   DispatchDestination,
 } from '../../data-access/day-models';
 import { DayService } from '../../data-access/day-service';
+
+/** Statut HTTP d'une erreur de lecture (`ApiError` de l'intercepteur, ou réponse brute éventuellement enveloppée). */
+function statusOf(error: unknown): number | undefined {
+  if (error instanceof ApiError || error instanceof HttpErrorResponse) {
+    return error.status;
+  }
+  return error instanceof Error && error.cause ? statusOf(error.cause) : undefined;
+}
 
 /**
  * Clôture de journée (JR-04 à JR-06) : réconciliation par emplacement, motifs d'écart,
@@ -56,6 +66,12 @@ export class DayClosePage {
   protected readonly icons = { Lock, LockKeyhole };
   protected readonly reasons = DISCREPANCY_REASONS;
   protected readonly closing = rxResource({ stream: () => this.dayService.closing() });
+  /** Le serveur refuse la réconciliation (409) tant que la journée du jour n'est pas ouverte (JR-01). */
+  protected readonly notOpened = computed(() => statusOf(this.closing.error()) === 409);
+  /** Réconciliation lue ; `undefined` tant qu'elle charge ou si la lecture a échoué (`value()` lève en erreur). */
+  protected readonly data = computed(() =>
+    this.closing.hasValue() ? this.closing.value() : undefined,
+  );
   protected readonly location = signal<DispatchDestination>('SHOP');
   protected readonly onlyGaps = signal(false);
   protected readonly lockedAt = signal<string | null>(null);
@@ -85,7 +101,7 @@ export class DayClosePage {
     return location ? { ...location.cash, counted, gap: counted - location.cash.expected } : null;
   });
   protected readonly canLock = computed(() => {
-    const checklist = this.closing.value()?.checklist;
+    const checklist = this.data()?.checklist;
     return (
       !!checklist &&
       checklist.deliveriesDone === checklist.deliveriesTotal &&
@@ -95,7 +111,7 @@ export class DayClosePage {
     );
   });
   protected readonly title = computed(() => {
-    const date = this.closing.value()?.date;
+    const date = this.data()?.date;
     const label = date
       ? new Intl.DateTimeFormat(this.language.current(), {
           weekday: 'long',
@@ -107,7 +123,7 @@ export class DayClosePage {
   });
 
   constructor() {
-    effect(() => this.state.data.set(this.closing.value()));
+    effect(() => this.state.data.set(this.data()));
   }
 
   protected onChecklist(action: ChecklistAction): void {
@@ -139,7 +155,7 @@ export class DayClosePage {
   }
 
   protected confirmLock(): void {
-    const date = this.closing.value()?.date;
+    const date = this.data()?.date;
     if (!date || !this.canLock()) {
       return;
     }
