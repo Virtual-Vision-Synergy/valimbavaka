@@ -3,6 +3,7 @@ import {
   driverLabel,
   eventTime,
   isPendingStop,
+  isUndoable,
   toBoard,
   toDriverRound,
 } from './delivery-mapping';
@@ -36,6 +37,8 @@ function order(
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
     saleId: null,
+    previousStatus: null,
+    updatedAt: '2026-11-09T05:32:00Z',
     version: 0,
   };
 }
@@ -130,5 +133,27 @@ describe('delivery-mapping', () => {
     expect(isPendingStop('ON_ROUND')).toBe(true);
     expect(isPendingStop('DELIVERED')).toBe(false);
     expect(isPendingStop('FAILED')).toBe(false);
+  });
+
+  it('reporte la dernière modification serveur sur la carte (début du délai d’annulation)', () => {
+    const delivered = {
+      ...order('LIV-0004', 'tojo', 'DELIVERED'),
+      updatedAt: '2026-11-09T07:00:00Z',
+    };
+
+    expect(toBoard([delivered], [TOJO]).deliveries[0].changedAt).toBe('2026-11-09T07:00:00Z');
+  });
+
+  it('autorise l’annulation d’une livraison ou d’un échec de moins de 5 minutes', () => {
+    const at = Date.parse('2026-11-09T07:00:00Z');
+    const stop = (status: DeliveryOrderStatus) =>
+      toBoard([{ ...order('LIV-0005', 'tojo', status), updatedAt: '2026-11-09T07:00:00Z' }], [TOJO])
+        .deliveries[0];
+
+    expect(isUndoable(stop('DELIVERED'), at + 4 * 60_000)).toBe(true);
+    expect(isUndoable(stop('FAILED'), at + 5 * 60_000)).toBe(true);
+    expect(isUndoable(stop('DELIVERED'), at + 5 * 60_000 + 1)).toBe(false);
+    expect(isUndoable(stop('TO_PREPARE'), at)).toBe(false);
+    expect(isUndoable(stop('ON_ROUND'), at)).toBe(false);
   });
 });

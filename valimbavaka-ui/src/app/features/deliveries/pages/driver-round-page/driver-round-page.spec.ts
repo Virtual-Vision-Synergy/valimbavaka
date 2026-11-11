@@ -49,6 +49,8 @@ function order(
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
     saleId: null,
+    previousStatus: null,
+    updatedAt: '2026-11-09T05:32:00Z',
     version: 0,
   };
 }
