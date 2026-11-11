@@ -66,6 +66,9 @@ public class DeliveryOrder extends BaseEntity {
     @Column(name = "amount", nullable = false, updatable = false, precision = 14, scale = 2)
     private BigDecimal amount;
 
+    @Column(name = "sale_id")
+    private @Nullable UUID saleId;
+
     @Column(name = "note", length = 500)
     private @Nullable String note;
 
@@ -103,6 +106,15 @@ public class DeliveryOrder extends BaseEntity {
         command.lines().forEach(line -> order.lines.add(DeliveryOrderLine.of(line)));
         order.amount = order.lines.stream().map(DeliveryOrderLine::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return order;
+    }
+
+    /**
+     * Delivered (LIV-03): {@link DeliveryStatus#DELIVERED} with the sale of the delivery channel that the order
+     * became (decision of the product owner, 07/11/2026); 409 if the order is already delivered, failed or cancelled.
+     */
+    public void deliver(UUID saleId) {
+        moveTo(DeliveryStatus.DELIVERED);
+        this.saleId = saleId;
     }
 
     /** Status change of the following tickets (LIV-02 to LIV-04); 409 if the transition is not allowed. */

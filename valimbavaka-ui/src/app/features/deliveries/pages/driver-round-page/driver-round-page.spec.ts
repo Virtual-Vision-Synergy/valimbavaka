@@ -48,6 +48,7 @@ function order(
     ],
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
+    saleId: null,
     version: 0,
   };
 }
@@ -132,6 +133,70 @@ describe('DriverRoundPage', () => {
     expect(later[0].querySelector('a.tel')?.getAttribute('href')).toBe('tel:0341234563');
     expect(later[0].textContent).toContain(formatAriary(25500));
     expect(text('.tiles .tile:first-child dd')).toBe('1/3');
+  });
+
+  it('marque l’arrêt livré d’un geste et ne l’envoie qu’après le délai d’annulation', async () => {
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+      expect(text('.next h2')).toBe('Hery Andry');
+      expect(text('.tiles .tile:first-child dd')).toBe('2/3');
+      expect(updateStatus).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).toHaveBeenCalledOnce();
+    expect(updateStatus).toHaveBeenCalledWith('order-2', {
+      status: 'DELIVERED',
+      failureReason: null,
+      note: null,
+    });
+  });
+
+  it('n’envoie rien si le livreur annule « Livrée » pendant le délai', async () => {
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+      element.querySelector<HTMLButtonElement>('.undo-btn')?.click();
+      fixture.detectChanges();
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).not.toHaveBeenCalled();
+    expect(text('.next h2')).toBe('Rasoa Vola');
+  });
+
+  it('annonce un « Livrée » refusé par le serveur et relit la tournée', async () => {
+    await open(ROUND);
+    const message = 'La journée du 09/11/2026 n’est pas ouverte.';
+    updateStatus.mockReturnValue(throwError(() => new ApiError(409, 'CONFLICT', message)));
+    const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(show).toHaveBeenCalledWith(
+      'deliveries.driver.refusedToast',
+      { name: 'Rasoa Vola', message },
+      'danger',
+    );
+    expect(myRound).toHaveBeenCalledTimes(2);
   });
 
   it('annonce une journée sans arrêt plutôt qu’une tournée terminée', async () => {

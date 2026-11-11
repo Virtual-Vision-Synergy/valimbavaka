@@ -35,6 +35,7 @@ function order(
     lines: [{ articleId: 'soap', quantity: 2, unitPrice: 8500, amount: 17000 }],
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
+    saleId: null,
     version: 0,
   };
 }

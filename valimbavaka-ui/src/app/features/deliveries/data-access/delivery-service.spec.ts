@@ -68,7 +68,8 @@ describe('DeliveryService', () => {
       .updateStatus('order-1', { status: 'DELIVERED', failureReason: null, note: null })
       .subscribe();
 
-    expect(submit).not.toHaveBeenCalled();
+    expect(submit).toHaveBeenCalledOnce();
+    expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries/order-1/deliver');
   });
 
   it('lit les commandes du jour dans l’ordre des arrêts et les livreurs pour le tableau', () => {
@@ -132,6 +133,29 @@ describe('DeliveryService', () => {
       round: { id: driver.id, name: 'Hanta R.', driverName: 'Hanta R.' },
       date: '2026-11-09',
       stops: [],
+    });
+  });
+
+  it('marque la livraison livrée par la file hors ligne, sans corps (POST /api/v1/deliveries/{id}/deliver)', () => {
+    let result: string | undefined;
+
+    TestBed.inject(DeliveryService)
+      .updateStatus('order-1', { status: 'DELIVERED', failureReason: null, note: null })
+      .subscribe((id) => (result = id));
+
+    expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries/order-1/deliver');
+    expect(result).toBe('order-1');
+  });
+
+  it('n’appelle pas l’API « livrée » pour un échec (LIV-04)', () => {
+    TestBed.inject(DeliveryService)
+      .updateStatus('order-1', { status: 'FAILED', failureReason: 'ABSENT', note: null })
+      .subscribe();
+
+    expect(submit).toHaveBeenCalledOnce();
+    expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries/order-1/failure', {
+      reason: 'ABSENT',
+      note: null,
     });
   });
 });

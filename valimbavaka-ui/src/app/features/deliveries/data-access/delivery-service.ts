@@ -4,7 +4,6 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { demo } from '../../../shared/data-access/demo';
 import { PageResponse } from '../../../shared/models/page-response';
 import { businessToday, toBoard, toDriverRound } from './delivery-mapping';
 import {
@@ -33,9 +32,9 @@ function dayParams(day: string): HttpParams {
 
 /**
  * Livraisons. Le tableau d'un jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs, l'historique d'une
- * commande `GET /api/v1/deliveries/{id}/history` (LIV-06) ; la création (LIV-01) et l'échec (LIV-04) passent par
- * la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit ses commandes du jour. Le
- * marquage « livrée » (LIV-03) reste une simulation.
+ * commande `GET /api/v1/deliveries/{id}/history` (LIV-06) ; la création (LIV-01), le marquage « livrée » (LIV-03) et
+ * l'échec (LIV-04) passent par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit
+ * ses commandes du jour.
  */
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -96,6 +95,17 @@ export class DeliveryService {
   }
 
   /**
+   * Marque la livraison livrée d'un geste, sans saisie (LIV-03) : la commande passe `DELIVERED` et devient une
+   * vente canal Livraison ; `queued` si elle attend le réseau (rejouée une seule fois grâce à `Idempotency-Key`).
+   */
+  markDelivered(deliveryId: string): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/deliver`,
+    );
+  }
+
+  /**
    * Signale l'échec (LIV-04) : la commande passe `FAILED` et ses articles reviennent de la livraison à
    * l'entrepôt ; `queued` si l'échec attend le réseau (rejoué une seule fois grâce à `Idempotency-Key`).
    */
@@ -110,12 +120,12 @@ export class DeliveryService {
     );
   }
 
-  /** Saisie du livreur : l'échec part vers l'API (LIV-04) ; « livrée » reste simulée jusqu'à LIV-03. */
+  /** Saisie du livreur : « livrée » (LIV-03) et l'échec (LIV-04) partent vers l'API par la file hors ligne. */
   updateStatus(deliveryId: string, change: DeliveryStatusWDto): Observable<string> {
-    if (change.status === 'FAILED') {
-      const body = { reason: change.failureReason ?? 'OTHER', note: change.note };
-      return this.reportFailure(deliveryId, body).pipe(map(() => deliveryId));
+    if (change.status === 'DELIVERED') {
+      return this.markDelivered(deliveryId).pipe(map(() => deliveryId));
     }
-    return demo(change).pipe(map(() => deliveryId));
+    const body = { reason: change.failureReason ?? 'OTHER', note: change.note };
+    return this.reportFailure(deliveryId, body).pipe(map(() => deliveryId));
   }
 }
