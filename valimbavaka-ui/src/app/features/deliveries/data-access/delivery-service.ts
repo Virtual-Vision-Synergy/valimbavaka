@@ -10,6 +10,7 @@ import { businessToday, toBoard, toDriverRound } from './delivery-mapping';
 import {
   DeliveryBoardRDto,
   DeliveryDriverRDto,
+  DeliveryEventRDto,
   DeliveryFailureWDto,
   DeliveryOrderRDto,
   DeliveryOrderWDto,
@@ -31,9 +32,10 @@ function dayParams(day: string): HttpParams {
 }
 
 /**
- * Livraisons. Le tableau du jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs ; la création
- * (LIV-01) et l'échec (LIV-04) passent par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du
- * livreur (LIV-02) lit ses commandes du jour. Le marquage « livrée » (LIV-03) reste une simulation.
+ * Livraisons. Le tableau d'un jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs, l'historique d'une
+ * commande `GET /api/v1/deliveries/{id}/history` (LIV-06) ; la création (LIV-01) et l'échec (LIV-04) passent par
+ * la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit ses commandes du jour. Le
+ * marquage « livrée » (LIV-03) reste une simulation.
  */
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -42,7 +44,10 @@ export class DeliveryService {
   private readonly authStore = inject(AuthStore);
   private readonly baseUrl = '/api/v1/deliveries';
 
-  /** Commandes du jour (Antananarivo) dans l'ordre des arrêts, regroupées par tournée de livreur. */
+  /**
+   * Commandes d'un jour (Antananarivo, aujourd'hui par défaut) dans l'ordre des arrêts, regroupées par tournée de
+   * livreur ; un jour passé donne l'historique de ce jour (LIV-06).
+   */
   board(day: string = businessToday()): Observable<DeliveryBoardRDto> {
     return forkJoin({
       orders: this.http.get<PageResponse<DeliveryOrderRDto>>(this.baseUrl, {
@@ -67,6 +72,14 @@ export class DeliveryService {
     return this.http
       .get<PageResponse<DeliveryOrderRDto>>(this.baseUrl, { params })
       .pipe(map((page) => toDriverRound(page.items, driver, day)));
+  }
+
+  /** Historique d'une commande (LIV-06) : ses lignes du journal, de la plus ancienne à la plus récente. */
+  history(orderId: string): Observable<DeliveryEventRDto[]> {
+    const params = new HttpParams().set('page', 1).set('size', MAX_PAGE_SIZE);
+    return this.http
+      .get<PageResponse<DeliveryEventRDto>>(`${this.baseUrl}/${orderId}/history`, { params })
+      .pipe(map((page) => page.items));
   }
 
   /** Livreurs actifs proposés à l'affectation, par prénom (`deliveries.create`). */

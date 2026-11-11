@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderFilter;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryStatus;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryDriverRDto;
+import org.vvs.valimbavaka.feature.delivery.dto.DeliveryEventRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderWDto;
 import org.vvs.valimbavaka.feature.delivery.service.DeliveryOrderService;
@@ -33,7 +34,10 @@ import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
 
-/** Orders to deliver (LIV-01): entered by a seller or the administrator, each one is added to its driver's round. */
+/**
+ * Orders to deliver (LIV-01): entered by a seller or the administrator, each one is added to its driver's round;
+ * followed by status and day, with the history of each order (LIV-06).
+ */
 @Tag(name = "Deliveries")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -79,6 +83,16 @@ public class DeliveryController {
     @HasPermission("deliveries.read")
     public DeliveryOrderRDto getOrder(@PathVariable UUID id) {
         return deliveryOrderService.getOrder(id);
+    }
+
+    @GetMapping("/{id}/history")
+    @Operation(summary = "History of an order: its journal lines, oldest first, with their time and author")
+    @ApiResponse(responseCode = "200", description = "Page of history steps")
+    @ApiResponse(responseCode = "404", description = "Order not found (NOT_FOUND)")
+    @ApiResponse(responseCode = "422", description = "Invalid paging (VALIDATION_FAILED)")
+    @HasPermission("deliveries.read")
+    public PageResponse<DeliveryEventRDto> getHistory(@PathVariable UUID id, @Valid PageQuery query) {
+        return deliveryOrderService.getHistory(id, query);
     }
 
     @PostMapping

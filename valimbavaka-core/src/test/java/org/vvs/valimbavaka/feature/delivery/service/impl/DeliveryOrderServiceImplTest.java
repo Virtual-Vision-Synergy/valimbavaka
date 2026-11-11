@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -34,14 +35,17 @@ import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderCommand;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderFilter;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderLineCommand;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryStatus;
+import org.vvs.valimbavaka.feature.delivery.dto.DeliveryEventRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderLineWDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderWDto;
 import org.vvs.valimbavaka.feature.delivery.mapper.DeliveryMapper;
 import org.vvs.valimbavaka.feature.delivery.repository.DeliveryOrderRepository;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
+import org.vvs.valimbavaka.feature.journal.dto.JournalEntryRDto;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.user.service.UserService;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
+import org.vvs.valimbavaka.shared.dto.PageResponse;
 
 @ExtendWith(MockitoExtension.class)
 class DeliveryOrderServiceImplTest {
@@ -196,6 +200,50 @@ class DeliveryOrderServiceImplTest {
         var pageable = ArgumentCaptor.forClass(Pageable.class);
         verify(orderRepository).search(eq(OTHER_DRIVER_ID), eq(DAY), eq(status), pageable.capture());
         assertThat(pageable.getValue().getSort().getOrderFor("stopNumber")).isNotNull();
+    }
+
+    @Test
+    void getHistory_visibleOrder_returnsItsJournalLinesAsSteps() {
+        // Arrange
+        var orderId = UUID.randomUUID();
+        var query = new PageQuery(1, 20, null, null, null);
+        var entry = new JournalEntryRDto(
+                UUID.randomUUID(),
+                Instant.parse("2026-11-08T06:15:00Z"),
+                SELLER_ID,
+                "Hanta Rabe",
+                JournalAction.CREATE,
+                DeliveryOrderServiceImpl.RESOURCE_TYPE,
+                orderId,
+                "Création de la commande à livrer LIV-0001");
+        var step = new DeliveryEventRDto(entry.occurredAt(), "Hanta Rabe", "CREATE", entry.description());
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order()));
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(SELLER_ID));
+        when(userService.isActiveDriver(SELLER_ID)).thenReturn(false);
+        when(journalService.getResourceEntries(DeliveryOrderServiceImpl.RESOURCE_TYPE, orderId, query))
+                .thenReturn(new PageResponse<>(List.of(entry), 1, 20, 1, 1));
+        when(deliveryMapper.toEventRDto(entry)).thenReturn(step);
+
+        // Act
+        var result = sut.getHistory(orderId, query);
+
+        // Assert
+        assertThat(result.items()).containsExactly(step);
+        assertThat(result.totalCount()).isEqualTo(1);
+    }
+
+    @Test
+    void getHistory_driverReadingAnotherDriversOrder_throwsNotFoundWithoutReadingTheJournal() {
+        // Arrange
+        var orderId = UUID.randomUUID();
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order()));
+        when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(OTHER_DRIVER_ID));
+        when(userService.isActiveDriver(OTHER_DRIVER_ID)).thenReturn(true);
+        var query = new PageQuery(1, 20, null, null, null);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getHistory(orderId, query)).isInstanceOf(NotFoundException.class);
+        verify(journalService, never()).getResourceEntries(any(), any(), any());
     }
 
     private static DeliveryOrderWDto request() {

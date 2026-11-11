@@ -10,6 +10,20 @@
   align-items: start;
   gap: var(--space-4);
 }
+.board.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.board.single .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.day-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
 .column {
   padding: var(--space-4);
   border: 1px solid var(--border-subtle);
@@ -37,6 +51,9 @@
 }
 .dot[data-status='FAILED'] {
   background: var(--danger);
+}
+.dot[data-status='CANCELLED'] {
+  background: var(--gris-clair);
 }
 .count {
   margin-left: auto;

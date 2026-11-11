@@ -1,6 +1,7 @@
 import {
   businessToday,
   driverLabel,
+  eventTime,
   isPendingStop,
   toBoard,
   toDriverRound,
@@ -67,14 +68,25 @@ describe('delivery-mapping', () => {
     });
   });
 
-  it('écarte les commandes annulées et garde la tournée d’un livreur désactivé depuis', () => {
+  it('garde les commandes annulées (filtre « Annulée ») et la tournée d’un livreur désactivé depuis', () => {
     const board = toBoard(
       [order('LIV-0001', 'tojo', 'CANCELLED'), order('LIV-0002', 'gone', 'DELIVERED')],
       [TOJO],
     );
 
-    expect(board.deliveries.map((delivery) => delivery.number)).toEqual(['LIV-0002']);
-    expect(board.rounds).toEqual([{ id: 'gone', name: '—', driverName: '—' }]);
+    expect(board.deliveries.map((delivery) => [delivery.number, delivery.status])).toEqual([
+      ['LIV-0001', 'CANCELLED'],
+      ['LIV-0002', 'DELIVERED'],
+    ]);
+    expect(board.rounds).toEqual([
+      { id: 'tojo', name: 'Tojo N.', driverName: 'Tojo N.' },
+      { id: 'gone', name: '—', driverName: '—' },
+    ]);
+  });
+
+  it('date une étape de l’historique au jour et à l’heure d’Antananarivo', () => {
+    expect(eventTime('2026-11-08T06:15:00Z')).toBe('08/11 09:15');
+    expect(eventTime('2026-11-30T21:30:00Z')).toBe('01/12 00:30');
   });
 
   it('range la tournée du livreur par arrêt, avec client, adresse, téléphone et montant à encaisser', () => {
