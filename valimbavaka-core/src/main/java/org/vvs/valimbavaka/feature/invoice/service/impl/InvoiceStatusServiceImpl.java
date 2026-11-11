@@ -47,9 +47,10 @@ public class InvoiceStatusServiceImpl implements InvoiceStatusService {
         var statuses = Arrays.stream(OperationStatus.values())
                 .map(status -> toRDto(status, totals))
                 .toList();
-        var count = statuses.stream().mapToLong(InvoiceStatusTotalRDto::invoiceCount).sum();
-        var amount =
-                statuses.stream().map(InvoiceStatusTotalRDto::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        var count = statuses.stream()
+                .mapToLong(InvoiceStatusTotalRDto::invoiceCount)
+                .sum();
+        var amount = statuses.stream().map(InvoiceStatusTotalRDto::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         return new InvoiceStatusTotalsRDto(first, last, count, amount, statuses);
     }
 

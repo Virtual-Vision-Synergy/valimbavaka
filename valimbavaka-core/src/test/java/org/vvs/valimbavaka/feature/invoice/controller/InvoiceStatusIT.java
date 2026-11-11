@@ -194,12 +194,7 @@ class InvoiceStatusIT extends StockApiTestSupport {
                     issuer_name, status, subtotal, discount_amount, total, created_at, updated_at, version)
                 values (gen_random_uuid(), ?, gen_random_uuid(), 'VTE-TEST', now(), ?::date, 'CASH', 'Test', ?,
                     ?::numeric, 0, ?::numeric, now(), now(), 0)
-                """,
-                "FAC-T-" + UUID.randomUUID().toString().substring(0, 12),
-                businessDate,
-                status,
-                total,
-                total);
+                """, "FAC-T-" + UUID.randomUUID().toString().substring(0, 12), businessDate, status, total, total);
     }
 
     /** Records a sale of 3 articles at 8 500 Ar (25 500 Ar) through the API: its invoice is issued with it. */

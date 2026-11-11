@@ -70,7 +70,9 @@ class InvoiceStatusServiceImplTest {
         var result = sut.getStatusTotals(FIRST, LAST);
 
         // Assert
-        assertThat(result.statuses()).hasSize(3).allSatisfy(total -> assertThat(total.invoiceCount()).isZero());
+        assertThat(result.statuses())
+                .hasSize(3)
+                .allSatisfy(total -> assertThat(total.invoiceCount()).isZero());
         assertThat(result.amount()).isEqualByComparingTo("0");
     }
 
