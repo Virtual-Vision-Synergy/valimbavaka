@@ -1,0 +1,34 @@
+<section class="card book" [attr.aria-label]="'sales.bookExport.title' | translate">
+  <p class="help">{{ 'sales.bookExport.help' | translate }}</p>
+  <div class="filters">
+    <label class="date-field">
+      <span>{{ 'sales.bookExport.from' | translate }}</span>
+      <input class="input" type="date" [value]="from()" (change)="onFromChange($event)" />
+    </label>
+    <label class="date-field">
+      <span>{{ 'sales.bookExport.to' | translate }}</span>
+      <input class="input" type="date" [value]="to()" (change)="onToChange($event)" />
+    </label>
+    <button
+      class="btn btn-primary"
+      type="button"
+      [disabled]="invalidPeriod() || exporting()"
+      (click)="export('xlsx')"
+    >
+      <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+      {{ 'sales.bookExport.xlsx' | translate }}
+    </button>
+    <button
+      class="btn btn-secondary"
+      type="button"
+      [disabled]="invalidPeriod() || exporting()"
+      (click)="export('pdf')"
+    >
+      <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+      {{ 'sales.bookExport.pdf' | translate }}
+    </button>
+  </div>
+  @if (invalidPeriod()) {
+    <p class="invalid" role="alert">{{ 'sales.bookExport.invalidPeriod' | translate }}</p>
+  }
+</section>
