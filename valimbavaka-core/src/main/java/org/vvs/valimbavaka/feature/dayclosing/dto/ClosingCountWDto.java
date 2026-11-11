@@ -3,11 +3,11 @@ package org.vvs.valimbavaka.feature.dayclosing.dto;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import org.jspecify.annotations.Nullable;
-
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
+
+import org.jspecify.annotations.Nullable;
 
 import org.vvs.valimbavaka.feature.dayclosing.domain.ClosingGapReason;
 

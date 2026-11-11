@@ -7,7 +7,10 @@ import org.jspecify.annotations.Nullable;
 
 /** What one count says: the counted and the theoretical quantity, the reason given for a gap, and when (JR-05). */
 public record CountResult(
-        BigDecimal counted, BigDecimal theoretical, @Nullable ClosingGapReason reason, Instant countedAt) {
+        BigDecimal counted,
+        BigDecimal theoretical,
+        @Nullable ClosingGapReason reason,
+        Instant countedAt) {
 
     /** True when the counted quantity differs from the theoretical one. */
     public boolean hasGap() {

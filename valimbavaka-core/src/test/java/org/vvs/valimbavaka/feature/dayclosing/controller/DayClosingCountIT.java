@@ -221,7 +221,9 @@ class DayClosingCountIT extends StockApiTestSupport {
     void saveCounts_unknownArticle_returns404() throws Exception {
         // Act + Assert
         var request = "{\"counts\":[%s]}".formatted(count(UUID.randomUUID(), "1", null));
-        save(request).andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("NOT_FOUND"));
+        save(request)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
     @Test
@@ -257,14 +259,13 @@ class DayClosingCountIT extends StockApiTestSupport {
     }
 
     @Test
-    void saveCounts_theoreticalAndGapSentByTheClient_areIgnored() throws Exception {
+    void saveCounts_theoreticalGapAndIdSentByTheClient_areRefusedAndNothingIsSaved() throws Exception {
         // Arrange: the client claims a theoretical of 8, so that 8 would be no gap
         var request = "{\"counts\":[{\"locationId\":\"%s\",\"articleId\":\"%s\",\"counted\":8,\"theoretical\":8,"
-                        + "\"gap\":0,\"id\":\"%s\"}]}"
-                .formatted(store, soap, UUID.randomUUID());
+                + "\"gap\":0,\"id\":\"%s\"}]}".formatted(store, soap, UUID.randomUUID());
 
-        // Act + Assert
-        save(request).andExpect(status().isUnprocessableContent());
+        // Act + Assert: unknown fields are not read (the server computes both), the request is malformed
+        save(request).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
         assertThat(savedRows()).isZero();
     }
 
@@ -319,8 +320,8 @@ class DayClosingCountIT extends StockApiTestSupport {
     }
 
     private Map<String, Object> lineIn(String json) {
-        List<Map<String, Object>> lines = JsonPath.read(
-                json, "$.locations[?(@.code=='STORE')].lines[?(@.articleId=='%s')]".formatted(soap));
+        List<Map<String, Object>> lines =
+                JsonPath.read(json, "$.locations[?(@.code=='STORE')].lines[?(@.articleId=='%s')]".formatted(soap));
         assertThat(lines).hasSize(1);
         return lines.getFirst();
     }
