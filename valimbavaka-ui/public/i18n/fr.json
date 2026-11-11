@@ -1207,6 +1207,13 @@
       "footer": "{{count}} articles · {{clean}} sans écart",
       "onlyGaps": "Afficher uniquement les écarts",
       "showAll": "Afficher tous les articles",
+      "count": {
+        "title": "Comptage du soir",
+        "save": "Enregistrer le comptage",
+        "saved": "Comptage enregistré ({{count}} lignes)",
+        "missing": "{{count}} écart sans motif : choisissez un motif pour enregistrer.",
+        "ready": "Chaque écart a son motif : le comptage peut être enregistré."
+      },
       "cash": {
         "title": "Caisse {{location}}",
         "expected": "Espèces attendues",

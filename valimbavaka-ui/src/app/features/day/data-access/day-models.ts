@@ -145,6 +145,10 @@ export interface ClosingLineRDto {
   readonly systemStock: number;
   /** Stock du système − théorique : non nul si un mouvement hors des six composantes a touché l'emplacement. */
   readonly gap: number;
+  /** Comptage du soir enregistré par l'administrateur (JR-05) ; null tant que la ligne n'est pas comptée. */
+  readonly counted: number | null;
+  /** Motif de l'écart enregistré avec le comptage ; null sans écart ou sans comptage. */
+  readonly reason: DiscrepancyReason | null;
 }
 
 export interface ClosingLocationRDto {
@@ -157,6 +161,7 @@ export interface ClosingLocationRDto {
 
 /** Réponse de `GET /api/v1/days/closing`. */
 export interface DayClosingRDto {
+  readonly businessDayId: string;
   readonly businessDate: string;
   readonly status: DayStatus;
   readonly locations: readonly ClosingLocationRDto[];
@@ -187,6 +192,8 @@ export interface ClosingCashRDto {
 
 export interface ClosingLocation {
   readonly location: DispatchDestination;
+  /** Identifiant de l'emplacement, envoyé avec chaque comptage. */
+  readonly locationId: string;
   readonly lines: readonly ClosingLine[];
   readonly cash: ClosingCashRDto;
 }
@@ -208,6 +215,19 @@ export interface DayClosing {
   readonly date: string;
   readonly locations: readonly ClosingLocation[];
   readonly checklist: ClosingChecklistRDto;
+}
+
+/** Comptage d'une ligne envoyé à `PUT /api/v1/days/closing/counts` : le serveur calcule théorique et écart. */
+export interface ClosingCountWDto {
+  readonly locationId: string;
+  readonly articleId: string;
+  readonly counted: number;
+  /** Obligatoire quand le comptage diffère du théorique (le serveur répond 422 sinon). */
+  readonly reason: DiscrepancyReason | null;
+}
+
+export interface DayClosingCountsWDto {
+  readonly counts: readonly ClosingCountWDto[];
 }
 
 /** Verrouillage de la journée (JR-06) : comptages, motifs et espèces comptées. */
@@ -237,8 +257,9 @@ export function theoretical(line: ClosingLine): number {
 
 /**
  * Écran de clôture à partir de la réconciliation du serveur : un bloc par colonne (Boutique, Livraison, Salon),
- * le comptage proposé est le stock du système, sans motif tant que JR-05 ne l'enregistre pas. Un emplacement
- * inconnu de la grille est ignoré ; la caisse et la liste de contrôle viennent de `extras`.
+ * le comptage est celui enregistré par le serveur (JR-05), sinon le stock du système proposé ; le motif est celui
+ * enregistré. Un emplacement inconnu de la grille est ignoré ; la caisse et la liste de contrôle viennent de
+ * `extras`.
  */
 export function toDayClosing(closing: DayClosingRDto, extras: ClosingExtras): DayClosing {
   const locations = closing.locations.flatMap((block): ClosingLocation[] => {
@@ -246,7 +267,8 @@ export function toDayClosing(closing: DayClosingRDto, extras: ClosingExtras): Da
     if (!location) {
       return [];
     }
-    return [{ location, lines: block.lines.map(toClosingLine), cash: extras.cash[location] }];
+    const lines = block.lines.map(toClosingLine);
+    return [{ location, locationId: block.locationId, lines, cash: extras.cash[location] }];
   });
   return { date: closing.businessDate, locations, checklist: extras.checklist };
 }
@@ -263,8 +285,8 @@ function toClosingLine(line: ClosingLineRDto): ClosingLine {
     delivered: line.delivered,
     salon: line.salon,
     shooting: line.shooting,
-    counted: line.systemStock,
-    reason: null,
+    counted: line.counted ?? line.systemStock,
+    reason: line.reason,
   };
 }
 

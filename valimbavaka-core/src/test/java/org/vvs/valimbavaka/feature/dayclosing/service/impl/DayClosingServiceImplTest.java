@@ -32,8 +32,12 @@ import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.day.domain.DayStatus;
 import org.vvs.valimbavaka.feature.day.dto.BusinessDayRDto;
 import org.vvs.valimbavaka.feature.day.service.BusinessDayService;
+import org.vvs.valimbavaka.feature.dayclosing.domain.ClosingGapReason;
+import org.vvs.valimbavaka.feature.dayclosing.domain.CountResult;
+import org.vvs.valimbavaka.feature.dayclosing.domain.DayClosingCount;
 import org.vvs.valimbavaka.feature.dayclosing.dto.ClosingLineRDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.ClosingLocationRDto;
+import org.vvs.valimbavaka.feature.dayclosing.repository.DayClosingCountRepository;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
@@ -69,6 +73,9 @@ class DayClosingServiceImplTest {
     @Mock
     private ArticleService articleService;
 
+    @Mock
+    private DayClosingCountRepository countRepository;
+
     private DayClosingServiceImpl sut;
 
     @BeforeEach
@@ -78,6 +85,7 @@ class DayClosingServiceImplTest {
                 referentialService,
                 stockDayLedgerService,
                 articleService,
+                countRepository,
                 Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
@@ -265,9 +273,59 @@ class DayClosingServiceImplTest {
         assertThat(line.gap()).isZero();
     }
 
-    private void stubDay(DayStatus status) {
+    @Test
+    void getClosing_savedCount_isReturnedWithItsReasonOnTheLine() {
+        // Arrange
+        var soap = article("ART-0031", "Savon");
+        var day = stubDay(DayStatus.OPEN);
+        stubLocations(STORE);
+        stubLedger(
+                List.of(),
+                List.of(total(soap, STORE, StockMovementType.TRANSFER, "10")),
+                List.of(balance(soap, STORE, "10")));
+        when(articleService.getArticlesByIds(any())).thenReturn(List.of(soap));
+        var count = DayClosingCount.create(
+                day.id(),
+                STORE.id(),
+                soap.id(),
+                new CountResult(new BigDecimal("8"), new BigDecimal("10"), ClosingGapReason.BREAKAGE, NOW));
+        when(countRepository.findByBusinessDayId(day.id())).thenReturn(List.of(count));
+
+        // Act
+        var closing = sut.getClosing();
+
+        // Assert
+        var line = closing.locations().getFirst().lines().getFirst();
+        assertThat(closing.businessDayId()).isEqualTo(day.id());
+        assertThat(line.counted()).isEqualByComparingTo("8");
+        assertThat(line.reason()).isEqualTo(ClosingGapReason.BREAKAGE);
+        assertThat(line.theoretical()).isEqualByComparingTo("10");
+    }
+
+    @Test
+    void getClosing_noSavedCount_leavesCountedAndReasonEmpty() {
+        // Arrange
+        var soap = article("ART-0031", "Savon");
+        stubDay(DayStatus.OPEN);
+        stubLocations(STORE);
+        stubLedger(
+                List.of(),
+                List.of(total(soap, STORE, StockMovementType.TRANSFER, "10")),
+                List.of(balance(soap, STORE, "10")));
+        when(articleService.getArticlesByIds(any())).thenReturn(List.of(soap));
+
+        // Act
+        var line = sut.getClosing().locations().getFirst().lines().getFirst();
+
+        // Assert
+        assertThat(line.counted()).isNull();
+        assertThat(line.reason()).isNull();
+    }
+
+    private BusinessDayRDto stubDay(DayStatus status) {
         var day = new BusinessDayRDto(UUID.randomUUID(), TODAY, status, List.of(), NOW, null);
         when(businessDayService.findToday()).thenReturn(day);
+        return day;
     }
 
     private void stubLocations(StockLocationRDto... locations) {

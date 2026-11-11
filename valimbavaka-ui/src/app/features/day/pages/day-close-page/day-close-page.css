@@ -210,6 +210,18 @@ tbody th {
   color: var(--gris-moyen);
   font-size: var(--text-sm);
 }
+.count {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.count .hint {
+  margin-top: 0;
+}
+.count-error {
+  color: var(--danger-dark);
+  font-size: var(--text-sm);
+}
 .lock {
   display: flex;
   flex-direction: column;
