@@ -126,7 +126,10 @@ public class DayClosingLockServiceImpl implements DayClosingLockService {
             }
         }
         var text = "Clôture de la journée du %s : %d ligne(s) comptée(s), %d écart(s)"
-                .formatted(DATE_FORMAT.format(closing.businessDate()), frozen.lines().size(), gaps.size());
+                .formatted(
+                        DATE_FORMAT.format(closing.businessDate()),
+                        frozen.lines().size(),
+                        gaps.size());
         return gaps.isEmpty() ? text : text + " (" + listed(gaps) + ")";
     }
 
