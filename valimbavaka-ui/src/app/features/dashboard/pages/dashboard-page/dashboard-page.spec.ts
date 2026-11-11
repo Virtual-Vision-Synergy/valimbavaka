@@ -7,10 +7,15 @@ import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { DEMO_LATENCY_MS } from '../../../../shared/data-access/demo';
 import { DASHBOARD_TEST_VIEW } from '../../data-access/dashboard-testing';
+import {
+  REVENUE_SPLIT_EMPTY_TEST_VIEW,
+  REVENUE_SPLIT_TEST_VIEW,
+} from '../../data-access/revenue-split-testing';
 import { DashboardPage } from './dashboard-page';
 
 const ALERTS_URL = '/api/v1/stocks/alerts';
 const DASHBOARD_URL = '/api/v1/dashboard';
+const SPLIT_URL = '/api/v1/dashboard/revenue-split';
 
 /** Alerte de seuil telle que calculée par le serveur (STK-04). */
 const ALERT = {
@@ -71,6 +76,11 @@ describe('DashboardPage', () => {
     httpMock.expectOne((req) => req.url === DASHBOARD_URL).flush(DASHBOARD_TEST_VIEW);
   };
 
+  /** Répond à la répartition du CA (DSH-04), lue à part de l'agrégat, pour l'administrateur seulement. */
+  const answerSplit = (view = REVENUE_SPLIT_TEST_VIEW): void => {
+    httpMock.expectOne((req) => req.url === SPLIT_URL).flush(view);
+  };
+
   const render = async (): Promise<void> => {
     await settle();
     await fixture.whenStable();
@@ -83,6 +93,7 @@ describe('DashboardPage', () => {
     await open('ADMIN');
 
     answerDashboard();
+    answerSplit();
     const request = httpMock.expectOne((req) => req.url === ALERTS_URL);
     expect(request.request.params.get('page')).toBe('1');
     expect(request.request.params.get('size')).toBe('100');
@@ -99,6 +110,7 @@ describe('DashboardPage', () => {
     await open('SELLER');
 
     httpMock.expectNone((req) => req.url === DASHBOARD_URL);
+    httpMock.expectNone((req) => req.url === SPLIT_URL);
     httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([ALERT]));
     await render();
 
@@ -113,6 +125,7 @@ describe('DashboardPage', () => {
 
     httpMock.expectNone((req) => req.url === ALERTS_URL);
     httpMock.expectNone((req) => req.url === DASHBOARD_URL);
+    httpMock.expectNone((req) => req.url === SPLIT_URL);
     expect(element.querySelector('vvs-stock-alerts-card')).toBeNull();
     expect(element.querySelector('vvs-dashboard-kpis')).toBeNull();
     expect(element.querySelector('.restricted')).not.toBeNull();
@@ -122,6 +135,7 @@ describe('DashboardPage', () => {
     await open('ADMIN');
 
     answerDashboard();
+    answerSplit();
     httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
     await render();
 
@@ -137,6 +151,7 @@ describe('DashboardPage', () => {
     httpMock
       .expectOne((req) => req.url === DASHBOARD_URL)
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
+    answerSplit();
     httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
     await render();
 
@@ -155,6 +170,7 @@ describe('DashboardPage', () => {
     await open('ADMIN');
 
     answerDashboard();
+    answerSplit();
     httpMock
       .expectOne((req) => req.url === ALERTS_URL)
       .flush(null, { status: 503, statusText: 'Service Unavailable' });
@@ -171,5 +187,74 @@ describe('DashboardPage', () => {
     fixture.detectChanges();
 
     expect(card?.textContent).toContain('Aucun article sous son seuil');
+  });
+
+  it('affiche la valeur et la part de chaque gamme et de chaque canal lues sur l’API', async () => {
+    await open('ADMIN');
+    fixture.componentRef.setInput('tab', 'analysis');
+
+    answerDashboard();
+    answerSplit();
+    httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
+    await render();
+
+    const text = (selector: string): string[] =>
+      Array.from(element.querySelectorAll(selector)).map((node) =>
+        (node.textContent ?? '')
+          .replace(/[\u202f\u00a0]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim(),
+      );
+    expect(text('vvs-revenue-split-card .range')).toEqual([
+      'Zezika 562 000 Ar · 43,8 %',
+      'Solika 436 000 Ar · 33,9 %',
+      'Botanika 286 000 Ar · 22,3 %',
+    ]);
+    expect(text('vvs-revenue-split-card .channels > div')).toEqual([
+      'Boutique 668 k 52,0 %',
+      'Facebook 398 k 31,0 %',
+      'Canal désactivé 218 k 17,0 %',
+    ]);
+    const bar = element.querySelector<HTMLElement>('vvs-revenue-split-card .bar span');
+    expect(bar?.style.width).toBe('43.8%');
+  });
+
+  it('montre un état vide, sans barre, quand aucune vente n’est validée aujourd’hui', async () => {
+    await open('ADMIN');
+    fixture.componentRef.setInput('tab', 'analysis');
+
+    answerDashboard();
+    answerSplit(REVENUE_SPLIT_EMPTY_TEST_VIEW);
+    httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
+    await render();
+
+    const card = element.querySelector('vvs-revenue-split-card');
+    expect(card?.textContent).toContain('Aucune vente validée aujourd');
+    expect(card?.querySelector('.range')).toBeNull();
+    expect(card?.textContent).not.toContain('NaN');
+  });
+
+  it('garde le cockpit quand la répartition du CA échoue, puis la relit au réessai', async () => {
+    await open('ADMIN');
+    fixture.componentRef.setInput('tab', 'analysis');
+
+    answerDashboard();
+    httpMock
+      .expectOne((req) => req.url === SPLIT_URL)
+      .flush(null, { status: 503, statusText: 'Service Unavailable' });
+    httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
+    await render();
+
+    const card = element.querySelector('vvs-revenue-split-card');
+    expect(card?.querySelector('[role="alert"]')).not.toBeNull();
+    expect(element.querySelector('vvs-top-articles-card')).not.toBeNull();
+
+    card?.querySelector<HTMLButtonElement>('[role="alert"] button')?.click();
+    TestBed.tick();
+    answerSplit();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(card?.querySelectorAll('.range')).toHaveLength(3);
   });
 });

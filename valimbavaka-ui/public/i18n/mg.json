@@ -365,7 +365,11 @@
     "split": {
       "title": "Fizarana ny vola niditra",
       "subtitle": "Isaky ny karazany sy fantsona, androany",
-      "byChannel": "Isaky ny fantsona"
+      "byChannel": "Isaky ny fantsona",
+      "empty": {
+        "title": "Tsy mbola misy varotra nekena androany",
+        "message": "Hiseho eto ny fizarana isaky ny karazany sy fantsona rehefa misy ny varotra voalohany."
+      }
     },
     "stockAlerts": {
       "title": "Fampitandremana tahiry",

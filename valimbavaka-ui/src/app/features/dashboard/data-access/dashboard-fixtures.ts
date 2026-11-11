@@ -32,16 +32,6 @@ export const DASHBOARD_DEMO_FIXTURE: DashboardDemoRDto = {
     { date: '2026-10-12', amount: 7_640_000 },
     { date: '2026-10-19', amount: 2_974_000 },
   ],
-  revenueByRange: [
-    { range: 'BOTANIKA', amount: 562_000 },
-    { range: 'ZEZIKA', amount: 436_000 },
-    { range: 'SOLIKA', amount: 286_000 },
-  ],
-  revenueByChannel: [
-    { channel: 'SHOP', amount: 668_000 },
-    { channel: 'FACEBOOK', amount: 398_000 },
-    { channel: 'PHONE', amount: 218_000 },
-  ],
   activity: [
     {
       id: 'a1',

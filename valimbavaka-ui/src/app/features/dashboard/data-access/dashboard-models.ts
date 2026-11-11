@@ -1,6 +1,5 @@
 import { ProductRange } from '../../../shared/models/tone';
 
-export type SalesChannel = 'SHOP' | 'FACEBOOK' | 'PHONE';
 export type DayStepCode = 'OPENING' | 'SALES' | 'DELIVERIES' | 'CLOSING';
 export type ActivityKind =
   'SALE' | 'DELIVERY' | 'DELIVERY_FAILED' | 'SERVICE' | 'SHOOTING' | 'TRANSFER';
@@ -61,16 +60,6 @@ export interface DailyRevenueRDto {
   readonly amount: number;
 }
 
-export interface RangeRevenueRDto {
-  readonly range: ProductRange;
-  readonly amount: number;
-}
-
-export interface ChannelRevenueRDto {
-  readonly channel: SalesChannel;
-  readonly amount: number;
-}
-
 export interface ActivityRDto {
   readonly id: string;
   readonly kind: ActivityKind;
@@ -110,7 +99,7 @@ export interface DashboardRDto {
 }
 
 /**
- * Zones du cockpit encore simulées : graphiques (DSH-02), répartition (DSH-04), flux d'activité, meilleurs articles,
+ * Zones du cockpit encore simulées : graphiques (DSH-02), flux d'activité, meilleurs articles,
  * vendeuses, objectif mensuel et étapes. Chaque zone sortira d'ici quand son API existera ; elles ne contiennent plus
  * aucun des 4 indicateurs.
  */
@@ -125,8 +114,6 @@ export interface DashboardDemoRDto {
   readonly revenueLast7Days: readonly DailyRevenueRDto[];
   /** Chiffre d'affaires des 4 dernières semaines, `date` = lundi de la semaine. */
   readonly revenueLast4Weeks: readonly DailyRevenueRDto[];
-  readonly revenueByRange: readonly RangeRevenueRDto[];
-  readonly revenueByChannel: readonly ChannelRevenueRDto[];
   readonly activity: readonly ActivityRDto[];
   readonly topArticles: readonly TopArticleRDto[];
   readonly sellers: readonly SellerPerformanceRDto[];

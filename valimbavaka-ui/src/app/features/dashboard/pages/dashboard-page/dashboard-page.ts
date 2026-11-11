@@ -64,7 +64,8 @@ function alignedOnLive(demo: DashboardDemoRDto, live: DashboardRDto): DashboardD
  * Cockpit du jour (DSH-01 à DSH-04) : vue d'ensemble pour agir, analyse détaillée pour comprendre. Les 4
  * indicateurs (DSH-01) viennent de `GET /api/v1/dashboard`, réservé à l'administrateur (`reports.read`) ; les alertes
  * de stock (DSH-03) de `GET /api/v1/stocks/alerts`. Les autres zones (`demoZones`) restent simulées : chacune sera
- * branchée par son ticket (graphique DSH-02, répartition DSH-04) sans toucher aux indicateurs.
+ * branchée par son ticket (graphique DSH-02) sans toucher aux indicateurs ; la répartition du CA (DSH-04) est lue sur
+ * `GET /api/v1/dashboard/revenue-split`, à part de l'agrégat.
  */
 @Component({
   selector: 'vvs-dashboard-page',
@@ -109,6 +110,15 @@ export class DashboardPage {
     params: () => (this.canSeeCockpit() ? true : undefined),
     stream: () => this.dashboardService.get(),
   });
+  /** Répartition du CA du jour (DSH-04), lue à part de l'agrégat : un échec n'empêche pas le reste de s'afficher. */
+  protected readonly revenueSplit = rxResource({
+    params: () => (this.canSeeCockpit() ? true : undefined),
+    stream: () => this.dashboardService.revenueSplit(),
+  });
+  protected readonly revenueSplitValue = computed(() =>
+    this.revenueSplit.hasValue() ? this.revenueSplit.value() : undefined,
+  );
+  protected readonly revenueSplitFailed = computed(() => this.revenueSplit.status() === 'error');
   protected readonly demoZones = rxResource({
     params: () => (this.canSeeCockpit() ? true : undefined),
     stream: () => this.dashboardService.demoZones(),
