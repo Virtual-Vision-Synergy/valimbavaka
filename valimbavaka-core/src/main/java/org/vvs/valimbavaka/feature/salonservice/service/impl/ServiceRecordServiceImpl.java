@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.core.exception.UnauthorizedException;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
+import org.vvs.valimbavaka.feature.commission.service.CommissionService;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.salonservice.domain.ServiceRecord;
@@ -56,6 +59,7 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
     private final JournalService journalService;
     private final AuditorAware<UUID> auditorAware;
     private final Clock clock;
+    private final CommissionService commissionService;
 
     ServiceRecordServiceImpl(
             ServiceRecordRepository serviceRecordRepository,
@@ -64,7 +68,8 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
             StockMovementService stockMovementService,
             JournalService journalService,
             AuditorAware<UUID> auditorAware,
-            Clock clock) {
+            Clock clock,
+            CommissionService commissionService) {
         this.serviceRecordRepository = serviceRecordRepository;
         this.serviceRecordMapper = serviceRecordMapper;
         this.policy = policy;
@@ -72,6 +77,7 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
         this.journalService = journalService;
         this.auditorAware = auditorAware;
         this.clock = clock;
+        this.commissionService = commissionService;
     }
 
     @Override
@@ -127,8 +133,27 @@ public class ServiceRecordServiceImpl implements ServiceRecordService {
                                 serviceRecord.getServiceName(),
                                 serviceRecord.getPrice().toPlainString(),
                                 serviceRecord.getProducts().size()));
+        creditCommission(serviceRecord);
         log.info("Prestation {} enregistrée", serviceRecord.getId());
         return serviceRecordMapper.toRDto(serviceRecord);
+    }
+
+    /**
+     * COM-02: commission of the service in the same transaction (rate of the service, otherwise of the store channel,
+     * otherwise of the seller; none if the account is not a seller). No purchase cost is frozen on a service record:
+     * the rate applies to its price.
+     */
+    private void creditCommission(ServiceRecord serviceRecord) {
+        commissionService.calculate(new CommissionSource(
+                CommissionSourceType.SERVICE_RECORD,
+                serviceRecord.getId(),
+                serviceRecord.getNumber(),
+                serviceRecord.getSellerId(),
+                serviceRecord.getSalesChannelId(),
+                serviceRecord.getSalonServiceId(),
+                LocalDate.now(clock.withZone(BUSINESS_ZONE)),
+                serviceRecord.getPrice(),
+                null));
     }
 
     @Override

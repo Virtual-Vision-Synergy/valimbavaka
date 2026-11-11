@@ -1,51 +1,47 @@
 # Guide d'intégration — COM-02 · Calcul automatique de la commission
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ☐ à compléter · Ticket : [#86](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/86) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé · Ticket : [#86](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/86) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+Chaque vente créditée à une vendeuse (`SaleRecordedEvent`) et chaque prestation du salon qu'elle enregistre reçoit une commission calculée par le serveur, dans la transaction de l'opération : base (CA après remise, ou marge) × taux, arrondi à l'ariary. Le taux est le plus précis, sans cumul (décision PO du 07/11/2026) : service salon, sinon règle du canal (COM-01), sinon taux de la vendeuse. La commission d'une vente annulée (`SaleCancelledEvent`, LIV-05) passe à `CANCELLED`. L'administrateur les consulte dans Administration › Commissions calculées.
 
 ## Contrat exposé
 
 ### Endpoints backend
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
+| Méthode | URL | Permission (`@HasPermission`) | Entrée | Sortie (`XxxRDto`) | Erreurs |
 |---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+| GET | `/api/v1/commissions?page&size&sortBy&sortDirection&sellerId&from&to` | `commissions.read-all` (nouvelle, `ADMIN` seulement) | paramètres de requête, aucune écriture | `PageResponse<CommissionRDto>` | 401, 403, 422 (période inversée, taille > 100) |
 
 ### Services et ports Java réutilisables
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+- `CommissionService` (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/commission/service/CommissionService.java`) : `calculate(CommissionSource)` (idempotent, vide si le compte n'est pas une vendeuse active), `cancelBySource(type, id)`, `getCommissions(...)`, `findBySource(type, id)` (pour VTE-09).
+- `SaleCommissionListener` (`valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/commission/service/impl/SaleCommissionListener.java:35` et `:40`) écoute `SaleCancelledEvent` et `SaleRecordedEvent` ; la prestation appelle `calculate` depuis `ServiceRecordServiceImpl`.
+- La vente fournit le coût d'achat par `SaleService.getPurchaseCost(saleId)` (`Sale.purchaseCost()`).
 
-### Frontend
+### Frontend (`valimbavaka-ui/src/app/features/commissions/`)
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+- Route : `/commissions/calculated` (garde `commissions.read-all`), page `commission-list-page`.
+- Service : `data-access/commission-service.ts`, types `CommissionRDto` dans `commission-models.ts`.
 
 ### Données
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+- Table `commissions` et permission `commissions.read-all` : migration `2026_11_08-83-changelog.sql` (rollback fourni). Une commission par opération (`uq_commissions_source`).
+- Journal : `CREATE` sur `COMMISSION` au calcul (« Commission VTE-… · vendeuse · taux % de base Ar (CA ou marge) = montant Ar »), `CANCEL` quand la vente est annulée.
 
 ## Règles métier à respecter par les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- Taux le plus précis, sans cumul : service salon > règle du canal > taux de la vendeuse ; aucun taux : commission 0 (`rateSource = NONE`).
+- Base : `revenue` = total de la vente après remise (PRO-02) ; une règle « marge » applique le taux à CA − coût d'achat, jamais sous 0.
+- Montant arrondi HALF_UP à l'ariary (`Commission.applyTerms`, `Commission.java:115`).
+- Une vente sans vendeuse (commande de l'administrateur, LIV-03) n'a pas de commission.
+- Statuts actuels : `CALCULATED`, `CANCELLED`. COM-03 y ajoutera la validation ; la contrainte `ck_commissions_status` devra alors être étendue par une nouvelle migration.
+- Ni suppression ni modification manuelle : le recalcul est COM-05.
 
 ## Fichiers concernés
 
-**À exposer / créer (liste du traiteur)** : _(à compléter)_
-
-Zone de départ (voir `description.md`) :
-
-- Frontend :
-  - `valimbavaka-ui/src/app/features/commissions`
-- Backend :
-  - `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/commission (à créer)`
+**Créés** : feature `commission` (`domain/Commission*`, `service/impl/CommissionServiceImpl`, `SaleCommissionListener`, `CommissionController`, `CommissionRDto`, `CommissionMapper`, `CommissionRepository`), migration `2026_11_08-83`, `commission-list-page`, `commission-service.ts`. **Modifiés** : `Sale.purchaseCost`, `SaleService.getPurchaseCost`, `ServiceRecordServiceImpl`.
 
 ## Dépendances
 
@@ -63,10 +59,13 @@ Zone de départ (voir `description.md`) :
 
 ## Comment l'utiliser depuis un autre ticket
 
-```text
-(exemple d'appel ou d'injection à compléter)
+```java
+commissionService.findBySource(CommissionSourceType.SALE, saleId); // VTE-09 : détail d'une vente
 ```
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- Hypothèse : la commission d'une vente annulée est conservée (statut `CANCELLED`, montant gardé) plutôt que supprimée, pour la trace ; COM-03/COM-04 doivent exclure `CANCELLED` de leurs totaux.
+- L'annulation d'une prestation n'existe pas encore : à brancher sur `cancelBySource(SERVICE_RECORD, id)` quand elle sera livrée.
+- Le calcul et l'annulation sont synchrones : une erreur de commission annule la vente ou l'annulation ; c'est voulu (pas de vente sans commission).
+- La page n'est pas dans `demo-pages.a11y.spec.ts` ; à vérifier en recette.

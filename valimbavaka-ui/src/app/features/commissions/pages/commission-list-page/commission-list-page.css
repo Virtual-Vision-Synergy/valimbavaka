@@ -1,0 +1,39 @@
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.month {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.month-label,
+.count {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+}
+.list {
+  padding: var(--space-4) var(--space-5);
+}
+.table-wrapper {
+  overflow-x: auto;
+}
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cancelled {
+  text-decoration: none;
+  font-weight: 600;
+}
+.muted {
+  display: block;
+  color: var(--gris-moyen);
+  font-size: var(--text-xs);
+  font-weight: normal;
+}
