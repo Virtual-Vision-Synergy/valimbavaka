@@ -99,21 +99,24 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     @Override
     public BusinessDayRDto requireOpenDay() {
         var date = policy.today();
-        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDate(date).orElse(null)));
+        return dayMapper.toRDto(
+                requireOpen(date, dayRepository.findByBusinessDate(date).orElse(null)));
     }
 
     @Override
     @Transactional
     public BusinessDayRDto lockOpenDay() {
         var date = policy.today();
-        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDateForUpdate(date).orElse(null)));
+        return dayMapper.toRDto(requireOpen(
+                date, dayRepository.findByBusinessDateForUpdate(date).orElse(null)));
     }
 
     @Override
     @Transactional
     public BusinessDayRDto closeDay() {
         var date = policy.today();
-        var day = requireOpen(date, dayRepository.findByBusinessDateForUpdate(date).orElse(null));
+        var day = requireOpen(
+                date, dayRepository.findByBusinessDateForUpdate(date).orElse(null));
         day.close();
         var saved = dayRepository.saveAndFlush(day);
         log.info("Journée du {} clôturée", date);
