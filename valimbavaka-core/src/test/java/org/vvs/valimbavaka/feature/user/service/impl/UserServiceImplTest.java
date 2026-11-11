@@ -214,7 +214,7 @@ class UserServiceImplTest {
     void createUser_emailAlreadyUsed_throwsConflict() {
         // given
         var request = new CreateUserWDto(
-                " Vendeuse@Valimbavaka.mg ", "mot-de-passe", "Hery", "Rabe", UUID.randomUUID(), null, null);
+                " Vendeuse@Valimbavaka.mg ", "mot-de-passe", "Hery", "Rabe", UUID.randomUUID(), null, null, null);
         when(userRepository.existsByEmail("vendeuse@valimbavaka.mg")).thenReturn(true);
         // when / then
         assertThatThrownBy(() -> sut.createUser(request)).isInstanceOf(ConflictException.class);
@@ -231,7 +231,8 @@ class UserServiceImplTest {
                 "Rabe",
                 UUID.randomUUID(),
                 salesChannelId,
-                new BigDecimal("5.00"));
+                new BigDecimal("5.00"),
+                null);
         when(referentialService.isActiveSalesChannel(salesChannelId)).thenReturn(false);
         // when / then
         assertThatThrownBy(() -> sut.createUser(request))
@@ -252,7 +253,8 @@ class UserServiceImplTest {
                 "Rabe",
                 roleId,
                 salesChannelId,
-                new BigDecimal("7.50"));
+                new BigDecimal("7.50"),
+                null);
         when(userRepository.existsByEmail("vendeuse@valimbavaka.mg")).thenReturn(false);
         when(referentialService.isActiveSalesChannel(salesChannelId)).thenReturn(true);
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(sellerRole));
@@ -273,7 +275,8 @@ class UserServiceImplTest {
     void createUser_sellerWithoutCommission_throwsBusinessException() {
         // given
         var roleId = UUID.randomUUID();
-        var request = new CreateUserWDto("vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null);
+        var request = new CreateUserWDto(
+                "vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null, null);
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(sellerRole));
         when(sellerRole.getName()).thenReturn(RoleName.SELLER);
         when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
@@ -288,7 +291,7 @@ class UserServiceImplTest {
         // given
         var roleId = UUID.randomUUID();
         var request = new CreateUserWDto(
-                "admin@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, new BigDecimal("5.00"));
+                "admin@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, new BigDecimal("5.00"), null);
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(administratorRole));
         when(administratorRole.getName()).thenReturn(RoleName.ADMIN);
         when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
@@ -302,7 +305,8 @@ class UserServiceImplTest {
     void createUser_validRequest_recordsCreationInJournal() {
         // given
         var roleId = UUID.randomUUID();
-        var request = new CreateUserWDto("admin2@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null);
+        var request = new CreateUserWDto(
+                "admin2@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null, null);
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(administratorRole));
         when(administratorRole.getName()).thenReturn(RoleName.ADMIN);
         when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
@@ -322,7 +326,7 @@ class UserServiceImplTest {
     void createUser_emailAlreadyUsed_recordsNothingInJournal() {
         // given
         var request = new CreateUserWDto(
-                "doublon@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", UUID.randomUUID(), null, null);
+                "doublon@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", UUID.randomUUID(), null, null, null);
         when(userRepository.existsByEmail("doublon@valimbavaka.mg")).thenReturn(true);
         // when / then
         assertThatThrownBy(() -> sut.createUser(request)).isInstanceOf(ConflictException.class);
@@ -540,7 +544,7 @@ class UserServiceImplTest {
     }
 
     private static UpdateUserWDto updateRequest(String email, boolean active, UUID roleId) {
-        return new UpdateUserWDto(email, "Hery", "Rabe", roleId, null, null, active);
+        return new UpdateUserWDto(email, "Hery", "Rabe", roleId, null, null, null, active);
     }
 
     @Test
