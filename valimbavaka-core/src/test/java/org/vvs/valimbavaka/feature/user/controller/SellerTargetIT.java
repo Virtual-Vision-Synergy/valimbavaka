@@ -77,9 +77,7 @@ class SellerTargetIT extends StockApiTestSupport {
                 .getContentAsString();
 
         // Assert
-        var id = UUID.fromString(idOf(json));
-        var stored = jdbcTemplate.queryForObject("select monthly_target from users where id = ?", BigDecimal.class, id);
-        assertThat(stored).isEqualByComparingTo("1500000");
+        assertThat(storedTarget(UUID.fromString(idOf(json)))).isEqualByComparingTo("1500000");
     }
 
     @Test
@@ -109,8 +107,7 @@ class SellerTargetIT extends StockApiTestSupport {
         var descriptions = jdbcTemplate.queryForList(
                 "select description from journal_entries where resource_type = 'USER' and resource_id = ? "
                         + "and description like '%objectif mensuel%' order by occurred_at",
-                String.class,
-                seller.getId());
+                String.class, seller.getId());
         assertThat(descriptions)
                 .hasSize(3)
                 .anyMatch(text -> text.endsWith("objectif mensuel : aucun → 1000000.00 Ar"))
@@ -130,8 +127,7 @@ class SellerTargetIT extends StockApiTestSupport {
         var traces = jdbcTemplate.queryForObject(
                 "select count(*) from journal_entries where resource_type = 'USER' and resource_id = ? "
                         + "and description like '%objectif mensuel%'",
-                Integer.class,
-                seller.getId());
+                Integer.class, seller.getId());
         assertThat(traces).isEqualTo(1);
     }
 
@@ -145,9 +141,7 @@ class SellerTargetIT extends StockApiTestSupport {
         update(sellerToken, seller, "1")
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("FORBIDDEN"));
-        var stored = jdbcTemplate.queryForObject(
-                "select monthly_target from users where id = ?", BigDecimal.class, seller.getId());
-        assertThat(stored).isEqualByComparingTo("1000000");
+        assertThat(storedTarget(seller.getId())).isEqualByComparingTo("1000000");
     }
 
     @Test
@@ -171,7 +165,8 @@ class SellerTargetIT extends StockApiTestSupport {
     @Test
     void updateUser_targetOnAnAdministrator_returns422() throws Exception {
         // Arrange : l'objectif n'a de sens que pour une vendeuse
-        var administrator = userRepository.findByEmailWithRoleAndPermissions(ADMIN_EMAIL).orElseThrow();
+        var found = userRepository.findByEmailWithRoleAndPermissions(ADMIN_EMAIL);
+        var administrator = found.orElseThrow();
         var identity = "\"email\":\"%s\",\"firstName\":\"Tiana\",\"lastName\":\"Admin\"".formatted(ADMIN_EMAIL);
         var role = "\"roleId\":\"%s\"".formatted(administrator.getRole().getId());
         var body = "{" + identity + "," + role + ",\"monthlyTarget\":1000000,\"active\":true}";
@@ -182,6 +177,11 @@ class SellerTargetIT extends StockApiTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isUnprocessableContent());
+    }
+
+    private BigDecimal storedTarget(UUID userId) {
+        var sql = "select monthly_target from users where id = ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, userId);
     }
 
     private UUID sellerRoleId() {

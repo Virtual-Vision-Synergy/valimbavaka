@@ -286,7 +286,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private static String amountLabel(@Nullable BigDecimal amount) {
-        return amount == null ? "aucun" : amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
+        return amount == null
+                ? "aucun"
+                : amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private static NotFoundException userNotFound(UUID userId) {
