@@ -192,7 +192,7 @@ class PromotionListIT {
     }
 
     private UUID channelId() {
-        return salesChannelRepository.findAll().getFirst().getId();
+        return salesChannelRepository.findByCode("STORE").orElseThrow().getId();
     }
 
     private static LocalDate today() {

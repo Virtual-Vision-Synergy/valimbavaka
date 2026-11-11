@@ -4,6 +4,11 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
+import jakarta.persistence.LockModeType;
+
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+
 import org.vvs.valimbavaka.feature.day.domain.BusinessDay;
 import org.vvs.valimbavaka.shared.operation.OperationRepository;
 
@@ -12,6 +17,11 @@ public interface BusinessDayRepository extends OperationRepository<BusinessDay, 
 
     /** Flushes at once: two simultaneous openings of the same date end in a 409 instead of a late failure. */
     BusinessDay saveAndFlush(BusinessDay day);
+
+    /** Day of the date locked in writing until the end of the transaction: two closings run one after the other. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select d from BusinessDay d where d.businessDate = :date")
+    Optional<BusinessDay> findByBusinessDateForUpdate(LocalDate date);
 
     boolean existsByBusinessDate(LocalDate businessDate);
 

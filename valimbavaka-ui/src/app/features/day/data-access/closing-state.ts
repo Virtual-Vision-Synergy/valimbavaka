@@ -3,7 +3,6 @@ import {
   ClosingLine,
   DayClosing,
   DayClosingCountsWDto,
-  DayLockWDto,
   DiscrepancyReason,
   DispatchDestination,
   theoretical,
@@ -66,6 +65,20 @@ export class ClosingState {
     () => this.rows().filter((row) => row.gap !== 0 && !row.reason).length,
   );
 
+  /**
+   * Lignes dont le comptage affiché n'est pas celui que le serveur a enregistré : le verrouillage (JR-06) relit les
+   * comptages enregistrés, il faut donc les enregistrer d'abord. Le motif ne compte que s'il y a un écart.
+   */
+  readonly unsaved = computed(
+    () =>
+      this.rows().filter(
+        (row) =>
+          !row.line.saved ||
+          row.counted !== row.line.counted ||
+          (row.gap !== 0 && row.reason !== row.line.reason),
+      ).length,
+  );
+
   setCount(key: string, raw: string): void {
     const value = Math.max(0, Math.floor(Number(raw) || 0));
     this.counts.update((all) => ({ ...all, [key]: value }));
@@ -88,22 +101,6 @@ export class ClosingState {
         articleId: row.line.articleId,
         counted: row.counted,
         reason: row.gap === 0 ? null : row.reason,
-      })),
-    };
-  }
-
-  toRequest(date: string): DayLockWDto {
-    return {
-      date,
-      counts: this.rows().map((row) => ({
-        location: row.location,
-        articleId: row.line.articleId,
-        counted: row.counted,
-        reason: row.reason,
-      })),
-      cash: Object.entries(this.cash()).map(([location, counted]) => ({
-        location: location as DispatchDestination,
-        counted,
       })),
     };
   }

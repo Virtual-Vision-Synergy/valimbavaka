@@ -76,8 +76,12 @@ export class DayClosePage {
   );
   protected readonly location = signal<DispatchDestination>('SHOP');
   protected readonly onlyGaps = signal(false);
+  /** Heure du verrouillage fait depuis cet écran ; absente quand la journée était déjà clôturée au chargement. */
   protected readonly lockedAt = signal<string | null>(null);
   protected readonly locking = signal(false);
+  protected readonly lockError = signal<string | null>(null);
+  /** Journée clôturée (JR-06) : consultation seule. */
+  protected readonly locked = computed(() => this.data()?.status === 'CLOSED');
   protected readonly saving = signal(false);
   protected readonly saveError = signal<string | null>(null);
 
@@ -104,21 +108,23 @@ export class DayClosePage {
     const counted = this.state.cash()[this.location()] ?? 0;
     return location ? { ...location.cash, counted, gap: counted - location.cash.expected } : null;
   });
-  protected readonly canLock = computed(() => {
-    const checklist = this.data()?.checklist;
-    return (
-      !!checklist &&
-      checklist.deliveriesDone === checklist.deliveriesTotal &&
-      checklist.heldTickets === 0 &&
-      this.state.lateShootings() === 0 &&
-      this.state.missingReasons() === 0
-    );
-  });
+  /**
+   * Verrouillage possible : chaque écart a son motif et le comptage affiché est celui que le serveur a enregistré
+   * (il le relit). La caisse et la liste de contrôle, encore en démonstration, ne bloquent pas.
+   */
+  protected readonly canLock = computed(
+    () =>
+      !!this.data() &&
+      !this.locked() &&
+      !this.locking() &&
+      this.state.missingReasons() === 0 &&
+      this.state.unsaved() === 0,
+  );
   /** Comptage enregistrable : au moins une ligne, un motif pour chaque écart (le serveur le vérifie aussi). */
   protected readonly canSave = computed(
     () =>
       !this.saving() &&
-      !this.lockedAt() &&
+      !this.locked() &&
       this.state.rows().length > 0 &&
       this.state.missingReasons() === 0,
   );
@@ -192,17 +198,33 @@ export class DayClosePage {
     this.lockDialog()?.nativeElement.close();
   }
 
+  /** Verrouille la journée : le serveur relit les écarts et refuse (422) un comptage incomplet ou sans motif. */
   protected confirmLock(): void {
-    const date = this.data()?.date;
-    if (!date || !this.canLock()) {
+    if (!this.canLock()) {
       return;
     }
     this.locking.set(true);
-    this.dayService.lock(this.state.toRequest(date)).subscribe((time) => {
-      this.locking.set(false);
-      this.lockedAt.set(time);
-      this.closeLock();
-      this.toast.show('day.close.lockedToast', { time });
+    this.lockError.set(null);
+    this.dayService.lock().subscribe({
+      next: (result) => this.lockDone(result),
+      error: (error: unknown) => {
+        this.locking.set(false);
+        this.closeLock();
+        this.lockError.set(errorMessage(error));
+      },
     });
+  }
+
+  private lockDone(result: SubmitResult<DayClosing>): void {
+    this.locking.set(false);
+    this.closeLock();
+    if (result.queued || !result.body) {
+      this.toast.show('common.queuedSaved', {}, 'info');
+      return;
+    }
+    const time = new Date().toTimeString().slice(0, 5);
+    this.lockedAt.set(time);
+    this.closing.set(result.body);
+    this.toast.show('day.close.lockedToast', { time });
   }
 }

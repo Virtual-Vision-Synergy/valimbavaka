@@ -3,14 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { demo } from '../../../shared/data-access/demo';
 import { closingExtras } from './day-fixtures';
 import {
   BusinessDayRDto,
   DayClosing,
   DayClosingCountsWDto,
   DayClosingRDto,
-  DayLockWDto,
   DayOpeningGrid,
   DayOpeningRDto,
   DayOpeningWDto,
@@ -22,8 +20,8 @@ import {
  * Journée de vente. L'ouverture (JR-01) est branchée sur l'API : grille `GET /api/v1/days/opening`, ouverture
  * `POST /api/v1/days` par la file hors ligne (`OutboxService`, SYS-07). La réconciliation de clôture (JR-04) est
  * branchée sur `GET /api/v1/days/closing`, le comptage du soir avec ses motifs d'écart (JR-05) sur
- * `PUT /api/v1/days/closing/counts` par la file hors ligne ; la caisse, la liste de contrôle et le verrouillage restent
- * en données de démonstration jusqu'à JR-06.
+ * `PUT /api/v1/days/closing/counts` par la file hors ligne, le verrouillage (JR-06) sur
+ * `POST /api/v1/days/closing/lock` ; la caisse et la liste de contrôle restent en données de démonstration.
  */
 @Injectable({ providedIn: 'root' })
 export class DayService {
@@ -55,16 +53,24 @@ export class DayService {
   saveCounts(request: DayClosingCountsWDto): Observable<SubmitResult<DayClosing>> {
     return this.outbox
       .submit<DayClosingRDto>('PUT', `${this.baseUrl}/closing/counts`, request)
-      .pipe(
-        map((result) => ({
-          queued: result.queued,
-          body: result.body ? toDayClosing(result.body, closingExtras()) : undefined,
-        })),
-      );
+      .pipe(map(toClosingResult));
   }
 
-  /** Simulation : renvoie l'heure de verrouillage. */
-  lock(request: DayLockWDto): Observable<string> {
-    return demo(request).pipe(map(() => new Date().toTimeString().slice(0, 5)));
+  /**
+   * Verrouille la clôture du jour (JR-06), sans corps : le serveur relit les écarts et refuse (422) une ligne non
+   * comptée ou un écart sans motif, (409) une journée non ouverte ou déjà clôturée. `queued` si la saisie attend le
+   * réseau, sinon `body` porte la réconciliation de la journée clôturée (`status` `CLOSED`).
+   */
+  lock(): Observable<SubmitResult<DayClosing>> {
+    return this.outbox
+      .submit<DayClosingRDto>('POST', `${this.baseUrl}/closing/lock`)
+      .pipe(map(toClosingResult));
   }
+}
+
+function toClosingResult(result: SubmitResult<DayClosingRDto>): SubmitResult<DayClosing> {
+  return {
+    queued: result.queued,
+    body: result.body ? toDayClosing(result.body, closingExtras()) : undefined,
+  };
 }

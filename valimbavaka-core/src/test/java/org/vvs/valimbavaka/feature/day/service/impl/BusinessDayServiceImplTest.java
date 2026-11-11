@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -176,6 +177,86 @@ class BusinessDayServiceImplTest {
     }
 
     @Test
+    void requireOpenDay_closedDay_throwsConflictSayingItIsClosed() {
+        // Arrange
+        var day = closedDay();
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDate(TODAY)).thenReturn(Optional.of(day));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.requireOpenDay())
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("La journée du 08/11/2026 est déjà clôturée.");
+    }
+
+    @Test
+    void lockOpenDay_openedToday_readsTheDayLockedInWriting() {
+        // Arrange
+        var day = BusinessDay.open(TODAY);
+        var expected = new BusinessDayRDto(UUID.randomUUID(), TODAY, DayStatus.OPEN, List.of(), Instant.EPOCH, null);
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDateForUpdate(TODAY)).thenReturn(Optional.of(day));
+        when(dayMapper.toRDto(day)).thenReturn(expected);
+
+        // Act
+        var result = sut.lockOpenDay();
+
+        // Assert
+        assertThat(result).isSameAs(expected);
+    }
+
+    @Test
+    void lockOpenDay_closedDay_throwsConflict() {
+        // Arrange
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDateForUpdate(TODAY)).thenReturn(Optional.of(closedDay()));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.lockOpenDay()).isInstanceOf(ConflictException.class);
+    }
+
+    @Test
+    void closeDay_openedToday_setsTheStatusToClosedAndSaves() {
+        // Arrange
+        var day = BusinessDay.open(TODAY);
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDateForUpdate(TODAY)).thenReturn(Optional.of(day));
+        when(dayRepository.saveAndFlush(day)).thenReturn(day);
+
+        // Act
+        sut.closeDay();
+
+        // Assert
+        assertThat(day.getStatus()).isEqualTo(DayStatus.CLOSED);
+        verify(dayRepository).saveAndFlush(day);
+    }
+
+    @Test
+    void closeDay_alreadyClosed_throwsConflictAndSavesNothing() {
+        // Arrange
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDateForUpdate(TODAY)).thenReturn(Optional.of(closedDay()));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.closeDay())
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("La journée du 08/11/2026 est déjà clôturée.");
+        verify(dayRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void closeDay_noDayToday_throwsConflict() {
+        // Arrange
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDateForUpdate(TODAY)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.closeDay())
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("La journée du 08/11/2026 n'est pas ouverte.");
+    }
+
+    @Test
     void findToday_noDayToday_returnsNull() {
         // Arrange
         when(policy.today()).thenReturn(TODAY);
@@ -227,5 +308,11 @@ class BusinessDayServiceImplTest {
                 List.of(),
                 Instant.EPOCH,
                 null);
+    }
+
+    private static BusinessDay closedDay() {
+        var day = BusinessDay.open(TODAY);
+        day.close();
+        return day;
     }
 }
