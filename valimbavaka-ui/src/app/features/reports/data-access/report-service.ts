@@ -4,8 +4,9 @@ import { Observable } from 'rxjs';
 import { ReportQuery, ReportRDto } from './report-models';
 
 /**
- * Rapports (RPT-01) : `GET /api/v1/reports` (permission `reports.read`, administrateur). Chiffre d'affaires, ventes
- * validées et panier moyen du jour, du mois ou de l'année, filtrés par canal et par gamme.
+ * Rapports (RPT-01, RPT-02) : `GET /api/v1/reports` (permission `reports.read`, administrateur). Chiffre d'affaires,
+ * ventes validées et panier moyen du jour, du mois ou de l'année, filtrés par canal et par gamme, comparés à la
+ * période précédente (valeur et variation en %).
  */
 @Injectable({ providedIn: 'root' })
 export class ReportService {
