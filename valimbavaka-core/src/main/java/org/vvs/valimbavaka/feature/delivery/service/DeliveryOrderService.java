@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderFilter;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryDriverRDto;
+import org.vvs.valimbavaka.feature.delivery.dto.DeliveryEventRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderWDto;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
@@ -33,4 +34,10 @@ public interface DeliveryOrderService {
 
     /** Active drivers that can be assigned, by first name; search on first and last name. */
     PageResponse<DeliveryDriverRDto> getDrivers(PageQuery query);
+
+    /**
+     * History of an order (LIV-06): its journal lines, oldest first by default, each one with its time and author.
+     * 404 if the order is unknown (or belongs to another driver for a driver).
+     */
+    PageResponse<DeliveryEventRDto> getHistory(UUID orderId, PageQuery query);
 }
