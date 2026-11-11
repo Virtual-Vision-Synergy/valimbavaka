@@ -1,8 +1,10 @@
 package org.vvs.valimbavaka.feature.commission.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -54,6 +56,52 @@ class CommissionTest {
         // Assert
         assertThat(sut.getStatus()).isEqualTo(CommissionStatus.CANCELLED);
         assertThat(sut.getAmount()).isEqualTo(new BigDecimal("1020.00"));
+    }
+
+    @Test
+    void validate_calculatedCommission_becomesValidatedWithItsDate() {
+        // Arrange
+        var terms = terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var sut = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        var at = Instant.parse("2026-11-11T08:00:00Z");
+
+        // Act
+        sut.validate(at);
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(CommissionStatus.VALIDATED);
+        assertThat(sut.getValidatedAt()).isEqualTo(at);
+        assertThat(sut.getAmount()).isEqualTo(new BigDecimal("1020.00"));
+    }
+
+    @Test
+    void validate_alreadyValidatedOrCancelled_isRefused() {
+        // Arrange
+        var terms = terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var validated = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        validated.validate(Instant.parse("2026-11-11T08:00:00Z"));
+        var cancelled = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        cancelled.cancel();
+
+        // Act + Assert
+        assertThatThrownBy(() -> validated.validate(Instant.now())).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> cancelled.validate(Instant.now())).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void cancel_validatedCommission_becomesCancelledAndKeepsItsValidationDate() {
+        // Arrange
+        var terms = terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var sut = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        var at = Instant.parse("2026-11-11T08:00:00Z");
+        sut.validate(at);
+
+        // Act
+        sut.cancel();
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(CommissionStatus.CANCELLED);
+        assertThat(sut.getValidatedAt()).isEqualTo(at);
     }
 
     @Test
