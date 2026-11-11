@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,7 +84,8 @@ public class DayClosingSalonServiceImpl implements DayClosingSalonService {
                 .collect(Collectors.toMap(ClosingLineRDto::articleId, ClosingLineRDto::salon, BigDecimal::add));
     }
 
-    private static ClosingSalonLineRDto line(ArticleRDto article, BigDecimal consumed, BigDecimal inClosing) {
+    private static ClosingSalonLineRDto line(
+            ArticleRDto article, @Nullable BigDecimal consumed, @Nullable BigDecimal inClosing) {
         var served = consumed == null ? BigDecimal.ZERO : consumed;
         var closed = inClosing == null ? BigDecimal.ZERO : inClosing;
         return new ClosingSalonLineRDto(
