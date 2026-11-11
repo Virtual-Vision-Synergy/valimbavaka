@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'commissionList.title' | translate"
     [subtitle]="'commissionList.subtitle' | translate"
-    [codes]="['COM-02']"
+    [codes]="['COM-02', 'COM-03']"
   />
 
   <section class="card list" [attr.aria-label]="'commissionList.title' | translate">
@@ -26,6 +26,76 @@
       <div class="alert alert-danger" role="alert">{{ message }}</div>
     }
 
+    <h2 class="section-title">{{ 'commissionList.sellers.title' | translate }}</h2>
+    @if (notice(); as message) {
+      <div class="alert alert-success" role="status">{{ message }}</div>
+    }
+    @if (sellersError(); as message) {
+      <div class="alert alert-danger" role="alert">{{ message }}</div>
+    }
+    @if (sellers().length > 0) {
+      <div class="table-wrapper sellers">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">{{ 'commissionList.col.seller' | translate }}</th>
+              <th scope="col">{{ 'commissionList.col.status' | translate }}</th>
+              <th scope="col" class="num">{{ 'commissionList.col.toValidate' | translate }}</th>
+              <th scope="col" class="num">{{ 'commissionList.col.validated' | translate }}</th>
+              <th scope="col">
+                <span class="sr-only">{{ 'commissionList.col.action' | translate }}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (seller of sellers(); track seller.sellerId) {
+              <tr>
+                <th scope="row">{{ seller.sellerName }}</th>
+                <td>
+                  <span
+                    class="badge badge-dot"
+                    [class.badge-warning]="seller.status === 'TO_VALIDATE'"
+                    [class.badge-success]="seller.status === 'VALIDATED'"
+                  >
+                    {{ 'commissionList.sellerStatus.' + seller.status | translate }}
+                  </span>
+                </td>
+                <td class="num">
+                  {{ seller.toValidateAmount | ariary }}
+                  <span class="muted">{{
+                    'commissionList.commissionCount' | translate: { count: seller.toValidateCount }
+                  }}</span>
+                </td>
+                <td class="num">
+                  {{ seller.validatedAmount | ariary }}
+                  <span class="muted">{{
+                    'commissionList.commissionCount' | translate: { count: seller.validatedCount }
+                  }}</span>
+                </td>
+                <td class="num">
+                  @if (canValidate && seller.status === 'TO_VALIDATE') {
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      [disabled]="isValidating()"
+                      [attr.aria-label]="
+                        'commissionList.validate.action' | translate: { name: seller.sellerName }
+                      "
+                      (click)="askValidation(seller)"
+                    >
+                      {{ 'commissionList.validate.button' | translate }}
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <h2 class="section-title">{{ 'commissionList.detail' | translate }}</h2>
+
     @if (commissions().length > 0) {
       <div class="table-wrapper">
         <table class="table">
@@ -47,6 +117,11 @@
                   <span class="muted">{{
                     'commissionList.source.' + commission.sourceType | translate
                   }}</span>
+                  @if (commission.status === 'VALIDATED') {
+                    <span class="muted validated">{{
+                      'commissionList.status.VALIDATED' | translate
+                    }}</span>
+                  }
                   @if (commission.status === 'CANCELLED') {
                     <span class="muted cancelled">{{
                       'commissionList.status.CANCELLED' | translate
@@ -94,3 +169,14 @@
     }
   </section>
 </div>
+
+@if (pending(); as pendingSeller) {
+  @let texts = dialogTexts(pendingSeller);
+  <vvs-confirm-dialog
+    [heading]="'commissionList.validate.confirmTitle' | translate"
+    [message]="texts.message"
+    [confirmLabel]="'commissionList.validate.button' | translate"
+    (confirmed)="confirmValidation()"
+    (cancelled)="dismiss()"
+  />
+}

@@ -1547,6 +1547,17 @@
   "commissionList": {
     "title": "Commissions calculées",
     "subtitle": "Calculées automatiquement à chaque vente ou prestation : base × taux le plus précis (service salon, sinon canal, sinon vendeuse).",
+    "sellers": { "title": "Commissions par vendeuse" },
+    "detail": "Détail des commissions",
+    "commissionCount": "{{count}} commission(s)",
+    "sellerStatus": { "TO_VALIDATE": "À valider", "VALIDATED": "Validée" },
+    "validate": {
+      "button": "Valider",
+      "action": "Valider les commissions de {{name}}",
+      "confirmTitle": "Valider les commissions ?",
+      "confirmMessage": "Valider {{count}} commission(s) de {{name}}, soit {{amount}} Ar, sur le mois affiché ? Une commission validée est définitive.",
+      "done": "{{count}} commission(s) de {{name}} validée(s)."
+    },
     "month": "Mois",
     "count": "{{count}} commission(s)",
     "col": {
@@ -1555,13 +1566,18 @@
       "seller": "Vendeuse",
       "base": "Base (Ar)",
       "rate": "Taux",
-      "amount": "Commission"
+      "amount": "Commission",
+      "status": "Statut",
+      "toValidate": "À valider",
+      "validated": "Validées",
+      "action": "Action"
     },
     "source": {
       "SALE": "Vente",
       "SERVICE_RECORD": "Prestation salon"
     },
     "status": {
+      "VALIDATED": "Validée",
       "CANCELLED": "Annulée avec la vente"
     },
     "base": {

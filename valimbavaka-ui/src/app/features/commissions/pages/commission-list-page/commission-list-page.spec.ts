@@ -7,10 +7,23 @@ import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { PageResponse } from '../../../../shared/models/page-response';
-import { CommissionRDto } from '../../data-access/commission-models';
+import { CommissionRDto, SellerCommissionRDto } from '../../data-access/commission-models';
 import { CommissionListPage, monthKey, monthRange } from './commission-list-page';
 
 const COMMISSIONS_URL = '/api/v1/commissions';
+const SELLERS_URL = `${COMMISSIONS_URL}/sellers`;
+const VALIDATION_URL = `${COMMISSIONS_URL}/validation`;
+
+const seller = (overrides: Partial<SellerCommissionRDto> = {}): SellerCommissionRDto => ({
+  sellerId: 'u1',
+  sellerName: 'Miora Rakoto',
+  status: 'TO_VALIDATE',
+  toValidateCount: 2,
+  toValidateAmount: 850,
+  validatedCount: 0,
+  validatedAmount: 0,
+  ...overrides,
+});
 
 const commission = (overrides: Partial<CommissionRDto> = {}): CommissionRDto => ({
   id: 'c1',
@@ -56,6 +69,9 @@ describe('CommissionListPage', () => {
   let element: HTMLElement;
 
   const isListRequest = (req: { url: string }): boolean => req.url === COMMISSIONS_URL;
+  const isSellersRequest = (req: { url: string }): boolean => req.url === SELLERS_URL;
+  const sellerRows = (): NodeListOf<Element> =>
+    element.querySelectorAll('section table')[0].querySelectorAll('tbody tr');
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -73,6 +89,12 @@ describe('CommissionListPage', () => {
     element = fixture.nativeElement as HTMLElement;
   });
 
+  /** Réponse des vendeuses, demandées à la création de la page. */
+  const flushSellers = async (items: SellerCommissionRDto[] = [seller()]): Promise<void> => {
+    httpMock.expectOne(isSellersRequest).flush(pageOf(items));
+    await fixture.whenStable();
+  };
+
   afterEach(() => httpMock.verify());
 
   it('should request the current month, newest first', () => {
@@ -84,6 +106,7 @@ describe('CommissionListPage', () => {
     expect(request.request.params.get('sortBy')).toBe('createdAt');
     expect(request.request.params.get('sortDirection')).toBe('DESC');
     request.flush(pageOf([]));
+    httpMock.expectOne(isSellersRequest).flush(pageOf([]));
   });
 
   it('should show the operation, the seller, the base, the rate with its origin and the commission', async () => {
@@ -101,9 +124,9 @@ describe('CommissionListPage', () => {
         }),
       ]),
     );
-    await fixture.whenStable();
+    await flushSellers();
 
-    const rows = element.querySelectorAll('tbody tr');
+    const rows = element.querySelectorAll('tbody')[1].querySelectorAll('tr');
     expect(rows).toHaveLength(2);
     expect(rows[0].textContent).toContain('VTE-0042');
     expect(rows[0].textContent).toContain('Vente');
@@ -123,16 +146,16 @@ describe('CommissionListPage', () => {
     httpMock
       .expectOne(isListRequest)
       .flush(pageOf([commission(), commission({ id: 'c2', status: 'CANCELLED' })]));
-    await fixture.whenStable();
+    await flushSellers();
 
-    const rows = element.querySelectorAll('tbody tr');
+    const rows = element.querySelectorAll('tbody')[1].querySelectorAll('tr');
     expect(rows[0].textContent).not.toContain('Annulée avec la vente');
     expect(rows[1].textContent).toContain('Annulée avec la vente');
   });
 
   it('should reload the chosen month from its first page', async () => {
     httpMock.expectOne(isListRequest).flush(pageOf([commission()]));
-    await fixture.whenStable();
+    await flushSellers();
     const select = element.querySelector('select') as HTMLSelectElement;
     const previous = monthKey(new Date(), -1);
 
@@ -142,8 +165,113 @@ describe('CommissionListPage', () => {
     const request = httpMock.expectOne(isListRequest);
     expect(request.request.params.get('page')).toBe('1');
     expect(request.request.params.get('from')).toBe(monthRange(previous).from);
+    const sellersRequest = httpMock.expectOne(isSellersRequest);
+    expect(sellersRequest.request.params.get('from')).toBe(monthRange(previous).from);
     request.flush(pageOf([]));
+    sellersRequest.flush(pageOf([]));
     await fixture.whenStable();
     expect(element.textContent).toContain('Aucune commission ce mois-ci');
+  });
+
+  it('should show the status to validate or validated of each seller, with the totals', async () => {
+    httpMock.expectOne(isListRequest).flush(pageOf([]));
+    await flushSellers([
+      seller(),
+      seller({
+        sellerId: 'u2',
+        sellerName: 'Hanta Razafy',
+        status: 'VALIDATED',
+        toValidateCount: 0,
+        toValidateAmount: 0,
+        validatedCount: 3,
+        validatedAmount: 1275,
+      }),
+    ]);
+
+    const rows = sellerRows();
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toContain('Miora Rakoto');
+    expect(rows[0].textContent).toContain('À valider');
+    expect(rows[0].textContent).toMatch(/850/);
+    expect(rows[0].querySelector('button')).not.toBeNull();
+    expect(rows[1].textContent).toContain('Hanta Razafy');
+    expect(rows[1].textContent).toContain('Validée');
+    expect(rows[1].textContent).toMatch(/1\s?275/);
+    expect(rows[1].querySelector('button')).toBeNull();
+  });
+
+  it('should validate the seller of the month only after the confirmation, then reload', async () => {
+    httpMock.expectOne(isListRequest).flush(pageOf([commission()]));
+    await flushSellers();
+
+    (sellerRows()[0].querySelector('button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    expect(element.textContent).toContain('Une commission validée est définitive');
+    httpMock.expectNone(VALIDATION_URL);
+    (element.querySelector('dialog .btn-primary') as HTMLButtonElement).click();
+
+    const request = httpMock.expectOne(VALIDATION_URL);
+    const { from, to } = monthRange(monthKey(new Date(), 0));
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ sellerId: 'u1', from, to });
+    request.flush({
+      sellerId: 'u1',
+      sellerName: 'Miora Rakoto',
+      from,
+      to,
+      validatedCount: 2,
+      validatedAmount: 850,
+    });
+    httpMock.expectOne(isSellersRequest).flush(
+      pageOf([
+        seller({
+          status: 'VALIDATED',
+          toValidateCount: 0,
+          toValidateAmount: 0,
+          validatedCount: 2,
+          validatedAmount: 850,
+        }),
+      ]),
+    );
+    httpMock.expectOne(isListRequest).flush(pageOf([commission({ status: 'VALIDATED' })]));
+    await fixture.whenStable();
+
+    expect(element.textContent).toContain('2 commission(s) de Miora Rakoto validée(s)');
+    expect(sellerRows()[0].textContent).toContain('Validée');
+    expect(sellerRows()[0].querySelector('button')).toBeNull();
+  });
+
+  it('should show the server error and refresh when the commissions are already validated', async () => {
+    httpMock.expectOne(isListRequest).flush(pageOf([]));
+    await flushSellers();
+
+    (sellerRows()[0].querySelector('button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    (element.querySelector('dialog .btn-primary') as HTMLButtonElement).click();
+    httpMock.expectOne(VALIDATION_URL).flush(
+      {
+        status: 409,
+        code: 'CONFLICT',
+        detail: 'Les commissions de cette vendeuse sont déjà validées sur cette période.',
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    httpMock.expectOne(isSellersRequest).flush(pageOf([seller({ status: 'VALIDATED' })]));
+    await fixture.whenStable();
+
+    expect(element.querySelector('[role="alert"]')?.textContent).toContain('déjà validées');
+  });
+
+  it('should send nothing when the confirmation is cancelled', async () => {
+    httpMock.expectOne(isListRequest).flush(pageOf([]));
+    await flushSellers();
+
+    (sellerRows()[0].querySelector('button') as HTMLButtonElement).click();
+    await fixture.whenStable();
+    (element.querySelector('dialog .btn-secondary') as HTMLButtonElement).click();
+    await fixture.whenStable();
+
+    httpMock.expectNone(VALIDATION_URL);
+    expect(element.querySelector('dialog')).toBeNull();
   });
 });

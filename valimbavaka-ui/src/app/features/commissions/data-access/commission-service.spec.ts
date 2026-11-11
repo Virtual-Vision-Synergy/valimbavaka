@@ -43,4 +43,26 @@ describe('CommissionService', () => {
     expect(request.request.params.has('to')).toBe(false);
     request.flush(EMPTY_PAGE);
   });
+
+  it('demande les vendeuses de la période avec leur statut', () => {
+    service.sellers({ page: 1, size: 100 }, '2026-11-01', '2026-11-30').subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${COMMISSIONS_URL}/sellers`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('size')).toBe('100');
+    expect(request.request.params.get('from')).toBe('2026-11-01');
+    expect(request.request.params.get('to')).toBe('2026-11-30');
+    request.flush(EMPTY_PAGE);
+  });
+
+  it("envoie la validation de la vendeuse sur la période, sans rien d'autre", () => {
+    const body = { sellerId: 's1', from: '2026-11-01', to: '2026-11-30' };
+
+    service.validate(body).subscribe();
+
+    const request = httpMock.expectOne(`${COMMISSIONS_URL}/validation`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual(body);
+    request.flush({ ...body, sellerName: 'Miora Rakoto', validatedCount: 2, validatedAmount: 850 });
+  });
 });
