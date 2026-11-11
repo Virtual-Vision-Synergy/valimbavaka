@@ -48,7 +48,9 @@ public class DayClosingSalonServiceImpl implements DayClosingSalonService {
         var closing = dayClosingService.getClosing();
         var date = closing.businessDate();
         var from = date.atStartOfDay(DayClosingServiceImpl.BUSINESS_ZONE).toInstant();
-        var to = date.plusDays(1).atStartOfDay(DayClosingServiceImpl.BUSINESS_ZONE).toInstant();
+        var to = date.plusDays(1)
+                .atStartOfDay(DayClosingServiceImpl.BUSINESS_ZONE)
+                .toInstant();
         var consumed = serviceRecordService.getSalonConsumption(from, to).stream()
                 .collect(Collectors.toMap(SalonConsumptionRDto::articleId, SalonConsumptionRDto::quantity));
         var inClosing = salonColumn(closing);
@@ -62,7 +64,8 @@ public class DayClosingSalonServiceImpl implements DayClosingSalonService {
                 .sorted(Comparator.comparing(ClosingSalonLineRDto::name, String.CASE_INSENSITIVE_ORDER)
                         .thenComparing(ClosingSalonLineRDto::reference))
                 .toList();
-        var servicesCount = serviceRecordService.getServiceRecordsBetween(from, to).size();
+        var servicesCount =
+                serviceRecordService.getServiceRecordsBetween(from, to).size();
         return new ClosingSalonRDto(
                 date,
                 servicesCount,
