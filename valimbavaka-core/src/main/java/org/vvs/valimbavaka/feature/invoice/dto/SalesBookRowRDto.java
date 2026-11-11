@@ -17,8 +17,7 @@ public record SalesBookRowRDto(
 
         @ExcelColumn(header = "Date", order = 1, width = 12) LocalDate businessDate,
 
-        @ExcelColumn(header = "Type", order = 2, width = 10)
-        String type,
+        @ExcelColumn(header = "Type", order = 2, width = 10) String type,
 
         @ExcelColumn(header = "Numéro", order = 3, width = 16)
         String number,
