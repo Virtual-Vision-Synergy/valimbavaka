@@ -175,6 +175,35 @@ class BusinessDayServiceImplTest {
         assertThat(result).isSameAs(expected);
     }
 
+    @Test
+    void findToday_noDayToday_returnsNull() {
+        // Arrange
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDate(TODAY)).thenReturn(Optional.empty());
+
+        // Act
+        var result = sut.findToday();
+
+        // Assert
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void findToday_dayAlreadyClosed_returnsTheDayWhateverItsStatus() {
+        // Arrange
+        var day = BusinessDay.open(TODAY);
+        var expected = new BusinessDayRDto(UUID.randomUUID(), TODAY, DayStatus.CLOSED, List.of(), Instant.EPOCH, null);
+        when(policy.today()).thenReturn(TODAY);
+        when(dayRepository.findByBusinessDate(TODAY)).thenReturn(Optional.of(day));
+        when(dayMapper.toRDto(day)).thenReturn(expected);
+
+        // Act
+        var result = sut.findToday();
+
+        // Assert
+        assertThat(result).isSameAs(expected);
+    }
+
     /** Store: soap 12 and oil 4; delivery: soap 5. */
     private static DispatchPlan plan() {
         var store = new LinkedHashMap<UUID, BigDecimal>();

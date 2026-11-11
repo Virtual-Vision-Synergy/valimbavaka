@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Journée de vente : ouverture (répartition du matin, JR-01, `days.open`) et clôture (réconciliation,
- * verrouillage, encore en démonstration). Les permissions sont posées page par page.
+ * Journée de vente : ouverture (répartition du matin, JR-01, `days.open`), suivi en direct (JR-03, `reports.read`)
+ * et clôture (réconciliation, verrouillage, encore en démonstration). Les permissions sont posées page par page.
  */
 export const DAY_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'open' },
@@ -12,6 +12,12 @@ export const DAY_ROUTES: Routes = [
     title: 'menu.item.dayOpen',
     canActivate: [permissionGuard('days.open')],
     loadComponent: () => import('./pages/day-open-page/day-open-page').then((m) => m.DayOpenPage),
+  },
+  {
+    path: 'live',
+    title: 'menu.item.dayLive',
+    canActivate: [permissionGuard('reports.read')],
+    loadComponent: () => import('./pages/day-live-page/day-live-page').then((m) => m.DayLivePage),
   },
   {
     path: 'close',

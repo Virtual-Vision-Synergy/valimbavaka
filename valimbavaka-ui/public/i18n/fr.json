@@ -129,6 +129,7 @@
       "salonCatalog": "Catalogue salon",
       "journal": "Journal",
       "dayOpen": "Ouverture",
+      "dayLive": "Suivi du jour",
       "dayClose": "Clôture",
       "pos": "Caisse"
     }
@@ -1032,6 +1033,54 @@
     }
   },
   "day": {
+    "live": {
+      "title": "Suivi de la journée",
+      "subtitle": "Ventes, tournée et prestations d'aujourd'hui, mis à jour automatiquement.",
+      "refresh": "Actualiser",
+      "updatedAt": "Mis à jour à {{time}}",
+      "stale": "La dernière actualisation a échoué : les chiffres affichés peuvent être en retard.",
+      "status": {
+        "OPEN": "Journée ouverte",
+        "CLOSED": "Journée close",
+        "NOT_OPENED": "Journée non ouverte"
+      },
+      "sales": {
+        "title": "Ventes",
+        "count": "{{count}} vente(s) validée(s)"
+      },
+      "deliveries": {
+        "title": "Tournée",
+        "detail": "{{toPrepare}} à préparer · {{onRound}} en tournée · {{failed}} en échec"
+      },
+      "services": {
+        "title": "Prestations",
+        "count": "{{count}} prestation(s)"
+      },
+      "channels": {
+        "title": "Ventes par canal",
+        "channel": "Canal",
+        "revenue": "Chiffre d'affaires",
+        "count": "Ventes",
+        "retired": "Canal désactivé"
+      },
+      "feed": {
+        "title": "Dernières opérations",
+        "SALE": "Vente",
+        "DELIVERY": "Livraison",
+        "SERVICE": "Prestation",
+        "emptyTitle": "Aucune opération pour le moment",
+        "emptyMessage": "Les ventes, livraisons et prestations du jour apparaîtront ici."
+      },
+      "feedStatus": {
+        "VALIDATED": "Validée",
+        "CANCELLED": "Annulée",
+        "REVERSED": "Contre-passée",
+        "TO_PREPARE": "À préparer",
+        "ON_ROUND": "En tournée",
+        "DELIVERED": "Livrée",
+        "FAILED": "En échec"
+      }
+    },
     "destination": {
       "SHOP": "Boutique",
       "DELIVERY": "Livraison",
