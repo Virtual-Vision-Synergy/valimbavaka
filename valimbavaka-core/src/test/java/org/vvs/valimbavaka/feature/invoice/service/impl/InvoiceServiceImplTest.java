@@ -204,6 +204,7 @@ class InvoiceServiceImplTest {
                 OperationStatus.VALIDATED,
                 new BigDecimal("17000.00"),
                 new BigDecimal("0.00"),
+                null,
                 new BigDecimal("17000.00"),
                 List.of(),
                 Instant.parse("2026-11-08T07:00:00Z"),
@@ -225,6 +226,7 @@ class InvoiceServiceImplTest {
                 null,
                 amount,
                 new BigDecimal("0.00"),
+                null,
                 amount,
                 List.of(new InvoiceLineDraft(
                         UUID.randomUUID(), "Savon coco", new BigDecimal("2.000"), amount, amount)));
@@ -248,6 +250,7 @@ class InvoiceServiceImplTest {
                 null,
                 amount,
                 new BigDecimal("0.00"),
+                null,
                 amount,
                 List.of());
     }
