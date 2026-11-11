@@ -1,12 +1,16 @@
 package org.vvs.valimbavaka.feature.report.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,8 +34,9 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 
 /**
- * RPT-01: daily, monthly and yearly report filtered by channel and range, administrator only. The database is shared
- * with other test classes: every assertion is a difference between two readings of the same report.
+ * RPT-01 and RPT-02: daily, monthly and yearly report filtered by channel and range, compared with the previous
+ * period, administrator only. The database is shared with other test classes: every assertion is a difference between
+ * two readings of the same report.
  */
 class ReportIT extends StockApiTestSupport {
 
@@ -204,6 +209,68 @@ class ReportIT extends StockApiTestSupport {
     void getReport_malformedDateOrId_returns400() throws Exception {
         report(adminToken(), "?date=01-11-2026").andExpect(status().isBadRequest());
         report(adminToken(), "?rangeId=not-a-uuid").andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getReport_comparison_isThePreviousPeriodWithItsOwnIndicators() throws Exception {
+        // Arrange
+        var day = "?granularity=DAY";
+        var previousBefore = read(day, "$.comparison.sales.revenue");
+        var yesterday = LocalDate.now(ZoneId.of("Indian/Antananarivo")).minusDays(1);
+
+        // Act
+        createSale("STORE", soap, "1");
+
+        // Assert: today's sale moves the period, not the day before
+        assertThat(read(day, "$.comparison.sales.revenue")).isEqualTo(previousBefore);
+        assertThat(read(day, "$.comparison.from")).isEqualTo(yesterday.toString());
+        assertThat(read(day, "$.comparison.to")).isEqualTo(yesterday.toString());
+    }
+
+    @Test
+    void getReport_comparison_variationIsConsistentWithBothPeriods() throws Exception {
+        // Arrange
+        createSale("STORE", soap, "1");
+
+        // Act
+        var json = report(adminToken(), "?granularity=DAY")
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Assert
+        var current = ((Number) JsonPath.read(json, "$.sales.revenue")).doubleValue();
+        var previous = ((Number) JsonPath.read(json, "$.comparison.sales.revenue")).doubleValue();
+        Object variation = JsonPath.read(json, "$.comparison.variation.revenue");
+        if (previous == 0.0) {
+            assertThat(variation).isNull();
+        } else {
+            var expected = (current - previous) * 100 / previous;
+            assertThat(((Number) variation).doubleValue()).isCloseTo(expected, within(0.051));
+        }
+    }
+
+    @Test
+    void getReport_periodAndPreviousWithoutSale_hasNoPercentage() throws Exception {
+        report(adminToken(), "?granularity=YEAR&date=2000-06-15")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.comparison.from").value("1999-01-01"))
+                .andExpect(jsonPath("$.comparison.to").value("1999-12-31"))
+                .andExpect(jsonPath("$.comparison.sales.revenue").value(0.0))
+                .andExpect(jsonPath("$.comparison.sales.salesCount").value(0))
+                .andExpect(jsonPath("$.comparison.variation.revenue").value(nullValue()))
+                .andExpect(jsonPath("$.comparison.variation.salesCount").value(nullValue()))
+                .andExpect(jsonPath("$.comparison.variation.averageBasket").value(nullValue()));
+    }
+
+    @Test
+    void getReport_comparisonWithFilters_appliesTheSameFiltersToThePreviousPeriod() throws Exception {
+        report(adminToken(), "?granularity=MONTH&date=2000-03-10&rangeId=" + UUID.randomUUID())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.comparison.from").value("2000-02-01"))
+                .andExpect(jsonPath("$.comparison.to").value("2000-02-29"))
+                .andExpect(jsonPath("$.comparison.sales.salesCount").value(0));
     }
 
     @Test

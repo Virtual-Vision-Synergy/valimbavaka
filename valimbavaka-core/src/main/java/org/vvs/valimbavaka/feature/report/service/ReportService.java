@@ -12,8 +12,8 @@ import org.vvs.valimbavaka.feature.report.dto.ReportRDto;
 public interface ReportService {
 
     /**
-     * Report of the day, month or year that contains {@code date}. Defaults: month, today (Indian/Antananarivo).
-     * {@code BusinessException} (422) if the period has not begun yet.
+     * Report of the day, month or year that contains {@code date}, compared with the previous one (RPT-02). Defaults:
+     * month, today (Indian/Antananarivo). {@code BusinessException} (422) if the period has not begun yet.
      */
     ReportRDto getReport(
             @Nullable ReportGranularity granularity,

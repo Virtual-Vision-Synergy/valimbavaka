@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'reports.title' | translate"
     [subtitle]="'reports.subtitle' | translate"
-    [codes]="['RPT-01', 'RPT-06']"
+    [codes]="['RPT-01', 'RPT-02', 'RPT-06']"
   >
     <button class="btn btn-secondary" type="button" (click)="exportAs('PDF')">
       <svg [vvsIcon]="icons.FileText" [size]="18"></svg>
@@ -71,10 +71,17 @@
     <h2 id="summary-title">
       {{ 'reports.summary.title' | translate }}
       <span class="code-chip" aria-hidden="true">RPT-01</span>
+      <span class="code-chip" aria-hidden="true">RPT-02</span>
     </h2>
     @if (summary.value(); as data) {
       <p class="muted">
         {{ 'reports.summary.period' | translate: { from: data.from, to: data.to } }}
+      </p>
+      <p class="muted">
+        {{
+          'reports.summary.previousPeriod'
+            | translate: { from: data.comparison.from, to: data.comparison.to }
+        }}
       </p>
       <ul class="kpis" [attr.aria-label]="'reports.summary.title' | translate">
         <li>
@@ -82,20 +89,34 @@
             [label]="'reports.kpi.revenue' | translate"
             [value]="data.sales.revenue | ariary: 'plain'"
             unit="Ar"
+            [trend]="trend(data.comparison.variation.revenue)"
           />
+          <p class="vs">
+            {{ 'reports.vs' | translate: { value: (data.comparison.sales.revenue | ariary) } }}
+          </p>
         </li>
         <li>
           <vvs-kpi-card
             [label]="'reports.kpi.sales' | translate"
             [value]="data.sales.salesCount.toString()"
+            [trend]="trend(data.comparison.variation.salesCount)"
           />
+          <p class="vs">
+            {{ 'reports.vs' | translate: { value: data.comparison.sales.salesCount } }}
+          </p>
         </li>
         <li>
           <vvs-kpi-card
             [label]="'reports.kpi.basket' | translate"
             [value]="data.sales.averageBasket | ariary: 'plain'"
             unit="Ar"
+            [trend]="trend(data.comparison.variation.averageBasket)"
           />
+          <p class="vs">
+            {{
+              'reports.vs' | translate: { value: (data.comparison.sales.averageBasket | ariary) }
+            }}
+          </p>
         </li>
       </ul>
     } @else if (summary.error()) {
@@ -107,49 +128,6 @@
 
   <div aria-live="polite">
     @if (report.value(); as data) {
-      <ul class="kpis" [attr.aria-label]="'reports.kpis' | translate">
-        <li>
-          <vvs-kpi-card
-            [label]="'reports.kpi.revenue' | translate"
-            [value]="compact(data.kpis.revenue.value)"
-            unit="Ar"
-            [trend]="trend(data.kpis.revenue, 'percent')"
-          />
-          <p class="vs">
-            {{ 'reports.vs' | translate: { value: compact(data.kpis.revenue.previous) + ' Ar' } }}
-          </p>
-        </li>
-        <li>
-          <vvs-kpi-card
-            [label]="'reports.kpi.sales' | translate"
-            [value]="data.kpis.sales.value.toString()"
-            [trend]="trend(data.kpis.sales, 'percent')"
-          />
-          <p class="vs">{{ 'reports.vs' | translate: { value: data.kpis.sales.previous } }}</p>
-        </li>
-        <li>
-          <vvs-kpi-card
-            [label]="'reports.kpi.basket' | translate"
-            [value]="data.kpis.basket.value | ariary: 'plain'"
-            unit="Ar"
-            [trend]="trend(data.kpis.basket, 'percent')"
-          />
-          <p class="vs">
-            {{ 'reports.vs' | translate: { value: (data.kpis.basket.previous | ariary) } }}
-          </p>
-        </li>
-        <li>
-          <vvs-kpi-card
-            [label]="'reports.kpi.delivery' | translate"
-            [value]="data.kpis.delivery.value + ' %'"
-            [trend]="trend(data.kpis.delivery, 'points')"
-          />
-          <p class="vs">
-            {{ 'reports.vs' | translate: { value: data.kpis.delivery.previous + ' %' } }}
-          </p>
-        </li>
-      </ul>
-
       <div class="grid">
         <section class="card wide" aria-labelledby="rev-title">
           <h2 id="rev-title">

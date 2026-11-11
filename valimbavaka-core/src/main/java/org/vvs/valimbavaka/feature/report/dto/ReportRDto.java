@@ -9,7 +9,8 @@ import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 
 /**
  * Report of a period (RPT-01): the effective period {@code [from, to]}, the filters applied (null = all) and the
- * sales indicators. The later reports add their sections here (comparison, curve, ranges, ranking).
+ * sales indicators and their comparison with the previous period (RPT-02). The later reports add their sections here
+ * (curve, ranges, ranking).
  */
 public record ReportRDto(
         ReportGranularity granularity,
@@ -17,4 +18,5 @@ public record ReportRDto(
         LocalDate to,
         @Nullable UUID salesChannelId,
         @Nullable UUID rangeId,
-        ReportSalesRDto sales) {}
+        ReportSalesRDto sales,
+        ReportComparisonRDto comparison) {}

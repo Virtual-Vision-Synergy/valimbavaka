@@ -55,7 +55,15 @@ const answerApiCalls = async (): Promise<void> => {
   for (const request of TestBed.inject(HttpTestingController).match(() => true)) {
     request.flush(
       request.request.url === '/api/v1/reports'
-        ? { sales: { revenue: 0, salesCount: 0, averageBasket: 0 } }
+        ? {
+            sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
+            comparison: {
+              from: '2026-10-01',
+              to: '2026-10-31',
+              sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
+              variation: { revenue: null, salesCount: null, averageBasket: null },
+            },
+          }
         : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
     );
   }

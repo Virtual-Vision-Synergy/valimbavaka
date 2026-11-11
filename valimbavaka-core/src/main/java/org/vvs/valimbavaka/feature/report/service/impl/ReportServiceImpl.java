@@ -13,7 +13,11 @@ import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.feature.report.domain.ReportFilter;
 import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 import org.vvs.valimbavaka.feature.report.domain.ReportPeriod;
+import org.vvs.valimbavaka.feature.report.domain.ReportVariation;
+import org.vvs.valimbavaka.feature.report.dto.ReportComparisonRDto;
 import org.vvs.valimbavaka.feature.report.dto.ReportRDto;
+import org.vvs.valimbavaka.feature.report.dto.ReportSalesRDto;
+import org.vvs.valimbavaka.feature.report.dto.ReportVariationRDto;
 import org.vvs.valimbavaka.feature.report.service.ReportSalesService;
 import org.vvs.valimbavaka.feature.report.service.ReportService;
 
@@ -45,6 +49,18 @@ public class ReportServiceImpl implements ReportService {
             throw new BusinessException("Le rapport ne peut pas porter sur une période qui n'a pas commencé.");
         }
         var sales = reportSalesService.getSales(new ReportFilter(period, salesChannelId, rangeId));
-        return new ReportRDto(period.granularity(), period.from(), period.to(), salesChannelId, rangeId, sales);
+        var comparison = compare(sales, new ReportFilter(period.previous(), salesChannelId, rangeId));
+        return new ReportRDto(
+                period.granularity(), period.from(), period.to(), salesChannelId, rangeId, sales, comparison);
+    }
+
+    private ReportComparisonRDto compare(ReportSalesRDto current, ReportFilter previousFilter) {
+        var previous = reportSalesService.getSales(previousFilter);
+        var variation = new ReportVariationRDto(
+                ReportVariation.percent(current.revenue(), previous.revenue()),
+                ReportVariation.percent(current.salesCount(), previous.salesCount()),
+                ReportVariation.percent(current.averageBasket(), previous.averageBasket()));
+        return new ReportComparisonRDto(
+                previousFilter.period().from(), previousFilter.period().to(), previous, variation);
     }
 }
