@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -99,11 +100,35 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     @Override
     public BusinessDayRDto requireOpenDay() {
         var date = policy.today();
-        var day = dayRepository.findByBusinessDate(date).filter(BusinessDay::isOpen);
-        if (day.isEmpty()) {
-            throw new ConflictException("La journée du %s n'est pas ouverte.".formatted(format(date)));
+        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDate(date)));
+    }
+
+    @Override
+    @Transactional
+    public BusinessDayRDto lockOpenDay() {
+        var date = policy.today();
+        return dayMapper.toRDto(requireOpen(date, dayRepository.findByBusinessDateForUpdate(date)));
+    }
+
+    @Override
+    @Transactional
+    public BusinessDayRDto closeDay() {
+        var date = policy.today();
+        var day = requireOpen(date, dayRepository.findByBusinessDateForUpdate(date));
+        day.close();
+        var saved = dayRepository.saveAndFlush(day);
+        log.info("Journée du {} clôturée", date);
+        return dayMapper.toRDto(saved);
+    }
+
+    /** The day found for the date, if it is open; 409 when it is missing or already closed. */
+    private static BusinessDay requireOpen(LocalDate date, Optional<BusinessDay> found) {
+        var day = found.orElseThrow(
+                () -> new ConflictException("La journée du %s n'est pas ouverte.".formatted(format(date))));
+        if (!day.isOpen()) {
+            throw new ConflictException("La journée du %s est déjà clôturée.".formatted(format(date)));
         }
-        return dayMapper.toRDto(day.get());
+        return day;
     }
 
     private static TransferCommand morningTransfer(

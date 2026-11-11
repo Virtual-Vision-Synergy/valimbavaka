@@ -31,4 +31,17 @@ public interface BusinessDayService {
 
     /** Today's business day; 409 (CONFLICT) if today is not opened yet or already closed. */
     BusinessDayRDto requireOpenDay();
+
+    /**
+     * Today's open day, locked in writing until the end of the transaction (JR-06): the closing and the saving of
+     * the evening counts of the day run one after the other. 409 (CONFLICT) if today is not opened or already closed.
+     */
+    BusinessDayRDto lockOpenDay();
+
+    /**
+     * Closes today's day (JR-06): from then on {@link #requireOpenDay} refuses, so no sale, cancellation, credit
+     * note or count is recorded for that date. The checks of the evening and the journal line belong to the caller.
+     * 409 (CONFLICT) if today is not opened or already closed (two simultaneous closings: the second one fails).
+     */
+    BusinessDayRDto closeDay();
 }

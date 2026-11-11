@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,10 +18,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingCountsWDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingRDto;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingCountService;
+import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingLockService;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 
-/** Closing of today: the reconciliation (JR-04) and the evening count with its gap reasons (JR-05). */
+/** Closing of today: reconciliation (JR-04), evening count with its gap reasons (JR-05) and lock (JR-06). */
 @Tag(name = "Business days")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -34,10 +36,15 @@ public class DayClosingController {
 
     private final DayClosingService dayClosingService;
     private final DayClosingCountService dayClosingCountService;
+    private final DayClosingLockService dayClosingLockService;
 
-    public DayClosingController(DayClosingService dayClosingService, DayClosingCountService dayClosingCountService) {
+    public DayClosingController(
+            DayClosingService dayClosingService,
+            DayClosingCountService dayClosingCountService,
+            DayClosingLockService dayClosingLockService) {
         this.dayClosingService = dayClosingService;
         this.dayClosingCountService = dayClosingCountService;
+        this.dayClosingLockService = dayClosingLockService;
     }
 
     @GetMapping("/closing")
@@ -64,5 +71,18 @@ public class DayClosingController {
     @HasPermission("days.close")
     public DayClosingRDto saveCounts(@Valid @RequestBody DayClosingCountsWDto request) {
         return dayClosingCountService.saveCounts(request);
+    }
+
+    @PostMapping("/closing/lock")
+    @Operation(
+            summary = "Locks the closing of today",
+            description = "Checks that every line is counted and every gap has its reason, freezes the counts, closes"
+                    + " the day and records the closing with its gaps in the journal. No body.")
+    @ApiResponse(responseCode = "200", description = "Reconciliation of the closed day")
+    @ApiResponse(responseCode = "409", description = "Today's day is not open or already closed (CONFLICT)")
+    @ApiResponse(responseCode = "422", description = "Line not counted or gap without reason (VALIDATION_FAILED)")
+    @HasPermission("days.close")
+    public DayClosingRDto lock() {
+        return dayClosingLockService.lock();
     }
 }
