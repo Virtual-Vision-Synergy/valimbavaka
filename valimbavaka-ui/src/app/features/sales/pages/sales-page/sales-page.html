@@ -6,6 +6,12 @@
     "
     [codes]="['VTE-07']"
   >
+    @if (canSeeChannels) {
+      <a class="btn btn-secondary" routerLink="/sales/channels">
+        <svg [vvsIcon]="icons.ChartColumn" [size]="18"></svg>
+        {{ 'sales.dashboard.link' | translate }}
+      </a>
+    }
     <button class="btn btn-secondary" type="button" (click)="exportBook()">
       <svg [vvsIcon]="icons.Download" [size]="18"></svg>
       {{ 'sales.book' | translate }}
