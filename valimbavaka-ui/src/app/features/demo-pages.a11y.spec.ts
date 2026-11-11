@@ -55,28 +55,11 @@ const answerApiCalls = async (): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve));
   for (const request of TestBed.inject(HttpTestingController).match(() => true)) {
     request.flush(
-<<<<<<< HEAD
-      request.request.url === '/api/v1/reports'
-        ? {
-            granularity: 'MONTH',
-            sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
-            comparison: {
-              from: '2026-10-01',
-              to: '2026-10-31',
-              sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
-              variation: { revenue: null, salesCount: null, averageBasket: null },
-            },
-            trend: [
-              { date: '2026-11-01', revenue: 0 },
-              { date: '2026-11-02', revenue: 8500 },
-            ],
-          }
-        : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
-=======
       request.request.url === '/api/v1/dashboard'
         ? DASHBOARD_TEST_VIEW
         : request.request.url === '/api/v1/reports'
           ? {
+              granularity: 'MONTH',
               sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
               comparison: {
                 from: '2026-10-01',
@@ -84,9 +67,12 @@ const answerApiCalls = async (): Promise<void> => {
                 sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
                 variation: { revenue: null, salesCount: null, averageBasket: null },
               },
+              trend: [
+                { date: '2026-11-01', revenue: 0 },
+                { date: '2026-11-02', revenue: 8500 },
+              ],
             }
           : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
->>>>>>> 99e8ae5f75eda53e93722a763d782ec202631630
     );
   }
 };
