@@ -471,8 +471,7 @@ class CreditNoteIT extends StockApiTestSupport {
         return mockMvc.perform(creditNoteRequest(token, invoiceId, body));
     }
 
-    private static MockHttpServletRequestBuilder creditNoteRequest(
-            String token, UUID invoiceId, String body) {
+    private static MockHttpServletRequestBuilder creditNoteRequest(String token, UUID invoiceId, String body) {
         return post(INVOICES + "/" + invoiceId + "/credit-note")
                 .header(HttpHeaders.AUTHORIZATION, bearer(token))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -544,10 +543,9 @@ class CreditNoteIT extends StockApiTestSupport {
 
     /** A closed business day of the year 2000 (reused if an earlier test left it). */
     private UUID closedDay() {
-        jdbcTemplate.update(
-                "insert into business_days (id, business_date, status, created_at, updated_at) "
-                        + "values (gen_random_uuid(), date '2000-01-01', 'CLOSED', now(), now()) "
-                        + "on conflict (business_date) do nothing");
+        jdbcTemplate.update("insert into business_days (id, business_date, status, created_at, updated_at) "
+                + "values (gen_random_uuid(), date '2000-01-01', 'CLOSED', now(), now()) "
+                + "on conflict (business_date) do nothing");
         return jdbcTemplate.queryForObject(
                 "select id from business_days where business_date = date '2000-01-01'", UUID.class);
     }
