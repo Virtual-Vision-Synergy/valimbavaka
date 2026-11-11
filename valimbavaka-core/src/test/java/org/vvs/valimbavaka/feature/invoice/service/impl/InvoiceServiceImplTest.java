@@ -226,7 +226,8 @@ class InvoiceServiceImplTest {
                 amount,
                 new BigDecimal("0.00"),
                 amount,
-                List.of(new InvoiceLineDraft(UUID.randomUUID(), "Savon coco", new BigDecimal("2.000"), amount, amount)));
+                List.of(new InvoiceLineDraft(
+                        UUID.randomUUID(), "Savon coco", new BigDecimal("2.000"), amount, amount)));
     }
 
     private static InvoiceRDto view(String number) {

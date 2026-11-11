@@ -10,7 +10,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  */
 @ConfigurationProperties(prefix = "vvs.invoice")
 public record InvoiceProperties(
-        @DefaultValue("By Valimbavaka Cosmetics") String issuerName, @Nullable String issuerNif) {
+        @DefaultValue("By Valimbavaka Cosmetics") String issuerName,
+        @Nullable String issuerNif) {
 
     /** The NIF, or {@code null} while it is not configured. */
     public @Nullable String issuerNifOrNull() {

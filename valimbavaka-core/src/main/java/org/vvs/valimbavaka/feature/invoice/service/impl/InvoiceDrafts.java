@@ -50,7 +50,9 @@ class InvoiceDrafts {
 
     InvoiceDraft of(SaleRDto sale) {
         var articleNames = articleNames(sale);
-        var lines = sale.lines().stream().map(line -> toLineDraft(line, articleNames)).toList();
+        var lines = sale.lines().stream()
+                .map(line -> toLineDraft(line, articleNames))
+                .toList();
         var sellerId = sale.sellerId();
         return new InvoiceDraft(
                 sale.id(),

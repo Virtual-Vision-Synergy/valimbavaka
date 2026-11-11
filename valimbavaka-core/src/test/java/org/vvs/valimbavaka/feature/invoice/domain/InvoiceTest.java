@@ -26,7 +26,11 @@ class InvoiceTest {
         var draft = draft(
                 List.of(
                         new InvoiceLineDraft(
-                                SOAP, "Savon coco", new BigDecimal("2.000"), new BigDecimal("8500.00"), amount("17000")),
+                                SOAP,
+                                "Savon coco",
+                                new BigDecimal("2.000"),
+                                new BigDecimal("8500.00"),
+                                amount("17000")),
                         new InvoiceLineDraft(
                                 OIL, "Huile de ricin", BigDecimal.ONE, new BigDecimal("12000.00"), amount("12000"))),
                 amount("29000"),
@@ -87,18 +91,12 @@ class InvoiceTest {
     @Test
     void getLines_afterIssue_isReadOnly() {
         // Arrange
-        var sut = Invoice.issue(
-                "FAC-2026-0044",
-                draft(
-                        List.of(new InvoiceLineDraft(SOAP, "Savon coco", BigDecimal.ONE, amount("8500"), amount("8500"))),
-                        amount("8500"),
-                        amount("0"),
-                        amount("8500")));
+        var line = new InvoiceLineDraft(SOAP, "Savon coco", BigDecimal.ONE, amount("8500"), amount("8500"));
+        var sut = Invoice.issue("FAC-2026-0044", draft(List.of(line), amount("8500"), amount("0"), amount("8500")));
 
         // Act + Assert
         assertThat(sut.getLines()).hasSize(1);
-        assertThatThrownBy(() -> sut.getLines().clear())
-                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> sut.getLines().clear()).isInstanceOf(UnsupportedOperationException.class);
     }
 
     private static InvoiceDraft draft(
