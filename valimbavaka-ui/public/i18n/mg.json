@@ -1895,19 +1895,21 @@
     "date": "Daty fanondroana",
     "summary": {
       "title": "Famintinana ny vanim-potoana",
-      "period": "Manomboka ny {{from}} ka hatramin'ny {{to}}"
+      "period": "Manomboka ny {{from}} ka hatramin'ny {{to}}",
+      "previousPeriod": "Vanim-potoana teo aloha : manomboka ny {{from}} ka hatramin'ny {{to}}"
+    },
+    "variation": {
+      "none": "tsy misy"
     },
     "channel": "Lalana",
     "allChannels": "Lalana rehetra",
     "range": "Karazana",
     "allRanges": "Karazana rehetra",
     "reset": "Avereno",
-    "kpis": "Famantarana",
     "kpi": {
       "revenue": "Vola miditra",
       "sales": "Varotra",
-      "basket": "Salan'ny harona",
-      "delivery": "Fanaterana nahomby"
+      "basket": "Salan'ny harona"
     },
     "vs": "vs {{value}} vanim-potoana teo aloha",
     "revenueTitle": "Fivoaran'ny vola miditra",

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FileSpreadsheet, FileText } from 'lucide';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { KpiCard, KpiTrend } from '../../../../shared/components/kpi-card/kpi-card';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -17,7 +17,7 @@ import { RevenueCompareChart } from '../../components/revenue-compare-chart/reve
 import { ReferentialService } from '../../../referential/data-access/referential-service';
 import { localIsoDate } from '../../../sales/data-access/sales-mapping';
 import { ReportDemoService } from '../../data-access/report-demo-service';
-import { ReportGranularity, ReportKpiRDto, ReportQuery } from '../../data-access/report-models';
+import { ReportGranularity, ReportQuery } from '../../data-access/report-models';
 import { ReportService } from '../../data-access/report-service';
 
 const PERIODS: readonly SegmentOption<ReportGranularity>[] = [
@@ -42,9 +42,9 @@ const initialFilter = (): ReportFilter => ({
 });
 
 /**
- * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen) et les filtres période, canal et gamme sont
- * branchés sur l'API (RPT-01) ; les indicateurs comparés, la courbe, les gammes et le classement restent des
- * données de démonstration jusqu'à RPT-02 à RPT-05.
+ * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen), sa comparaison à la période précédente et les
+ * filtres période, canal et gamme sont branchés sur l'API (RPT-01, RPT-02) ; la courbe, les gammes et le classement
+ * restent des données de démonstration jusqu'à RPT-03 à RPT-05.
  */
 @Component({
   selector: 'vvs-reports-page',
@@ -68,6 +68,7 @@ export class ReportsPage {
   private readonly demoService = inject(ReportDemoService);
   private readonly referentialService = inject(ReferentialService);
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly icons = { FileText, FileSpreadsheet };
   protected readonly periods = PERIODS;
@@ -113,15 +114,17 @@ export class ReportsPage {
     this.toast.show('reports.exported', { format }, 'info');
   }
 
-  protected trend(kpi: ReportKpiRDto, unit: 'percent' | 'points'): KpiTrend {
-    const diff = kpi.value - kpi.previous;
-    const sign = diff >= 0 ? '+' : '−';
-    const magnitude = Math.abs(diff);
-    const text =
-      unit === 'points'
-        ? `${sign}${magnitude} pts`
-        : `${sign}${((magnitude / (kpi.previous || 1)) * 100).toFixed(1).replace('.', ',')} %`;
-    return { tone: diff >= 0 ? 'success' : 'danger', label: text };
+  /** Badge de variation en % ; `null` = pas de période précédente à comparer (pas de pourcentage). */
+  protected trend(variation: number | null): KpiTrend {
+    if (variation === null) {
+      return { tone: 'muted', label: this.translate.instant('reports.variation.none') };
+    }
+    const magnitude = Math.abs(variation).toFixed(1).replace('.', ',');
+    if (variation === 0) {
+      return { tone: 'muted', label: `${magnitude} %` };
+    }
+    const sign = variation > 0 ? '+' : '−';
+    return { tone: variation > 0 ? 'success' : 'danger', label: `${sign}${magnitude} %` };
   }
 
   protected compact(amount: number): string {

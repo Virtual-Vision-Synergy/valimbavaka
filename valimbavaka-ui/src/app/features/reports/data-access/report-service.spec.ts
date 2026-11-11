@@ -11,6 +11,12 @@ const REPORT: ReportRDto = {
   salesChannelId: null,
   rangeId: null,
   sales: { revenue: 25500, salesCount: 2, averageBasket: 12750 },
+  comparison: {
+    from: '2026-10-01',
+    to: '2026-10-31',
+    sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
+    variation: { revenue: null, salesCount: null, averageBasket: null },
+  },
 };
 
 /** Rapports (RPT-01) : `GET /api/v1/reports` avec la période et les filtres canal et gamme. */

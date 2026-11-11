@@ -16,10 +16,16 @@ const REPORT: ReportRDto = {
   salesChannelId: null,
   rangeId: null,
   sales: { revenue: 25500, salesCount: 2, averageBasket: 12750 },
+  comparison: {
+    from: '2026-10-01',
+    to: '2026-10-31',
+    sales: { revenue: 20000, salesCount: 4, averageBasket: 5000 },
+    variation: { revenue: 27.5, salesCount: -50, averageBasket: 155 },
+  },
 };
 const page = (items: object[]) => ({ items, page: 1, pageSize: 100, totalCount: 1, totalPages: 1 });
 
-/** Rapports (RPT-01) : la synthèse suit la période et les filtres canal et gamme. */
+/** Rapports (RPT-01, RPT-02) : la synthèse, comparée à la période précédente, suit la période et les filtres. */
 describe('ReportsPage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<ReportsPage>;
@@ -65,6 +71,44 @@ describe('ReportsPage', () => {
     expect(summary).toContain('25');
     expect(summary).toContain('12');
     expect(element.querySelectorAll('.summary vvs-kpi-card')).toHaveLength(3);
+  });
+
+  it('should show each indicator with its variation in percent against the previous period', async () => {
+    const element = await open();
+
+    const badges = Array.from(
+      element.querySelectorAll('.summary vvs-kpi-card vvs-status-badge'),
+    ).map((badge) => (badge.textContent ?? '').trim());
+    expect(badges).toEqual(['+27,5 %', '−50,0 %', '+155,0 %']);
+    const summary = (element.querySelector('.summary')?.textContent ?? '').replace(/\s+/g, ' ');
+    expect(summary).toContain('du 2026-10-01 au 2026-10-31');
+    expect(element.querySelectorAll('.summary .vs')).toHaveLength(3);
+  });
+
+  it('should not show a percentage when the previous period has no sale', async () => {
+    const element = await open();
+    const [channel] = Array.from(element.querySelectorAll('select')) as HTMLSelectElement[];
+
+    change(channel, 'c-fb');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((req) => req.url === REPORTS)
+      .flush({
+        ...REPORT,
+        comparison: {
+          ...REPORT.comparison,
+          sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
+          variation: { revenue: null, salesCount: null, averageBasket: null },
+        },
+      });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const badges = Array.from(
+      element.querySelectorAll('.summary vvs-kpi-card vvs-status-badge'),
+    ).map((badge) => (badge.textContent ?? '').trim());
+    expect(badges).toEqual(['n.d.', 'n.d.', 'n.d.']);
+    expect(element.querySelector('.summary')?.textContent).not.toContain('NaN');
   });
 
   it('should reload the report with the selected channel and range', async () => {

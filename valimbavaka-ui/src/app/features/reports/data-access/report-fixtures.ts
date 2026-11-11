@@ -16,12 +16,6 @@ function points(count: number, todayIndex: number): readonly ReportPointRDto[] {
 }
 
 export const REPORT_FIXTURE: ReportDemoRDto = {
-  kpis: {
-    revenue: { value: 24_600_000, previous: 21_540_000 },
-    sales: { value: 912, previous: 844 },
-    basket: { value: 26_970, previous: 25_540 },
-    delivery: { value: 91, previous: 93 },
-  },
   points: points(22, 21),
   ranges: [
     { range: 'BOTANIKA', amount: 11_300_000 },

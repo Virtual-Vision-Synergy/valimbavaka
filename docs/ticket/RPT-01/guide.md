@@ -14,7 +14,7 @@ Statut : ✅ écrit le 2026-11-11 · Ticket : [#98](https://github.com/Virtual-V
 |---|---|---|---|---|---|
 | GET | `/api/v1/reports?granularity=&date=&salesChannelId=&rangeId=` | `reports.read` (admin) | paramètres d'URL facultatifs : `granularity` = `DAY`/`MONTH`/`YEAR`, `date` = `yyyy-MM-dd`, `salesChannelId`, `rangeId` (UUID) ; aucun corps | 200 `ReportRDto` | 400 (valeur mal formée), 401, 403 (vendeuse, livreur), 422 (période qui n'a pas commencé) |
 
-- `ReportRDto` (`feature/report/dto/ReportRDto.java`) : `granularity`, `from`, `to` (période effective), `salesChannelId`, `rangeId` (filtres appliqués, `null` = tous), `sales`.
+- `ReportRDto` (`feature/report/dto/ReportRDto.java`) : `granularity`, `from`, `to` (période effective), `salesChannelId`, `rangeId` (filtres appliqués, `null` = tous), `sales`, et depuis RPT-02 `comparison` (période précédente, voir [RPT-02](../RPT-02/guide.md)).
 - `ReportSalesRDto` : `revenue`, `salesCount`, `averageBasket` (CA / ventes, 2 décimales, 0 sans vente). C'est le bloc que les rapports suivants renvoient aussi pour d'autres périodes.
 - Défauts : `granularity` = `MONTH`, `date` = aujourd'hui en `Indian/Antananarivo`. Bornes incluses, sur `sales.business_date`.
 - Jour = ce jour ; mois = du 1er au dernier jour du mois ; année = du 1er janvier au 31 décembre. Un mois ou une année en cours est rapporté en entier (jusqu'à sa fin).
