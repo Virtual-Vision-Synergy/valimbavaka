@@ -7,7 +7,11 @@ import {
   SegmentedControl,
 } from '../../../../shared/components/segmented-control/segmented-control';
 import { AriaryPipe, formatAriary } from '../../../../shared/pipes/ariary-pipe';
-import { DailyRevenueRDto, DashboardRDto, RevenueWindow } from '../../data-access/dashboard-models';
+import {
+  DailyRevenueRDto,
+  DashboardDemoRDto,
+  RevenueWindow,
+} from '../../data-access/dashboard-models';
 
 /** Pas de graduation de l'axe : 0,5 M par jour, 2 M par semaine. */
 const TICK_STEP: Record<RevenueWindow, number> = { WEEK: 500_000, MONTH: 2_000_000 };
@@ -24,7 +28,7 @@ export class RevenueChartCard {
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
 
-  readonly data = input.required<DashboardRDto>();
+  readonly data = input.required<DashboardDemoRDto>();
 
   protected readonly window = signal<RevenueWindow>('WEEK');
   protected readonly windowOptions: readonly SegmentOption<RevenueWindow>[] = [

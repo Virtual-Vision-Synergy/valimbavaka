@@ -287,8 +287,10 @@ class ReportIT extends StockApiTestSupport {
         // Assert
         assertThat(trendRevenue(MONTH, today) - before).isEqualTo(25500.0);
         assertThat((List<?>) JsonPath.read(json, "$.trend")).hasSize(today.lengthOfMonth());
-        assertThat((List<?>) JsonPath.read(json, "$.trend[?(@.date=='" + today + "')]")).hasSize(1);
-        assertThat(JsonPath.<String>read(json, "$.trend[0].date")).isEqualTo(today.withDayOfMonth(1).toString());
+        assertThat((List<?>) JsonPath.read(json, "$.trend[?(@.date=='" + today + "')]"))
+                .hasSize(1);
+        assertThat(JsonPath.<String>read(json, "$.trend[0].date"))
+                .isEqualTo(today.withDayOfMonth(1).toString());
         assertThat(trendSum(json)).isCloseTo(salesRevenue(json), within(0.01));
     }
 
@@ -409,7 +411,9 @@ class ReportIT extends StockApiTestSupport {
 
     private double trendSum(String json) {
         var values = (List<?>) JsonPath.read(json, "$.trend[*].revenue");
-        return values.stream().mapToDouble(value -> ((Number) value).doubleValue()).sum();
+        return values.stream()
+                .mapToDouble(value -> ((Number) value).doubleValue())
+                .sum();
     }
 
     private double revenue(String parameters) throws Exception {

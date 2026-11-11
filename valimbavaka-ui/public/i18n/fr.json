@@ -289,6 +289,7 @@
   "dashboard": {
     "title": "Tableau de bord",
     "subtitle": "Pilotage de la journée en temps réel",
+    "restricted": "Les indicateurs du jour sont réservés à l'administrateur.",
     "tab": {
       "label": "Vues du tableau de bord",
       "overview": "Vue d'ensemble",
@@ -328,19 +329,20 @@
     },
     "kpi": {
       "revenue": "Chiffre d'affaires",
-      "revenueCompare": "vs même jour la semaine dernière · {{amount}}",
-      "revenueGoal": "{{percent}} % de l'objectif journalier ({{target}})",
+      "revenueCompare": "vs hier · {{amount}}",
       "sales": "Ventes",
       "tickets": "tickets",
       "averageBasket": "Panier moyen {{amount}}",
       "deliveries": "Livraisons",
       "failures": "{{count}} échecs",
-      "deliveriesDetail": "{{inProgress}} en cours · {{rounds}} tournées actives",
-      "collected": "Encaissé à la livraison : {{amount}}",
+      "deliveriesDetail": "{{inProgress}} en tournée · {{toPrepare}} à préparer",
+      "deliveriesCancelled": "{{count}} annulée(s), hors total",
       "stockGap": "Écart de stock",
       "units": "unités",
       "toJustify": "À justifier",
-      "stockGapDetail": "sur {{count}} articles · estimation avant clôture",
+      "stockGapDetail": "sur {{count}} article(s) · avant le comptage du soir",
+      "stockGapNone": "Journée non ouverte : rien à réconcilier",
+      "unknownChannel": "Canal désactivé",
       "reconcile": "Voir la réconciliation",
       "failure": "{{count}} échec"
     },

@@ -186,7 +186,7 @@ describe('ReportsPage', () => {
     const heights = Array.from(element.querySelectorAll<HTMLElement>('.chart .bar')).map(
       (bar) => bar.style.height,
     );
-    expect(heights).toEqual(['0%', '50%', '100%']);
+    expect(heights).toEqual(['0%', '42.5%', '85%']);
     const rows = element.querySelectorAll('.chart table tbody tr');
     expect(rows).toHaveLength(3);
     expect(rows[2].textContent).toContain('17');

@@ -32,7 +32,7 @@ Critère : « Le graphique reflète les valeurs journalières de la période cho
 | 10 | Jour de bout en bout | `granularity=DAY`, une vente de 8 500 | Un seul point (aujourd'hui) qui augmente de 8 500 | `ReportIT.getReport_dayTrend_isASinglePointOfTheDay` | ☐ |
 | 11 | Filtres canal et gamme de bout en bout | Vente Facebook (savon + crème), vente boutique (savon) | Série Facebook + gamme savon : +8 500 ; série gamme crème : +17 000 | `ReportIT.getReport_trendWithFilters_appliesTheChannelAndTheRange` | ☐ |
 | 12 | Série continue sans vente | Février 2000 ; année 2000 | 29 points à 0 du 2000-02-01 au 2000-02-29 ; 12 points à 0 | `ReportIT.getReport_pastPeriodWithoutSale_hasAContinuousTrendOfZeros` | ☐ |
-| 13 | Écran : une barre par jour | L'API renvoie 3 jours (0, 8 500, 17 000) | 3 colonnes, hauteurs 0 %, 50 %, 100 % ; tableau de données de 3 lignes | `reports-page.spec.ts` « should draw one bar per day of the period, a day without sale being an empty bar » | ☐ |
+| 13 | Écran : une barre par jour | L'API renvoie 3 jours (0, 8 500, 17 000) | 3 colonnes, hauteurs 0 %, 42,5 %, 85 % (échelle 20 000) ; tableau de données de 3 lignes | `reports-page.spec.ts` « should draw one bar per day of the period, a day without sale being an empty bar » | ☐ |
 | 14 | Écran : une barre par mois | Période « Année », 12 points | 12 colonnes ; en-tête de colonne « Mois » | `reports-page.spec.ts` « should draw one bar per month for a year, with a month column in the data table » | ☐ |
 
 ## Règles métier

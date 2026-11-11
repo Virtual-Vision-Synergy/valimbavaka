@@ -10,77 +10,91 @@
     </a>
   </vvs-page-header>
 
-  <vvs-tabs
-    [label]="'dashboard.tab.label' | translate"
-    prefix="dashboard"
-    [tabs]="tabs"
-    [selected]="selectedTab()"
-    (selectedChange)="selectTab($event)"
-  />
-
-  <section
-    class="panel"
-    role="tabpanel"
-    tabindex="0"
-    [id]="'dashboard-panel-' + selectedTab()"
-    [attr.aria-labelledby]="'dashboard-tab-' + selectedTab()"
-    [attr.aria-busy]="dashboard.isLoading()"
-  >
-    @if (dashboard.error()) {
-      <div class="card">
-        <vvs-list-state kind="error" (retry)="dashboard.reload()" />
-      </div>
-    } @else if (dashboard.value(); as data) {
-      @switch (selectedTab()) {
-        @case ('overview') {
-          <vvs-dashboard-hero [data]="data" [firstName]="firstName()" />
-          <section class="card steps-card" [attr.aria-label]="'dashboard.step.title' | translate">
-            <vvs-stepper [label]="'dashboard.step.title' | translate" [steps]="steps()" />
-          </section>
-          <vvs-dashboard-kpis [data]="data" />
-          <div class="grid grid-main-aside">
-            @if (canSeeStockAlerts()) {
-              <vvs-stock-alerts-card
-                [page]="stockAlertsPage()"
-                [failed]="stockAlertsFailed()"
-                [limit]="3"
-                (retry)="stockAlerts.reload()"
-              />
-            }
-            <vvs-activity-feed-card [activity]="data.activity" [limit]="4" />
-          </div>
-        }
-        @case ('analysis') {
-          <div class="grid grid-main-aside">
-            <vvs-revenue-chart-card [data]="data" />
-            <vvs-revenue-split-card [data]="data" />
-          </div>
-          <vvs-top-articles-card
-            [articles]="data.topArticles"
-            [sellers]="canSeeSellers() ? data.sellers : []"
-          />
-          <div class="grid grid-main-aside">
-            @if (canSeeStockAlerts()) {
-              <vvs-stock-alerts-card
-                [page]="stockAlertsPage()"
-                [failed]="stockAlertsFailed()"
-                (retry)="stockAlerts.reload()"
-              />
-            }
-            <vvs-activity-feed-card [activity]="data.activity" />
-          </div>
-        }
+  @if (!canSeeCockpit()) {
+    <section class="panel">
+      <p class="card restricted" role="note">{{ 'dashboard.restricted' | translate }}</p>
+      @if (canSeeStockAlerts()) {
+        <vvs-stock-alerts-card
+          [page]="stockAlertsPage()"
+          [failed]="stockAlertsFailed()"
+          [limit]="3"
+          (retry)="stockAlerts.reload()"
+        />
       }
-    } @else {
-      <div class="skeleton hero-skeleton" aria-hidden="true"></div>
-      <div class="grid grid-4" aria-hidden="true">
-        @for (index of [1, 2, 3, 4]; track index) {
-          <div class="skeleton kpi-skeleton"></div>
+    </section>
+  } @else {
+    <vvs-tabs
+      [label]="'dashboard.tab.label' | translate"
+      prefix="dashboard"
+      [tabs]="tabs"
+      [selected]="selectedTab()"
+      (selectedChange)="selectTab($event)"
+    />
+
+    <section
+      class="panel"
+      role="tabpanel"
+      tabindex="0"
+      [id]="'dashboard-panel-' + selectedTab()"
+      [attr.aria-labelledby]="'dashboard-tab-' + selectedTab()"
+      [attr.aria-busy]="dashboard.isLoading()"
+    >
+      @if (dashboard.error()) {
+        <div class="card">
+          <vvs-list-state kind="error" (retry)="dashboard.reload()" />
+        </div>
+      } @else if (view(); as data) {
+        @switch (selectedTab()) {
+          @case ('overview') {
+            <vvs-dashboard-hero [data]="data.demo" [firstName]="firstName()" />
+            <section class="card steps-card" [attr.aria-label]="'dashboard.step.title' | translate">
+              <vvs-stepper [label]="'dashboard.step.title' | translate" [steps]="steps()" />
+            </section>
+            <vvs-dashboard-kpis [data]="data.live" />
+            <div class="grid grid-main-aside">
+              @if (canSeeStockAlerts()) {
+                <vvs-stock-alerts-card
+                  [page]="stockAlertsPage()"
+                  [failed]="stockAlertsFailed()"
+                  [limit]="3"
+                  (retry)="stockAlerts.reload()"
+                />
+              }
+              <vvs-activity-feed-card [activity]="data.demo.activity" [limit]="4" />
+            </div>
+          }
+          @case ('analysis') {
+            <div class="grid grid-main-aside">
+              <vvs-revenue-chart-card [data]="data.demo" />
+              <vvs-revenue-split-card [data]="data.demo" />
+            </div>
+            <vvs-top-articles-card
+              [articles]="data.demo.topArticles"
+              [sellers]="data.demo.sellers"
+            />
+            <div class="grid grid-main-aside">
+              @if (canSeeStockAlerts()) {
+                <vvs-stock-alerts-card
+                  [page]="stockAlertsPage()"
+                  [failed]="stockAlertsFailed()"
+                  (retry)="stockAlerts.reload()"
+                />
+              }
+              <vvs-activity-feed-card [activity]="data.demo.activity" />
+            </div>
+          }
         }
-      </div>
-      <div class="card">
-        <vvs-list-state kind="loading" [rows]="4" />
-      </div>
-    }
-  </section>
+      } @else {
+        <div class="skeleton hero-skeleton" aria-hidden="true"></div>
+        <div class="grid grid-4" aria-hidden="true">
+          @for (index of [1, 2, 3, 4]; track index) {
+            <div class="skeleton kpi-skeleton"></div>
+          }
+        </div>
+        <div class="card">
+          <vvs-list-state kind="loading" [rows]="4" />
+        </div>
+      }
+    </section>
+  }
 </div>

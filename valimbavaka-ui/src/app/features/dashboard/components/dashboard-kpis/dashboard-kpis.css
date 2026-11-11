@@ -9,16 +9,16 @@
 .stack span {
   height: 100%;
 }
-[data-channel='SHOP'],
+[data-slot='0'],
 .done {
   --dot: var(--channel-shop);
   background: var(--channel-shop);
 }
-[data-channel='FACEBOOK'] {
+[data-slot='1'] {
   --dot: var(--channel-facebook);
   background: var(--channel-facebook);
 }
-[data-channel='PHONE'] {
+[data-slot='2'] {
   --dot: var(--channel-phone);
   background: var(--channel-phone);
 }
