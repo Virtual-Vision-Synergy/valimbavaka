@@ -486,6 +486,7 @@
       "paid": "Vente {{ticket}} encaissée · {{amount}}",
       "totalAdjusted": "Vente {{ticket}} encaissée au prix du serveur : {{amount}} (affiché {{displayed}}). Vérifiez le rendu.",
       "held": "Ticket {{ticket}} mis en attente",
+      "holdEmpty": "Ticket vide : rien à mettre en attente",
       "cannotCheckout": "Montant reçu insuffisant pour encaisser",
       "outOfStock": "Stock insuffisant pour {{name}}",
       "sellerRequired": "Choisissez la vendeuse avant d’encaisser",
