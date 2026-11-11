@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.delivery.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -41,4 +42,13 @@ public interface DeliveryOrderRepository extends OperationRepository<DeliveryOrd
             @Nullable LocalDate scheduledDate,
             @Nullable DeliveryStatus status,
             Pageable pageable);
+
+    /** Number of orders of the day per status; a status without order is absent (JR-03). */
+    @Query("""
+            select new org.vvs.valimbavaka.feature.delivery.repository.DeliveryStatusCount(d.status, count(d))
+            from DeliveryOrder d
+            where d.scheduledDate = :scheduledDate
+            group by d.status
+            """)
+    List<DeliveryStatusCount> countByStatus(LocalDate scheduledDate);
 }
