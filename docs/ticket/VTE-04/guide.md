@@ -1,6 +1,6 @@
 # Guide d'intégration — VTE-04 · Application d'un code promo
 
-Statut : ✅ rédigé le 2026-11-11 sur le code livré, tests à lancer (CI) · Ticket : [#65](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/65) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 2026-11-11 sur le code livré, tests verts en CI · Ticket : [#65](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/65) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
