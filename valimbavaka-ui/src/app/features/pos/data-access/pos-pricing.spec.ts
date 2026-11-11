@@ -110,6 +110,49 @@ describe('pos-pricing', () => {
     expect(bestPromotion([first, second], 'SHOP', lines).promotion).toBe(first);
   });
 
+  it('retient le code promo quand il donne autant ou plus que la promotion automatique (VTE-04)', () => {
+    const lines = [line(SAVON, 8500, 2)];
+    const automatic = promotion('PERCENT', 10, { id: 'auto' });
+    const better = promotion('PERCENT', 20, { id: 'code-plus' });
+    const same = promotion('PERCENT', 10, { id: 'code-egal' });
+
+    expect(bestPromotion([automatic], 'SHOP', lines, better).promotion).toBe(better);
+    expect(bestPromotion([automatic], 'SHOP', lines, same).promotion).toBe(same);
+  });
+
+  it('garde la promotion automatique quand elle donne plus que le code, sans cumul (VTE-04)', () => {
+    const lines = [line(SAVON, 8500, 2)];
+    const automatic = promotion('PERCENT', 30, { id: 'auto' });
+    const code = promotion('PERCENT', 20, { id: 'code' });
+
+    const applied = bestPromotion([automatic], 'SHOP', lines, code);
+
+    expect(applied.promotion).toBe(automatic);
+    expect(applied.lineDiscounts).toEqual([5100]);
+  });
+
+  it("ignore un code sans effet ou d'un autre canal et garde l'automatique (VTE-04)", () => {
+    const lines = [line(SAVON, 8500, 2)];
+    const automatic = promotion('PERCENT', 10, { id: 'auto' });
+
+    expect(bestPromotion([automatic], 'SHOP', lines, promotion('BUY_X', 3)).promotion).toBe(
+      automatic,
+    );
+    expect(
+      bestPromotion([automatic], 'SHOP', lines, promotion('PERCENT', 50, { channels: ['PHONE'] }))
+        .promotion,
+    ).toBe(automatic);
+  });
+
+  it('applique le code seul quand aucune promotion automatique ne vise le ticket (VTE-04)', () => {
+    const code = promotion('AMOUNT', 2000, { id: 'code' });
+
+    const applied = bestPromotion([], 'SHOP', [line(SAVON, 8500, 3)], code);
+
+    expect(applied.promotion).toBe(code);
+    expect(applied.ticketDiscount).toBe(2000);
+  });
+
   it('ne retient aucune promotion pour un ticket vide ou sans effet', () => {
     expect(bestPromotion([promotion('PERCENT', 15)], 'SHOP', []).promotion).toBeNull();
     expect(

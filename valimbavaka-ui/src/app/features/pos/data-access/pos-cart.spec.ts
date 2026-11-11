@@ -116,6 +116,56 @@ describe('PosCart', () => {
     expect(cart.discount()).toBe(1275);
   });
 
+  it('applique un code promo validé : le net baisse et le code est retenu (VTE-04)', () => {
+    cart.add(SAVON);
+
+    cart.applyCode('OCTO20', promotion({ id: 'code', name: 'Code Octobre', value: 20 }));
+
+    expect(cart.appliedPromotion()?.name).toBe('Code Octobre');
+    expect(cart.appliedCode()).toBe('OCTO20');
+    expect(totals()).toEqual({ subtotal: 8500, discount: 1700, total: 6800 });
+  });
+
+  it("n'applique pas le code quand la promotion automatique donne plus, sans cumul (VTE-04)", () => {
+    cart.start([SAVON, GOMMAGE], [promotion({ value: 30 })], [], 0);
+    cart.add(SAVON);
+
+    cart.applyCode('OCTO20', promotion({ id: 'code', name: 'Code Octobre', value: 20 }));
+
+    expect(cart.appliedPromotion()?.name).toBe('Octobre rose');
+    expect(cart.promoCode()).toBe('OCTO20');
+    expect(cart.appliedCode()).toBeNull();
+    expect(cart.discount()).toBe(2550);
+  });
+
+  it('retire le code promo : le net revient au prix du catalogue (VTE-04)', () => {
+    cart.add(SAVON);
+    cart.applyCode('OCTO20', promotion({ id: 'code', value: 20 }));
+
+    cart.removeCode();
+
+    expect(cart.promoCode()).toBeNull();
+    expect(totals()).toEqual({ subtotal: 8500, discount: 0, total: 8500 });
+  });
+
+  it('ne retient pas le code quand le canal du ticket change pour un canal non couvert (VTE-04)', () => {
+    cart.add(SAVON);
+    cart.applyCode('OCTO20', promotion({ id: 'code', value: 20, channels: ['SHOP'] }));
+
+    cart.channel.set('PHONE');
+
+    expect(cart.appliedCode()).toBeNull();
+    expect(cart.discount()).toBe(0);
+  });
+
+  it('ouvre puis ferme la saisie du code, et la ferme quand le code est appliqué (VTE-04)', () => {
+    cart.promoEntry.set(true);
+
+    cart.applyCode('OCTO20', promotion({ id: 'code' }));
+
+    expect(cart.promoEntry()).toBe(false);
+  });
+
   it("recalcule les totaux quand une unité est retirée, jusqu'au ticket vide", () => {
     cart.add(SAVON);
     cart.add(SAVON);
@@ -179,8 +229,10 @@ describe('PosCart', () => {
     cart.received.set(20000);
     cart.payment.set('CARD');
 
+    cart.applyCode('OCTO20', promotion({ id: 'code' }));
     cart.clear();
 
+    expect(cart.promoCode()).toBeNull();
     expect(totals()).toEqual({ subtotal: 0, discount: 0, total: 0 });
     expect(cart.received()).toBe(0);
     expect(cart.change()).toBe(0);
