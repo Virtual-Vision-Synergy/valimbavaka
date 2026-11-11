@@ -1,18 +1,24 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
-import { DASHBOARD_FIXTURE } from './dashboard-fixtures';
-import { DashboardRDto } from './dashboard-models';
-
-/** Latence simulée : rend visibles les états de chargement tant que l'API n'existe pas. */
-const DEMO_LATENCY_MS = 350;
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { demo } from '../../../shared/data-access/demo';
+import { DASHBOARD_DEMO_FIXTURE } from './dashboard-fixtures';
+import { DashboardDemoRDto, DashboardRDto } from './dashboard-models';
 
 /**
- * Accès au cockpit du jour. Provisoire : renvoie les données de démonstration ; à terme
- * `this.http.get<DashboardRDto>('/api/v1/dashboard')`, sans changer l'appelant.
+ * Accès au cockpit du jour. `get()` lit les 4 indicateurs (DSH-01) sur `GET /api/v1/dashboard` (permission
+ * `reports.read`, administrateur). `demoZones()` fournit les zones sans API : DSH-02 et DSH-04 ajoutent ici leur
+ * propre lecture (un appel par bloc, un échec ne casse pas les autres) et retirent leurs champs de la démo.
  */
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
+  private readonly http = inject(HttpClient);
+
   get(): Observable<DashboardRDto> {
-    return of(DASHBOARD_FIXTURE).pipe(delay(DEMO_LATENCY_MS));
+    return this.http.get<DashboardRDto>('/api/v1/dashboard');
+  }
+
+  demoZones(): Observable<DashboardDemoRDto> {
+    return demo(DASHBOARD_DEMO_FIXTURE);
   }
 }

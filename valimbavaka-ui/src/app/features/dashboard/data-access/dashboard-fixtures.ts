@@ -1,10 +1,10 @@
-import { DashboardRDto } from './dashboard-models';
+import { DashboardDemoRDto } from './dashboard-models';
 
 /**
- * Données de démonstration du cockpit (articles issus du jeu de test v1) : remplacées par
- * GET /api/v1/dashboard dès que le module backend existe. Seul DashboardService les référence.
+ * Données de démonstration du cockpit (articles issus du jeu de test v1) : les 4 indicateurs viennent de
+ * GET /api/v1/dashboard ; chaque zone restante sort d'ici quand son API existe. Seul DashboardService les référence.
  */
-export const DASHBOARD_FIXTURE: DashboardRDto = {
+export const DASHBOARD_DEMO_FIXTURE: DashboardDemoRDto = {
   businessDate: '2026-10-21',
   openedAt: '07:42',
   openedBy: 'Hanta R.',
@@ -17,20 +17,6 @@ export const DASHBOARD_FIXTURE: DashboardRDto = {
     { code: 'DELIVERIES', state: 'current', params: { done: 9, total: 14 } },
     { code: 'CLOSING', state: 'upcoming', params: { time: '19:00' } },
   ],
-  revenue: {
-    amount: 1_284_000,
-    previousAmount: 1_142_500,
-    changePercent: 12.4,
-    dailyTarget: 1_650_000,
-  },
-  sales: {
-    tickets: 47,
-    delta: 5,
-    averageBasket: 27_320,
-    byChannel: { SHOP: 26, FACEBOOK: 14, PHONE: 7 },
-  },
-  deliveries: { done: 9, total: 14, inProgress: 3, failed: 2, activeRounds: 2, collected: 312_000 },
-  stockGap: { units: -4, articles: 3 },
   revenueLast7Days: [
     { date: '2026-10-15', amount: 980_000 },
     { date: '2026-10-16', amount: 1_120_000 },

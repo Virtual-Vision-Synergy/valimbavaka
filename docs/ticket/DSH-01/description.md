@@ -14,7 +14,7 @@ En tant qu'administrateur, je veux un cockpit journalier (CA, ventes, livraisons
 
 ## Critères d'acceptation
 
-- [ ] Les 4 indicateurs clés sont affichés sur un seul écran.
+- [x] Les 4 indicateurs clés sont affichés sur un seul écran. — *✅ vérifié le 11/11/2026 (CI) : `dashboard-kpis.spec.ts`, `dashboard-page.spec.ts`, `DashboardIT` ; recette manuelle à passer (scénario)*
 
 ## Détails
 

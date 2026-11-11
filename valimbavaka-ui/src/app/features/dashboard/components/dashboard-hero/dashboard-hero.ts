@@ -5,7 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { HasPermissionDirective } from '../../../../core/auth/has-permission-directive';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
-import { DashboardRDto } from '../../data-access/dashboard-models';
+import { DashboardDemoRDto } from '../../data-access/dashboard-models';
 import { Icon } from '../../../../shared/components/icon/icon';
 
 /** Bandeau d'accueil : salutation selon l'heure, objectif mensuel, actions rapides autorisées par le rôle. */
@@ -20,7 +20,7 @@ export class DashboardHero {
   protected readonly icons = { Lock, PackagePlus, Store };
   private readonly language = inject(LanguageService);
 
-  readonly data = input.required<DashboardRDto>();
+  readonly data = input.required<DashboardDemoRDto>();
   readonly firstName = input.required<string>();
   /** Heure courante (0-23), injectable pour les tests. */
   readonly hour = input(new Date().getHours());

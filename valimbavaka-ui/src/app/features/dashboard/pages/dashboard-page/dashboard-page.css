@@ -9,6 +9,9 @@
   outline-offset: 4px;
   animation: fade-in 220ms var(--ease-standard);
 }
+.restricted {
+  padding: var(--space-5) var(--space-6);
+}
 .steps-card {
   padding: var(--space-5) var(--space-6);
 }
