@@ -1,6 +1,6 @@
 # Scénarios de test — LIV-07 · Historique de statut d'une livraison
 
-Statut : ☐ tests automatiques à lancer (CI ou local), recette 🧪 à passer · Ticket : [#52](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/52) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests automatiques exécutés (CI verte), recette 🧪 à passer · Ticket : [#52](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/52) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -21,9 +21,9 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 
 | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|
-| 1 · Cycle complet | commande créée par l'administrateur, livrée par Tojo, puis annulée (undo) par l'administrateur ; `GET /api/v1/deliveries/{id}/history` | 200, `totalCount` 3, du plus ancien au plus récent : `CREATE` (administrateur), `UPDATE` (« Tojo Nirina », libellé « livrée »), `CANCEL` (administrateur, « de « livrée » à « à préparer » ») ; en base, 3 lignes avec `occurred_at` et `actor_id` renseignés | `DeliveryStatusHistoryIT.getHistory_createdDeliveredThenUndone_listsEachStepWithItsAuthorOldestFirst` | ☐ auto |
-| 2 · Échec | commande échouée par Tojo (motif « ABSENT »), historique lu par Tojo | 200, `totalCount` 2 ; étape 2 `UPDATE`, auteur « Tojo Nirina », `occurredAt` renseigné, libellé « en échec » et « client absent » | `DeliveryStatusHistoryIT.getHistory_failedOrder_showsTheFailureStepAttributedToTheDriver` | ☐ auto |
-| 3 · Transition refusée | commande livrée, puis déclaration d'échec refusée (409) | 409 ; l'historique garde 2 étapes (création, livraison) : un refus n'écrit rien | `DeliveryStatusHistoryIT.getHistory_refusedTransition_addsNoStep` | ☐ auto |
+| 1 · Cycle complet | commande créée par l'administrateur, livrée par Tojo, puis annulée (undo) par l'administrateur ; `GET /api/v1/deliveries/{id}/history` | 200, `totalCount` 3, du plus ancien au plus récent : `CREATE` (administrateur), `UPDATE` (« Tojo Nirina », libellé « livrée »), `CANCEL` (administrateur, « de « livrée » à « à préparer » ») ; en base, 3 lignes avec `occurred_at` et `actor_id` renseignés | `DeliveryStatusHistoryIT.getHistory_createdDeliveredThenUndone_listsEachStepWithItsAuthorOldestFirst` | ✅ auto |
+| 2 · Échec | commande échouée par Tojo (motif « ABSENT »), historique lu par Tojo | 200, `totalCount` 2 ; étape 2 `UPDATE`, auteur « Tojo Nirina », `occurredAt` renseigné, libellé « en échec » et « client absent » | `DeliveryStatusHistoryIT.getHistory_failedOrder_showsTheFailureStepAttributedToTheDriver` | ✅ auto |
+| 3 · Transition refusée | commande livrée, puis déclaration d'échec refusée (409) | 409 ; l'historique garde 2 étapes (création, livraison) : un refus n'écrit rien | `DeliveryStatusHistoryIT.getHistory_refusedTransition_addsNoStep` | ✅ auto |
 | 4 · Étape de création (LIV-06) | commande créée, lue par la vendeuse | `CREATE`, `occurredAt` et `actorName` renseignés, ni `actorId` ni nom du client | `DeliveryTrackingIT.getHistory_createdOrder_returnsTheCreationStepWithItsTimeAndAuthor` | ✅ auto (LIV-06) |
 | 5 · Écran (LIV-06) | clic sur la carte LIV-0001 | frise « 08/11 09:15 · Hanta Rabe » | `deliveries-page.spec.ts` (« ouvre le détail avec l'historique horodaté et attribué de la commande ») | ✅ auto (LIV-06) |
 | 6 · Une ligne par transition (unitaires) | livraison, échec, annulation | `journalService.record(UPDATE/CANCEL, "DELIVERY_ORDER", id, libellé)` appelé une fois ; jamais en cas de refus | `DeliveryCompletionServiceImplTest`, `DeliveryFailureServiceImplTest`, `DeliveryUndoServiceImplTest` (LIV-03 à LIV-05) | ✅ auto (LIV-03 à 05) |
@@ -56,6 +56,6 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local).
-- Environnement : à lancer (CI ou local).
+- Date : 11/11/2026, commit `4514ab8` de `feature/LIV-07-historique-statut-livraison`.
+- Environnement : CI GitHub (« CI », « Convention VVS » et « Qodana for JVM » lancés à la main) : tous verts, Qodana sans annotation ; `DeliveryStatusHistoryIT` 3 tests, 0 échec.
 - Anomalies ouvertes : aucune connue.

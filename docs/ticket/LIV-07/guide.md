@@ -1,6 +1,6 @@
 # Guide d'intégration — LIV-07 · Historique de statut d'une livraison
 
-Statut : ✅ rédigé, tests à lancer (CI ou local) · Ticket : [#52](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/52) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé, tests verts en CI (commit `4514ab8`) · Ticket : [#52](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/52) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
