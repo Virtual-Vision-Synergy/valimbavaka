@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.commission.domain;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -88,9 +89,22 @@ public class Commission extends BaseEntity {
     @Column(name = "status", nullable = false, length = 20)
     private CommissionStatus status = CommissionStatus.CALCULATED;
 
+    /** Date the administrator validated the commission (COM-03); kept if the operation is cancelled afterwards. */
+    @Column(name = "validated_at")
+    private @Nullable Instant validatedAt;
+
     /** The operation was cancelled: the commission is kept for the trace but no longer counts. */
     public void cancel() {
         this.status = CommissionStatus.CANCELLED;
+    }
+
+    /** The administrator validates a computed commission for payout; no other status can be validated. */
+    public void validate(Instant at) {
+        if (status != CommissionStatus.CALCULATED) {
+            throw new IllegalStateException("Seule une commission calculée peut être validée : " + status);
+        }
+        this.status = CommissionStatus.VALIDATED;
+        this.validatedAt = at;
     }
 
     /**
