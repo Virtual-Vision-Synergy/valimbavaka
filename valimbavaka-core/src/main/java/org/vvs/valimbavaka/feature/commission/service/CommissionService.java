@@ -34,7 +34,8 @@ public interface CommissionService {
 
     /**
      * Cancels the commission of a cancelled operation, in the caller's transaction, and traces it in the journal.
-     * Nothing happens when the operation earned no commission or when it is already cancelled.
+     * Nothing happens when the operation earned no commission or when it is already cancelled. A commission already
+     * validated (COM-03) is cancelled too, keeps its validation date and the journal says it had been validated.
      */
     void cancelBySource(CommissionSourceType sourceType, UUID sourceId);
 
