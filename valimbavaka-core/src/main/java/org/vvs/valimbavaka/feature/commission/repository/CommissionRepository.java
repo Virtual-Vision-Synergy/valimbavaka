@@ -1,5 +1,6 @@
 package org.vvs.valimbavaka.feature.commission.repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
@@ -59,6 +60,15 @@ public interface CommissionRepository extends OperationRepository<Commission, UU
             group by c.sellerId, c.status
             """)
     List<SellerStatusTotal> totalsBySellerAndStatus(Collection<UUID> sellerIds, LocalDate from, LocalDate to);
+
+    /** Revenue of the seller's commissioned operations over {@code [from, to]}, cancelled left out; null if none. */
+    @Query("""
+            select sum(c.revenue) from Commission c
+            where c.sellerId = :sellerId
+              and c.status <> org.vvs.valimbavaka.feature.commission.domain.CommissionStatus.CANCELLED
+              and c.businessDate between :from and :to
+            """)
+    @Nullable BigDecimal sumRevenue(UUID sellerId, LocalDate from, LocalDate to);
 
     /** Commissions of a seller in one status over {@code [from, to]}. */
     List<Commission> findBySellerIdAndStatusAndBusinessDateBetween(

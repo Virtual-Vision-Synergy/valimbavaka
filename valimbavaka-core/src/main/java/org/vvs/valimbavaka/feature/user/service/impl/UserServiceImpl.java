@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.user.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -123,7 +124,7 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException(EMAIL_ALREADY_USED);
         }
         var profile = new UserProfile(request.email(), request.firstName(), request.lastName());
-        var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
+        var terms = sellerTerms(request.salesChannelId(), request.commissionRate(), request.monthlyTarget());
         var user = User.create(profile, passwordEncoder.encode(request.password()), findRole(request.roleId()), terms);
         User saved = userRepository.save(user);
         journalService.record(
@@ -142,10 +143,14 @@ public class UserServiceImpl implements UserService {
         Role role = findRole(request.roleId());
         ensureCanUpdate(user, role, request.active());
         var profile = new UserProfile(request.email(), request.firstName(), request.lastName());
-        var terms = sellerTerms(request.salesChannelId(), request.commissionRate());
+        var terms = sellerTerms(request.salesChannelId(), request.commissionRate(), request.monthlyTarget());
+        var previousTarget = user.getMonthlyTarget();
         user.update(profile, role, terms, request.active());
         journalService.record(
-                JournalAction.UPDATE, RESOURCE_TYPE, userId, "Modification de l'utilisateur " + user.getEmail());
+                JournalAction.UPDATE,
+                RESOURCE_TYPE,
+                userId,
+                "Modification de l'utilisateur " + user.getEmail() + targetChange(previousTarget, terms));
         return userMapper.toRDto(user);
     }
 
@@ -266,11 +271,25 @@ public class UserServiceImpl implements UserService {
         return roleRepository.findById(roleId).orElseThrow(() -> new NotFoundException("Rôle introuvable : " + roleId));
     }
 
-    private SellerTerms sellerTerms(@Nullable UUID salesChannelId, @Nullable BigDecimal commissionRate) {
+    private SellerTerms sellerTerms(
+            @Nullable UUID salesChannelId, @Nullable BigDecimal commissionRate, @Nullable BigDecimal monthlyTarget) {
         if (salesChannelId != null && !referentialService.isActiveSalesChannel(salesChannelId)) {
             throw new BusinessException("Canal de vente introuvable : " + salesChannelId);
         }
-        return new SellerTerms(salesChannelId, commissionRate);
+        return new SellerTerms(salesChannelId, commissionRate, monthlyTarget);
+    }
+
+    /** Trace du changement d'objectif mensuel (COM-04), vide quand il ne change pas. */
+    private static String targetChange(@Nullable BigDecimal previous, SellerTerms terms) {
+        var current = terms.monthlyTarget();
+        if (previous == null ? current == null : current != null && previous.compareTo(current) == 0) {
+            return "";
+        }
+        return " · objectif mensuel : %s → %s Ar".formatted(amountLabel(previous), amountLabel(current));
+    }
+
+    private static String amountLabel(@Nullable BigDecimal amount) {
+        return amount == null ? "aucun" : amount.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private static NotFoundException userNotFound(UUID userId) {

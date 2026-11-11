@@ -14,8 +14,8 @@ import jakarta.validation.constraints.Size;
 import org.jspecify.annotations.Nullable;
 
 /**
- * DTO d'écriture (modification) d'un utilisateur. Le mot de passe ne se modifie pas ici ; canal et commission sont
- * réservés au rôle vendeuse.
+ * DTO d'écriture (modification) d'un utilisateur. Le mot de passe ne se modifie pas ici ; canal, commission et objectif
+ * mensuel (COM-04) sont réservés au rôle vendeuse.
  */
 public record UpdateUserWDto(
         @NotBlank(message = "L'email est obligatoire")
@@ -40,6 +40,10 @@ public record UpdateUserWDto(
         @DecimalMax(value = "100.00", message = "Le taux de commission ne peut pas dépasser {value} %")
         @Digits(integer = 3, fraction = 2, message = "Le taux de commission accepte 2 décimales au maximum")
         @Nullable BigDecimal commissionRate,
+
+        @DecimalMin(value = "0.00", inclusive = false, message = "L'objectif mensuel doit être supérieur à 0")
+        @Digits(integer = 17, fraction = 2, message = "L'objectif mensuel accepte 2 décimales au maximum")
+        @Nullable BigDecimal monthlyTarget,
 
         @NotNull(message = "Le statut actif est obligatoire")
         Boolean active) {

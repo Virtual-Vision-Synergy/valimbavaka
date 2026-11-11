@@ -15,6 +15,7 @@ public record UserRDto(
         RoleRDto role,
         @Nullable UUID salesChannelId,
         @Nullable BigDecimal commissionRate,
+        @Nullable BigDecimal monthlyTarget,
         boolean active,
         boolean passwordChangeRequired,
         Instant createdAt,

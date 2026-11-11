@@ -13,7 +13,7 @@ import jakarta.validation.constraints.Size;
 
 import org.jspecify.annotations.Nullable;
 
-/** DTO d'écriture (création) d'un utilisateur ; canal et commission sont réservés au rôle vendeuse. */
+/** DTO d'écriture (création) d'un utilisateur ; canal, commission et objectif sont réservés au rôle vendeuse. */
 public record CreateUserWDto(
         @NotBlank(message = "L'email est obligatoire")
         @Email(message = "L'email doit être une adresse email valide")
@@ -41,4 +41,7 @@ public record CreateUserWDto(
         @DecimalMax(value = "100.00", message = "Le taux de commission ne peut pas dépasser {value} %")
         @Digits(integer = 3, fraction = 2, message = "Le taux de commission accepte 2 décimales au maximum")
         @Nullable
-        BigDecimal commissionRate) {}
+        BigDecimal commissionRate,
+        @DecimalMin(value = "0.00", inclusive = false, message = "L'objectif mensuel doit être supérieur à 0")
+        @Digits(integer = 17, fraction = 2, message = "L'objectif mensuel accepte 2 décimales au maximum")
+        @Nullable BigDecimal monthlyTarget) {}
