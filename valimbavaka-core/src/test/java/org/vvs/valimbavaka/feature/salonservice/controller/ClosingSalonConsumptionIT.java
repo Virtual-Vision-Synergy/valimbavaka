@@ -66,11 +66,11 @@ class ClosingSalonConsumptionIT extends ServiceRecordApiTestSupport {
 
     @Test
     void getSalonConsumption_twoServices_consumedEqualsTheSalonColumnOfTheClosing() throws Exception {
-        // Arrange: 0.015 + 0.020 of oil consumed by two services (SRV-02)
+        // Arrange: 0.015 (recipe of the service) + 0.020 (adjusted) of oil consumed by two services (SRV-02)
         var oil = insertArticle("Huile de coco " + UUID.randomUUID());
         receive(oil, SALON, "1");
         var serviceId = createService(products(oil, "0.015"));
-        record(serviceId, "[]");
+        record(serviceId, "null");
         record(serviceId, products(oil, "0.020"));
 
         // Act
