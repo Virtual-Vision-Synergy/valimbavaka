@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +21,11 @@ import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
 import org.vvs.valimbavaka.feature.day.service.BusinessDayService;
+import org.vvs.valimbavaka.feature.dayclosing.domain.DayClosingCount;
 import org.vvs.valimbavaka.feature.dayclosing.dto.ClosingLineRDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.ClosingLocationRDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingRDto;
+import org.vvs.valimbavaka.feature.dayclosing.repository.DayClosingCountRepository;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingService;
 import org.vvs.valimbavaka.feature.referential.dto.StockLocationRDto;
 import org.vvs.valimbavaka.feature.referential.service.ReferentialService;
@@ -51,6 +55,7 @@ public class DayClosingServiceImpl implements DayClosingService {
     private final ReferentialService referentialService;
     private final StockDayLedgerService stockDayLedgerService;
     private final ArticleService articleService;
+    private final DayClosingCountRepository countRepository;
     private final Clock clock;
 
     DayClosingServiceImpl(
@@ -58,11 +63,13 @@ public class DayClosingServiceImpl implements DayClosingService {
             ReferentialService referentialService,
             StockDayLedgerService stockDayLedgerService,
             ArticleService articleService,
+            DayClosingCountRepository countRepository,
             Clock clock) {
         this.businessDayService = businessDayService;
         this.referentialService = referentialService;
         this.stockDayLedgerService = stockDayLedgerService;
         this.articleService = articleService;
+        this.countRepository = countRepository;
         this.clock = clock;
     }
 
@@ -77,10 +84,11 @@ public class DayClosingServiceImpl implements DayClosingService {
         var tallies = tallies(day.businessDate(), locations);
         var articles = articleService.getArticlesByIds(tallies.articleIds()).stream()
                 .collect(Collectors.toMap(ArticleRDto::id, Function.identity()));
+        var counts = countsOf(day.id());
         var blocks = locations.stream()
-                .map(location -> block(location, tallies.of(location.id()), articles))
+                .map(location -> block(location, tallies.of(location.id()), articles, counts))
                 .toList();
-        return new DayClosingRDto(day.businessDate(), day.status(), blocks);
+        return new DayClosingRDto(day.id(), day.businessDate(), day.status(), blocks);
     }
 
     /** Active locations among the three reconciled ones, in display order. */
@@ -107,18 +115,31 @@ public class DayClosingServiceImpl implements DayClosingService {
         return tallies;
     }
 
+    /** Counts saved for the day (JR-05), by location then article. */
+    private Map<UUID, Map<UUID, DayClosingCount>> countsOf(UUID dayId) {
+        var counts = new HashMap<UUID, Map<UUID, DayClosingCount>>();
+        for (var count : countRepository.findByBusinessDayId(dayId)) {
+            counts.computeIfAbsent(count.getLocationId(), id -> new HashMap<>()).put(count.getArticleId(), count);
+        }
+        return counts;
+    }
+
     private static ClosingLocationRDto block(
-            StockLocationRDto location, Map<UUID, ClosingTally> tallies, Map<UUID, ArticleRDto> articles) {
+            StockLocationRDto location,
+            Map<UUID, ClosingTally> tallies,
+            Map<UUID, ArticleRDto> articles,
+            Map<UUID, Map<UUID, DayClosingCount>> counts) {
+        var saved = counts.getOrDefault(location.id(), Map.of());
         var lines = tallies.entrySet().stream()
                 .filter(entry -> !entry.getValue().isEmpty() && articles.containsKey(entry.getKey()))
-                .map(entry -> line(articles.get(entry.getKey()), entry.getValue()))
+                .map(entry -> line(articles.get(entry.getKey()), entry.getValue(), saved.get(entry.getKey())))
                 .sorted(Comparator.comparing(ClosingLineRDto::name, String.CASE_INSENSITIVE_ORDER)
                         .thenComparing(ClosingLineRDto::reference))
                 .toList();
         return new ClosingLocationRDto(location.id(), location.code(), location.label(), lines);
     }
 
-    private static ClosingLineRDto line(ArticleRDto article, ClosingTally tally) {
+    private static ClosingLineRDto line(ArticleRDto article, ClosingTally tally, @Nullable DayClosingCount count) {
         return new ClosingLineRDto(
                 article.id(),
                 article.code(),
@@ -132,6 +153,8 @@ public class DayClosingServiceImpl implements DayClosingService {
                 tally.shooting(),
                 tally.theoretical(),
                 tally.systemStock(),
-                tally.gap());
+                tally.gap(),
+                count == null ? null : count.getCountedQuantity(),
+                count == null ? null : count.getReason());
     }
 }
