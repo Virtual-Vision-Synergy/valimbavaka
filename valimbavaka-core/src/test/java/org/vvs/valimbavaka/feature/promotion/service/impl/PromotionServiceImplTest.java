@@ -76,6 +76,57 @@ class PromotionServiceImplTest {
     }
 
     @Test
+    void recordUsage_limitNotReached_incrementsTheCounter() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+        when(promotionRepository.incrementUsage(promotionId)).thenReturn(1);
+
+        // Act
+        sut.recordUsage(promotionId);
+
+        // Assert
+        verify(promotionRepository).incrementUsage(promotionId);
+        verify(promotionRepository, never()).findById(any());
+    }
+
+    @Test
+    void recordUsage_limitReached_throwsConflict() {
+        // Arrange : the atomic UPDATE changed no row, the promotion exists
+        var promotionId = UUID.randomUUID();
+        when(promotionRepository.incrementUsage(promotionId)).thenReturn(0);
+        var existing = automatic("Octobre rose", PromotionKind.PERCENT, "15", CHANNEL_ID);
+        when(promotionRepository.findById(promotionId)).thenReturn(Optional.of(existing));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.recordUsage(promotionId))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("plafond");
+    }
+
+    @Test
+    void recordUsage_unknownPromotion_throwsNotFound() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+        when(promotionRepository.incrementUsage(promotionId)).thenReturn(0);
+        when(promotionRepository.findById(promotionId)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.recordUsage(promotionId)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void releaseUsage_anyPromotion_decrementsTheCounter() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+
+        // Act
+        sut.releaseUsage(promotionId);
+
+        // Assert
+        verify(promotionRepository).decrementUsage(promotionId);
+    }
+
+    @Test
     void createPromotion_validRequest_savesNormalizedPromotionAndTracesInJournal() {
         // Arrange
         when(promotionRepository.existsByCode("ROSE15")).thenReturn(false);
