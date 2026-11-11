@@ -366,7 +366,9 @@ class DeliveryCompletionIT extends DeliveryApiTestSupport {
         var profile = new UserProfile(email, "Miora", "Rakoto");
         var channelId = jdbcTemplate.queryForObject("select id from sales_channels where code = 'STORE'", UUID.class);
         var terms = new SellerTerms(channelId, new BigDecimal("5.00"));
-        return userRepository.save(User.create(profile, passwordEncoder.encode(PASSWORD), role, terms)).getId();
+        return userRepository
+                .save(User.create(profile, passwordEncoder.encode(PASSWORD), role, terms))
+                .getId();
     }
 
     private String statusOf(UUID orderId) {
