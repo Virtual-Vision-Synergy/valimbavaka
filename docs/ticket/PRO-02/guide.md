@@ -1,6 +1,6 @@
 # Guide d'intégration — PRO-02 · Application automatique d'une promotion en caisse
 
-Statut : ☐ rédigé le 2026-11-11 sur le code livré, tests à exécuter (CI) · Ticket : [#59](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/59) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 2026-11-11 sur le code livré, tests verts en CI · Ticket : [#59](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/59) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
