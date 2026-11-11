@@ -1,6 +1,6 @@
 # Guide d'intégration — SRV-04 · Consommation salon dans la clôture
 
-Statut : ✅ rédigé le 2026-11-12 — tests à lancer (CI ou local), voir le [scénario](scenario-test.md) · Ticket : [#84](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/84) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 2026-11-12 — tests exécutés en CI, tous verts, voir le [scénario](scenario-test.md) · Ticket : [#84](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/84) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 

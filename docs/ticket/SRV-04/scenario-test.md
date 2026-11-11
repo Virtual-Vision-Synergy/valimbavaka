@@ -1,6 +1,6 @@
 # Scénarios de test — SRV-04 · Consommation salon dans la clôture
 
-Statut : ☐ tests automatiques à lancer (CI ou local), recette 🧪 à passer · Ticket : [#84](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/84) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests automatiques exécutés en CI (2026-11-12), recette 🧪 à passer · Ticket : [#84](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/84) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -24,19 +24,19 @@ et un indicateur `matches`.
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | Le total consommé en salon correspond exactement à la valeur utilisée en clôture. | Étant donné deux prestations du jour consommant 0,015 L puis 0,020 L d'huile de coco ; quand l'administrateur lit `GET /api/v1/days/closing/salon` puis `GET /api/v1/days/closing` | ligne huile : `consumed` = 0,035, `inClosing` = 0,035, `gap` = 0 ; la colonne `salon` de la ligne Salon de la clôture vaut 0,035 ; stock salon 0,965 | `ClosingSalonConsumptionIT.getSalonConsumption_twoServices_consumedEqualsTheSalonColumnOfTheClosing` | ☐ |
-| 1 | (totaux) | Gel 2 u. et huile 0,035 L, identiques côté prestations et côté clôture | `matches` = true ; `totalConsumed` = `totalInClosing` = 2,035 ; lignes triées par nom (Gel, Huile) ; tous les écarts à 0 | `DayClosingSalonServiceImplTest.getSalonConsumption_salonColumnEqualsTheServices_matchesAndTotalsAreEqual` | ☐ |
-| 1 | (nombre de prestations) | Deux prestations enregistrées aujourd'hui | `servicesCount` augmente de 2 | `ClosingSalonConsumptionIT.getSalonConsumption_servicesOfToday_areCounted` | ☐ |
-| 1 | (jour métier) | Horloge au 11/11/2026 à Madagascar | les prestations sont lues sur `[2026-11-10T21:00Z, 2026-11-11T21:00Z[` | `DayClosingSalonServiceImplTest.getSalonConsumption_dayOfMadagascar_readsTheServicesFromMidnightToMidnightLocalTime` | ☐ |
+| 1 | Le total consommé en salon correspond exactement à la valeur utilisée en clôture. | Étant donné deux prestations du jour consommant 0,015 L puis 0,020 L d'huile de coco ; quand l'administrateur lit `GET /api/v1/days/closing/salon` puis `GET /api/v1/days/closing` | ligne huile : `consumed` = 0,035, `inClosing` = 0,035, `gap` = 0 ; la colonne `salon` de la ligne Salon de la clôture vaut 0,035 ; stock salon 0,965 | `ClosingSalonConsumptionIT.getSalonConsumption_twoServices_consumedEqualsTheSalonColumnOfTheClosing` | ✅ auto |
+| 1 | (totaux) | Gel 2 u. et huile 0,035 L, identiques côté prestations et côté clôture | `matches` = true ; `totalConsumed` = `totalInClosing` = 2,035 ; lignes triées par nom (Gel, Huile) ; tous les écarts à 0 | `DayClosingSalonServiceImplTest.getSalonConsumption_salonColumnEqualsTheServices_matchesAndTotalsAreEqual` | ✅ auto |
+| 1 | (nombre de prestations) | Deux prestations enregistrées aujourd'hui | `servicesCount` augmente de 2 | `ClosingSalonConsumptionIT.getSalonConsumption_servicesOfToday_areCounted` | ✅ auto |
+| 1 | (jour métier) | Horloge au 11/11/2026 à Madagascar | les prestations sont lues sur `[2026-11-10T21:00Z, 2026-11-11T21:00Z[` | `DayClosingSalonServiceImplTest.getSalonConsumption_dayOfMadagascar_readsTheServicesFromMidnightToMidnightLocalTime` | ✅ auto |
 
 ## Sécurité et erreurs
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | `ClosingSalonConsumptionIT.getSalonConsumption_withoutToken_returns401` | ☐ |
-| Appel avec un mauvais rôle (livreur, sans `days.close`) | 403 `FORBIDDEN` | `ClosingSalonConsumptionIT.getSalonConsumption_withDeliveryDriverRole_returns403` | ☐ |
-| Journée du jour non ouverte | 409 `CONFLICT` (même règle que la clôture), aucune lecture des prestations | `DayClosingSalonServiceImplTest.getSalonConsumption_dayNotOpened_propagatesTheConflictWithoutReadingTheServices` | ☐ |
-| Paramètre `date` envoyé | ignoré : le jour est toujours celui d'aujourd'hui | `ClosingSalonConsumptionIT.getSalonConsumption_forbiddenQueryParameters_areIgnored` | ☐ |
+| Appel sans jeton | 401 `UNAUTHENTICATED` | `ClosingSalonConsumptionIT.getSalonConsumption_withoutToken_returns401` | ✅ auto |
+| Appel avec un mauvais rôle (livreur, sans `days.close`) | 403 `FORBIDDEN` | `ClosingSalonConsumptionIT.getSalonConsumption_withDeliveryDriverRole_returns403` | ✅ auto |
+| Journée du jour non ouverte | 409 `CONFLICT` (même règle que la clôture), aucune lecture des prestations | `DayClosingSalonServiceImplTest.getSalonConsumption_dayNotOpened_propagatesTheConflictWithoutReadingTheServices` | ✅ auto |
+| Paramètre `date` envoyé | ignoré : le jour est toujours celui d'aujourd'hui | `ClosingSalonConsumptionIT.getSalonConsumption_forbiddenQueryParameters_areIgnored` | ✅ auto |
 
 Lecture seule : pas de corps, donc ni mass assignment, ni 404, ni 422 ; pas d'écriture au journal.
 
@@ -44,15 +44,15 @@ Lecture seule : pas de corps, donc ni mass assignment, ni 404, ni 422 ; pas d'é
 
 | Cas | Exemple | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|
-| Sortie salon sans prestation | mouvement `TRADE_SHOW` de −2 gel, aucune prestation | ligne gel : `consumed` 0, `inClosing` 2, `gap` +2 ; `matches` = false | `ClosingSalonConsumptionIT.getSalonConsumption_movementWithoutService_showsAGapAndDoesNotMatch` ; `DayClosingSalonServiceImplTest.getSalonConsumption_salonExitWithoutService_showsAPositiveGapAndDoesNotMatch` | ☐ |
-| Prestation sans ligne de clôture | 1 L consommé, colonne « Salon » vide | `inClosing` 0, `gap` −1, `matches` = false | `DayClosingSalonServiceImplTest.getSalonConsumption_serviceWithoutClosingLine_showsANegativeGap` | ☐ |
-| Aucune prestation, aucune sortie salon | journée vide | `matches` = true, totaux à 0, `lines` vide | `DayClosingSalonServiceImplTest.getSalonConsumption_noServiceAndNoSalonExit_matchesWithZeroTotals` | ☐ |
+| Sortie salon sans prestation | mouvement `TRADE_SHOW` de −2 gel, aucune prestation | ligne gel : `consumed` 0, `inClosing` 2, `gap` +2 ; `matches` = false | `ClosingSalonConsumptionIT.getSalonConsumption_movementWithoutService_showsAGapAndDoesNotMatch` ; `DayClosingSalonServiceImplTest.getSalonConsumption_salonExitWithoutService_showsAPositiveGapAndDoesNotMatch` | ✅ auto |
+| Prestation sans ligne de clôture | 1 L consommé, colonne « Salon » vide | `inClosing` 0, `gap` −1, `matches` = false | `DayClosingSalonServiceImplTest.getSalonConsumption_serviceWithoutClosingLine_showsANegativeGap` | ✅ auto |
+| Aucune prestation, aucune sortie salon | journée vide | `matches` = true, totaux à 0, `lines` vide | `DayClosingSalonServiceImplTest.getSalonConsumption_noServiceAndNoSalonExit_matchesWithZeroTotals` | ✅ auto |
 | Hors ligne | lecture seule, rien à rejouer | sans objet | — | — |
 
 Recette 🧪 (Njara) : enregistrer deux prestations au salon, ouvrir `/day/close` (colonne Salon), appeler `GET /api/v1/days/closing/salon`, vérifier que les totaux sont égaux.
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local)
-- Environnement : à lancer (CI ou local)
+- Date : 2026-11-12
+- Environnement : CI GitHub Actions (ci.yml, conventions.yml, Qodana : tout vert, 0 annotation Qodana) ; tests d'intégration : 1008 exécutés, 0 échec ; tests unitaires du service verts
 - Anomalies ouvertes : aucune connue
