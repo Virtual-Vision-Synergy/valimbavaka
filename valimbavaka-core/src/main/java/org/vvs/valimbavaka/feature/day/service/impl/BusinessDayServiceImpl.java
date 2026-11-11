@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,11 @@ public class BusinessDayServiceImpl implements BusinessDayService {
                 date,
                 saved.getTransfers().size());
         return dayMapper.toRDto(saved);
+    }
+
+    @Override
+    public @Nullable BusinessDayRDto findToday() {
+        return dayRepository.findByBusinessDate(policy.today()).map(dayMapper::toRDto).orElse(null);
     }
 
     @Override
