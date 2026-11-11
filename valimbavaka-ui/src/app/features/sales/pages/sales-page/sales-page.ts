@@ -19,10 +19,10 @@ import { ListState } from '../../../../shared/components/list-state/list-state';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
-import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { Tone } from '../../../../shared/models/tone';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { InvoicePanel } from '../../components/invoice-panel/invoice-panel';
+import { SalesBookExport } from '../../components/sales-book-export/sales-book-export';
 import { localIsoDate, toSaleRow } from '../../data-access/sales-mapping';
 import { SaleStatus } from '../../data-access/sales-models';
 import { SalesService } from '../../data-access/sales-service';
@@ -54,6 +54,7 @@ const STATUS_TONES: Readonly<Record<SaleStatus, Tone>> = {
     Pagination,
     StatusBadge,
     InvoicePanel,
+    SalesBookExport,
   ],
   templateUrl: './sales-page.html',
   styleUrl: './sales-page.css',
@@ -63,8 +64,11 @@ export class SalesPage {
   private readonly salesService = inject(SalesService);
   private readonly referentialService = inject(ReferentialService);
   private readonly router = inject(Router);
-  private readonly toast = inject(ToastService);
-  protected readonly canSeeChannels = inject(AuthStore).hasPermission('reports.read');
+  private readonly auth = inject(AuthStore);
+  protected readonly canSeeChannels = this.auth.hasPermission('reports.read');
+  /** Le livre des ventes est réservé à l'administrateur (`invoices.export`) ; le serveur décide. */
+  protected readonly canExportBook = this.auth.hasPermission('invoices.export');
+  protected readonly bookOpen = signal(false);
 
   /** Paramètre `?sale=` : lien partageable vers la facture d'une vente de la page. */
   readonly sale = input<string>();
@@ -118,7 +122,7 @@ export class SalesPage {
     });
   }
 
-  protected exportBook(): void {
-    this.toast.show('common.demoAction', {}, 'info');
+  protected toggleBook(): void {
+    this.bookOpen.update((open) => !open);
   }
 }
