@@ -1,0 +1,80 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'sales.dashboard.title' | translate"
+    [subtitle]="'sales.dashboard.subtitle' | translate"
+    [codes]="['VTE-08']"
+  >
+    <a class="btn btn-secondary" routerLink="/sales">{{ 'sales.dashboard.back' | translate }}</a>
+  </vvs-page-header>
+
+  <div class="filters">
+    <label class="date-field">
+      <span>{{ 'sales.dashboard.from' | translate }}</span>
+      <input class="input" type="date" [value]="from()" (change)="onFromChange($event)" />
+    </label>
+    <label class="date-field">
+      <span>{{ 'sales.dashboard.to' | translate }}</span>
+      <input class="input" type="date" [value]="to()" (change)="onToChange($event)" />
+    </label>
+  </div>
+
+  @if (invalidPeriod()) {
+    <p class="card invalid" role="alert">{{ 'sales.dashboard.invalidPeriod' | translate }}</p>
+  } @else if (dashboard.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="dashboard.reload()" /></div>
+  } @else if (dashboard.value(); as result) {
+    <div class="totals">
+      <div class="card total">
+        <span class="label">{{ 'sales.dashboard.totalRevenue' | translate }}</span>
+        <span class="amount num">{{ result.totalRevenue | ariary }}</span>
+      </div>
+      <div class="card total">
+        <span class="label">{{ 'sales.dashboard.totalCount' | translate }}</span>
+        <span class="amount num">{{ result.totalSalesCount }}</span>
+      </div>
+    </div>
+
+    <section class="card flush" [attr.aria-label]="'sales.dashboard.listLabel' | translate">
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">
+            {{
+              'sales.dashboard.listLabel' | translate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'sales.col.channel' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'sales.dashboard.revenue' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'sales.dashboard.salesCount' | translate }}</th>
+              <th scope="col">{{ 'sales.dashboard.share' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (channel of result.channels; track channel.salesChannelId) {
+              <tr>
+                <td>{{ channel.salesChannelLabel ?? ('sales.dashboard.retired' | translate) }}</td>
+                <td class="cell-num amount">{{ channel.revenue | ariary }}</td>
+                <td class="cell-num num">{{ channel.salesCount }}</td>
+                <td>
+                  <div class="share">
+                    <span class="bar" aria-hidden="true">
+                      <span class="fill" [style.width.%]="channel.revenueSharePercent"></span>
+                    </span>
+                    <span class="num">{{ channel.revenueSharePercent }} %</span>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4"><vvs-list-state kind="empty" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="4" /></div>
+  }
+</div>

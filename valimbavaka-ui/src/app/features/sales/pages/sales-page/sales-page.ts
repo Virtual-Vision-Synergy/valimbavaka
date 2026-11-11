@@ -9,8 +9,9 @@ import {
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { Download, Plus } from 'lucide';
+import { ChartColumn, Download, Plus } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { AuthStore } from '../../../../core/auth/auth-store';
 import { ReferentialService } from '../../../referential/data-access/referential-service';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -63,11 +64,12 @@ export class SalesPage {
   private readonly referentialService = inject(ReferentialService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  protected readonly canSeeChannels = inject(AuthStore).hasPermission('reports.read');
 
   /** Paramètre `?sale=` : lien partageable vers la facture d'une vente de la page. */
   readonly sale = input<string>();
 
-  protected readonly icons = { Download, Plus };
+  protected readonly icons = { ChartColumn, Download, Plus };
   protected readonly tones = STATUS_TONES;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly date = signal(localIsoDate(new Date()));
