@@ -506,6 +506,21 @@
     }
   },
   "sales": {
+    "statusTotals": {
+      "title": "Statuts des factures",
+      "subtitle": "Factures payées, annulées et contre-passées par un avoir, avec le total consolidé.",
+      "link": "Statuts des factures",
+      "totalAmount": "Montant facturé",
+      "totalCount": "Factures",
+      "listLabel": "Factures par statut",
+      "status": "Statut",
+      "count": "Factures",
+      "amount": "Montant",
+      "total": "Total",
+      "status_VALIDATED": "Payée",
+      "status_CANCELLED": "Annulée",
+      "status_REVERSED": "Avoir"
+    },
     "dashboard": {
       "title": "Ventes par canal",
       "subtitle": "Chiffre d'affaires, nombre de ventes et part du total de chaque canal (ventes validées).",
