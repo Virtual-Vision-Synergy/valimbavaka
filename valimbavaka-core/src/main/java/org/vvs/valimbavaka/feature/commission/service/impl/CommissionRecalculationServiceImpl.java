@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,10 +57,8 @@ public class CommissionRecalculationServiceImpl implements CommissionRecalculati
     @Transactional
     public CommissionRecalculationRDto recalculate(CommissionRecalculationWDto request) {
         checkPeriod(request.from(), request.to());
-        var pending = commissionRepository.findByStatusInPeriod(
-                CommissionStatus.CALCULATED, request.sellerId(), request.from(), request.to());
-        var validatedCount = commissionRepository.countByStatusInPeriod(
-                CommissionStatus.VALIDATED, request.sellerId(), request.from(), request.to());
+        var pending = findPending(request);
+        var validatedCount = countValidated(request);
         var termsCache = new HashMap<TermsKey, CommissionTerms>();
         var previousAmount = BigDecimal.ZERO;
         var newAmount = BigDecimal.ZERO;
@@ -84,6 +83,16 @@ public class CommissionRecalculationServiceImpl implements CommissionRecalculati
                 validatedCount,
                 previousAmount,
                 newAmount);
+    }
+
+    private List<Commission> findPending(CommissionRecalculationWDto request) {
+        return commissionRepository.findByStatusInPeriod(
+                CommissionStatus.CALCULATED, request.sellerId(), request.from(), request.to());
+    }
+
+    private long countValidated(CommissionRecalculationWDto request) {
+        return commissionRepository.countByStatusInPeriod(
+                CommissionStatus.VALIDATED, request.sellerId(), request.from(), request.to());
     }
 
     /** Same rate as the calculation (resolver, then {@code Commission.recalculate}), the purchase cost read again. */
