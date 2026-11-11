@@ -64,4 +64,4 @@ PosPage.hold() : à appeler pour vider le poste sans vendre (ex. changement de v
   mis en attente n'est **pas conservé** : le compteur « En attente » est un simple compteur d'écran, et la **reprise**
   d'un ticket en attente n'existe pas. Elle demandera une décision (stockage local ou serveur) et un ticket dédié.
 - Un ticket en attente ne survit pas au rechargement de la page ; le compteur repart de `heldTickets` fourni par le contexte.
-- Les tests ne sont pas encore exécutés : statuts à ☐ jusqu'à la CI.
+- Tests exécutés en CI le 2026-11-11 (vert).
