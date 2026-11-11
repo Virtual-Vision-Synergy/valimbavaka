@@ -4,8 +4,10 @@
     <img ngSrc="logo/logo-320.webp" width="160" height="61" alt="Valimbavaka" priority />
     <div class="ident">
       <p class="kind">{{ 'sales.invoice.kind' | translate }}</p>
-      <p class="mono">{{ doc.number }}</p>
-      <p>{{ doc.issuedAt }}</p>
+      <p class="mono">{{ doc.number ?? ('sales.invoice.pendingNumber' | translate) }}</p>
+      @if (doc.issuedAt) {
+        <p>{{ doc.issuedAt }}</p>
+      }
     </div>
   </header>
 
@@ -17,8 +19,11 @@
     </div>
     <div>
       <p class="caption">{{ 'sales.invoice.sale' | translate }}</p>
-      <p>{{ doc.saleNumber }} · {{ 'sales.channel.' + doc.channel | translate }}</p>
-      <p class="muted">{{ doc.sellerName }} · {{ 'sales.payment.' + doc.payment | translate }}</p>
+      <p>{{ doc.saleNumber }} · {{ doc.channelLabel ?? '—' }}</p>
+      <p class="muted">
+        {{ doc.sellerName ?? ('sales.noSeller' | translate) }} ·
+        {{ 'sales.payment.' + doc.payment | translate }}
+      </p>
     </div>
   </div>
 
@@ -36,7 +41,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (line of doc.lines; track line.label) {
+      @for (line of doc.lines; track $index) {
         <tr>
           <td>{{ line.label }}</td>
           <td class="right num">{{ line.quantity }}</td>
@@ -53,7 +58,7 @@
     </div>
     @if (doc.discount) {
       <div>
-        <dt>{{ 'sales.invoice.discount' | translate: { label: doc.discountLabel } }}</dt>
+        <dt>{{ 'sales.invoice.discount' | translate: { label: doc.discountLabel ?? '' } }}</dt>
         <dd class="num">−{{ doc.discount | ariary }}</dd>
       </div>
     }
