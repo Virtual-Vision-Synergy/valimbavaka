@@ -41,6 +41,8 @@ public class PromotionServiceImpl implements PromotionService {
 
     private static final String RESOURCE_TYPE = "PROMOTION";
     private static final String CODE_ALREADY_USED = "Ce code promo est déjà utilisé par une autre promotion.";
+    private static final String LIMIT_REACHED =
+            "Cette promotion a atteint son plafond d'utilisation : la vente doit être recalculée.";
     private static final Set<String> SORT_FIELDS = Set.of("startsOn", "endsOn", "name", "createdAt");
 
     private final PromotionRepository promotionRepository;
@@ -124,6 +126,24 @@ public class PromotionServiceImpl implements PromotionService {
                 JournalAction.CREATE, RESOURCE_TYPE, saved.getId(), "Création de la promotion " + saved.getName());
         log.info("Promotion {} créée", saved.getId());
         return toRDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public void recordUsage(UUID promotionId) {
+        if (promotionRepository.incrementUsage(promotionId) > 0) {
+            return;
+        }
+        if (promotionRepository.findById(promotionId).isEmpty()) {
+            throw new NotFoundException("Promotion introuvable : " + promotionId);
+        }
+        throw new ConflictException(LIMIT_REACHED);
+    }
+
+    @Override
+    @Transactional
+    public void releaseUsage(UUID promotionId) {
+        promotionRepository.decrementUsage(promotionId);
     }
 
     private PromotionRDto toRDto(Promotion promotion) {
