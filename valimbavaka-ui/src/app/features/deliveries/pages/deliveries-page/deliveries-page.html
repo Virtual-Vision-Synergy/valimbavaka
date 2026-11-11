@@ -2,12 +2,26 @@
   <vvs-page-header
     [heading]="'deliveries.title' | translate"
     [subtitle]="board.value() ? ('deliveries.subtitle' | translate: summary()) : ''"
-    [codes]="['LIV-01', 'LIV-06', 'LIV-07']"
+    [codes]="['LIV-01', 'LIV-06']"
   >
+    <label class="day-field">
+      <span>{{ 'deliveries.dayLabel' | translate }}</span>
+      <input
+        class="input"
+        type="date"
+        [value]="day()"
+        (change)="pickDay($any($event.target).value)"
+      />
+    </label>
     <vvs-filter-chips
       [label]="'deliveries.roundFilter' | translate"
       [options]="roundOptions()"
       [(value)]="round"
+    />
+    <vvs-filter-chips
+      [label]="'deliveries.statusFilter' | translate"
+      [options]="statusOptions()"
+      [(value)]="status"
     />
     @if (canCreate) {
       <a class="btn btn-primary" routerLink="new">
@@ -21,7 +35,7 @@
     <div class="card"><vvs-list-state kind="error" (retry)="board.reload()" /></div>
   } @else if (board.value()) {
     <div class="layout">
-      <div class="board">
+      <div class="board" [class.single]="columns().length === 1">
         @for (column of columns(); track column.status) {
           <section class="column" [attr.aria-labelledby]="'col-' + column.status">
             <h2 class="column-title" [id]="'col-' + column.status">
@@ -52,7 +66,7 @@
           [focusKey]="delivery.id"
           (closed)="selectedId.set(null)"
         >
-          <vvs-delivery-detail [delivery]="delivery" (action)="demoAction()" />
+          <vvs-delivery-detail [delivery]="delivery" />
         </vvs-side-panel>
       }
     </div>

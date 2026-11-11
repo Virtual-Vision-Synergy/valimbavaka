@@ -13,18 +13,33 @@ export const DELIVERY_STATUSES: readonly DeliveryStatus[] = [
   'FAILED',
 ];
 
+/**
+ * Filtre de statut du suivi (LIV-06) : « attente / en cours / livrée / retour / annulée » du ticket, dans l'ordre
+ * du tableau. `ALL` montre les quatre colonnes du tableau, sans les commandes annulées.
+ */
+export type DeliveryStatusFilter = DeliveryOrderStatus | 'ALL';
+
+export const DELIVERY_STATUS_FILTERS: readonly DeliveryStatusFilter[] = [
+  'ALL',
+  ...DELIVERY_STATUSES,
+  'CANCELLED',
+];
+
 /** Motif d'échec saisi par le livreur, miroir de DeliveryFailureReason (LIV-04). */
 export type FailureReason = 'ABSENT' | 'ADDRESS_NOT_FOUND' | 'REFUSED' | 'OTHER';
 
-export type DeliveryEventKind =
-  'CREATED' | 'PREPARED' | 'ON_ROUND' | 'ARRIVED' | 'DELIVERED' | 'FAILED';
+/** Miroir de l'énumération backend JournalAction : nature d'une ligne du journal. */
+export type JournalAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'CANCEL' | 'REVERSE';
 
-/** Étape de l'historique de statut (LIV-07). */
+/**
+ * Miroir de DeliveryEventRDto (LIV-06) : une étape de l'historique d'une commande = une ligne du journal écrite pour
+ * elle (création, changement de statut, annulation), avec son instant, son auteur et son libellé.
+ */
 export interface DeliveryEventRDto {
-  readonly kind: DeliveryEventKind;
-  readonly when: string;
-  readonly actor: string;
-  readonly note: string | null;
+  readonly occurredAt: string;
+  readonly actorName: string;
+  readonly action: JournalAction;
+  readonly description: string;
 }
 
 export interface DeliveryRoundRDto {
@@ -48,14 +63,16 @@ export interface DeliveryRDto {
   readonly amount: number;
   /** Payée d'avance (MVola) : rien à encaisser à la porte. */
   readonly prepaid: boolean;
-  readonly status: DeliveryStatus;
+  readonly status: DeliveryOrderStatus;
   readonly roundId: string | null;
   readonly stop: number | null;
+  /** Jour de la tournée (`yyyy-MM-dd`, Antananarivo). */
+  readonly scheduledDate: string;
+  readonly note: string | null;
   readonly failureReason: FailureReason | null;
-  readonly history: readonly DeliveryEventRDto[];
 }
 
-/** Tableau de suivi du jour (LIV-01, LIV-06). */
+/** Tableau de suivi d'un jour (LIV-01, LIV-06) : commandes annulées comprises, montrées par le filtre « Annulée ». */
 export interface DeliveryBoardRDto {
   readonly rounds: readonly DeliveryRoundRDto[];
   readonly deliveries: readonly DeliveryRDto[];

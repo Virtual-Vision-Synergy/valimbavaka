@@ -836,22 +836,27 @@
   },
   "deliveries": {
     "title": "Livraisons",
-    "subtitle": "{{count}} commandes aujourd'hui · {{rounds}} tournées · {{collected}} encaissés sur {{total}}",
+    "subtitle": "{{count}} commandes · {{rounds}} tournées · {{collected}} encaissés sur {{total}}",
     "roundFilter": "Filtrer par tournée",
     "allRounds": "Toutes les tournées",
+    "statusFilter": "Filtrer par statut",
+    "allStatuses": "Tous les statuts",
+    "dayLabel": "Jour",
     "newOrder": "Nouvelle commande",
     "emptyColumn": "Aucune commande",
     "column": {
       "TO_PREPARE": "À préparer",
       "ON_ROUND": "En tournée",
       "DELIVERED": "Livrées",
-      "FAILED": "Échecs"
+      "FAILED": "Échecs",
+      "CANCELLED": "Annulées"
     },
     "status": {
       "TO_PREPARE": "À préparer",
       "ON_ROUND": "En tournée",
       "DELIVERED": "Livrée",
-      "FAILED": "Échec"
+      "FAILED": "Échec",
+      "CANCELLED": "Annulée"
     },
     "card": {
       "stop": "Arrêt {{stop}}/{{count}}",
@@ -865,25 +870,22 @@
       "OTHER": "Autre motif"
     },
     "event": {
-      "CREATED": "Commande créée",
-      "PREPARED": "Colis préparé",
-      "ON_ROUND": "Parti en tournée",
-      "ARRIVED": "Arrivé chez le client",
-      "DELIVERED": "Livrée et encaissée",
-      "FAILED": "Échec"
+      "CREATE": "Commande créée",
+      "UPDATE": "Statut modifié",
+      "DELETE": "Suppression",
+      "CANCEL": "Annulation",
+      "REVERSE": "Contre-passation"
     },
     "detail": {
       "articles": "{{count}} article(s)",
       "prepaid": "déjà payés",
       "toCollect": "à encaisser",
       "history": "Historique de statut",
-      "reschedule": "Reprogrammer demain",
-      "restock": "Retour en stock",
-      "markPrepared": "Marquer préparée",
-      "assign": "Affecter à une tournée",
       "callCustomer": "Appeler le client",
       "seeSales": "Voir dans les ventes",
-      "label": "Détail de la livraison {{number}}"
+      "label": "Détail de la livraison {{number}}",
+      "round": "Tournée du {{date}} · arrêt {{stop}}",
+      "noHistory": "Aucune étape enregistrée."
     },
     "driver": {
       "title": "Ma tournée",
