@@ -1,21 +1,24 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import axe from 'axe-core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { vi } from 'vitest';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
+import { ApiError } from '../../../../core/http/problem-detail';
 import { OutboxService } from '../../../../core/offline/outbox-service';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { formatAriary } from '../../../../shared/pipes/ariary-pipe';
 import { toDriverRound } from '../../data-access/delivery-mapping';
 import {
   DeliveryOrderRDto,
   DeliveryOrderStatus,
+  DeliveryStatusWDto,
   DriverRoundRDto,
 } from '../../data-access/delivery-models';
 import { DeliveryService } from '../../data-access/delivery-service';
-import { DriverRoundPage } from './driver-round-page';
+import { DriverRoundPage, UNDO_DELAY_MS } from './driver-round-page';
 
 const DRIVER = { id: 'tojo', firstName: 'Tojo', lastName: 'Nirina' };
 
@@ -37,11 +40,15 @@ function order(
     stopNumber,
     amount: 8500 * stopNumber,
     note: null,
+    failureReason: null,
+    failureNote: null,
+    returnTransferId: null,
     lines: [
       { articleId: 'soap', quantity: stopNumber, unitPrice: 8500, amount: 8500 * stopNumber },
     ],
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
+    saleId: null,
     version: 0,
   };
 }
@@ -56,14 +63,16 @@ describe('DriverRoundPage', () => {
   let fixture: ComponentFixture<DriverRoundPage>;
   let element: HTMLElement;
   const myRound = vi.fn<() => Observable<DriverRoundRDto>>();
+  const updateStatus = vi.fn<(id: string, change: DeliveryStatusWDto) => Observable<string>>();
 
   const open = async (round: DriverRoundRDto): Promise<void> => {
     myRound.mockReset().mockReturnValue(of(round));
+    updateStatus.mockReset().mockReturnValue(of('order-2'));
     await TestBed.configureTestingModule({
       imports: [DriverRoundPage],
       providers: [
         provideTestTranslations(),
-        { provide: DeliveryService, useValue: { myRound, updateStatus: vi.fn() } },
+        { provide: DeliveryService, useValue: { myRound, updateStatus } },
         { provide: OutboxService, useValue: { pendingCount: signal(0) } },
       ],
     }).compileComponents();
@@ -72,6 +81,30 @@ describe('DriverRoundPage', () => {
     element = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
     await fixture.whenStable();
+  };
+
+  /** jsdom n'ouvre pas les <dialog> modales : la feuille « Échec » reste dans le DOM, on simule l'ouverture. */
+  const stubDialog = (): void => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    HTMLDialogElement.prototype.close = vi.fn();
+  };
+
+  /** Ouvre la feuille « Échec » du prochain arrêt, choisit le motif, écrit le commentaire et valide. */
+  /** Choisit le motif par son libellé visible, comme le livreur. */
+  const reportFailure = (reasonLabel: string, note: string): void => {
+    element.querySelector<HTMLButtonElement>('.next .fail')?.click();
+    fixture.detectChanges();
+    const reason = Array.from(
+      element.querySelectorAll<HTMLLabelElement>('dialog label.reason'),
+    ).find((label) => label.textContent?.trim() === reasonLabel);
+    reason?.querySelector('input')?.click();
+    const textarea = element.querySelector<HTMLTextAreaElement>('dialog textarea');
+    if (textarea) {
+      textarea.value = note;
+      textarea.dispatchEvent(new Event('input'));
+    }
+    element.querySelector('dialog form')?.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
   };
 
   const text = (selector: string): string =>
@@ -102,11 +135,121 @@ describe('DriverRoundPage', () => {
     expect(text('.tiles .tile:first-child dd')).toBe('1/3');
   });
 
+  it('marque l’arrêt livré d’un geste et ne l’envoie qu’après le délai d’annulation', async () => {
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+      expect(text('.next h2')).toBe('Hery Andry');
+      expect(text('.tiles .tile:first-child dd')).toBe('2/3');
+      expect(updateStatus).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).toHaveBeenCalledOnce();
+    expect(updateStatus).toHaveBeenCalledWith('order-2', {
+      status: 'DELIVERED',
+      failureReason: null,
+      note: null,
+    });
+  });
+
+  it('n’envoie rien si le livreur annule « Livrée » pendant le délai', async () => {
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+      element.querySelector<HTMLButtonElement>('.undo-btn')?.click();
+      fixture.detectChanges();
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).not.toHaveBeenCalled();
+    expect(text('.next h2')).toBe('Rasoa Vola');
+  });
+
+  it('annonce un « Livrée » refusé par le serveur et relit la tournée', async () => {
+    await open(ROUND);
+    const message = 'La journée du 09/11/2026 n’est pas ouverte.';
+    updateStatus.mockReturnValue(throwError(() => new ApiError(409, 'CONFLICT', message)));
+    const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(show).toHaveBeenCalledWith(
+      'deliveries.driver.refusedToast',
+      { name: 'Rasoa Vola', message },
+      'danger',
+    );
+    expect(myRound).toHaveBeenCalledTimes(2);
+  });
+
   it('annonce une journée sans arrêt plutôt qu’une tournée terminée', async () => {
     await open({ ...ROUND, stops: [] });
 
     expect(text('.empty h2')).toBe("Aucun arrêt aujourd'hui");
     expect(element.querySelector('.next')).toBeNull();
+  });
+
+  it('envoie l’échec avec son motif et son commentaire une fois le délai d’annulation passé', async () => {
+    stubDialog();
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      reportFailure('Colis refusé', '  Le client a changé d’avis  ');
+      expect(updateStatus).not.toHaveBeenCalled();
+      expect(text('.next h2')).toBe('Hery Andry');
+
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).toHaveBeenCalledOnce();
+    expect(updateStatus).toHaveBeenCalledWith('order-2', {
+      status: 'FAILED',
+      failureReason: 'REFUSED',
+      note: 'Le client a changé d’avis',
+    });
+  });
+
+  it('annonce un échec refusé par le serveur et relit la tournée', async () => {
+    stubDialog();
+    await open(ROUND);
+    const message = 'La livraison ne peut pas passer de « livrée » à « en échec ».';
+    updateStatus.mockReturnValue(throwError(() => new ApiError(409, 'CONFLICT', message)));
+    const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+    vi.useFakeTimers();
+    try {
+      reportFailure('Client absent', '');
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(show).toHaveBeenCalledWith(
+      'deliveries.driver.refusedToast',
+      { name: 'Rasoa Vola', message },
+      'danger',
+    );
+    expect(myRound).toHaveBeenCalledTimes(2);
   });
 
   it('n’a aucune violation d’accessibilité détectable', async () => {

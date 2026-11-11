@@ -468,9 +468,9 @@
       "hold": "Miandry",
       "checkout": "Handray {{amount}}",
       "invoiceNote": "Misy faktiora misy laharana mivoaka rehefa voaray ny vola.",
-      "added": "{{name}} nampidirina · isa {{quantity}}",
-      "decreased": "{{name}} · isa {{quantity}}",
-      "removed": "{{name}} nesorina tamin'ny tapakila",
+      "added": "{{name}} nampidirina · isa {{quantity}} · tokony haloa {{total}}",
+      "decreased": "{{name}} · isa {{quantity}} · tokony haloa {{total}}",
+      "removed": "{{name}} nesorina tamin'ny tapakila · tokony haloa {{total}}",
       "sellerLabel": "Mpivarotra",
       "sellerPlaceholder": "Safidio ny mpivarotra"
     },
@@ -484,6 +484,7 @@
     },
     "toast": {
       "paid": "Voaray ny varotra {{ticket}} · {{amount}}",
+      "totalAdjusted": "Voaray ny varotra {{ticket}} amin'ny vidin'ny mpizara : {{amount}} ({{displayed}} no naseho). Hamarino ny famerenana.",
       "held": "Nampiandrasina ny tapakila {{ticket}}",
       "cannotCheckout": "Tsy ampy ny vola voaray",
       "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}",
@@ -850,22 +851,27 @@
   },
   "deliveries": {
     "title": "Fanaterana",
-    "subtitle": "Baiko {{count}} androany · fihodinana {{rounds}} · {{collected}} voaray amin'ny {{total}}",
+    "subtitle": "Baiko {{count}} · fihodinana {{rounds}} · {{collected}} voaray amin'ny {{total}}",
     "roundFilter": "Sivanina araka ny fihodinana",
     "allRounds": "Fihodinana rehetra",
+    "statusFilter": "Sivanina araka ny sata",
+    "allStatuses": "Sata rehetra",
+    "dayLabel": "Andro",
     "newOrder": "Baiko vaovao",
     "emptyColumn": "Tsy misy baiko",
     "column": {
       "TO_PREPARE": "Hokarakaraina",
       "ON_ROUND": "Eny an-dalana",
       "DELIVERED": "Tonga",
-      "FAILED": "Tsy tontosa"
+      "FAILED": "Tsy tontosa",
+      "CANCELLED": "Nofoanana"
     },
     "status": {
       "TO_PREPARE": "Hokarakaraina",
       "ON_ROUND": "Eny an-dalana",
       "DELIVERED": "Tonga",
-      "FAILED": "Tsy tontosa"
+      "FAILED": "Tsy tontosa",
+      "CANCELLED": "Nofoanana"
     },
     "card": {
       "stop": "Fijanonana {{stop}}/{{count}}",
@@ -879,25 +885,22 @@
       "OTHER": "Antony hafa"
     },
     "event": {
-      "CREATED": "Noforonina ny baiko",
-      "PREPARED": "Voakarakara ny entana",
-      "ON_ROUND": "Lasa nanatitra",
-      "ARRIVED": "Tonga tany amin'ny mpanjifa",
-      "DELIVERED": "Tonga sy voaloa",
-      "FAILED": "Tsy tontosa"
+      "CREATE": "Noforonina ny baiko",
+      "UPDATE": "Novaina ny sata",
+      "DELETE": "Famafana",
+      "CANCEL": "Fanafoanana",
+      "REVERSE": "Fanafoanana asa"
     },
     "detail": {
       "articles": "Entana {{count}}",
       "prepaid": "efa voaloa",
       "toCollect": "mbola horaisina",
       "history": "Tantaran'ny sata",
-      "reschedule": "Averina rahampitso",
-      "restock": "Averina any amin'ny tahiry",
-      "markPrepared": "Marihina ho voakarakara",
-      "assign": "Atolotra amin'ny fihodinana",
       "callCustomer": "Antsoy ny mpanjifa",
       "seeSales": "Jereo ao amin'ny varotra",
-      "label": "Antsipirian'ny fanaterana {{number}}"
+      "label": "Antsipirian'ny fanaterana {{number}}",
+      "round": "Fihodinana {{date}} · fijanonana {{stop}}",
+      "noHistory": "Tsy misy dingana voarakitra."
     },
     "driver": {
       "title": "Ny fihodinako",
@@ -932,6 +935,7 @@
       "paid": "Voaloa",
       "doneToast": "{{name}} : tonga",
       "failedToast": "{{name}} : voasoratra ny tsy fahatontosana",
+      "refusedToast": "{{name}} : tsy voaray ny fampidirana. {{message}}",
       "undo": "Foano",
       "failureTitle": "Tsy tontosa ny fanaterana · {{name}}",
       "reason": "Inona no nitranga ?",

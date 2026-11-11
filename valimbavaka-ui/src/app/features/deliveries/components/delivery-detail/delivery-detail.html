@@ -16,62 +16,60 @@
       <strong class="num">{{ d.amount | ariary }}</strong>
       {{ (d.prepaid ? 'deliveries.detail.prepaid' : 'deliveries.detail.toCollect') | translate }}
     </p>
+    <p class="muted num">
+      {{ 'deliveries.detail.round' | translate: { date: d.scheduledDate, stop: d.stop ?? '—' } }}
+    </p>
+    @if (d.status === 'FAILED' && d.failureReason) {
+      <p class="failure">{{ 'deliveries.reason.' + d.failureReason | translate }}</p>
+    }
+    @if (d.note) {
+      <q class="note">{{ d.note }}</q>
+    }
   </header>
 
   <div class="history">
     <h3 class="caption">
       {{ 'deliveries.detail.history' | translate }}
-      <span class="code-chip" aria-hidden="true">LIV-07</span>
+      <span class="code-chip" aria-hidden="true">LIV-06</span>
     </h3>
-    <ol class="timeline">
-      @for (event of d.history; track $index) {
-        <li [attr.data-tone]="eventTones[event.kind]">
-          <span class="dot" aria-hidden="true"></span>
-          <span class="event">
-            <strong>
-              {{ 'deliveries.event.' + event.kind | translate }}
-              @if (event.kind === 'FAILED' && d.failureReason) {
-                : {{ 'deliveries.reason.' + d.failureReason | translate | lowercase }}
-              }
-            </strong>
-            <span class="muted num">{{ event.when }} · {{ event.actor }}</span>
-            @if (event.note) {
-              <q class="note">{{ event.note }}</q>
-            }
-          </span>
-        </li>
-      }
-    </ol>
+    @if (history.error()) {
+      <vvs-list-state kind="error" (retry)="history.reload()" />
+    } @else if (history.value(); as events) {
+      <ol class="timeline">
+        @for (event of events; track $index) {
+          <li [attr.data-tone]="eventTones[event.action]">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="event">
+              <strong>{{ 'deliveries.event.' + event.action | translate }}</strong>
+              <span class="muted num"
+                >{{ eventTime(event.occurredAt) }} · {{ event.actorName }}</span
+              >
+              <span class="description">{{ event.description }}</span>
+            </span>
+          </li>
+        } @empty {
+          <li class="muted">{{ 'deliveries.detail.noHistory' | translate }}</li>
+        }
+      </ol>
+    } @else {
+      <vvs-list-state kind="loading" [rows]="3" />
+    }
   </div>
 
-  <footer class="actions">
-    @switch (d.status) {
-      @case ('FAILED') {
-        <button class="btn btn-secondary" type="button" (click)="action.emit('reschedule')">
-          {{ 'deliveries.detail.reschedule' | translate }}
-        </button>
-        <button class="btn btn-secondary" type="button" (click)="action.emit('restock')">
-          {{ 'deliveries.detail.restock' | translate }}
-        </button>
-      }
-      @case ('TO_PREPARE') {
-        <button class="btn btn-primary" type="button" (click)="action.emit('prepare')">
-          {{ 'deliveries.detail.markPrepared' | translate }}
-        </button>
-        <button class="btn btn-secondary" type="button" (click)="action.emit('assign')">
-          {{ 'deliveries.detail.assign' | translate }}
-        </button>
-      }
-      @case ('ON_ROUND') {
+  @switch (d.status) {
+    @case ('ON_ROUND') {
+      <footer class="actions">
         <a class="btn btn-secondary" [href]="'tel:' + d.phone.replaceAll(' ', '')">
           {{ 'deliveries.detail.callCustomer' | translate }}
         </a>
-      }
-      @case ('DELIVERED') {
+      </footer>
+    }
+    @case ('DELIVERED') {
+      <footer class="actions">
         <a class="btn btn-secondary" routerLink="/sales">
           {{ 'deliveries.detail.seeSales' | translate }}
         </a>
-      }
+      </footer>
     }
-  </footer>
+  }
 </section>

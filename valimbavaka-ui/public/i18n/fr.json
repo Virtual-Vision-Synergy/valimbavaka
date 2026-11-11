@@ -468,9 +468,9 @@
       "hold": "Attente",
       "checkout": "Encaisser {{amount}}",
       "invoiceNote": "Une facture numérotée est générée à l'encaissement.",
-      "added": "{{name}} ajouté · quantité {{quantity}}",
-      "decreased": "{{name}} · quantité {{quantity}}",
-      "removed": "{{name}} retiré du ticket",
+      "added": "{{name}} ajouté · quantité {{quantity}} · net à payer {{total}}",
+      "decreased": "{{name}} · quantité {{quantity}} · net à payer {{total}}",
+      "removed": "{{name}} retiré du ticket · net à payer {{total}}",
       "sellerLabel": "Vendeuse",
       "sellerPlaceholder": "Choisir la vendeuse"
     },
@@ -484,6 +484,7 @@
     },
     "toast": {
       "paid": "Vente {{ticket}} encaissée · {{amount}}",
+      "totalAdjusted": "Vente {{ticket}} encaissée au prix du serveur : {{amount}} (affiché {{displayed}}). Vérifiez le rendu.",
       "held": "Ticket {{ticket}} mis en attente",
       "cannotCheckout": "Montant reçu insuffisant pour encaisser",
       "outOfStock": "Stock insuffisant pour {{name}}",
@@ -850,22 +851,27 @@
   },
   "deliveries": {
     "title": "Livraisons",
-    "subtitle": "{{count}} commandes aujourd'hui · {{rounds}} tournées · {{collected}} encaissés sur {{total}}",
+    "subtitle": "{{count}} commandes · {{rounds}} tournées · {{collected}} encaissés sur {{total}}",
     "roundFilter": "Filtrer par tournée",
     "allRounds": "Toutes les tournées",
+    "statusFilter": "Filtrer par statut",
+    "allStatuses": "Tous les statuts",
+    "dayLabel": "Jour",
     "newOrder": "Nouvelle commande",
     "emptyColumn": "Aucune commande",
     "column": {
       "TO_PREPARE": "À préparer",
       "ON_ROUND": "En tournée",
       "DELIVERED": "Livrées",
-      "FAILED": "Échecs"
+      "FAILED": "Échecs",
+      "CANCELLED": "Annulées"
     },
     "status": {
       "TO_PREPARE": "À préparer",
       "ON_ROUND": "En tournée",
       "DELIVERED": "Livrée",
-      "FAILED": "Échec"
+      "FAILED": "Échec",
+      "CANCELLED": "Annulée"
     },
     "card": {
       "stop": "Arrêt {{stop}}/{{count}}",
@@ -879,25 +885,22 @@
       "OTHER": "Autre motif"
     },
     "event": {
-      "CREATED": "Commande créée",
-      "PREPARED": "Colis préparé",
-      "ON_ROUND": "Parti en tournée",
-      "ARRIVED": "Arrivé chez le client",
-      "DELIVERED": "Livrée et encaissée",
-      "FAILED": "Échec"
+      "CREATE": "Commande créée",
+      "UPDATE": "Statut modifié",
+      "DELETE": "Suppression",
+      "CANCEL": "Annulation",
+      "REVERSE": "Contre-passation"
     },
     "detail": {
       "articles": "{{count}} article(s)",
       "prepaid": "déjà payés",
       "toCollect": "à encaisser",
       "history": "Historique de statut",
-      "reschedule": "Reprogrammer demain",
-      "restock": "Retour en stock",
-      "markPrepared": "Marquer préparée",
-      "assign": "Affecter à une tournée",
       "callCustomer": "Appeler le client",
       "seeSales": "Voir dans les ventes",
-      "label": "Détail de la livraison {{number}}"
+      "label": "Détail de la livraison {{number}}",
+      "round": "Tournée du {{date}} · arrêt {{stop}}",
+      "noHistory": "Aucune étape enregistrée."
     },
     "driver": {
       "title": "Ma tournée",
@@ -932,6 +935,7 @@
       "paid": "Payée",
       "doneToast": "{{name}} : livrée",
       "failedToast": "{{name}} : échec enregistré",
+      "refusedToast": "{{name}} : saisie refusée. {{message}}",
       "undo": "Annuler",
       "failureTitle": "Échec de livraison · {{name}}",
       "reason": "Que s'est-il passé ?",

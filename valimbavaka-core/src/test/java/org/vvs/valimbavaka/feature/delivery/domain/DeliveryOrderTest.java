@@ -50,6 +50,45 @@ class DeliveryOrderTest {
     }
 
     @Test
+    void deliver_orderOnRound_movesToDeliveredWithItsSale() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+        sut.moveTo(DeliveryStatus.ON_ROUND);
+        var saleId = UUID.randomUUID();
+
+        // Act
+        sut.deliver(saleId);
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.DELIVERED);
+        assertThat(sut.getSaleId()).isEqualTo(saleId);
+    }
+
+    @Test
+    void deliver_orderToPrepare_movesToDeliveredInOneStep() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+
+        // Act
+        sut.deliver(UUID.randomUUID());
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.DELIVERED);
+    }
+
+    @Test
+    void deliver_alreadyDeliveredOrder_throwsConflictAndKeepsTheFirstSale() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+        var firstSaleId = UUID.randomUUID();
+        sut.deliver(firstSaleId);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.deliver(UUID.randomUUID())).isInstanceOf(ConflictException.class);
+        assertThat(sut.getSaleId()).isEqualTo(firstSaleId);
+    }
+
+    @Test
     void moveTo_allowedTransition_changesTheStatus() {
         // Arrange
         var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
@@ -70,6 +109,37 @@ class DeliveryOrderTest {
         // Act + Assert
         assertThatThrownBy(() -> sut.moveTo(DeliveryStatus.DELIVERED)).isInstanceOf(ConflictException.class);
         assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.CANCELLED);
+    }
+
+    @Test
+    void fail_orderOnRound_movesToFailedWithItsReasonCommentAndStockReturn() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+        sut.moveTo(DeliveryStatus.ON_ROUND);
+        var returnTransferId = UUID.randomUUID();
+
+        // Act
+        sut.fail(new DeliveryFailure(DeliveryFailureReason.REFUSED, "Colis abîmé"), returnTransferId);
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.FAILED);
+        assertThat(sut.getFailureReason()).isEqualTo(DeliveryFailureReason.REFUSED);
+        assertThat(sut.getFailureNote()).isEqualTo("Colis abîmé");
+        assertThat(sut.getReturnTransferId()).isEqualTo(returnTransferId);
+    }
+
+    @Test
+    void fail_deliveredOrder_throwsConflictAndRecordsNoReason() {
+        // Arrange
+        var sut = DeliveryOrder.create("LIV-0001", 1, command(line()));
+        sut.moveTo(DeliveryStatus.DELIVERED);
+        var failure = new DeliveryFailure(DeliveryFailureReason.ABSENT, null);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.fail(failure, UUID.randomUUID())).isInstanceOf(ConflictException.class);
+        assertThat(sut.getStatus()).isEqualTo(DeliveryStatus.DELIVERED);
+        assertThat(sut.getFailureReason()).isNull();
+        assertThat(sut.getReturnTransferId()).isNull();
     }
 
     private static DeliveryOrderLineCommand line() {
