@@ -1,6 +1,6 @@
 # Scénarios de test — FAC-06 · Export du livre des ventes
 
-Statut : ☐ tests automatiques écrits, à lancer (CI ou local) ; recette 🧪 à passer · Ticket : [#76](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/76) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests automatiques verts en CI (11/11/2026) ; recette 🧪 à passer · Ticket : [#76](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/76) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -20,15 +20,15 @@ La base de test est partagée : chaque test cherche (`search`) le numéro de sa 
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | L'export confirme la génération du fichier | Vente de 3 savons (25 500 Ar) facturée puis contre-passée. Admin : `GET /api/v1/invoices/sales-book/export?from=<jour>&to=<jour>&search=<n° facture>` | 200 `.xlsx` `livre-des-ventes.xlsx`, onglet « Livre des ventes », en-têtes fixes, ligne Facture (+25 500, « Contre-passée »), ligne Avoir (−25 500, facture d'origine, motif) | `SalesBookIT.exportSalesBook_byAdmin_returnsXlsxWithTheInvoiceAndTheNegativeCreditNote` | ☐ |
-| 1 | idem, côté écran : confirmation | Admin ouvre « Livre des ventes » sur `/sales`, clique « Exporter en XLSX » | fichier téléchargé et toast « Fichier … généré. » ; le bouton redevient actif | `sales-book-export.spec.ts` : « exporte le xlsx de la période choisie et confirme la génération du fichier » | ☐ |
-| 1 | idem, échec | Le serveur refuse (403) | toast d'échec, bouton réactivé | `sales-book-export.spec.ts` : « signale l'échec et rend la main pour un nouvel essai » | ☐ |
-| 1 | idem, PDF | `GET …/sales-book/export/pdf` | 200 `application/pdf` (`%PDF`) | `SalesBookIT.exportSalesBookPdf_byAdmin_returnsAPdfFile` ; écran : « exporte le PDF par la route jumelle /export/pdf » | ☐ |
-| 2 | Cohérence avec les avoirs (hypothèse) | Facture + avoir du même jour | liste JSON : 2 lignes, Facture `Contre-passée` puis Avoir en négatif (sous-total, total), `invoiceNumber`, `reason` | `SalesBookIT.getSalesBook_reversedInvoice_listsTheInvoiceAndItsCreditNoteInNegative` | ☐ |
-| 2 | idem, solde | Somme des totaux des deux lignes | 0 | `SalesBookIT.getSalesBook_reversedInvoice_netTotalOfItsTwoLinesIsZero` | ☐ |
-| 2 | Facture non contre-passée | Une facture `VALIDATED` | 1 ligne « Facture », « Validée », instantané (canal, vendeuse, règlement, montants), pas de motif | `SalesBookIT.getSalesBook_validInvoice_listsOneInvoiceLineWithItsSnapshot` | ☐ |
-| 3 | Période | Jour avant / jour après la facture | 0 ligne (bornes incluses : le jour même la contient) | `SalesBookIT.getSalesBook_periodAfterTheInvoice_doesNotContainIt`, `SalesBookIT.getSalesBook_periodEndingTheDayBefore_doesNotContainIt` | ☐ |
-| 4 | Liste bornée | Page de taille 1 sur facture + avoir | 2 pages, ordre stable Facture puis Avoir | `SalesBookIT.getSalesBook_pageSizeOne_servesTheTwoLinesOnTwoPagesInOrder` | ☐ |
+| 1 | L'export confirme la génération du fichier | Vente de 3 savons (25 500 Ar) facturée puis contre-passée. Admin : `GET /api/v1/invoices/sales-book/export?from=<jour>&to=<jour>&search=<n° facture>` | 200 `.xlsx` `livre-des-ventes.xlsx`, onglet « Livre des ventes », en-têtes fixes, ligne Facture (+25 500, « Contre-passée »), ligne Avoir (−25 500, facture d'origine, motif) | `SalesBookIT.exportSalesBook_byAdmin_returnsXlsxWithTheInvoiceAndTheNegativeCreditNote` | ✅ auto |
+| 1 | idem, côté écran : confirmation | Admin ouvre « Livre des ventes » sur `/sales`, clique « Exporter en XLSX » | fichier téléchargé et toast « Fichier … généré. » ; le bouton redevient actif | `sales-book-export.spec.ts` : « exporte le xlsx de la période choisie et confirme la génération du fichier » | ✅ auto |
+| 1 | idem, échec | Le serveur refuse (403) | toast d'échec, bouton réactivé | `sales-book-export.spec.ts` : « signale l'échec et rend la main pour un nouvel essai » | ✅ auto |
+| 1 | idem, PDF | `GET …/sales-book/export/pdf` | 200 `application/pdf` (`%PDF`) | `SalesBookIT.exportSalesBookPdf_byAdmin_returnsAPdfFile` ; écran : « exporte le PDF par la route jumelle /export/pdf » | ✅ auto |
+| 2 | Cohérence avec les avoirs (hypothèse) | Facture + avoir du même jour | liste JSON : 2 lignes, Facture `Contre-passée` puis Avoir en négatif (sous-total, total), `invoiceNumber`, `reason` | `SalesBookIT.getSalesBook_reversedInvoice_listsTheInvoiceAndItsCreditNoteInNegative` | ✅ auto |
+| 2 | idem, solde | Somme des totaux des deux lignes | 0 | `SalesBookIT.getSalesBook_reversedInvoice_netTotalOfItsTwoLinesIsZero` | ✅ auto |
+| 2 | Facture non contre-passée | Une facture `VALIDATED` | 1 ligne « Facture », « Validée », instantané (canal, vendeuse, règlement, montants), pas de motif | `SalesBookIT.getSalesBook_validInvoice_listsOneInvoiceLineWithItsSnapshot` | ✅ auto |
+| 3 | Période | Jour avant / jour après la facture | 0 ligne (bornes incluses : le jour même la contient) | `SalesBookIT.getSalesBook_periodAfterTheInvoice_doesNotContainIt`, `SalesBookIT.getSalesBook_periodEndingTheDayBefore_doesNotContainIt` | ✅ auto |
+| 4 | Liste bornée | Page de taille 1 sur facture + avoir | 2 pages, ordre stable Facture puis Avoir | `SalesBookIT.getSalesBook_pageSizeOne_servesTheTwoLinesOnTwoPagesInOrder` | ✅ auto |
 
 Tests unitaires : `SalesBookServiceImplTest` (période à l'envers, 367 jours refusés sans lecture, 366 jours et 1 jour acceptés, tri par défaut avec départage, tri inconnu ignoré, recherche nettoyée). Frontend : `sales-book-export.spec.ts` (mois en cours par défaut, bonne route, période invalide, 366 / 367 jours, date vidée).
 
@@ -36,15 +36,15 @@ Tests unitaires : `SalesBookServiceImplTest` (période à l'envers, 367 jours re
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | `SalesBookIT.getSalesBook_withoutToken_returns401` | ☐ |
-| Vendeuse (liste et export) | 403 `FORBIDDEN` | `SalesBookIT.getSalesBook_withSellerRole_returns403`, `SalesBookIT.exportSalesBook_withSellerRole_returns403` | ☐ |
-| Livreur | 403 | `SalesBookIT.exportSalesBook_withDeliveryDriverRole_returns403` | ☐ |
-| Période absente | 400 `MALFORMED_REQUEST` | `SalesBookIT.exportSalesBook_withoutPeriod_returns400` | ☐ |
-| Date mal formée | 400 `MALFORMED_REQUEST` | `SalesBookIT.getSalesBook_malformedDate_returns400` | ☐ |
-| Début après fin | 422 `VALIDATION_FAILED` | `SalesBookIT.getSalesBook_fromAfterTo_returns422` | ☐ |
-| Période de 367 jours | 422 | `SalesBookIT.exportSalesBook_periodOf367Days_returns422` | ☐ |
-| Plus de 10 000 lignes demandées (`size`) | 422, aucun fichier partiel | `SalesBookIT.exportSalesBook_sizeAboveMaxRows_returns422` | ☐ |
-| Champ de tri hors liste blanche | ignoré (tri par jour) | `SalesBookIT.getSalesBook_unknownSortField_isIgnored` | ☐ |
+| Appel sans jeton | 401 `UNAUTHENTICATED` | `SalesBookIT.getSalesBook_withoutToken_returns401` | ✅ auto |
+| Vendeuse (liste et export) | 403 `FORBIDDEN` | `SalesBookIT.getSalesBook_withSellerRole_returns403`, `SalesBookIT.exportSalesBook_withSellerRole_returns403` | ✅ auto |
+| Livreur | 403 | `SalesBookIT.exportSalesBook_withDeliveryDriverRole_returns403` | ✅ auto |
+| Période absente | 400 `MALFORMED_REQUEST` | `SalesBookIT.exportSalesBook_withoutPeriod_returns400` | ✅ auto |
+| Date mal formée | 400 `MALFORMED_REQUEST` | `SalesBookIT.getSalesBook_malformedDate_returns400` | ✅ auto |
+| Début après fin | 422 `VALIDATION_FAILED` | `SalesBookIT.getSalesBook_fromAfterTo_returns422` | ✅ auto |
+| Période de 367 jours | 422 | `SalesBookIT.exportSalesBook_periodOf367Days_returns422` | ✅ auto |
+| Plus de 10 000 lignes demandées (`size`) | 422, aucun fichier partiel | `SalesBookIT.exportSalesBook_sizeAboveMaxRows_returns422` | ✅ auto |
+| Champ de tri hors liste blanche | ignoré (tri par jour) | `SalesBookIT.getSalesBook_unknownSortField_isIgnored` | ✅ auto |
 | Champ interdit dans le corps (`role`, `id`) | sans objet : lecture seule, aucun corps | n/a | n/a |
 | Ressource introuvable / conflit | sans objet : une période sans ligne donne une page vide | n/a | n/a |
 
@@ -59,6 +59,6 @@ Tests unitaires : `SalesBookServiceImplTest` (période à l'envers, 367 jours re
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local)
-- Environnement : à lancer (CI ou local) ; rien lancé en local (consigne n°3)
+- Date : 11/11/2026
+- Environnement : CI GitHub (ci.yml, conventions.yml, Qodana : 0 annotation) sur c040afc9 ; backend 870 tests, 0 échec (dont `SalesBookIT` 22 et `SalesBookServiceImplTest` 7) ; frontend Vitest vert ; rien lancé en local (consigne n°3)
 - Anomalies ouvertes : aucune connue

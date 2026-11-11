@@ -1,6 +1,6 @@
 # Guide d'intégration — FAC-06 · Export du livre des ventes
 
-Statut : ☐ tests écrits, à lancer (CI ou local) · Ticket : [#76](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/76) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#76](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/76) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
