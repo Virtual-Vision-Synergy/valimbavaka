@@ -58,10 +58,11 @@ public class ChannelDashboardServiceImpl implements ChannelDashboardService {
         }
         var totals = saleQueryRepository.totalsByChannel(first, last, OperationStatus.VALIDATED).stream()
                 .collect(Collectors.toMap(ChannelSalesTotal::salesChannelId, Function.identity()));
-        var totalRevenue = totals.values().stream()
-                .map(ChannelSalesTotal::revenue)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        var totalCount = totals.values().stream().mapToLong(ChannelSalesTotal::salesCount).sum();
+        var totalRevenue =
+                totals.values().stream().map(ChannelSalesTotal::revenue).reduce(BigDecimal.ZERO, BigDecimal::add);
+        var totalCount = totals.values().stream()
+                .mapToLong(ChannelSalesTotal::salesCount)
+                .sum();
         return new ChannelDashboardRDto(first, last, totalRevenue, totalCount, channels(totals, totalRevenue));
     }
 
@@ -87,7 +88,7 @@ public class ChannelDashboardServiceImpl implements ChannelDashboardService {
     /** Share of the total turnover in percent, one decimal; 0 when the total is zero. */
     private static BigDecimal share(BigDecimal revenue, BigDecimal totalRevenue) {
         if (totalRevenue.signum() == 0) {
-            return BigDecimal.ZERO.setScale(1);
+            return BigDecimal.ZERO.setScale(1, RoundingMode.UNNECESSARY);
         }
         return revenue.multiply(HUNDRED).divide(totalRevenue, 1, RoundingMode.HALF_UP);
     }

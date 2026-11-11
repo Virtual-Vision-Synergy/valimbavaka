@@ -9,8 +9,4 @@ import java.util.List;
  * entry per channel, best turnover first (active channels without sale included, at zero).
  */
 public record ChannelDashboardRDto(
-        LocalDate from,
-        LocalDate to,
-        BigDecimal totalRevenue,
-        long totalSalesCount,
-        List<ChannelSalesRDto> channels) {}
+        LocalDate from, LocalDate to, BigDecimal totalRevenue, long totalSalesCount, List<ChannelSalesRDto> channels) {}

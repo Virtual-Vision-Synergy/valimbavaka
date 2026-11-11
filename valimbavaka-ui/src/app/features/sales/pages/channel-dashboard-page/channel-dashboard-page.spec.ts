@@ -50,7 +50,6 @@ describe('ChannelDashboardPage', () => {
     TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
     const fixture = TestBed.createComponent(ChannelDashboardPage);
     fixture.detectChanges();
-    await fixture.whenStable();
     httpMock.expectOne((req) => req.url === URL).flush(DASHBOARD);
     await fixture.whenStable();
     fixture.detectChanges();
