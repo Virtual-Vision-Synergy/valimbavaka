@@ -486,6 +486,7 @@
       "paid": "Voaray ny varotra {{ticket}} · {{amount}}",
       "totalAdjusted": "Voaray ny varotra {{ticket}} amin'ny vidin'ny mpizara : {{amount}} ({{displayed}} no naseho). Hamarino ny famerenana.",
       "held": "Nampiandrasina ny tapakila {{ticket}}",
+      "holdEmpty": "Tapakila foana: tsy misy hampiandrasana",
       "cannotCheckout": "Tsy ampy ny vola voaray",
       "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}",
       "sellerRequired": "Safidio aloha ny mpivarotra vao mandoa",

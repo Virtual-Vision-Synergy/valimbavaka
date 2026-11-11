@@ -4,9 +4,11 @@ import {
   DestroyRef,
   ElementRef,
   computed,
+  effect,
   inject,
   linkedSignal,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -56,6 +58,7 @@ interface PendingChange {
   templateUrl: './driver-round-page.html',
   styleUrl: './driver-round-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:pagehide)': 'commit()' },
 })
 export class DriverRoundPage {
   private readonly deliveryService = inject(DeliveryService);
@@ -110,11 +113,16 @@ export class DriverRoundPage {
   protected readonly remaining = computed(() => this.sumToCollect(this.upcoming()));
 
   private destroyed = false;
+  private hadQueued = false;
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.commit();
       this.destroyed = true;
+    });
+    effect(() => {
+      const queued = this.pendingSync();
+      untracked(() => this.reloadWhenQueueDrained(queued));
     });
   }
 
@@ -165,8 +173,21 @@ export class DriverRoundPage {
     this.pending.set({ delivery, change, previous, timer });
   }
 
-  /** Envoie la saisie en attente d'annulation (au délai, à la saisie suivante ou en quittant). */
-  private commit(): void {
+  /**
+   * Au retour du réseau, la file se vide (LIV-08, SYS-02) : on relit la tournée pour montrer l'état du serveur,
+   * y compris une saisie qu'il a refusée. Sans toucher à une saisie encore dans son délai d'annulation.
+   */
+  private reloadWhenQueueDrained(queued: number): void {
+    if (queued > 0) {
+      this.hadQueued = true;
+    } else if (this.hadQueued && !this.pending()) {
+      this.hadQueued = false;
+      this.round.reload();
+    }
+  }
+
+  /** Envoie la saisie en attente d'annulation (au délai, à la saisie suivante, en quittant ou en fermant l'onglet). */
+  protected commit(): void {
     const pending = this.pending();
     if (pending) {
       clearTimeout(pending.timer);

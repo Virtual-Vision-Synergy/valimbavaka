@@ -5,10 +5,12 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { buildUser } from '../../../core/auth/auth-testing';
+import { OutboxEntry } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
 import {
   DeliveryBoardRDto,
   DeliveryEventRDto,
+  DeliveryOrderRDto,
   DeliveryOrderWDto,
   DriverRoundRDto,
 } from './delivery-models';
@@ -16,16 +18,45 @@ import { DeliveryService } from './delivery-service';
 
 const EMPTY_PAGE = { items: [], page: 1, pageSize: 100, totalCount: 0, totalPages: 0 };
 
+function serverOrder(id: string): DeliveryOrderRDto {
+  return {
+    id,
+    number: 'LIV-0001',
+    status: 'TO_PREPARE',
+    customerName: 'Rasoa',
+    customerPhone: '034 12 345 61',
+    address: 'Lot II J 1',
+    district: null,
+    driverId: 'tojo',
+    scheduledDate: '2026-11-09',
+    stopNumber: 1,
+    amount: 8500,
+    note: null,
+    failureReason: null,
+    failureNote: null,
+    returnTransferId: null,
+    lines: [],
+    createdAt: '2026-11-09T05:32:00Z',
+    createdBy: 'seller',
+    saleId: null,
+    previousStatus: null,
+    updatedAt: '2026-11-09T05:32:00Z',
+    version: 0,
+  };
+}
+
 describe('DeliveryService', () => {
   const submit = vi.fn();
+  let queued: OutboxEntry[] = [];
 
   beforeEach(() => {
+    queued = [];
     submit.mockReset().mockReturnValue(of({ queued: true }));
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: OutboxService, useValue: { submit } },
+        { provide: OutboxService, useValue: { submit, pending: () => queued } },
       ],
     });
   });
@@ -140,6 +171,31 @@ describe('DeliveryService', () => {
       date: '2026-11-09',
       stops: [],
     });
+  });
+
+  it('reporte sur la tournée lue les saisies qui attendent encore le réseau (LIV-08)', () => {
+    TestBed.inject(AuthStore).signIn('jeton', buildUser('DELIVERY_DRIVER'));
+    queued = [
+      {
+        id: 'k1',
+        method: 'POST',
+        url: '/api/v1/deliveries/order-1/deliver',
+        body: null,
+        createdAt: 1,
+        attempts: 0,
+        status: 'PENDING',
+      },
+    ];
+    let round: DriverRoundRDto | undefined;
+    TestBed.inject(DeliveryService)
+      .myRound('2026-11-09')
+      .subscribe((value) => (round = value));
+
+    TestBed.inject(HttpTestingController)
+      .expectOne((req) => req.url === '/api/v1/deliveries')
+      .flush({ ...EMPTY_PAGE, items: [serverOrder('order-1')], totalCount: 1, totalPages: 1 });
+
+    expect(round?.stops.map((s) => s.status)).toEqual(['DELIVERED']);
   });
 
   it('marque la livraison livrée par la file hors ligne, sans corps (POST /api/v1/deliveries/{id}/deliver)', () => {
