@@ -62,6 +62,13 @@ public class User extends BaseEntity {
     @Column(name = "commission_rate", precision = 5, scale = 2)
     private @Nullable BigDecimal commissionRate;
 
+    /**
+     * Objectif mensuel de chiffre d'affaires de la vendeuse, en ariary (COM-04). Décision PO du 07/11/2026 : champ de
+     * la fiche utilisateur, modifiable par l'administrateur seul ; aucune route ne le laisse écrire à la vendeuse.
+     */
+    @Column(name = "monthly_target", precision = 19, scale = 2)
+    private @Nullable BigDecimal monthlyTarget;
+
     /** Échecs de connexion consécutifs ; remis à zéro au succès. */
     @Column(name = "failed_attempts", nullable = false)
     private int failedAttempts;
@@ -133,6 +140,7 @@ public class User extends BaseEntity {
         this.role = Objects.requireNonNull(role);
         this.salesChannelId = terms.salesChannelId();
         this.commissionRate = terms.commissionRate();
+        this.monthlyTarget = terms.monthlyTarget();
     }
 
     /** Canal et commission n'ont de sens que pour une vendeuse, et vont ensemble : règle portée par l'entité. */
@@ -143,7 +151,8 @@ public class User extends BaseEntity {
                         "Le canal de vente et le taux de commission sont obligatoires pour une vendeuse.");
             }
         } else if (!terms.isEmpty()) {
-            throw new BusinessException("Le canal de vente et le taux de commission sont réservés aux vendeuses.");
+            throw new BusinessException(
+                    "Le canal de vente, le taux de commission et l'objectif mensuel sont réservés aux vendeuses.");
         }
     }
 }

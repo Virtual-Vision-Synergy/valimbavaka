@@ -234,6 +234,7 @@ class CommissionServiceImplTest {
                 role,
                 CHANNEL_ID,
                 new BigDecimal("5.00"),
+                null,
                 true,
                 false,
                 now,

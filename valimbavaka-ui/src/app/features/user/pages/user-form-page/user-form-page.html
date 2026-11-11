@@ -135,6 +135,28 @@
             </span>
           }
         </div>
+
+        <div class="field">
+          <label for="monthlyTarget">Objectif mensuel de ventes (Ar)</label>
+          <input
+            id="monthlyTarget"
+            class="input"
+            type="number"
+            min="0.01"
+            step="1"
+            formControlName="monthlyTarget"
+            aria-describedby="monthlyTarget-hint monthlyTarget-error"
+          />
+          <span id="monthlyTarget-hint" class="field-hint">
+            Facultatif. Seul l'administrateur le fixe ; la vendeuse le voit dans « Mes commissions
+            ».
+          </span>
+          @if (hasError('monthlyTarget')) {
+            <span id="monthlyTarget-error" class="field-error" aria-live="polite">
+              {{ serverError('monthlyTarget') ?? "L'objectif doit être supérieur à 0." }}
+            </span>
+          }
+        </div>
       }
 
       @if (isEdit()) {

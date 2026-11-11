@@ -161,6 +161,7 @@ class CommissionRateResolverImplTest {
                 role,
                 SHOP_ID,
                 commissionRate,
+                null,
                 true,
                 false,
                 now,

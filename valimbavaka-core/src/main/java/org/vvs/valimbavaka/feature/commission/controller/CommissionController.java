@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.commission.controller;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.UUID;
 
 import jakarta.validation.Valid;
@@ -20,10 +21,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.vvs.valimbavaka.feature.commission.dto.CommissionFollowUpRDto;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionRDto;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionValidationRDto;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionValidationWDto;
 import org.vvs.valimbavaka.feature.commission.dto.SellerCommissionRDto;
+import org.vvs.valimbavaka.feature.commission.service.CommissionFollowUpService;
 import org.vvs.valimbavaka.feature.commission.service.CommissionService;
 import org.vvs.valimbavaka.feature.commission.service.CommissionValidationService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
@@ -48,10 +51,15 @@ public class CommissionController {
 
     private final CommissionService commissionService;
     private final CommissionValidationService validationService;
+    private final CommissionFollowUpService followUpService;
 
-    public CommissionController(CommissionService commissionService, CommissionValidationService validationService) {
+    public CommissionController(
+            CommissionService commissionService,
+            CommissionValidationService validationService,
+            CommissionFollowUpService followUpService) {
         this.commissionService = commissionService;
         this.validationService = validationService;
+        this.followUpService = followUpService;
     }
 
     @GetMapping
@@ -77,6 +85,36 @@ public class CommissionController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return validationService.getSellerSummaries(query, from, to);
+    }
+
+    @GetMapping("/follow-up")
+    @Operation(
+            summary = "Commission and monthly target of a seller for a month; a seller only sees her own",
+            description = "Month yyyy-MM in Madagascar time (current month by default). A seller's sellerId is "
+                    + "ignored; the administrator must name the seller. Cancelled commissions are not counted.")
+    @ApiResponse(responseCode = "200", description = "Totals of the month and progress towards the target")
+    @ApiResponse(responseCode = "404", description = "Not a seller (NOT_FOUND)")
+    @ApiResponse(responseCode = "422", description = "Administrator without sellerId (VALIDATION_FAILED)")
+    @HasPermission("commissions.read")
+    public CommissionFollowUpRDto getFollowUp(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") @Nullable YearMonth month,
+            @RequestParam(required = false) @Nullable UUID sellerId) {
+        return followUpService.getFollowUp(sellerId, month);
+    }
+
+    @GetMapping("/follow-up/lines")
+    @Operation(
+            summary = "Commission of each sale of a seller for a month (base, rate, amount, status), paged",
+            description = "Same scope as the follow-up: a seller only sees her own lines.")
+    @ApiResponse(responseCode = "200", description = "Page of commissions, most recent business day first")
+    @ApiResponse(responseCode = "404", description = "Not a seller (NOT_FOUND)")
+    @ApiResponse(responseCode = "422", description = "Invalid page or administrator without sellerId")
+    @HasPermission("commissions.read")
+    public PageResponse<CommissionRDto> getFollowUpLines(
+            @Valid PageQuery query,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") @Nullable YearMonth month,
+            @RequestParam(required = false) @Nullable UUID sellerId) {
+        return followUpService.getLines(query, sellerId, month);
     }
 
     @PostMapping("/validation")
