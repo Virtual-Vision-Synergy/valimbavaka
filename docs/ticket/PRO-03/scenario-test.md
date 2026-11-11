@@ -1,6 +1,6 @@
 # Scénarios de test — PRO-03 · Statut et utilisation d'une promotion
 
-Statut : ☐ tests écrits, à lancer (CI ou local) · Ticket : [#60](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/60) · [description](description.md) · [guide](guide.md)
+Statut : ✅ tests exécutés en CI le 2026-11-11 · Ticket : [#60](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/60) · [description](description.md) · [guide](guide.md)
 
 Légende de la colonne « OK » : ☐ non exécuté · ✅ test automatique vert. Détail : [CONSIGNE.md](../CONSIGNE.md#4-remplir-le-scénario-de-test).
 
@@ -25,20 +25,20 @@ Classes de test :
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | Le statut se met à jour selon les dates | Étant donné des promotions à venir, en cours, terminée hier, terminant aujourd'hui · Quand l'administrateur filtre ou lit la fiche · Alors le statut suit le jour d'Antananarivo (bornes incluses) | `SCHEDULED`, `ACTIVE`, `ENDED` ; une promotion finissant aujourd'hui est `ACTIVE` | `PromotionListIT.getPromotions_statusFilter_returnsOnlyThePromotionsOfThatStatus` (PRO-04), `SalePromotionIT.createSale_promotionEndingToday_stillApplies`, `createSale_promotionEndedYesterday_givesNoDiscount`, `createSale_promotionNotStartedYet_givesNoDiscount` (PRO-02) | ☐ |
-| 2 | Le compteur s'incrémente à chaque usage | Étant donné la promotion de 15 %, compteur 0 · Quand une vente de 3 × 8 500 Ar est enregistrée (remise 3 825 Ar) · Alors `usage_count` passe à 1 et la fiche (`GET /api/v1/promotions/{id}`) renvoie `usageCount` = 1, `status` = `ACTIVE` | une vente = un usage (pas un usage par ligne) | `SaleUsageIT.createSale_promotionApplied_incrementsTheUsageCounterOnceAndTheSheetShowsIt`, `SaleLedgerTest.post_saleWithPromotion_countsOneUseOfThePromotion`, `PromotionServiceImplTest.recordUsage_limitNotReached_incrementsTheCounter` | ☐ |
-| 3 | idem | Étant donné une promotion d'un autre canal · Quand une vente est enregistrée au comptoir · Alors aucune promotion n'est comptée | compteur inchangé | `SaleUsageIT.createSale_noPromotionApplies_leavesTheCounterAtZero`, `SaleLedgerTest.post_twoLines_takesTheStockOutOfTheChannelLocationTracesAndPublishes` (aucun appel au service de promotion) | ☐ |
-| 4 | Plafond d'utilisation | Étant donné un plafond de 1 · Quand deux ventes se suivent · Alors la première a la remise (compteur 1), la seconde n'en a plus (compteur reste 1) | le plafond se déclenche réellement | `SaleUsageIT.createSale_lastUseOfALimitedPromotion_reachesTheLimitAndTheNextSaleHasNoDiscount` | ☐ |
-| 5 | Annulation d'une vente | Étant donné une vente avec promotion (plafond 1, compteur 1) · Quand elle est annulée (`SaleService.cancel`) · Alors le compteur revient à 0 et la promotion s'applique de nouveau à la vente suivante | l'usage est rendu une seule fois ; une vente sans promotion ne touche aucun compteur | `SaleUsageIT.cancel_saleWithAPromotion_givesTheUseBack`, `SaleUsageIT.cancel_saleWithoutPromotion_leavesEveryCounterUntouched`, `SaleLedgerTest.unpost_saleWithPromotion_givesTheUseBack`, `SaleLedgerTest.unpost_saleWithoutPromotion_doesNotTouchAnyPromotion`, `PromotionServiceImplTest.releaseUsage_anyPromotion_decrementsTheCounter` | ☐ |
+| 1 | Le statut se met à jour selon les dates | Étant donné des promotions à venir, en cours, terminée hier, terminant aujourd'hui · Quand l'administrateur filtre ou lit la fiche · Alors le statut suit le jour d'Antananarivo (bornes incluses) | `SCHEDULED`, `ACTIVE`, `ENDED` ; une promotion finissant aujourd'hui est `ACTIVE` | `PromotionListIT.getPromotions_statusFilter_returnsOnlyThePromotionsOfThatStatus` (PRO-04), `SalePromotionIT.createSale_promotionEndingToday_stillApplies`, `createSale_promotionEndedYesterday_givesNoDiscount`, `createSale_promotionNotStartedYet_givesNoDiscount` (PRO-02) | ✅ |
+| 2 | Le compteur s'incrémente à chaque usage | Étant donné la promotion de 15 %, compteur 0 · Quand une vente de 3 × 8 500 Ar est enregistrée (remise 3 825 Ar) · Alors `usage_count` passe à 1 et la fiche (`GET /api/v1/promotions/{id}`) renvoie `usageCount` = 1, `status` = `ACTIVE` | une vente = un usage (pas un usage par ligne) | `SaleUsageIT.createSale_promotionApplied_incrementsTheUsageCounterOnceAndTheSheetShowsIt`, `SaleLedgerTest.post_saleWithPromotion_countsOneUseOfThePromotion`, `PromotionServiceImplTest.recordUsage_limitNotReached_incrementsTheCounter` | ✅ |
+| 3 | idem | Étant donné une promotion d'un autre canal · Quand une vente est enregistrée au comptoir · Alors aucune promotion n'est comptée | compteur inchangé | `SaleUsageIT.createSale_noPromotionApplies_leavesTheCounterAtZero`, `SaleLedgerTest.post_twoLines_takesTheStockOutOfTheChannelLocationTracesAndPublishes` (aucun appel au service de promotion) | ✅ |
+| 4 | Plafond d'utilisation | Étant donné un plafond de 1 · Quand deux ventes se suivent · Alors la première a la remise (compteur 1), la seconde n'en a plus (compteur reste 1) | le plafond se déclenche réellement | `SaleUsageIT.createSale_lastUseOfALimitedPromotion_reachesTheLimitAndTheNextSaleHasNoDiscount` | ✅ |
+| 5 | Annulation d'une vente | Étant donné une vente avec promotion (plafond 1, compteur 1) · Quand elle est annulée (`SaleService.cancel`) · Alors le compteur revient à 0 et la promotion s'applique de nouveau à la vente suivante | l'usage est rendu une seule fois ; une vente sans promotion ne touche aucun compteur | `SaleUsageIT.cancel_saleWithAPromotion_givesTheUseBack`, `SaleUsageIT.cancel_saleWithoutPromotion_leavesEveryCounterUntouched`, `SaleLedgerTest.unpost_saleWithPromotion_givesTheUseBack`, `SaleLedgerTest.unpost_saleWithoutPromotion_doesNotTouchAnyPromotion`, `PromotionServiceImplTest.releaseUsage_anyPromotion_decrementsTheCounter` | ✅ |
 
 ## Sécurité et erreurs
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Appel sans jeton / mauvais rôle | sans objet : aucun endpoint nouveau (la fiche et la liste restent protégées par PRO-01 et PRO-04) | `PromotionSecurityIT`, `PromotionListIT.getPromotions_withoutToken_returns401` (déjà livrés) | ☐ |
-| Champ interdit dans le corps (`promotionId`, `discountAmount`) | ignoré : le serveur seul décide de la promotion, donc du compteur | `SalePromotionIT.createSale_discountAndPromotionSentByTheClient_areIgnored` (PRO-02) | ☐ |
-| Plafond atteint entre le calcul de la remise et l'enregistrement (concurrence) | 409 `CONFLICT`, la vente est annulée avec sa transaction (ni stock sorti, ni compteur) | `SaleUsageIT.createSale_severalSimultaneousSalesOnALimitedPromotion_neverGoPastTheLimit`, `PromotionServiceImplTest.recordUsage_limitReached_throwsConflict` | ☐ |
-| Promotion introuvable au moment de compter | 404 `NOT_FOUND` | `PromotionServiceImplTest.recordUsage_unknownPromotion_throwsNotFound` | ☐ |
+| Appel sans jeton / mauvais rôle | sans objet : aucun endpoint nouveau (la fiche et la liste restent protégées par PRO-01 et PRO-04) | `PromotionSecurityIT`, `PromotionListIT.getPromotions_withoutToken_returns401` (déjà livrés) | ✅ |
+| Champ interdit dans le corps (`promotionId`, `discountAmount`) | ignoré : le serveur seul décide de la promotion, donc du compteur | `SalePromotionIT.createSale_discountAndPromotionSentByTheClient_areIgnored` (PRO-02) | ✅ |
+| Plafond atteint entre le calcul de la remise et l'enregistrement (concurrence) | 409 `CONFLICT`, la vente est annulée avec sa transaction (ni stock sorti, ni compteur) | `SaleUsageIT.createSale_severalSimultaneousSalesOnALimitedPromotion_neverGoPastTheLimit`, `PromotionServiceImplTest.recordUsage_limitReached_throwsConflict` | ✅ |
+| Promotion introuvable au moment de compter | 404 `NOT_FOUND` | `PromotionServiceImplTest.recordUsage_unknownPromotion_throwsNotFound` | ✅ |
 
 ## Cas limites et hors ligne
 
@@ -51,6 +51,6 @@ Classes de test :
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local)
-- Environnement : à lancer (CI ou local)
+- Date : 2026-11-11
+- Environnement : CI GitHub Actions (ci.yml, conventions.yml, Qodana) sur le commit 8a2ced8, tout vert, 0 annotation Qodana
 - Anomalies ouvertes : aucune connue ; le front n'est pas modifié (la fiche affichait déjà `usageCount` / `usageLimit` et le statut)
