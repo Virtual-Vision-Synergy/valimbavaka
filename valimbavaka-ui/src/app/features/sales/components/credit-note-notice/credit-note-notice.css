@@ -1,0 +1,17 @@
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--danger-dark);
+  border-radius: var(--radius-lg);
+  background: var(--danger-light);
+  color: var(--danger-dark);
+}
+h3 {
+  font-size: var(--text-md);
+}
+p {
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+}
