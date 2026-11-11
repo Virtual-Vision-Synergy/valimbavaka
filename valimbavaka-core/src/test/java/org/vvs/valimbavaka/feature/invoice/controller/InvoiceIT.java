@@ -347,8 +347,7 @@ class InvoiceIT extends StockApiTestSupport {
     }
 
     private ResultActions getInvoiceOfSale(String token, UUID saleId) throws Exception {
-        return mockMvc.perform(
-                get(INVOICES + "/sales/" + saleId).header(HttpHeaders.AUTHORIZATION, bearer(token)));
+        return mockMvc.perform(get(INVOICES + "/sales/" + saleId).header(HttpHeaders.AUTHORIZATION, bearer(token)));
     }
 
     private ResultActions getInvoice(String token, UUID invoiceId) throws Exception {
