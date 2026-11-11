@@ -4,12 +4,14 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { AuthStore } from '../../../core/auth/auth-store';
 import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { demo } from '../../../shared/data-access/demo';
 import { PageResponse } from '../../../shared/models/page-response';
 import { businessToday, toBoard, toDriverRound } from './delivery-mapping';
+import { withQueuedActions } from './delivery-queue';
 import {
   DeliveryBoardRDto,
   DeliveryDriverRDto,
+  DeliveryEventRDto,
+  DeliveryFailureWDto,
   DeliveryOrderRDto,
   DeliveryOrderWDto,
   DeliveryStatusWDto,
@@ -30,9 +32,10 @@ function dayParams(day: string): HttpParams {
 }
 
 /**
- * Livraisons. Le tableau du jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs ; la création
- * (LIV-01) passe par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit ses
- * commandes du jour. Le changement de statut (LIV-03, LIV-04) reste une simulation.
+ * Livraisons. Le tableau d'un jour lit `GET /api/v1/deliveries?date=` et la liste des livreurs, l'historique d'une
+ * commande `GET /api/v1/deliveries/{id}/history` (LIV-06) ; la création (LIV-01), le marquage « livrée » (LIV-03) et
+ * l'échec (LIV-04) passent par la file hors ligne (`OutboxService`, SYS-07) ; la tournée du livreur (LIV-02) lit
+ * ses commandes du jour.
  */
 @Injectable({ providedIn: 'root' })
 export class DeliveryService {
@@ -41,7 +44,10 @@ export class DeliveryService {
   private readonly authStore = inject(AuthStore);
   private readonly baseUrl = '/api/v1/deliveries';
 
-  /** Commandes du jour (Antananarivo) dans l'ordre des arrêts, regroupées par tournée de livreur. */
+  /**
+   * Commandes d'un jour (Antananarivo, aujourd'hui par défaut) dans l'ordre des arrêts, regroupées par tournée de
+   * livreur ; un jour passé donne l'historique de ce jour (LIV-06).
+   */
   board(day: string = businessToday()): Observable<DeliveryBoardRDto> {
     return forkJoin({
       orders: this.http.get<PageResponse<DeliveryOrderRDto>>(this.baseUrl, {
@@ -65,7 +71,20 @@ export class DeliveryService {
     const params = dayParams(day).set('driverId', driver.id);
     return this.http
       .get<PageResponse<DeliveryOrderRDto>>(this.baseUrl, { params })
-      .pipe(map((page) => toDriverRound(page.items, driver, day)));
+      .pipe(map((page) => this.withQueue(toDriverRound(page.items, driver, day))));
+  }
+
+  /** Les saisies encore en file (LIV-08) sont reportées sur la tournée lue : le serveur ne les connaît pas. */
+  private withQueue(round: DriverRoundRDto): DriverRoundRDto {
+    return { ...round, stops: withQueuedActions(round.stops, this.outbox.pending()) };
+  }
+
+  /** Historique d'une commande (LIV-06) : ses lignes du journal, de la plus ancienne à la plus récente. */
+  history(orderId: string): Observable<DeliveryEventRDto[]> {
+    const params = new HttpParams().set('page', 1).set('size', MAX_PAGE_SIZE);
+    return this.http
+      .get<PageResponse<DeliveryEventRDto>>(`${this.baseUrl}/${orderId}/history`, { params })
+      .pipe(map((page) => page.items));
   }
 
   /** Livreurs actifs proposés à l'affectation, par prénom (`deliveries.create`). */
@@ -81,8 +100,49 @@ export class DeliveryService {
     return this.outbox.submit<DeliveryOrderRDto>('POST', this.baseUrl, body);
   }
 
-  /** Simulation : accepte le changement de statut ; aucune donnée n'est conservée. */
+  /**
+   * Marque la livraison livrée d'un geste, sans saisie (LIV-03) : la commande passe `DELIVERED` et devient une
+   * vente canal Livraison ; `queued` si elle attend le réseau (rejouée une seule fois grâce à `Idempotency-Key`).
+   */
+  markDelivered(deliveryId: string): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/deliver`,
+    );
+  }
+
+  /**
+   * Signale l'échec (LIV-04) : la commande passe `FAILED` et ses articles reviennent de la livraison à
+   * l'entrepôt ; `queued` si l'échec attend le réseau (rejoué une seule fois grâce à `Idempotency-Key`).
+   */
+  reportFailure(
+    deliveryId: string,
+    body: DeliveryFailureWDto,
+  ): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/failure`,
+      body,
+    );
+  }
+
+  /**
+   * Annule la dernière action, livrée ou échec (LIV-05), pendant 5 minutes : la commande retrouve son statut
+   * d'avant, la vente ou le retour de stock est annulé ; `queued` si l'annulation attend le réseau.
+   */
+  undoLastAction(deliveryId: string): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/undo`,
+    );
+  }
+
+  /** Saisie du livreur : « livrée » (LIV-03) et l'échec (LIV-04) partent vers l'API par la file hors ligne. */
   updateStatus(deliveryId: string, change: DeliveryStatusWDto): Observable<string> {
-    return demo(change).pipe(map(() => deliveryId));
+    if (change.status === 'DELIVERED') {
+      return this.markDelivered(deliveryId).pipe(map(() => deliveryId));
+    }
+    const body = { reason: change.failureReason ?? 'OTHER', note: change.note };
+    return this.reportFailure(deliveryId, body).pipe(map(() => deliveryId));
   }
 }

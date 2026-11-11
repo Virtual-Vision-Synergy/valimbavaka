@@ -13,9 +13,12 @@ import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
 import org.vvs.valimbavaka.feature.article.domain.ArticleType;
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
 import org.vvs.valimbavaka.feature.article.service.ArticleService;
+import org.vvs.valimbavaka.feature.promotion.dto.PromotionRDto;
+import org.vvs.valimbavaka.feature.promotion.service.PromotionService;
 import org.vvs.valimbavaka.feature.sale.dto.SaleArticleRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleChannelOptionRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleFormRDto;
+import org.vvs.valimbavaka.feature.sale.dto.SalePromotionRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleSellerRDto;
 import org.vvs.valimbavaka.feature.stock.service.StockService;
 import org.vvs.valimbavaka.feature.user.service.UserService;
@@ -24,7 +27,8 @@ import org.vvs.valimbavaka.shared.dto.SortDirection;
 
 /**
  * Builds the sale form: active channels with their stock location, active sellers by first name (100 at most) and
- * active finished articles with a price, by name, with their stock in the locations of the channels.
+ * active finished articles with a price, by name, with their stock in the locations of the channels, and the
+ * automatic promotions usable today (PRO-02).
  */
 @Component
 class SaleFormAssembler {
@@ -40,13 +44,19 @@ class SaleFormAssembler {
     private final UserService userService;
     private final ArticleService articleService;
     private final StockService stockService;
+    private final PromotionService promotionService;
 
     SaleFormAssembler(
-            SaleChannels channels, UserService userService, ArticleService articleService, StockService stockService) {
+            SaleChannels channels,
+            UserService userService,
+            ArticleService articleService,
+            StockService stockService,
+            PromotionService promotionService) {
         this.channels = channels;
         this.userService = userService;
         this.articleService = articleService;
         this.stockService = stockService;
+        this.promotionService = promotionService;
     }
 
     SaleFormRDto build(long nextNumber) {
@@ -54,7 +64,37 @@ class SaleFormAssembler {
         var sellers = userService.getActiveSellers(SELLERS).items().stream()
                 .map(user -> new SaleSellerRDto(user.id(), user.firstName(), user.lastName(), user.salesChannelId()))
                 .toList();
-        return new SaleFormRDto(nextNumber, options, sellers, articles(options));
+        var articles = articles(options);
+        return new SaleFormRDto(nextNumber, options, sellers, articles, promotions(articles));
+    }
+
+    /** Automatic promotions usable today with the sellable articles each reaches; those reaching none are left out. */
+    private List<SalePromotionRDto> promotions(List<SaleArticleRDto> articles) {
+        var result = new ArrayList<SalePromotionRDto>();
+        for (var promotion : promotionService.getAutomaticPromotions()) {
+            var articleIds = articles.stream()
+                    .filter(article -> reaches(promotion, article))
+                    .map(SaleArticleRDto::id)
+                    .toList();
+            if (!articleIds.isEmpty()) {
+                result.add(new SalePromotionRDto(
+                        promotion.id(),
+                        promotion.name(),
+                        promotion.kind(),
+                        promotion.value(),
+                        articleIds,
+                        List.copyOf(promotion.channelIds())));
+            }
+        }
+        return result;
+    }
+
+    private static boolean reaches(PromotionRDto promotion, SaleArticleRDto article) {
+        return switch (promotion.scope()) {
+            case ALL -> true;
+            case RANGES -> article.rangeId() != null && promotion.targetIds().contains(article.rangeId());
+            case ARTICLES -> promotion.targetIds().contains(article.id());
+        };
     }
 
     private List<SaleArticleRDto> articles(List<SaleChannelOptionRDto> options) {

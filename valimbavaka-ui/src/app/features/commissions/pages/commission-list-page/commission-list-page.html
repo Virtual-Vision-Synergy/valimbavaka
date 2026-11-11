@@ -47,6 +47,11 @@
                   <span class="muted">{{
                     'commissionList.source.' + commission.sourceType | translate
                   }}</span>
+                  @if (commission.status === 'CANCELLED') {
+                    <span class="muted cancelled">{{
+                      'commissionList.status.CANCELLED' | translate
+                    }}</span>
+                  }
                 </th>
                 <td>{{ commission.businessDate | shortDate }}</td>
                 <td>{{ commission.sellerName }}</td>

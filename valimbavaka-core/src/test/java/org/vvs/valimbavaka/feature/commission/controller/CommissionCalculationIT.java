@@ -70,6 +70,7 @@ class CommissionCalculationIT extends StockApiTestSupport {
                 .getResponse()
                 .getStatus();
         assertThat(status).isIn(201, 409);
+        endAutomaticPromotions();
         channelId = createChannel();
         seller = createSeller(channelId);
         sellerId = seller.getId();
@@ -150,6 +151,36 @@ class CommissionCalculationIT extends StockApiTestSupport {
                 "Commission " + saleNumber + " %");
         var expected = "Commission %s · Miora Rakoto · 5.00 %% de 8500.00 Ar (CA) = 425.00 Ar".formatted(saleNumber);
         assertThat(descriptions).containsExactly(expected);
+    }
+
+    @Test
+    void cancel_saleWithACommission_commissionIsCancelledAndTraced() throws Exception {
+        // Arrange : une vente à 8 500 Ar, commission de 425 Ar
+        var saleNumber = createSale(stockedArticle(), "1");
+        var saleId = jdbcTemplate.queryForObject("select id from sales where number = ?", UUID.class, saleNumber);
+
+        // Act
+        saleService.cancel(saleId, "erreur de saisie");
+
+        // Assert : la commission reste consultable mais annulée, et l'annulation est au journal
+        listOfSeller()
+                .andExpect(jsonPath("$.items[0].status").value("CANCELLED"))
+                .andExpect(jsonPath("$.items[0].amount").value(425.0));
+        var cancellations = jdbcTemplate.queryForObject(
+                "select count(*) from journal_entries where resource_type = 'COMMISSION' and action = 'CANCEL' "
+                        + "and description like ?",
+                Integer.class,
+                "% annulée avec l'opération " + saleNumber);
+        assertThat(cancellations).isEqualTo(1);
+    }
+
+    @Test
+    void createSale_validSale_commissionIsCalculated() throws Exception {
+        // Act
+        createSale(stockedArticle(), "1");
+
+        // Assert
+        listOfSeller().andExpect(jsonPath("$.items[0].status").value("CALCULATED"));
     }
 
     @Test

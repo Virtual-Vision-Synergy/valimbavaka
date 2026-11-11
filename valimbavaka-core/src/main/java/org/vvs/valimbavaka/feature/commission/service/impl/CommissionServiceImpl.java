@@ -16,6 +16,7 @@ import org.vvs.valimbavaka.feature.commission.domain.Commission;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionBase;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionStatus;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionTerms;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionRDto;
 import org.vvs.valimbavaka.feature.commission.mapper.CommissionMapper;
@@ -78,6 +79,21 @@ public class CommissionServiceImpl implements CommissionService {
         journalService.record(JournalAction.CREATE, RESOURCE_TYPE, commission.getId(), description(commission));
         log.info("Commission {} calculée pour {}", commission.getId(), source.number());
         return Optional.of(commission).map(commissionMapper::toRDto);
+    }
+
+    @Override
+    @Transactional
+    public void cancelBySource(CommissionSourceType sourceType, UUID sourceId) {
+        commissionRepository
+                .findBySourceTypeAndSourceId(sourceType, sourceId)
+                .filter(commission -> commission.getStatus() != CommissionStatus.CANCELLED)
+                .ifPresent(commission -> {
+                    commission.cancel();
+                    var description = "Commission %s Ar annulée avec l'opération %s"
+                            .formatted(commission.getAmount().toPlainString(), commission.getSourceNumber());
+                    journalService.record(JournalAction.CANCEL, RESOURCE_TYPE, commission.getId(), description);
+                    log.info("Commission {} annulée avec {}", commission.getId(), commission.getSourceNumber());
+                });
     }
 
     @Override

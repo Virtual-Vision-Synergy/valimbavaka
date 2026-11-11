@@ -14,6 +14,7 @@ import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrder;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderFilter;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryDriverRDto;
+import org.vvs.valimbavaka.feature.delivery.dto.DeliveryEventRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderWDto;
 import org.vvs.valimbavaka.feature.delivery.mapper.DeliveryMapper;
@@ -74,12 +75,7 @@ public class DeliveryOrderServiceImpl implements DeliveryOrderService {
 
     @Override
     public DeliveryOrderRDto getOrder(UUID orderId) {
-        var order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(NOT_FOUND));
-        var ownDriverId = ownDriverId();
-        if (ownDriverId.isPresent() && !ownDriverId.get().equals(order.getDriverId())) {
-            throw new NotFoundException(NOT_FOUND);
-        }
-        return deliveryMapper.toRDto(order);
+        return deliveryMapper.toRDto(findVisible(orderId));
     }
 
     @Override
@@ -100,6 +96,28 @@ public class DeliveryOrderServiceImpl implements DeliveryOrderService {
                 drivers.pageSize(),
                 drivers.totalCount(),
                 drivers.totalPages());
+    }
+
+    @Override
+    public PageResponse<DeliveryEventRDto> getHistory(UUID orderId, PageQuery query) {
+        findVisible(orderId);
+        var entries = journalService.getResourceEntries(RESOURCE_TYPE, orderId, query);
+        return new PageResponse<>(
+                entries.items().stream().map(deliveryMapper::toEventRDto).toList(),
+                entries.page(),
+                entries.pageSize(),
+                entries.totalCount(),
+                entries.totalPages());
+    }
+
+    /** The order, or 404 if it is unknown or, for a delivery driver, assigned to another driver. */
+    private DeliveryOrder findVisible(UUID orderId) {
+        var order = orderRepository.findById(orderId).orElseThrow(() -> new NotFoundException(NOT_FOUND));
+        var ownDriverId = ownDriverId();
+        if (ownDriverId.isPresent() && !ownDriverId.get().equals(order.getDriverId())) {
+            throw new NotFoundException(NOT_FOUND);
+        }
+        return order;
     }
 
     /** The caller's id when he is an active delivery driver: he only sees the orders assigned to him. */

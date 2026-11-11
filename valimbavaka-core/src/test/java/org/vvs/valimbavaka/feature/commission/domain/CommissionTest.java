@@ -42,6 +42,21 @@ class CommissionTest {
     }
 
     @Test
+    void cancel_calculatedCommission_becomesCancelledAndKeepsItsAmount() {
+        // Arrange
+        var terms = terms("4", CommissionBase.REVENUE, CommissionRateSource.SALES_CHANNEL, RULE_ID);
+        var sut = Commission.calculate(sale("25500.00", null), "Miora Rakoto", terms);
+        assertThat(sut.getStatus()).isEqualTo(CommissionStatus.CALCULATED);
+
+        // Act
+        sut.cancel();
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(CommissionStatus.CANCELLED);
+        assertThat(sut.getAmount()).isEqualTo(new BigDecimal("1020.00"));
+    }
+
+    @Test
     void calculate_fractionOfAriary_isRoundedHalfUpToTheAriary() {
         // Arrange : 25 500 Ar × 3,33 % = 849,15 Ar → 849 Ar ; 50 Ar × 1 % = 0,50 Ar → 1 Ar
         var rate = terms("3.33", CommissionBase.REVENUE, CommissionRateSource.SELLER, null);

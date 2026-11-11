@@ -8,8 +8,10 @@ import org.mapstruct.ReportingPolicy;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrder;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderLine;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryDriverRDto;
+import org.vvs.valimbavaka.feature.delivery.dto.DeliveryEventRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderLineRDto;
 import org.vvs.valimbavaka.feature.delivery.dto.DeliveryOrderRDto;
+import org.vvs.valimbavaka.feature.journal.dto.JournalEntryRDto;
 import org.vvs.valimbavaka.feature.user.dto.UserRDto;
 
 @Mapper(
@@ -23,4 +25,7 @@ public interface DeliveryMapper {
     DeliveryOrderLineRDto toLineRDto(DeliveryOrderLine line);
 
     DeliveryDriverRDto toDriverRDto(UserRDto user);
+
+    /** A journal line of the order as a step of its history (LIV-06). */
+    DeliveryEventRDto toEventRDto(JournalEntryRDto entry);
 }

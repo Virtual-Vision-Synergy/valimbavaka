@@ -34,7 +34,9 @@ import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.promotion.domain.Promotion;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionBasketLine;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionDetails;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionDiscount;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionKind;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionPeriod;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionScope;
@@ -71,6 +73,57 @@ class PromotionServiceImplTest {
     @BeforeEach
     void setUp() {
         sut = new PromotionServiceImpl(promotionRepository, promotionMapper, promotionRules, journalService, CLOCK);
+    }
+
+    @Test
+    void recordUsage_limitNotReached_incrementsTheCounter() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+        when(promotionRepository.incrementUsage(promotionId)).thenReturn(1);
+
+        // Act
+        sut.recordUsage(promotionId);
+
+        // Assert
+        verify(promotionRepository).incrementUsage(promotionId);
+        verify(promotionRepository, never()).findById(any());
+    }
+
+    @Test
+    void recordUsage_limitReached_throwsConflict() {
+        // Arrange : the atomic UPDATE changed no row, the promotion exists
+        var promotionId = UUID.randomUUID();
+        when(promotionRepository.incrementUsage(promotionId)).thenReturn(0);
+        var existing = automatic("Octobre rose", PromotionKind.PERCENT, "15", CHANNEL_ID);
+        when(promotionRepository.findById(promotionId)).thenReturn(Optional.of(existing));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.recordUsage(promotionId))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("plafond");
+    }
+
+    @Test
+    void recordUsage_unknownPromotion_throwsNotFound() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+        when(promotionRepository.incrementUsage(promotionId)).thenReturn(0);
+        when(promotionRepository.findById(promotionId)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.recordUsage(promotionId)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void releaseUsage_anyPromotion_decrementsTheCounter() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+
+        // Act
+        sut.releaseUsage(promotionId);
+
+        // Assert
+        verify(promotionRepository).decrementUsage(promotionId);
     }
 
     @Test
@@ -224,6 +277,103 @@ class PromotionServiceImplTest {
         // Assert
         assertThat(promotions).isEmpty();
         verify(promotionRepository).findActiveTargeting(Set.of(articleId), PromotionScope.ALL, BUSINESS_TODAY);
+    }
+
+    @Test
+    void getAutomaticPromotions_readsTheAutomaticPromotionsActiveOnTheBusinessDay() {
+        // Arrange
+        var running = automatic("Octobre rose", PromotionKind.PERCENT, "15", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(running));
+
+        // Act
+        sut.getAutomaticPromotions();
+
+        // Assert
+        verify(promotionMapper).toRDto(running, PromotionStatus.ACTIVE);
+    }
+
+    @Test
+    void priceBasket_twoPromotionsReachTheBasket_keepsTheOneThatGivesTheLargestDiscount() {
+        // Arrange : 17 000 Ar of soap, 15 % = 2 550 Ar against 1 000 Ar off
+        var percent = automatic("Octobre rose", PromotionKind.PERCENT, "15", CHANNEL_ID);
+        var amount = automatic("Mille ariary", PromotionKind.AMOUNT, "1000", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(amount, percent));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, List.of(soap("8500", "2")));
+
+        // Assert
+        assertThat(discount.promotionName()).isEqualTo("Octobre rose");
+        assertThat(discount.amount()).isEqualByComparingTo("2550");
+    }
+
+    @Test
+    void priceBasket_sameDiscount_keepsTheFirstOfTheRepositoryOrder() {
+        // Arrange : closest end first, so the first one wins a tie
+        var first = automatic("Premiere", PromotionKind.AMOUNT, "1000", CHANNEL_ID);
+        var second = automatic("Seconde", PromotionKind.AMOUNT, "1000", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(first, second));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, List.of(soap("8500", "2")));
+
+        // Assert
+        assertThat(discount.promotionName()).isEqualTo("Premiere");
+    }
+
+    @Test
+    void priceBasket_promotionOfAnotherChannel_isIgnored() {
+        // Arrange
+        var otherChannel = UUID.randomUUID();
+        var facebookOnly = automatic("Facebook", PromotionKind.PERCENT, "50", otherChannel);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(facebookOnly));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, List.of(soap("8500", "2")));
+
+        // Assert
+        assertThat(discount).isEqualTo(PromotionDiscount.NONE);
+    }
+
+    @Test
+    void priceBasket_noPromotionReachesTheBasket_returnsNone() {
+        // Arrange : buy 3, one free, with 2 bought
+        var buyThree = automatic("Trois pour deux", PromotionKind.BUY_X, "3", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(buyThree));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, List.of(soap("8500", "2")));
+
+        // Assert
+        assertThat(discount).isEqualTo(PromotionDiscount.NONE);
+    }
+
+    @Test
+    void priceBasket_emptyBasket_returnsNoneWithoutReadingThePromotions() {
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, List.of());
+
+        // Assert
+        assertThat(discount).isEqualTo(PromotionDiscount.NONE);
+        verify(promotionRepository, never()).findAutomaticActive(any());
+    }
+
+    private static PromotionBasketLine soap(String unitPrice, String quantity) {
+        return new PromotionBasketLine(UUID.randomUUID(), null, new BigDecimal(unitPrice), new BigDecimal(quantity));
+    }
+
+    private static Promotion automatic(String name, PromotionKind kind, String value, UUID channelId) {
+        return Promotion.create(new PromotionDetails(
+                name,
+                null,
+                kind,
+                new BigDecimal(value),
+                null,
+                PromotionScope.ALL,
+                Set.of(),
+                new PromotionPeriod(BUSINESS_TODAY, BUSINESS_TODAY.plusDays(30)),
+                Set.of(channelId),
+                null));
     }
 
     private static Promotion promotion(PromotionPeriod period) {

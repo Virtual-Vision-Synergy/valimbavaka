@@ -17,8 +17,11 @@ import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.promotion.domain.Promotion;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionBasketLine;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionDetails;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionDiscount;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionPeriod;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionPricing;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionScope;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionStatus;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionRDto;
@@ -38,6 +41,8 @@ public class PromotionServiceImpl implements PromotionService {
 
     private static final String RESOURCE_TYPE = "PROMOTION";
     private static final String CODE_ALREADY_USED = "Ce code promo est déjà utilisé par une autre promotion.";
+    private static final String LIMIT_REACHED =
+            "Cette promotion a atteint son plafond d'utilisation : la vente doit être recalculée.";
     private static final Set<String> SORT_FIELDS = Set.of("startsOn", "endsOn", "name", "createdAt");
 
     private final PromotionRepository promotionRepository;
@@ -87,6 +92,27 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    public List<PromotionRDto> getAutomaticPromotions() {
+        return promotionRepository.findAutomaticActive(today()).stream()
+                .map(promotion -> promotionMapper.toRDto(promotion, PromotionStatus.ACTIVE))
+                .toList();
+    }
+
+    @Override
+    public PromotionDiscount priceBasket(UUID salesChannelId, List<PromotionBasketLine> lines) {
+        if (lines.isEmpty()) {
+            return PromotionDiscount.NONE;
+        }
+        return promotionRepository.findAutomaticActive(today()).stream()
+                .filter(promotion -> promotion.isOpenTo(salesChannelId))
+                .map(promotion -> new PromotionDiscount(
+                        promotion.getId(), promotion.getName(), PromotionPricing.discountOf(promotion, lines)))
+                .filter(discount -> discount.amount().signum() > 0)
+                .reduce((best, next) -> next.amount().compareTo(best.amount()) > 0 ? next : best)
+                .orElse(PromotionDiscount.NONE);
+    }
+
+    @Override
     @Transactional
     public PromotionRDto createPromotion(PromotionWDto request) {
         var details = toDetails(request);
@@ -100,6 +126,24 @@ public class PromotionServiceImpl implements PromotionService {
                 JournalAction.CREATE, RESOURCE_TYPE, saved.getId(), "Création de la promotion " + saved.getName());
         log.info("Promotion {} créée", saved.getId());
         return toRDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public void recordUsage(UUID promotionId) {
+        if (promotionRepository.incrementUsage(promotionId) > 0) {
+            return;
+        }
+        if (promotionRepository.findById(promotionId).isEmpty()) {
+            throw new NotFoundException("Promotion introuvable : " + promotionId);
+        }
+        throw new ConflictException(LIMIT_REACHED);
+    }
+
+    @Override
+    @Transactional
+    public void releaseUsage(UUID promotionId) {
+        promotionRepository.decrementUsage(promotionId);
     }
 
     private PromotionRDto toRDto(Promotion promotion) {

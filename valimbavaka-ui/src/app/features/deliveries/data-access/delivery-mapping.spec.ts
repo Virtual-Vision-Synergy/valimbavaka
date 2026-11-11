@@ -1,7 +1,9 @@
 import {
   businessToday,
   driverLabel,
+  eventTime,
   isPendingStop,
+  isUndoable,
   toBoard,
   toDriverRound,
 } from './delivery-mapping';
@@ -28,9 +30,15 @@ function order(
     stopNumber: 2,
     amount: 17000,
     note: null,
+    failureReason: null,
+    failureNote: null,
+    returnTransferId: null,
     lines: [{ articleId: 'soap', quantity: 2, unitPrice: 8500, amount: 17000 }],
     createdAt: '2026-11-09T05:32:00Z',
     createdBy: 'seller',
+    saleId: null,
+    previousStatus: null,
+    updatedAt: '2026-11-09T05:32:00Z',
     version: 0,
   };
 }
@@ -64,14 +72,25 @@ describe('delivery-mapping', () => {
     });
   });
 
-  it('écarte les commandes annulées et garde la tournée d’un livreur désactivé depuis', () => {
+  it('garde les commandes annulées (filtre « Annulée ») et la tournée d’un livreur désactivé depuis', () => {
     const board = toBoard(
       [order('LIV-0001', 'tojo', 'CANCELLED'), order('LIV-0002', 'gone', 'DELIVERED')],
       [TOJO],
     );
 
-    expect(board.deliveries.map((delivery) => delivery.number)).toEqual(['LIV-0002']);
-    expect(board.rounds).toEqual([{ id: 'gone', name: '—', driverName: '—' }]);
+    expect(board.deliveries.map((delivery) => [delivery.number, delivery.status])).toEqual([
+      ['LIV-0001', 'CANCELLED'],
+      ['LIV-0002', 'DELIVERED'],
+    ]);
+    expect(board.rounds).toEqual([
+      { id: 'tojo', name: 'Tojo N.', driverName: 'Tojo N.' },
+      { id: 'gone', name: '—', driverName: '—' },
+    ]);
+  });
+
+  it('date une étape de l’historique au jour et à l’heure d’Antananarivo', () => {
+    expect(eventTime('2026-11-08T06:15:00Z')).toBe('08/11 09:15');
+    expect(eventTime('2026-11-30T21:30:00Z')).toBe('01/12 00:30');
   });
 
   it('range la tournée du livreur par arrêt, avec client, adresse, téléphone et montant à encaisser', () => {
@@ -97,6 +116,14 @@ describe('delivery-mapping', () => {
     expect(round.stops[1].address).toBe('Ivandry, Lot II J 45, rue Pasteur');
   });
 
+  it('montre le motif d’une commande en échec sur sa carte', () => {
+    const failed = { ...order('LIV-0003', 'tojo', 'FAILED'), failureReason: 'REFUSED' as const };
+
+    const board = toBoard([failed], [TOJO]);
+
+    expect(board.deliveries[0]).toMatchObject({ status: 'FAILED', failureReason: 'REFUSED' });
+  });
+
   it('donne une tournée vide quand le livreur n’a aucun arrêt ce jour-là', () => {
     expect(toDriverRound([], TOJO, '2026-11-09').stops).toEqual([]);
   });
@@ -106,5 +133,27 @@ describe('delivery-mapping', () => {
     expect(isPendingStop('ON_ROUND')).toBe(true);
     expect(isPendingStop('DELIVERED')).toBe(false);
     expect(isPendingStop('FAILED')).toBe(false);
+  });
+
+  it('reporte la dernière modification serveur sur la carte (début du délai d’annulation)', () => {
+    const delivered = {
+      ...order('LIV-0004', 'tojo', 'DELIVERED'),
+      updatedAt: '2026-11-09T07:00:00Z',
+    };
+
+    expect(toBoard([delivered], [TOJO]).deliveries[0].changedAt).toBe('2026-11-09T07:00:00Z');
+  });
+
+  it('autorise l’annulation d’une livraison ou d’un échec de moins de 5 minutes', () => {
+    const at = Date.parse('2026-11-09T07:00:00Z');
+    const stop = (status: DeliveryOrderStatus) =>
+      toBoard([{ ...order('LIV-0005', 'tojo', status), updatedAt: '2026-11-09T07:00:00Z' }], [TOJO])
+        .deliveries[0];
+
+    expect(isUndoable(stop('DELIVERED'), at + 4 * 60_000)).toBe(true);
+    expect(isUndoable(stop('FAILED'), at + 5 * 60_000)).toBe(true);
+    expect(isUndoable(stop('DELIVERED'), at + 5 * 60_000 + 1)).toBe(false);
+    expect(isUndoable(stop('TO_PREPARE'), at)).toBe(false);
+    expect(isUndoable(stop('ON_ROUND'), at)).toBe(false);
   });
 });

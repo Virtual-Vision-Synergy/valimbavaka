@@ -24,6 +24,7 @@ import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
 import org.vvs.valimbavaka.feature.commission.service.CommissionService;
 import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
+import org.vvs.valimbavaka.feature.sale.domain.SaleCancelledEvent;
 import org.vvs.valimbavaka.feature.sale.domain.SaleRecordedEvent;
 import org.vvs.valimbavaka.feature.sale.dto.SaleRDto;
 import org.vvs.valimbavaka.feature.sale.service.SaleService;
@@ -76,6 +77,15 @@ class SaleCommissionListenerTest {
     }
 
     @Test
+    void onSaleCancelled_anySale_cancelsTheCommissionOfTheSale() {
+        // Act
+        sut.onSaleCancelled(new SaleCancelledEvent(SALE_ID, "VTE-0042"));
+
+        // Assert
+        verify(commissionService).cancelBySource(CommissionSourceType.SALE, SALE_ID);
+    }
+
+    @Test
     void onSaleRecorded_saleWithoutSeller_calculatesNothing() {
         // Arrange : commande saisie par l'administrateur (LIV-03), décision PO du 07/11/2026
         when(saleService.getSaleById(SALE_ID)).thenReturn(sale(null));
@@ -100,8 +110,9 @@ class SaleCommissionListenerTest {
                 sellerId,
                 PaymentMethod.CASH,
                 OperationStatus.VALIDATED,
-                total,
-                new BigDecimal("0.00"),
+                new BigDecimal("28000.00"),
+                new BigDecimal("2500.00"),
+                UUID.randomUUID(),
                 total,
                 List.of(),
                 Instant.now(),

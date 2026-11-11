@@ -20,6 +20,7 @@ CREATE TABLE commissions
     rate_source        VARCHAR(20)    NOT NULL,
     commission_rule_id UUID,
     amount             NUMERIC(19, 2) NOT NULL,
+    status             VARCHAR(20)    NOT NULL DEFAULT 'CALCULATED',
     created_at         TIMESTAMPTZ    NOT NULL,
     updated_at         TIMESTAMPTZ    NOT NULL,
     created_by         UUID,
@@ -35,6 +36,7 @@ CREATE TABLE commissions
     CONSTRAINT ck_commissions_calculation_base CHECK (calculation_base IN ('REVENUE', 'MARGIN')),
     CONSTRAINT ck_commissions_rate CHECK (rate BETWEEN 0 AND 100),
     CONSTRAINT ck_commissions_rate_source CHECK (rate_source IN ('SALON_SERVICE', 'SALES_CHANNEL', 'SELLER', 'NONE')),
+    CONSTRAINT ck_commissions_status CHECK (status IN ('CALCULATED', 'CANCELLED')),
     CONSTRAINT ck_commissions_amounts CHECK (revenue >= 0 AND base_amount >= 0 AND amount >= 0)
 );
 CREATE INDEX ix_commissions_business_date ON commissions (business_date DESC);

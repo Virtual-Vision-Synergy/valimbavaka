@@ -72,6 +72,8 @@ export interface CommissionRDto {
   rateSource: CommissionRateSource;
   ruleId: string | null;
   amount: number;
+  /** `CANCELLED` quand la vente est annulée : la commission reste consultable mais ne compte plus. */
+  status: 'CALCULATED' | 'CANCELLED';
   createdAt: string;
 }
 

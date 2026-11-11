@@ -1,23 +1,20 @@
-<section class="panel" aria-labelledby="invoice-title" [attr.aria-busy]="invoice.isLoading()">
+@let doc = invoice();
+<section class="panel" aria-labelledby="invoice-title">
   <header class="head">
     <h2 id="invoice-title">
       {{ 'sales.invoice.title' | translate }}
-      @if (invoice.value(); as doc) {
-        <span class="mono">{{ doc.number }}</span>
-      }
+      <span class="mono">{{ doc.number ?? doc.saleNumber }}</span>
     </h2>
-    @if (invoice.value(); as doc) {
-      <vvs-status-badge
-        [tone]="tones[doc.status]"
-        [label]="'sales.status.' + doc.status | translate"
-      />
-    }
-    <span class="code-chip" aria-hidden="true">FAC-01 → FAC-05</span>
+    <vvs-status-badge
+      [tone]="tones[doc.status]"
+      [label]="'sales.status.' + doc.status | translate"
+    />
+    <span class="code-chip" aria-hidden="true">FAC-02 → FAC-05</span>
   </header>
 
-  @if (invoice.error()) {
-    <div class="card"><vvs-list-state kind="error" (retry)="invoice.reload()" /></div>
-  } @else if (invoice.value(); as doc) {
+  @if (issued.isLoading()) {
+    <p class="note" role="status">{{ 'common.loading' | translate }}</p>
+  } @else {
     <vvs-invoice-document [invoice]="doc" />
     <div class="actions">
       <button class="btn btn-secondary" type="button" (click)="print()">
@@ -44,8 +41,9 @@
         {{ 'sales.invoice.credit' | translate }}
       </button>
     </div>
+    @if (!issued.hasValue()) {
+      <p class="note">{{ 'sales.invoice.previewNote' | translate }}</p>
+    }
     <p class="note">{{ 'sales.invoice.creditNote' | translate }}</p>
-  } @else {
-    <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
   }
 </section>

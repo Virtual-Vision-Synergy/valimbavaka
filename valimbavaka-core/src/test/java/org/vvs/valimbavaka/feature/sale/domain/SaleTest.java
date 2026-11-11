@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.sale.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
 class SaleTest {
@@ -85,5 +87,75 @@ class SaleTest {
 
         // Assert
         assertThat(cost).isEqualTo(new BigDecimal("0.00"));
+    }
+
+    @Test
+    void cancel_validatedSale_becomesCancelled() {
+        // Arrange
+        var sut = Sale.record("VTE-0044", HEADER, List.of(line()));
+
+        // Act
+        sut.cancel();
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(OperationStatus.CANCELLED);
+    }
+
+    @Test
+    void cancel_alreadyCancelledSale_throwsConflict() {
+        // Arrange
+        var sut = Sale.record("VTE-0044", HEADER, List.of(line()));
+        sut.cancel();
+
+        // Act + Assert
+        assertThatThrownBy(sut::cancel).isInstanceOf(ConflictException.class);
+        assertThat(sut.getStatus()).isEqualTo(OperationStatus.CANCELLED);
+    }
+
+    private static PricedSaleLine line() {
+        return new PricedSaleLine(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("8500"), null);
+    }
+
+    @Test
+    void record_withDiscount_subtractsItFromTheSubtotalAndKeepsThePromotion() {
+        // Arrange
+        var promotionId = UUID.randomUUID();
+        var line = new PricedSaleLine(UUID.randomUUID(), new BigDecimal("3"), new BigDecimal("8500"), null);
+
+        // Act
+        var sut = Sale.record("VTE-0045", HEADER, List.of(line), new SaleDiscount(promotionId, new BigDecimal("2550")));
+
+        // Assert
+        assertThat(sut.getSubtotal()).isEqualByComparingTo("25500");
+        assertThat(sut.getDiscountAmount()).isEqualByComparingTo("2550.00");
+        assertThat(sut.getTotal()).isEqualByComparingTo("22950");
+        assertThat(sut.getPromotionId()).isEqualTo(promotionId);
+    }
+
+    @Test
+    void record_discountAboveTheSubtotal_capsItSoTheTotalIsNeverNegative() {
+        // Arrange
+        var line = new PricedSaleLine(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("1000"), null);
+        var discount = new SaleDiscount(UUID.randomUUID(), new BigDecimal("5000"));
+
+        // Act
+        var sut = Sale.record("VTE-0046", HEADER, List.of(line), discount);
+
+        // Assert
+        assertThat(sut.getDiscountAmount()).isEqualByComparingTo("1000");
+        assertThat(sut.getTotal()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    void record_zeroDiscount_forgetsThePromotion() {
+        // Arrange
+        var line = new PricedSaleLine(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("1000"), null);
+
+        // Act
+        var sut = Sale.record("VTE-0047", HEADER, List.of(line), new SaleDiscount(UUID.randomUUID(), BigDecimal.ZERO));
+
+        // Assert
+        assertThat(sut.getPromotionId()).isNull();
+        assertThat(sut.getTotal()).isEqualByComparingTo("1000");
     }
 }

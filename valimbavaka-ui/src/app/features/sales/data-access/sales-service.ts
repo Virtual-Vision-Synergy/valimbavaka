@@ -1,21 +1,35 @@
-import { Injectable } from '@angular/core';
-import { Observable, throwError } from 'rxjs';
-import { demo } from '../../../shared/data-access/demo';
-import { SALES_DAY_FIXTURE, invoiceFixture } from './sales-fixtures';
-import { InvoiceRDto, SalesDayRDto } from './sales-models';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+import { toHttpParams } from '../../../shared/models/http-params';
+import { PageResponse } from '../../../shared/models/page-response';
+import { SaleSummaryRDto, SalesQuery } from './sales-models';
+
+/** Filtres envoyés seulement s'ils sont renseignés. */
+const FILTERS = ['date', 'salesChannelId', 'sellerId'] as const;
 
 /**
- * Ventes et factures. Provisoire : données de démonstration ; à terme `GET /api/v1/sales?date=`
- * (paginé) et `GET /api/v1/invoices/{number}`, sans changer l'appelant.
+ * Ventes enregistrées (VTE-07) : `GET /api/v1/sales` (permission `sales.read`), une page de ventes d'un jour, les plus
+ * récentes d'abord. L'administrateur lit toutes les ventes ; une vendeuse seulement celles qui lui sont créditées
+ * (filtre imposé par le serveur). L'enregistrement passe par le poste de caisse (`PosService`, VTE-01).
  */
 @Injectable({ providedIn: 'root' })
 export class SalesService {
-  day(): Observable<SalesDayRDto> {
-    return demo(SALES_DAY_FIXTURE);
-  }
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = '/api/v1/sales';
 
-  invoice(saleNumber: string): Observable<InvoiceRDto> {
-    const invoice = invoiceFixture(saleNumber);
-    return invoice ? demo(invoice) : throwError(() => new Error(`Vente inconnue : ${saleNumber}`));
+  list(query: SalesQuery): Observable<PageResponse<SaleSummaryRDto>> {
+    return this.http.get<PageResponse<SaleSummaryRDto>>(this.baseUrl, { params: params(query) });
   }
+}
+
+function params(query: SalesQuery): HttpParams {
+  let result = toHttpParams(query);
+  for (const key of FILTERS) {
+    const value = query[key];
+    if (value) {
+      result = result.set(key, value);
+    }
+  }
+  return result;
 }

@@ -32,6 +32,12 @@ public interface CommissionService {
     PageResponse<CommissionRDto> getCommissions(
             PageQuery query, @Nullable UUID sellerId, @Nullable LocalDate from, @Nullable LocalDate to);
 
+    /**
+     * Cancels the commission of a cancelled operation, in the caller's transaction, and traces it in the journal.
+     * Nothing happens when the operation earned no commission or when it is already cancelled.
+     */
+    void cancelBySource(CommissionSourceType sourceType, UUID sourceId);
+
     /** Commission of a sale or of a salon service (VTE-09), empty if none was computed. */
     Optional<CommissionRDto> findBySource(CommissionSourceType sourceType, UUID sourceId);
 }

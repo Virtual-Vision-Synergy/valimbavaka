@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
 import org.vvs.valimbavaka.feature.commission.service.CommissionService;
+import org.vvs.valimbavaka.feature.sale.domain.SaleCancelledEvent;
 import org.vvs.valimbavaka.feature.sale.domain.SaleRecordedEvent;
 import org.vvs.valimbavaka.feature.sale.service.SaleService;
 
@@ -27,6 +28,12 @@ public class SaleCommissionListener {
     public SaleCommissionListener(SaleService saleService, CommissionService commissionService) {
         this.saleService = saleService;
         this.commissionService = commissionService;
+    }
+
+    /** The sale is cancelled (LIV-05): its commission is cancelled in the same transaction. */
+    @EventListener
+    public void onSaleCancelled(SaleCancelledEvent event) {
+        commissionService.cancelBySource(CommissionSourceType.SALE, event.saleId());
     }
 
     @EventListener

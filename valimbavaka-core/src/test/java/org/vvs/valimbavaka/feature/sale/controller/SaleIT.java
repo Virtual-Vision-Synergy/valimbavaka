@@ -14,6 +14,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.jayway.jsonpath.JsonPath;
 
+import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
 import org.vvs.valimbavaka.feature.stock.controller.StockApiTestSupport;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
@@ -54,6 +57,7 @@ class SaleIT extends StockApiTestSupport {
     void openTodayAndCreateSeller() throws Exception {
         var status = openDay().andReturn().getResponse().getStatus();
         assertThat(status).isIn(201, 409);
+        endAutomaticPromotions();
         seller = createSeller();
         sellerToken = login(seller.getEmail());
     }
@@ -157,6 +161,45 @@ class SaleIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.total").value(8500.0));
     }
 
+    @ParameterizedTest
+    @EnumSource(PaymentMethod.class)
+    void createSale_eachPaymentMethod_isStoredWithTheSaleAndReturnedByGetById(PaymentMethod method) throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "5");
+
+        // Act
+        var saleId = createdId(createSale(sellerToken, storeSale(method.name(), line(soap, "1"))));
+
+        // Assert
+        var stored = jdbcTemplate.queryForObject("select payment_method from sales where id = ?", String.class, saleId);
+        assertThat(stored).isEqualTo(method.name());
+        getSale(sellerToken, saleId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paymentMethod").value(method.name()));
+    }
+
+    @Test
+    void createSale_unknownPaymentMethod_returns400AndRecordsNothing() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "5");
+        var before = countSales();
+
+        // Act + Assert
+        createSale(sellerToken, storeSale("CHEQUE", line(soap, "1")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+        assertThat(countSales()).isEqualTo(before);
+    }
+
+    @Test
+    void createSale_nullPaymentMethod_returns422() throws Exception {
+        var soap = createArticle(uniqueName());
+        assertValidationFailed("{\"salesChannelId\":\"%s\",\"sellerId\":\"%s\",\"paymentMethod\":null,\"lines\":[%s]}"
+                .formatted(channel("STORE"), seller.getId(), line(soap, "1")));
+    }
+
     @Test
     void createSale_notEnoughStock_returns409AndRecordsNothing() throws Exception {
         // Arrange
@@ -179,6 +222,9 @@ class SaleIT extends StockApiTestSupport {
         // Arrange
         var soap = createArticle(uniqueName());
         move(soap, "STORE", StockMovementType.RECEIPT, "5");
+        // LIV-03: a delivered order references its sale
+        jdbcTemplate.update(
+                "update delivery_orders set status = 'CANCELLED', sale_id = null where sale_id is not null");
         jdbcTemplate.update("delete from sale_lines");
         jdbcTemplate.update("delete from sales");
         jdbcTemplate.update("delete from business_day_transfers");

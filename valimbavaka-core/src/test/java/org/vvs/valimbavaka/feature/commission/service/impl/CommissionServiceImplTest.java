@@ -32,6 +32,7 @@ import org.vvs.valimbavaka.feature.commission.domain.CommissionBase;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionRateSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionStatus;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionTerms;
 import org.vvs.valimbavaka.feature.commission.dto.ApplicableCommissionRDto;
 import org.vvs.valimbavaka.feature.commission.mapper.CommissionMapper;
@@ -121,6 +122,40 @@ class CommissionServiceImplTest {
         verify(commissionMapper).toRDto(existing);
         verify(commissionRepository, never()).save(any(Commission.class));
         verifyNoInteractions(rateResolver, journalService);
+    }
+
+    @Test
+    void cancelBySource_calculatedCommission_becomesCancelledAndIsJournaled() {
+        // Arrange
+        var commission = Commission.calculate(sale(), "Miora Rakoto", terms());
+        when(commissionRepository.findBySourceTypeAndSourceId(CommissionSourceType.SALE, SALE_ID))
+                .thenReturn(Optional.of(commission));
+
+        // Act
+        sut.cancelBySource(CommissionSourceType.SALE, SALE_ID);
+
+        // Assert
+        assertThat(commission.getStatus()).isEqualTo(CommissionStatus.CANCELLED);
+        verify(journalService).record(eq(JournalAction.CANCEL), eq("COMMISSION"), any(), contains("VTE-0042"));
+    }
+
+    @Test
+    void cancelBySource_alreadyCancelledOrUnknown_doesNothing() {
+        // Arrange : une commission déjà annulée, puis une opération sans commission
+        var cancelled = Commission.calculate(sale(), "Miora Rakoto", terms());
+        cancelled.cancel();
+        when(commissionRepository.findBySourceTypeAndSourceId(CommissionSourceType.SALE, SALE_ID))
+                .thenReturn(Optional.of(cancelled));
+        var unknown = UUID.randomUUID();
+        when(commissionRepository.findBySourceTypeAndSourceId(CommissionSourceType.SALE, unknown))
+                .thenReturn(Optional.empty());
+
+        // Act
+        sut.cancelBySource(CommissionSourceType.SALE, SALE_ID);
+        sut.cancelBySource(CommissionSourceType.SALE, unknown);
+
+        // Assert
+        verifyNoInteractions(journalService);
     }
 
     @Test

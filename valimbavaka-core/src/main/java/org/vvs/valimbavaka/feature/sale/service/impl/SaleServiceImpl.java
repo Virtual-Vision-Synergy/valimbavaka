@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.day.service.BusinessDayService;
 import org.vvs.valimbavaka.feature.sale.domain.Sale;
@@ -33,6 +34,7 @@ public class SaleServiceImpl implements SaleService {
     private final SalePolicy policy;
     private final SaleLedger ledger;
     private final SaleFormAssembler formAssembler;
+    private final SaleDiscounts discounts;
 
     SaleServiceImpl(
             SaleRepository saleRepository,
@@ -40,13 +42,15 @@ public class SaleServiceImpl implements SaleService {
             BusinessDayService businessDayService,
             SalePolicy policy,
             SaleLedger ledger,
-            SaleFormAssembler formAssembler) {
+            SaleFormAssembler formAssembler,
+            SaleDiscounts discounts) {
         this.saleRepository = saleRepository;
         this.saleMapper = saleMapper;
         this.businessDayService = businessDayService;
         this.policy = policy;
         this.ledger = ledger;
         this.formAssembler = formAssembler;
+        this.discounts = discounts;
     }
 
     @Override
@@ -61,8 +65,9 @@ public class SaleServiceImpl implements SaleService {
                 checked.channel().stockLocationId(),
                 command.sellerId(),
                 command.paymentMethod());
+        var discount = discounts.of(command, checked.lines());
         var number = "VTE-%04d".formatted(saleRepository.nextNumber());
-        var sale = saleRepository.save(Sale.record(number, header, checked.lines()));
+        var sale = saleRepository.save(Sale.record(number, header, checked.lines(), discount));
         ledger.post(sale, checked.channel().label());
         log.info(
                 "Vente {} enregistrée ({} ligne(s))",
@@ -81,6 +86,19 @@ public class SaleServiceImpl implements SaleService {
     }
 
     @Override
+    @Transactional
+    public SaleRDto cancel(UUID saleId, String reason) {
+        var sale = findSale(saleId);
+        if (!businessDayService.requireOpenDay().id().equals(sale.getBusinessDayId())) {
+            throw new ConflictException("La vente ne peut plus être annulée : sa journée est clôturée.");
+        }
+        sale.cancel();
+        ledger.unpost(sale, reason.strip());
+        log.info("Vente {} annulée", sale.getNumber());
+        return saleMapper.toRDto(sale);
+    }
+
+    @Override
     public SaleRDto getSaleById(UUID saleId) {
         return saleMapper.toRDto(findSale(saleId));
     }
@@ -88,6 +106,12 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public BigDecimal getPurchaseCost(UUID saleId) {
         return findSale(saleId).purchaseCost();
+    }
+
+    private Sale findSale(UUID saleId) {
+        return saleRepository
+                .findById(saleId)
+                .orElseThrow(() -> new NotFoundException("Vente introuvable : " + saleId));
     }
 
     @Override

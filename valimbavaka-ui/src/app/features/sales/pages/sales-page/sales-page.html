@@ -2,13 +2,16 @@
   <vvs-page-header
     [heading]="'sales.title' | translate"
     [subtitle]="
-      day.value()
-        ? ('sales.subtitle'
-          | translate: { count: day.value()?.count, amount: (day.value()?.total ?? 0 | ariary) })
-        : ''
+      sales.value() ? ('sales.subtitle' | translate: { count: sales.value()?.totalCount }) : ''
     "
-    [codes]="['VTE-07', 'VTE-08', 'VTE-09']"
+    [codes]="['VTE-07']"
   >
+    @if (canSeeChannels) {
+      <a class="btn btn-secondary" routerLink="/sales/channels">
+        <svg [vvsIcon]="icons.ChartColumn" [size]="18"></svg>
+        {{ 'sales.dashboard.link' | translate }}
+      </a>
+    }
     <button class="btn btn-secondary" type="button" (click)="exportBook()">
       <svg [vvsIcon]="icons.Download" [size]="18"></svg>
       {{ 'sales.book' | translate }}
@@ -19,11 +22,21 @@
     </a>
   </vvs-page-header>
 
-  @if (day.error()) {
-    <div class="card"><vvs-list-state kind="error" (retry)="day.reload()" /></div>
-  } @else if (day.value(); as data) {
-    <vvs-channel-summary [day]="data" [(selected)]="channel" />
+  <div class="filters">
+    <label class="date-field">
+      <span>{{ 'sales.filters.date' | translate }}</span>
+      <input class="input" type="date" [value]="date()" (change)="onDateChange($event)" />
+    </label>
+    <vvs-filter-chips
+      [label]="'sales.channel.filterLabel' | translate"
+      [options]="channelOptions()"
+      [(value)]="channel"
+    />
+  </div>
 
+  @if (sales.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="sales.reload()" /></div>
+  } @else if (sales.value(); as result) {
     <div class="grid sales-grid">
       <section class="card flush" [attr.aria-label]="'sales.listLabel' | translate">
         <div class="table-wrap">
@@ -39,50 +52,63 @@
                 <th scope="col" class="c-time">{{ 'sales.col.time' | translate }}</th>
                 <th scope="col">{{ 'sales.col.channel' | translate }}</th>
                 <th scope="col" class="c-seller">{{ 'sales.col.seller' | translate }}</th>
+                <th scope="col">{{ 'sales.col.articles' | translate }}</th>
                 <th scope="col" class="c-payment">{{ 'sales.col.payment' | translate }}</th>
-                <th scope="col" class="cell-num">{{ 'sales.col.amount' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'sales.col.promo' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'sales.col.total' | translate }}</th>
                 <th scope="col">{{ 'sales.col.invoice' | translate }}</th>
               </tr>
             </thead>
             <tbody>
-              @for (sale of rows(); track sale.id) {
-                <tr [class.selected]="sale.number === selected()">
+              @for (row of rows(); track row.id) {
+                <tr [class.selected]="row.number === selected()">
+                  <td class="mono">
+                    {{ row.number }}
+                    @if (row.status !== 'VALIDATED') {
+                      <vvs-status-badge
+                        [tone]="tones[row.status]"
+                        [label]="'sales.saleStatus.' + row.status | translate"
+                      />
+                    }
+                  </td>
+                  <td class="c-time num">{{ row.time }}</td>
+                  <td>{{ row.channelLabel ?? '—' }}</td>
+                  <td class="c-seller">{{ row.sellerName ?? ('sales.noSeller' | translate) }}</td>
+                  <td class="c-articles" [attr.title]="row.articles">{{ row.articles }}</td>
+                  <td class="c-payment">{{ 'sales.payment.' + row.payment | translate }}</td>
+                  <td class="cell-num">
+                    @if (row.discount) {
+                      −{{ row.discount | ariary }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td class="cell-num amount">{{ row.total | ariary }}</td>
                   <td>
                     <button
-                      class="row-link mono"
+                      class="row-link"
                       type="button"
-                      [attr.aria-pressed]="sale.number === selected()"
-                      [attr.aria-label]="'sales.showInvoice' | translate: { number: sale.number }"
-                      (click)="select(sale.number)"
+                      [attr.aria-pressed]="row.number === selected()"
+                      [attr.aria-label]="'sales.showInvoice' | translate: { number: row.number }"
+                      (click)="select(row.number)"
                     >
-                      {{ sale.number }}
+                      {{ 'sales.invoice.open' | translate }}
                     </button>
-                  </td>
-                  <td class="c-time num">{{ sale.time }}</td>
-                  <td>{{ 'sales.channel.' + sale.channel | translate }}</td>
-                  <td class="c-seller">{{ sale.sellerName }}</td>
-                  <td class="c-payment">{{ 'sales.payment.' + sale.payment | translate }}</td>
-                  <td class="cell-num amount">{{ sale.amount | ariary }}</td>
-                  <td>
-                    <vvs-status-badge
-                      [tone]="tones[sale.status]"
-                      [label]="'sales.status.' + sale.status | translate"
-                    />
                   </td>
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="7"><vvs-list-state kind="empty" /></td>
+                  <td colspan="9"><vvs-list-state kind="empty" /></td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="filtered().length" />
+        <vvs-pagination [(page)]="page" [size]="pageSize" [total]="result.totalCount" />
       </section>
 
-      @if (selected(); as number) {
-        <vvs-invoice-panel [saleNumber]="number" />
+      @if (selectedSale(); as sale) {
+        <vvs-invoice-panel [sale]="sale" />
       }
     </div>
   } @else {

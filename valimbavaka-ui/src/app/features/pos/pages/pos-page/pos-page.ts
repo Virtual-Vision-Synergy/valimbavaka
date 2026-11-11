@@ -21,26 +21,7 @@ import { PosCart } from '../../data-access/pos-cart';
 import { toSaleWDto } from '../../data-access/pos-mapping';
 import { PosArticleRDto, SaleRDto } from '../../data-access/pos-models';
 import { PosService } from '../../data-access/pos-service';
-
-type ShortcutAction = 'search' | 'promo' | 'hold' | 'checkout' | 'increase' | 'decrease';
-
-const FUNCTION_KEYS: Readonly<Record<string, ShortcutAction>> = {
-  F2: 'search',
-  F6: 'promo',
-  F8: 'hold',
-  F12: 'checkout',
-};
-
-const QUANTITY_KEYS: Readonly<Record<string, ShortcutAction>> = {
-  '+': 'increase',
-  '-': 'decrease',
-};
-
-/** Vrai quand la frappe vise un champ de saisie : les touches + / − y restent du texte. */
-function isTyping(event: KeyboardEvent): boolean {
-  const target = event.target as HTMLElement | null;
-  return !!target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
-}
+import { ShortcutAction, shortcutAction } from '../../data-access/pos-shortcuts';
 
 /**
  * Poste de caisse (VTE-02 à VTE-06), desktop et tablette : un seul écran qui s'adapte au pointeur
@@ -65,7 +46,7 @@ export class PosPage {
     stream: () =>
       this.posService.context().pipe(
         tap((ctx) => {
-          this.cart.start(ctx.articles, ctx.promotion, ctx.openTicket, ctx.openTicketReceived);
+          this.cart.start(ctx.articles, ctx.promotions, ctx.openTicket, ctx.openTicketReceived);
           this.cart.seller.set(ctx.defaultSellerId);
         }),
       ),
@@ -76,8 +57,7 @@ export class PosPage {
   protected readonly submitting = signal(false);
 
   protected onKeydown(event: KeyboardEvent): void {
-    const action =
-      FUNCTION_KEYS[event.key] ?? (isTyping(event) ? undefined : QUANTITY_KEYS[event.key]);
+    const action = shortcutAction(event);
     if (!action || !this.context.value()) {
       return;
     }
@@ -106,8 +86,9 @@ export class PosPage {
     }
     this.submitting.set(true);
     const body = toSaleWDto(channelId, sellerId, this.cart.payment(), this.cart.priced());
+    const displayedTotal = this.cart.total();
     this.posService.record(body).subscribe({
-      next: (result) => this.recorded(result),
+      next: (result) => this.recorded(result, displayedTotal),
       error: (error: unknown) => {
         this.submitting.set(false);
         this.toast.show('pos.toast.failed', { message: errorMessage(error) }, 'danger');
@@ -115,8 +96,16 @@ export class PosPage {
     });
   }
 
+  /**
+   * Met le ticket en attente (VTE-06) : aucune vente n'est enregistrée, le panier est vidé et le
+   * numéro suivant est proposé. Refusé pendant l'envoi d'un encaissement (le panier part avec la vente).
+   */
   protected hold(): void {
+    if (this.submitting()) {
+      return;
+    }
     if (this.cart.isEmpty()) {
+      this.toast.show('pos.toast.holdEmpty', {}, 'warning');
       return;
     }
     this.toast.show('pos.toast.held', { ticket: `VTE-${this.ticketNumber()}` }, 'info');
@@ -136,21 +125,33 @@ export class PosPage {
       promo: () => this.demoAction(),
       hold: () => this.hold(),
       checkout: () => this.checkout(),
-      increase: () => last && this.cart.add(last),
+      increase: () => (last ? this.cart.add(last) : this.catalog()?.focusSearch()),
       decrease: () => last && this.cart.decrement(last.id),
     };
     handlers[action]();
   }
 
-  private recorded(result: SubmitResult<SaleRDto>): void {
+  /**
+   * Le serveur recalcule la vente avec les prix du moment (VTE-01) : si son net diffère du net affiché
+   * (prix modifié depuis l'ouverture du poste), la caissière est avertie pour ajuster le rendu (VTE-02).
+   */
+  private recorded(result: SubmitResult<SaleRDto>, displayedTotal: number): void {
     this.submitting.set(false);
-    if (result.queued || !result.body) {
+    const sale = result.body;
+    if (result.queued || !sale) {
       this.toast.show('common.queuedSaved', {}, 'info');
+    } else if (sale.total !== displayedTotal) {
+      this.toast.show(
+        'pos.toast.totalAdjusted',
+        {
+          ticket: sale.number,
+          amount: formatAriary(sale.total),
+          displayed: formatAriary(displayedTotal),
+        },
+        'warning',
+      );
     } else {
-      this.toast.show('pos.toast.paid', {
-        ticket: result.body.number,
-        amount: formatAriary(result.body.total),
-      });
+      this.toast.show('pos.toast.paid', { ticket: sale.number, amount: formatAriary(sale.total) });
     }
     this.ticketNumber.update((number) => number + 1);
     this.cart.clear();

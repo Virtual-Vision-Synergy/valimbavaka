@@ -4,9 +4,11 @@ import {
   DestroyRef,
   ElementRef,
   computed,
+  effect,
   inject,
   linkedSignal,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
@@ -14,11 +16,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CircleCheck, CircleX, CloudUpload, Navigation, Phone, Wifi, WifiOff } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthStore } from '../../../../core/auth/auth-store';
+import { errorMessage } from '../../../../core/http/problem-detail';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { ConnectivityService } from '../../../../core/offline/connectivity-service';
 import { OutboxService } from '../../../../core/offline/outbox-service';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { mapsHref, telHref } from '../../data-access/delivery-links';
 import { isPendingStop } from '../../data-access/delivery-mapping';
@@ -45,7 +49,8 @@ interface PendingChange {
 /**
  * Tournée du jour du livreur (LIV-02, LIV-08), pensée pour une main, dehors et parfois hors ligne :
  * un seul arrêt mis en avant, deux grosses actions, annulation possible pendant 5 s.
- * Les arrêts viennent de l'API (LIV-02) ; « Livrée » et « Échec » restent simulés (LIV-03, LIV-04).
+ * Les arrêts viennent de l'API (LIV-02) ; « Livrée » part vers l'API d'un geste, sans saisie (LIV-03) ;
+ * « Échec » part vers l'API avec son motif (LIV-04).
  */
 @Component({
   selector: 'vvs-driver-round-page',
@@ -53,12 +58,14 @@ interface PendingChange {
   templateUrl: './driver-round-page.html',
   styleUrl: './driver-round-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:pagehide)': 'commit()' },
 })
 export class DriverRoundPage {
   private readonly deliveryService = inject(DeliveryService);
   private readonly authStore = inject(AuthStore);
   private readonly language = inject(LanguageService);
   private readonly connectivity = inject(ConnectivityService);
+  private readonly toast = inject(ToastService);
   private readonly failureDialog = viewChild<ElementRef<HTMLDialogElement>>('failureDialog');
 
   protected readonly icons = {
@@ -105,8 +112,18 @@ export class DriverRoundPage {
   );
   protected readonly remaining = computed(() => this.sumToCollect(this.upcoming()));
 
+  private destroyed = false;
+  private hadQueued = false;
+
   constructor() {
-    inject(DestroyRef).onDestroy(() => this.commit());
+    inject(DestroyRef).onDestroy(() => {
+      this.commit();
+      this.destroyed = true;
+    });
+    effect(() => {
+      const queued = this.pendingSync();
+      untracked(() => this.reloadWhenQueueDrained(queued));
+    });
   }
 
   protected markDelivered(delivery: DeliveryRDto): void {
@@ -156,13 +173,40 @@ export class DriverRoundPage {
     this.pending.set({ delivery, change, previous, timer });
   }
 
-  /** Envoie la saisie en attente d'annulation (au délai, à la saisie suivante ou en quittant). */
-  private commit(): void {
+  /**
+   * Au retour du réseau, la file se vide (LIV-08, SYS-02) : on relit la tournée pour montrer l'état du serveur,
+   * y compris une saisie qu'il a refusée. Sans toucher à une saisie encore dans son délai d'annulation.
+   */
+  private reloadWhenQueueDrained(queued: number): void {
+    if (queued > 0) {
+      this.hadQueued = true;
+    } else if (this.hadQueued && !this.pending()) {
+      this.hadQueued = false;
+      this.round.reload();
+    }
+  }
+
+  /** Envoie la saisie en attente d'annulation (au délai, à la saisie suivante, en quittant ou en fermant l'onglet). */
+  protected commit(): void {
     const pending = this.pending();
     if (pending) {
       clearTimeout(pending.timer);
       this.pending.set(null);
-      this.deliveryService.updateStatus(pending.delivery.id, pending.change).subscribe();
+      this.deliveryService.updateStatus(pending.delivery.id, pending.change).subscribe({
+        error: (error: unknown) => this.onRefused(pending.delivery, error),
+      });
+    }
+  }
+
+  /** Saisie refusée par le serveur (déjà livrée, articles absents de la livraison…) : on relit la tournée. */
+  private onRefused(delivery: DeliveryRDto, error: unknown): void {
+    this.toast.show(
+      'deliveries.driver.refusedToast',
+      { name: delivery.customerName, message: errorMessage(error) },
+      'danger',
+    );
+    if (!this.destroyed) {
+      this.round.reload();
     }
   }
 

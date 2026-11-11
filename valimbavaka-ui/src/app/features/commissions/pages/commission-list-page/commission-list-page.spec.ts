@@ -29,6 +29,7 @@ const commission = (overrides: Partial<CommissionRDto> = {}): CommissionRDto => 
   rateSource: 'SALES_CHANNEL',
   ruleId: 'r1',
   amount: 1020,
+  status: 'CALCULATED',
   createdAt: '2026-11-08T08:30:00Z',
   ...overrides,
 });
@@ -116,6 +117,17 @@ describe('CommissionListPage', () => {
     expect(rows[1].textContent).toContain('Service salon');
     expect(rows[1].textContent).toMatch(/3\s?500/);
     expect(element.textContent).toContain('2 commission(s)');
+  });
+
+  it('should mark the commission of a cancelled sale and only that one', async () => {
+    httpMock
+      .expectOne(isListRequest)
+      .flush(pageOf([commission(), commission({ id: 'c2', status: 'CANCELLED' })]));
+    await fixture.whenStable();
+
+    const rows = element.querySelectorAll('tbody tr');
+    expect(rows[0].textContent).not.toContain('Annulée avec la vente');
+    expect(rows[1].textContent).toContain('Annulée avec la vente');
   });
 
   it('should reload the chosen month from its first page', async () => {

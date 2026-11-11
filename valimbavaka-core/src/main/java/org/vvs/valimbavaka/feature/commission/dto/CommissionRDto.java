@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionBase;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionRateSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionStatus;
 
 /**
  * Commission computed on a sale or a salon service (COM-02): {@code amount} = {@code baseAmount} × {@code rate} / 100,
@@ -33,4 +34,5 @@ public record CommissionRDto(
         CommissionRateSource rateSource,
         @Nullable UUID ruleId,
         BigDecimal amount,
+        CommissionStatus status,
         Instant createdAt) {}

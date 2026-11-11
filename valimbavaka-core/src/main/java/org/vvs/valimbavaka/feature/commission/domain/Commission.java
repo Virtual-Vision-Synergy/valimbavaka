@@ -84,6 +84,15 @@ public class Commission extends BaseEntity {
     @Column(name = "amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private CommissionStatus status = CommissionStatus.CALCULATED;
+
+    /** The operation was cancelled: the commission is kept for the trace but no longer counts. */
+    public void cancel() {
+        this.status = CommissionStatus.CANCELLED;
+    }
+
     /**
      * A margin rule applies to the revenue minus the purchase cost (zero if the operation was sold below cost); when
      * the purchase cost is unknown (salon service), the rate applies to the revenue and the base says so.

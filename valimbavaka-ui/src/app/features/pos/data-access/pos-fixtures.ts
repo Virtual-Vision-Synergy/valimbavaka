@@ -34,7 +34,16 @@ export const POS_FIXTURE: PosContextRDto = {
   openedAt: '10:52',
   heldTickets: 2,
   articles: ARTICLES,
-  promotion: { code: 'PRO-02', name: 'Octobre rose', rate: 15, articleIds: [SAVON_NOIR, GOMMAGE] },
+  promotions: [
+    {
+      id: 'promo-octobre-rose',
+      name: 'Octobre rose',
+      kind: 'PERCENT',
+      value: 15,
+      articleIds: [SAVON_NOIR, GOMMAGE],
+      channels: ['SHOP', 'FACEBOOK', 'PHONE'],
+    },
+  ],
   openTicket: [
     { articleId: SAVON_NOIR, quantity: 3 },
     { articleId: demoArticle('ART-0154').id, quantity: 1 },

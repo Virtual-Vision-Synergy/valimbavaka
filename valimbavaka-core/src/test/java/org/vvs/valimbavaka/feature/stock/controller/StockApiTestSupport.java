@@ -90,6 +90,15 @@ public abstract class StockApiTestSupport {
                 new StockMovementCommand(articleId, location(locationCode), type, new BigDecimal(quantity), null));
     }
 
+    /**
+     * A sale takes the automatic promotions running today (PRO-02): moves to the year 2000 those left by other test
+     * classes on the shared database, so that the totals of the sales of a test are the sum of its lines.
+     */
+    protected void endAutomaticPromotions() {
+        jdbcTemplate.update("update promotions set starts_on = date '2000-01-01', ends_on = date '2000-01-02' "
+                + "where code is null and ends_on > date '2000-01-02'");
+    }
+
     protected static String uniqueName() {
         return "Article-" + UUID.randomUUID();
     }

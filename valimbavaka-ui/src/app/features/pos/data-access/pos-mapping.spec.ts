@@ -46,6 +46,16 @@ const FORM: SaleFormRDto = {
       stock: {},
     },
   ],
+  promotions: [
+    {
+      id: 'promo-rose',
+      name: 'Octobre rose',
+      kind: 'PERCENT',
+      value: 15,
+      articleIds: ['soap'],
+      channelIds: ['channel-store', 'channel-delivery'],
+    },
+  ],
 };
 
 const SELLER: CurrentUserRDto = {
@@ -73,10 +83,24 @@ describe('toPosContext', () => {
       { id: 'seller-tiana', name: 'Tiana Ranaivo' },
     ]);
     expect(context.defaultSellerId).toBe('seller-miora');
-    expect(context.promotion).toBeNull();
     expect(context.articles.map((article) => [article.id, article.stock, article.range])).toEqual([
       ['soap', 12, 'BOTANIKA'],
       ['oil', 0, 'BOTANIKA'],
+    ]);
+  });
+
+  it('traduit les canaux des promotions en canaux du poste et écarte ceux que le poste ne vend pas', () => {
+    const context = toPosContext(FORM, RANGES, SELLER, new Date());
+
+    expect(context.promotions).toEqual([
+      {
+        id: 'promo-rose',
+        name: 'Octobre rose',
+        kind: 'PERCENT',
+        value: 15,
+        articleIds: ['soap'],
+        channels: ['SHOP'],
+      },
     ]);
   });
 
