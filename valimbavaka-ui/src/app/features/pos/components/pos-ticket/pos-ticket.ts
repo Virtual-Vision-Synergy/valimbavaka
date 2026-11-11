@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  inject,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 import {
   Banknote,
   CreditCard,
@@ -55,12 +64,36 @@ export class PosTicket {
   readonly sellers = input<readonly PosSeller[]>([]);
   readonly checkout = output();
   readonly hold = output();
+  /** Ouvre la saisie du code promo (bouton ou F6). */
   readonly promoCode = output();
+  /** Code promo saisi, à faire vérifier par le serveur (VTE-04). */
+  readonly promoCodeSubmit = output<string>();
   readonly customer = output();
 
   protected readonly channels = CHANNELS;
   protected readonly payments = PAYMENTS;
   protected readonly channel = this.cart.channel;
+  private readonly codeField = viewChild<ElementRef<HTMLInputElement>>('codeField');
+
+  constructor() {
+    effect(() => {
+      if (this.cart.promoEntry()) {
+        this.codeField()?.nativeElement.focus();
+      }
+    });
+  }
+
+  protected submitCode(event: Event): void {
+    event.preventDefault();
+    const code = this.codeField()?.nativeElement.value.trim() ?? '';
+    if (code) {
+      this.promoCodeSubmit.emit(code);
+    }
+  }
+
+  protected cancelCode(): void {
+    this.cart.promoEntry.set(false);
+  }
 
   protected selectSeller(sellerId: string): void {
     this.cart.seller.set(sellerId || null);

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.vvs.valimbavaka.feature.sale.domain.SaleCommand;
 import org.vvs.valimbavaka.feature.sale.dto.SaleFormRDto;
+import org.vvs.valimbavaka.feature.sale.dto.SalePromotionRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleWDto;
 
@@ -48,4 +49,11 @@ public interface SaleService {
 
     /** Channels, active sellers and sellable articles with their stock, for the sale form. */
     SaleFormRDto getForm();
+
+    /**
+     * Promotion of the promo code typed at the till (VTE-04) with the sellable articles it reaches, so that the
+     * till can show the discount before the sale; the server recomputes it when the sale is recorded. 404 if the
+     * code is unknown; 422 if it is not valid today, does not apply on the channel or has reached its limit.
+     */
+    SalePromotionRDto getPromoCode(String code, UUID salesChannelId);
 }

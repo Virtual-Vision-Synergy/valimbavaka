@@ -24,6 +24,12 @@ export interface PricedLine extends CartLine {
   readonly discount: number;
 }
 
+/** Code promo saisi et la promotion que le serveur lui associe. */
+interface TypedPromoCode {
+  readonly code: string;
+  readonly promotion: PosPromotionRDto;
+}
+
 /** Message à annoncer aux lecteurs d'écran (clé + paramètres traduits à l'affichage). */
 export interface CartAnnouncement {
   readonly key: string;
@@ -38,6 +44,8 @@ export interface CartAnnouncement {
 export class PosCart {
   private readonly lines = signal<readonly CartLine[]>([]);
   private readonly promotions = signal<readonly PosPromotionRDto[]>([]);
+  /** Code promo validé par le serveur (VTE-04) ; sa promotion concurrence l'automatique. */
+  private readonly typedCode = signal<TypedPromoCode | null>(null);
 
   readonly channel = signal<SaleChannel>('SHOP');
   readonly payment = signal<PaymentMethod>('CASH');
@@ -45,6 +53,8 @@ export class PosCart {
   readonly seller = signal<string | null>(null);
   readonly received = signal(0);
   readonly announcement = signal<CartAnnouncement | null>(null);
+  /** Vrai quand la saisie du code promo est ouverte (bouton ou F6). */
+  readonly promoEntry = signal(false);
 
   private readonly grossLines = computed(() =>
     this.lines().map((line) => ({
@@ -52,7 +62,7 @@ export class PosCart {
       gross: lineTotal(line.article.price, line.quantity),
     })),
   );
-  /** Promotion automatique du canal choisie par le poste (PRO-02) : la plus avantageuse, sans cumul. */
+  /** Promotion retenue par le poste (PRO-02, VTE-04) : la plus avantageuse, automatique ou par code, sans cumul. */
   private readonly applied = computed(() =>
     bestPromotion(
       this.promotions(),
@@ -63,6 +73,7 @@ export class PosCart {
         quantity: line.quantity,
         gross: line.gross,
       })),
+      this.typedCode()?.promotion ?? null,
     ),
   );
   readonly priced = computed<readonly PricedLine[]>(() => {
@@ -87,6 +98,13 @@ export class PosCart {
   readonly appliedPromotion = computed(() =>
     this.discount() > 0 ? this.applied().promotion : null,
   );
+  /** Code promo saisi, qu'il soit retenu ou non. */
+  readonly promoCode = computed(() => this.typedCode()?.code ?? null);
+  /** Code promo qui donne la remise du ticket ; `null` sans effet ou si l'automatique donne plus. */
+  readonly appliedCode = computed(() => {
+    const typed = this.typedCode();
+    return typed && this.appliedPromotion()?.id === typed.promotion.id ? typed.code : null;
+  });
   readonly canCheckout = computed(
     () =>
       !this.isEmpty() &&
@@ -110,6 +128,17 @@ export class PosCart {
         return article ? [{ article, quantity: line.quantity }] : [];
       }),
     );
+  }
+
+  /** Retient le code promo validé par le serveur pour ce ticket ; ferme la saisie. */
+  applyCode(code: string, promotion: PosPromotionRDto): void {
+    this.typedCode.set({ code, promotion });
+    this.promoEntry.set(false);
+  }
+
+  /** Retire le code promo du ticket. */
+  removeCode(): void {
+    this.typedCode.set(null);
   }
 
   /** Ajoute une unité ; refuse au-delà du stock de l'emplacement. */
@@ -161,6 +190,8 @@ export class PosCart {
 
   clear(): void {
     this.lines.set([]);
+    this.typedCode.set(null);
+    this.promoEntry.set(false);
     this.received.set(0);
     this.payment.set('CASH');
   }

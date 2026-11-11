@@ -28,6 +28,9 @@ public interface PromotionRepository extends Repository<Promotion, UUID> {
     /** Codes are stored in upper case: compare with an upper-case value. */
     boolean existsByCode(String code);
 
+    /** The promotion with this code (VTE-04); codes are stored in upper case: pass an upper-case value. */
+    Optional<Promotion> findByCode(String code);
+
     /**
      * Case-insensitive search on name and code; empty {@code search} = all. {@code status} is {@link #ANY_STATUS} or
      * the name of a {@code PromotionStatus}, deduced from the period and {@code today} (same rule as

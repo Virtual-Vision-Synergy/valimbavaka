@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
 import { InvoiceRDto, SaleSummaryRDto } from '../../data-access/sales-models';
 import { InvoicePanel } from './invoice-panel';
@@ -91,5 +92,62 @@ describe('InvoicePanel', () => {
     expect(text('#invoice-title .mono')).toBe('VTE-0042');
     expect(text('.paper .ident .mono')).toBe('À émettre');
     expect(text('.note')).toContain("Aucune facture n'a été émise");
+  });
+
+  const regenerateButton = (): HTMLButtonElement =>
+    Array.from(element.querySelectorAll<HTMLButtonElement>('button')).find(
+      (button) => button.textContent?.trim() === 'Régénérer',
+    ) as HTMLButtonElement;
+
+  it('régénère la facture sans changer son numéro et prévient la vendeuse', async () => {
+    httpMock.expectOne('/api/v1/invoices/sales/vente-42').flush(INVOICE);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    regenerateButton().click();
+    httpMock.expectOne('/api/v1/invoices/sales/vente-42/regenerate').flush(INVOICE);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(text('#invoice-title .mono')).toBe('FAC-2026-0042');
+    expect(TestBed.inject(ToastService).toasts()[0].messageKey).toBe('sales.invoice.regenerated');
+    expect(regenerateButton().disabled).toBe(false);
+  });
+
+  it("émet la facture d'une vente qui n'en avait pas et remplace l'aperçu", async () => {
+    httpMock
+      .expectOne('/api/v1/invoices/sales/vente-42')
+      .flush({ code: 'NOT_FOUND' }, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(text('.paper .ident .mono')).toBe('À émettre');
+
+    regenerateButton().click();
+    httpMock.expectOne('/api/v1/invoices/sales/vente-42/regenerate').flush(INVOICE);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(text('.paper .ident .mono')).toBe('FAC-2026-0042');
+    expect(element.querySelector('.note')?.textContent).not.toContain('Aucune facture');
+  });
+
+  it("désactive le bouton pendant la régénération et signale l'échec", async () => {
+    httpMock.expectOne('/api/v1/invoices/sales/vente-42').flush(INVOICE);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    regenerateButton().click();
+    fixture.detectChanges();
+    expect(regenerateButton().disabled).toBe(true);
+    httpMock
+      .expectOne('/api/v1/invoices/sales/vente-42/regenerate')
+      .flush({ code: 'NOT_FOUND' }, { status: 404, statusText: 'Not Found' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(TestBed.inject(ToastService).toasts()[0].messageKey).toBe(
+      'sales.invoice.regenerateFailed',
+    );
+    expect(regenerateButton().disabled).toBe(false);
   });
 });

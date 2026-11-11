@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
@@ -356,6 +357,193 @@ class PromotionServiceImplTest {
         // Assert
         assertThat(discount).isEqualTo(PromotionDiscount.NONE);
         verify(promotionRepository, never()).findAutomaticActive(any());
+    }
+
+    @Test
+    void getPromotionByCode_codeInLowerCaseWithSpaces_looksUpTheUpperCaseCode() {
+        // Arrange
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act
+        sut.getPromotionByCode("  octo20 ", CHANNEL_ID);
+
+        // Assert
+        verify(promotionMapper).toRDto(promo, PromotionStatus.ACTIVE);
+    }
+
+    @Test
+    void getPromotionByCode_lastDayOfThePeriod_isStillValid() {
+        // Arrange : the period ends today in Antananarivo
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(-5, 0), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act
+        sut.getPromotionByCode("OCTO20", CHANNEL_ID);
+
+        // Assert
+        verify(promotionMapper).toRDto(promo, PromotionStatus.ACTIVE);
+    }
+
+    @Test
+    void getPromotionByCode_unknownCode_throwsNotFound() {
+        // Arrange
+        when(promotionRepository.findByCode("NOPE")).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getPromotionByCode("nope", CHANNEL_ID)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void getPromotionByCode_periodNotStarted_throwsBusinessException() {
+        // Arrange
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(1, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getPromotionByCode("OCTO20", CHANNEL_ID))
+                .isExactlyInstanceOf(BusinessException.class)
+                .hasMessageContaining("pas encore");
+    }
+
+    @Test
+    void getPromotionByCode_periodEnded_throwsBusinessException() {
+        // Arrange : ended yesterday
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(-30, -1), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getPromotionByCode("OCTO20", CHANNEL_ID))
+                .isExactlyInstanceOf(BusinessException.class)
+                .hasMessageContaining("expiré");
+    }
+
+    @Test
+    void getPromotionByCode_otherChannel_throwsBusinessException() {
+        // Arrange
+        var promo = coded("Code Facebook", "20", UUID.randomUUID(), period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getPromotionByCode("OCTO20", CHANNEL_ID))
+                .isExactlyInstanceOf(BusinessException.class)
+                .hasMessageContaining("canal");
+    }
+
+    @Test
+    void getPromotionByCode_usageLimitReached_throwsBusinessException() {
+        // Arrange : a limit of 0 use is reached from the start
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(0, 30), 0);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getPromotionByCode("OCTO20", CHANNEL_ID))
+                .isExactlyInstanceOf(BusinessException.class)
+                .hasMessageContaining("plafond");
+    }
+
+    @Test
+    void priceBasket_codeGivesMoreThanTheAutomaticPromotion_returnsTheCode() {
+        // Arrange : 17 000 Ar of soap, code 20 % = 3 400 Ar against 15 % = 2 550 Ar
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+        var automatic = automatic("Octobre rose", PromotionKind.PERCENT, "15", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(automatic));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, "octo20", List.of(soap("8500", "2")));
+
+        // Assert
+        assertThat(discount.promotionName()).isEqualTo("Code Octobre");
+        assertThat(discount.amount()).isEqualByComparingTo("3400");
+    }
+
+    @Test
+    void priceBasket_automaticPromotionGivesMoreThanTheCode_returnsTheAutomaticPromotion() {
+        // Arrange : 17 000 Ar of soap, code 10 % = 1 700 Ar against 15 % = 2 550 Ar
+        var promo = coded("Code Octobre", "10", CHANNEL_ID, period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+        var automatic = automatic("Octobre rose", PromotionKind.PERCENT, "15", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(automatic));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, "OCTO20", List.of(soap("8500", "2")));
+
+        // Assert : no accumulation
+        assertThat(discount.promotionName()).isEqualTo("Octobre rose");
+        assertThat(discount.amount()).isEqualByComparingTo("2550");
+    }
+
+    @Test
+    void priceBasket_codeAndAutomaticPromotionTie_returnsTheCode() {
+        // Arrange : both give 1 700 Ar
+        var promo = coded("Code Octobre", "10", CHANNEL_ID, period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+        var automatic = automatic("Dix pour cent", PromotionKind.PERCENT, "10", CHANNEL_ID);
+        when(promotionRepository.findAutomaticActive(BUSINESS_TODAY)).thenReturn(List.of(automatic));
+
+        // Act
+        var discount = sut.priceBasket(CHANNEL_ID, "OCTO20", List.of(soap("8500", "2")));
+
+        // Assert
+        assertThat(discount.promotionName()).isEqualTo("Code Octobre");
+    }
+
+    @Test
+    void priceBasket_codeWithoutEffectOnTheBasket_throwsBusinessException() {
+        // Arrange : buy 3, one free, with 2 bought
+        var promo = coded("Trois pour deux", PromotionKind.BUY_X, "3", CHANNEL_ID, period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.priceBasket(CHANNEL_ID, "OCTO20", List.of(soap("8500", "2"))))
+                .isExactlyInstanceOf(BusinessException.class)
+                .hasMessageContaining("aucune remise");
+    }
+
+    @Test
+    void priceBasket_codeAndEmptyBasket_throwsBusinessException() {
+        // Arrange
+        var promo = coded("Code Octobre", "20", CHANNEL_ID, period(0, 30), null);
+        when(promotionRepository.findByCode("OCTO20")).thenReturn(Optional.of(promo));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.priceBasket(CHANNEL_ID, "OCTO20", List.of()))
+                .isExactlyInstanceOf(BusinessException.class);
+    }
+
+    @Test
+    void priceBasket_unknownCode_throwsNotFound() {
+        // Arrange
+        when(promotionRepository.findByCode("NOPE")).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.priceBasket(CHANNEL_ID, "NOPE", List.of(soap("8500", "2"))))
+                .isInstanceOf(NotFoundException.class);
+    }
+
+    private static PromotionPeriod period(int fromDays, int toDays) {
+        return new PromotionPeriod(BUSINESS_TODAY.plusDays(fromDays), BUSINESS_TODAY.plusDays(toDays));
+    }
+
+    private static Promotion coded(
+            String name, String percent, UUID channelId, PromotionPeriod period, Integer usageLimit) {
+        return coded(name, PromotionKind.PERCENT, percent, channelId, period, usageLimit);
+    }
+
+    private static Promotion coded(
+            String name, PromotionKind kind, String value, UUID channelId, PromotionPeriod period, Integer usageLimit) {
+        return Promotion.create(new PromotionDetails(
+                name,
+                null,
+                kind,
+                new BigDecimal(value),
+                "octo20",
+                PromotionScope.ALL,
+                Set.of(),
+                period,
+                Set.of(channelId),
+                usageLimit));
     }
 
     private static PromotionBasketLine soap(String unitPrice, String quantity) {

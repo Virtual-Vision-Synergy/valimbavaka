@@ -186,12 +186,122 @@ class InvoiceServiceImplTest {
         assertThatThrownBy(() -> sut.getInvoiceById(invoiceId)).isInstanceOf(NotFoundException.class);
     }
 
+    @Test
+    void regenerateForSale_existingInvoice_returnsItUnchangedUsesNoNumberAndTracesTheReedition() {
+        // Arrange
+        var existing = Invoice.issue("FAC-2026-0007", draft(SELLER));
+        var expected = view("FAC-2026-0007");
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.of(existing));
+        when(invoiceMapper.toRDto(existing)).thenReturn(expected);
+        connectedAs(SELLER, true);
+
+        // Act
+        var result = sut.regenerateForSale(SALE_ID);
+
+        // Assert
+        assertThat(result).isSameAs(expected);
+        verify(invoiceRepository, never()).nextNumber(anyInt());
+        verify(invoiceRepository, never()).save(any(Invoice.class));
+        verify(saleService, never()).getSaleById(any());
+        verify(journalService)
+                .record(
+                        eq(JournalAction.UPDATE),
+                        eq("INVOICE"),
+                        any(),
+                        eq("Facture FAC-2026-0007 régénérée · vente VTE-0042"));
+    }
+
+    @Test
+    void regenerateForSale_existingInvoiceOfAColleague_returns404AndTracesNothing() {
+        // Arrange
+        var existing = Invoice.issue("FAC-2026-0008", draft(COLLEAGUE));
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.of(existing));
+        connectedAs(SELLER, true);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.regenerateForSale(SALE_ID)).isInstanceOf(NotFoundException.class);
+        verify(journalService, never()).record(any(), any(), any(), any());
+    }
+
+    @Test
+    void regenerateForSale_saleWithoutInvoice_issuesItFromTheSaleAndTracesTheCreation() {
+        // Arrange
+        var sale = sale();
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.empty());
+        when(saleService.getSaleById(SALE_ID)).thenReturn(sale);
+        when(drafts.of(sale)).thenReturn(draft(SELLER));
+        when(invoiceRepository.nextNumber(2026)).thenReturn(43L);
+        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(call -> call.getArgument(0));
+        var expected = view("FAC-2026-0043");
+        when(invoiceMapper.toRDto(any(Invoice.class))).thenReturn(expected);
+        connectedAs(SELLER, true);
+
+        // Act
+        var result = sut.regenerateForSale(SALE_ID);
+
+        // Assert
+        assertThat(result).isSameAs(expected);
+        verify(invoiceRepository).save(saved.capture());
+        assertThat(saved.getValue().getNumber()).isEqualTo("FAC-2026-0043");
+        verify(journalService)
+                .record(
+                        eq(JournalAction.CREATE),
+                        eq("INVOICE"),
+                        any(),
+                        eq("Facture FAC-2026-0043 · vente VTE-0042 · 17000.00 Ar · MVola"));
+    }
+
+    @Test
+    void regenerateForSale_unknownSale_returns404AndUsesNoNumber() {
+        // Arrange
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.empty());
+        when(saleService.getSaleById(SALE_ID)).thenThrow(new NotFoundException("Vente introuvable"));
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.regenerateForSale(SALE_ID)).isInstanceOf(NotFoundException.class);
+        verify(invoiceRepository, never()).nextNumber(anyInt());
+        verify(journalService, never()).record(any(), any(), any(), any());
+    }
+
+    @Test
+    void regenerateForSale_saleOfAColleagueWithoutInvoice_returns404AndUsesNoNumber() {
+        // Arrange
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.empty());
+        when(saleService.getSaleById(SALE_ID)).thenReturn(saleOf(COLLEAGUE));
+        connectedAs(SELLER, true);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.regenerateForSale(SALE_ID)).isInstanceOf(NotFoundException.class);
+        verify(invoiceRepository, never()).nextNumber(anyInt());
+    }
+
+    @Test
+    void regenerateForSale_administratorOnASaleOfASeller_issuesItWhenMissing() {
+        // Arrange
+        var sale = sale();
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.empty());
+        when(saleService.getSaleById(SALE_ID)).thenReturn(sale);
+        when(drafts.of(sale)).thenReturn(draft(SELLER));
+        when(invoiceRepository.nextNumber(2026)).thenReturn(44L);
+        when(invoiceRepository.save(any(Invoice.class))).thenAnswer(call -> call.getArgument(0));
+        var expected = view("FAC-2026-0044");
+        when(invoiceMapper.toRDto(any(Invoice.class))).thenReturn(expected);
+        connectedAs(ADMIN, false);
+
+        // Act + Assert
+        assertThat(sut.regenerateForSale(SALE_ID)).isSameAs(expected);
+    }
+
     private void connectedAs(UUID userId, boolean activeSeller) {
         when(auditorAware.getCurrentAuditor()).thenReturn(Optional.of(userId));
         when(userService.isActiveSeller(userId)).thenReturn(activeSeller);
     }
 
     private static SaleRDto sale() {
+        return saleOf(SELLER);
+    }
+
+    private static SaleRDto saleOf(UUID sellerId) {
         return new SaleRDto(
                 SALE_ID,
                 "VTE-0042",
@@ -199,7 +309,7 @@ class InvoiceServiceImplTest {
                 DAY,
                 UUID.randomUUID(),
                 UUID.randomUUID(),
-                SELLER,
+                sellerId,
                 PaymentMethod.MVOLA,
                 OperationStatus.VALIDATED,
                 new BigDecimal("17000.00"),
