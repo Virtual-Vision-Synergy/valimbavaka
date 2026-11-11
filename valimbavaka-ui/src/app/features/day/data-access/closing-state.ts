@@ -1,7 +1,7 @@
 import { Injectable, computed, linkedSignal, signal } from '@angular/core';
 import {
-  ClosingLineRDto,
-  DayClosingRDto,
+  ClosingLine,
+  DayClosing,
   DayLockWDto,
   DiscrepancyReason,
   DispatchDestination,
@@ -11,21 +11,21 @@ import {
 export interface ClosingRow {
   readonly key: string;
   readonly location: DispatchDestination;
-  readonly line: ClosingLineRDto;
+  readonly line: ClosingLine;
   readonly theoretical: number;
   readonly counted: number;
   readonly gap: number;
   readonly reason: DiscrepancyReason | null;
 }
 
-function keyOf(location: DispatchDestination, line: ClosingLineRDto): string {
+function keyOf(location: DispatchDestination, line: ClosingLine): string {
   return `${location}:${line.articleId}`;
 }
 
 /** Saisies de la clôture (comptages, motifs, espèces) dérivées des données du serveur. */
 @Injectable()
 export class ClosingState {
-  readonly data = signal<DayClosingRDto | undefined>(undefined);
+  readonly data = signal<DayClosing | undefined>(undefined);
 
   readonly counts = linkedSignal<Readonly<Record<string, number>>>(() =>
     this.collect((location, line) => line.counted),
@@ -94,7 +94,7 @@ export class ClosingState {
   }
 
   private collect<T>(
-    pick: (location: DispatchDestination, line: ClosingLineRDto) => T,
+    pick: (location: DispatchDestination, line: ClosingLine) => T,
   ): Record<string, T> {
     return Object.fromEntries(
       (this.data()?.locations ?? []).flatMap(({ location, lines }) =>

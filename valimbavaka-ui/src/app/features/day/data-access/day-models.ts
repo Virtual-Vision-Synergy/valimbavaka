@@ -126,11 +126,48 @@ export const DISCREPANCY_REASONS: readonly DiscrepancyReason[] = [
   'OTHER',
 ];
 
-/** Ligne de réconciliation (JR-04) : théorique = transféré + retour − vendu − livré − salon − shooting. */
+/** Réconciliation d'un article dans un emplacement (JR-04), tel que le serveur la renvoie (`ClosingLineRDto`). */
 export interface ClosingLineRDto {
   readonly articleId: string;
   readonly reference: string;
   readonly name: string;
+  /** Stock présent à l'ouverture de la journée (reste des jours précédents). */
+  readonly opening: number;
+  readonly transferred: number;
+  readonly returned: number;
+  readonly sold: number;
+  readonly delivered: number;
+  readonly salon: number;
+  readonly shooting: number;
+  /** Théorique = report + transféré + retour − vendu − livré − salon − shooting. */
+  readonly theoretical: number;
+  /** Stock du système à l'instant de la lecture : point de départ du comptage du soir. */
+  readonly systemStock: number;
+  /** Stock du système − théorique : non nul si un mouvement hors des six composantes a touché l'emplacement. */
+  readonly gap: number;
+}
+
+export interface ClosingLocationRDto {
+  readonly locationId: string;
+  /** Code stable de l'emplacement (`STORE`, `DELIVERY`, `TRADE_SHOW`). */
+  readonly code: string;
+  readonly label: string;
+  readonly lines: readonly ClosingLineRDto[];
+}
+
+/** Réponse de `GET /api/v1/days/closing`. */
+export interface DayClosingRDto {
+  readonly businessDate: string;
+  readonly status: DayStatus;
+  readonly locations: readonly ClosingLocationRDto[];
+}
+
+/** Ligne de l'écran de clôture : les composantes du serveur, le comptage et le motif saisis (JR-05, JR-06). */
+export interface ClosingLine {
+  readonly articleId: string;
+  readonly reference: string;
+  readonly name: string;
+  readonly opening: number;
   readonly transferred: number;
   readonly returned: number;
   readonly sold: number;
@@ -148,9 +185,9 @@ export interface ClosingCashRDto {
   readonly otherMethods: number;
 }
 
-export interface ClosingLocationRDto {
+export interface ClosingLocation {
   readonly location: DispatchDestination;
-  readonly lines: readonly ClosingLineRDto[];
+  readonly lines: readonly ClosingLine[];
   readonly cash: ClosingCashRDto;
 }
 
@@ -161,9 +198,15 @@ export interface ClosingChecklistRDto {
   readonly lateShootings: number;
 }
 
-export interface DayClosingRDto {
+/** Ce que l'écran affiche en plus de la réconciliation tant que JR-05 / JR-06 ne la fournissent pas (démonstration). */
+export interface ClosingExtras {
+  readonly cash: Readonly<Record<DispatchDestination, ClosingCashRDto>>;
+  readonly checklist: ClosingChecklistRDto;
+}
+
+export interface DayClosing {
   readonly date: string;
-  readonly locations: readonly ClosingLocationRDto[];
+  readonly locations: readonly ClosingLocation[];
   readonly checklist: ClosingChecklistRDto;
 }
 
@@ -179,8 +222,50 @@ export interface DayLockWDto {
   readonly cash: readonly { readonly location: DispatchDestination; readonly counted: number }[];
 }
 
-export function theoretical(line: ClosingLineRDto): number {
-  return line.transferred + line.returned - line.sold - line.delivered - line.salon - line.shooting;
+/** Théorique d'une ligne : report + transféré + retour − vendu − livré − salon − shooting. */
+export function theoretical(line: ClosingLine): number {
+  return (
+    line.opening +
+    line.transferred +
+    line.returned -
+    line.sold -
+    line.delivered -
+    line.salon -
+    line.shooting
+  );
+}
+
+/**
+ * Écran de clôture à partir de la réconciliation du serveur : un bloc par colonne (Boutique, Livraison, Salon),
+ * le comptage proposé est le stock du système, sans motif tant que JR-05 ne l'enregistre pas. Un emplacement
+ * inconnu de la grille est ignoré ; la caisse et la liste de contrôle viennent de `extras`.
+ */
+export function toDayClosing(closing: DayClosingRDto, extras: ClosingExtras): DayClosing {
+  const locations = closing.locations.flatMap((block): ClosingLocation[] => {
+    const location = DESTINATION_BY_LOCATION_CODE[block.code];
+    if (!location) {
+      return [];
+    }
+    return [{ location, lines: block.lines.map(toClosingLine), cash: extras.cash[location] }];
+  });
+  return { date: closing.businessDate, locations, checklist: extras.checklist };
+}
+
+function toClosingLine(line: ClosingLineRDto): ClosingLine {
+  return {
+    articleId: line.articleId,
+    reference: line.reference,
+    name: line.name,
+    opening: line.opening,
+    transferred: line.transferred,
+    returned: line.returned,
+    sold: line.sold,
+    delivered: line.delivered,
+    salon: line.salon,
+    shooting: line.shooting,
+    counted: line.systemStock,
+    reason: null,
+  };
 }
 
 export function sumQuantities(quantities: DispatchQuantities): number {

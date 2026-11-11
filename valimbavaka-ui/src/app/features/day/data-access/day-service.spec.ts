@@ -4,7 +4,14 @@ import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { OutboxService } from '../../../core/offline/outbox-service';
-import { DayOpeningGrid, DayOpeningRDto, toDayOpeningWDto } from './day-models';
+import {
+  DayClosing,
+  DayClosingRDto,
+  DayOpeningGrid,
+  DayOpeningRDto,
+  theoretical,
+  toDayOpeningWDto,
+} from './day-models';
 import { DayService } from './day-service';
 
 const OPENING: DayOpeningRDto = {
@@ -27,6 +34,37 @@ const OPENING: DayOpeningRDto = {
       warehouse: 20,
       yesterday: [],
     },
+  ],
+};
+
+const CLOSING: DayClosingRDto = {
+  businessDate: '2026-11-11',
+  status: 'OPEN',
+  locations: [
+    {
+      locationId: 'store-id',
+      code: 'STORE',
+      label: 'Boutique',
+      lines: [
+        {
+          articleId: 'soap',
+          reference: 'ART-0031',
+          name: 'Savon noir',
+          opening: 4,
+          transferred: 30,
+          returned: 1,
+          sold: 19,
+          delivered: 0,
+          salon: 0,
+          shooting: 2,
+          theoretical: 14,
+          systemStock: 12,
+          gap: -2,
+        },
+      ],
+    },
+    { locationId: 'delivery-id', code: 'DELIVERY', label: 'Livraison', lines: [] },
+    { locationId: 'warehouse-id', code: 'WAREHOUSE', label: 'Entrepôt', lines: [] },
   ],
 };
 
@@ -116,6 +154,42 @@ describe('DayService', () => {
     expect(grid?.vouchers).toEqual([
       { number: 'TRF-0093', destination: 'DELIVERY', lineCount: 2, units: 7 },
     ]);
+  });
+
+  it('lit la réconciliation sur GET /api/v1/days/closing et la range par colonne (JR-04)', () => {
+    let closing: DayClosing | undefined;
+
+    TestBed.inject(DayService)
+      .closing()
+      .subscribe((value) => (closing = value));
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/days/closing').flush(CLOSING);
+
+    expect(closing?.date).toBe('2026-11-11');
+    // un emplacement hors des trois colonnes (l'entrepôt) est ignoré
+    expect(closing?.locations.map((block) => block.location)).toEqual(['SHOP', 'DELIVERY']);
+    const line = closing?.locations[0].lines[0];
+    expect(line).toMatchObject({ reference: 'ART-0031', opening: 4, transferred: 30, shooting: 2 });
+    // le comptage proposé est le stock du système, sans motif
+    expect(line).toMatchObject({ counted: 12, reason: null });
+  });
+
+  it('calcule le théorique : report + transféré + retour − vendu − livré − salon − shooting', () => {
+    const line = {
+      articleId: 'soap',
+      reference: 'ART-0031',
+      name: 'Savon noir',
+      opening: 4,
+      transferred: 30,
+      returned: 1,
+      sold: 19,
+      delivered: 2,
+      salon: 3,
+      shooting: 1,
+      counted: 0,
+      reason: null,
+    };
+
+    expect(theoretical(line)).toBe(10);
   });
 
   it('ouvre la journée par la file hors ligne (POST /api/v1/days)', () => {

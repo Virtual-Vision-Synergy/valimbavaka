@@ -44,10 +44,6 @@ const PAGES: readonly (readonly [string, () => Promise<Type<unknown>>])[] = [
     () =>
       import('./deliveries/pages/deliveries-page/deliveries-page').then((m) => m.DeliveriesPage),
   ],
-  [
-    'day close',
-    () => import('./day/pages/day-close-page/day-close-page').then((m) => m.DayClosePage),
-  ],
 ];
 
 const settle = (): Promise<void> =>

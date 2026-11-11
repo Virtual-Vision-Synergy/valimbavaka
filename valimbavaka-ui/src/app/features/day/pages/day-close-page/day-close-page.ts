@@ -10,9 +10,11 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Lock, LockKeyhole } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { ApiError } from '../../../../core/http/problem-detail';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -31,6 +33,14 @@ import {
   DispatchDestination,
 } from '../../data-access/day-models';
 import { DayService } from '../../data-access/day-service';
+
+/** Statut HTTP d'une erreur de lecture (`ApiError` de l'intercepteur, ou réponse brute éventuellement enveloppée). */
+function statusOf(error: unknown): number | undefined {
+  if (error instanceof ApiError || error instanceof HttpErrorResponse) {
+    return error.status;
+  }
+  return error instanceof Error && error.cause ? statusOf(error.cause) : undefined;
+}
 
 /**
  * Clôture de journée (JR-04 à JR-06) : réconciliation par emplacement, motifs d'écart,
@@ -56,6 +66,8 @@ export class DayClosePage {
   protected readonly icons = { Lock, LockKeyhole };
   protected readonly reasons = DISCREPANCY_REASONS;
   protected readonly closing = rxResource({ stream: () => this.dayService.closing() });
+  /** Le serveur refuse la réconciliation (409) tant que la journée du jour n'est pas ouverte (JR-01). */
+  protected readonly notOpened = computed(() => statusOf(this.closing.error()) === 409);
   protected readonly location = signal<DispatchDestination>('SHOP');
   protected readonly onlyGaps = signal(false);
   protected readonly lockedAt = signal<string | null>(null);

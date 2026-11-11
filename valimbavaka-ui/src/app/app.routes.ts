@@ -80,7 +80,7 @@ export const routes: Routes = [
           import('./features/deliveries/deliveries.routes').then((m) => m.DELIVERIES_ROUTES),
       },
       {
-        // Permissions par page dans DAY_ROUTES : ouverture `days.open`, clôture `sales.read`.
+        // Permissions par page dans DAY_ROUTES : ouverture `days.open`, suivi `reports.read`, clôture `days.close`.
         path: 'day',
         loadChildren: () => import('./features/day/day.routes').then((m) => m.DAY_ROUTES),
       },

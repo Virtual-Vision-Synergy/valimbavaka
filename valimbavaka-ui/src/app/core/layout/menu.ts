@@ -67,7 +67,7 @@ export const MENU_SECTIONS: readonly MenuSection[] = [
       {
         labelKey: 'menu.item.dayClose',
         route: '/day/close',
-        permission: 'sales.read',
+        permission: 'days.close',
         icon: Lock,
       },
     ],

@@ -3,7 +3,8 @@ import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
  * Journée de vente : ouverture (répartition du matin, JR-01, `days.open`), suivi en direct (JR-03, `reports.read`)
- * et clôture (réconciliation, verrouillage, encore en démonstration). Les permissions sont posées page par page.
+ * et clôture (réconciliation JR-04, `days.close` ; caisse et verrouillage encore en démonstration). Les
+ * permissions sont posées page par page.
  */
 export const DAY_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'open' },
@@ -22,7 +23,7 @@ export const DAY_ROUTES: Routes = [
   {
     path: 'close',
     title: 'menu.item.dayClose',
-    canActivate: [permissionGuard('sales.read')],
+    canActivate: [permissionGuard('days.close')],
     data: { underConstruction: true },
     loadComponent: () =>
       import('./pages/day-close-page/day-close-page').then((m) => m.DayClosePage),

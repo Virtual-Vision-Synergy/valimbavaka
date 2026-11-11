@@ -38,10 +38,13 @@
             <thead>
               <tr>
                 <th scope="col">{{ 'day.col.article' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.opening' | translate }}</th>
                 <th scope="col" class="cell-num">{{ 'day.col.transferred' | translate }}</th>
                 <th scope="col" class="cell-num">{{ 'day.col.returned' | translate }}</th>
                 <th scope="col" class="cell-num">{{ 'day.col.sold' | translate }}</th>
-                <th scope="col" class="cell-num">{{ 'day.col.otherOut' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.delivered' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.salon' | translate }}</th>
+                <th scope="col" class="cell-num">{{ 'day.col.shooting' | translate }}</th>
                 <th scope="col" class="cell-num accent">{{ 'day.col.theoretical' | translate }}</th>
                 <th scope="col" class="cell-num">{{ 'day.col.counted' | translate }}</th>
                 <th scope="col" class="cell-num">{{ 'day.col.gap' | translate }}</th>
@@ -56,27 +59,13 @@
                     <span class="name">{{ l.name }}</span>
                     <span class="mono ref">{{ l.reference }}</span>
                   </th>
-                  <td class="cell-num">{{ l.transferred }}</td>
+                  <td class="cell-num" [class.zero]="!l.opening">{{ l.opening }}</td>
+                  <td class="cell-num" [class.zero]="!l.transferred">{{ l.transferred }}</td>
                   <td class="cell-num" [class.zero]="!l.returned">{{ l.returned }}</td>
                   <td class="cell-num" [class.zero]="!l.sold">{{ l.sold }}</td>
-                  <td class="cell-num">
-                    <span [class.zero]="!(l.delivered + l.salon + l.shooting)">{{
-                      l.delivered + l.salon + l.shooting
-                    }}</span>
-                    @if (l.delivered + l.salon + l.shooting) {
-                      <span class="breakdown">
-                        @if (l.delivered) {
-                          {{ 'day.col.delivered' | translate }} {{ l.delivered }}
-                        }
-                        @if (l.salon) {
-                          {{ 'day.col.salon' | translate }} {{ l.salon }}
-                        }
-                        @if (l.shooting) {
-                          {{ 'day.col.shooting' | translate }} {{ l.shooting }}
-                        }
-                      </span>
-                    }
-                  </td>
+                  <td class="cell-num" [class.zero]="!l.delivered">{{ l.delivered }}</td>
+                  <td class="cell-num" [class.zero]="!l.salon">{{ l.salon }}</td>
+                  <td class="cell-num" [class.zero]="!l.shooting">{{ l.shooting }}</td>
                   <td class="cell-num accent strong">{{ row.theoretical }}</td>
                   <td class="cell-num">
                     <input
@@ -126,7 +115,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="9" class="empty">{{ 'day.close.noGap' | translate }}</td>
+                  <td colspan="12" class="empty">{{ 'day.close.noGap' | translate }}</td>
                 </tr>
               }
             </tbody>
@@ -233,6 +222,8 @@
         </section>
       </aside>
     </div>
+  } @else if (notOpened()) {
+    <p class="card pad" role="alert">{{ 'day.close.notOpened' | translate }}</p>
   } @else if (closing.error()) {
     <div class="card"><vvs-list-state kind="error" (retry)="closing.reload()" /></div>
   } @else {
