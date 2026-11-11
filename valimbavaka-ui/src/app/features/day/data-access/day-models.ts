@@ -181,6 +181,8 @@ export interface ClosingLine {
   readonly shooting: number;
   readonly counted: number;
   readonly reason: DiscrepancyReason | null;
+  /** Vrai quand le serveur a déjà enregistré un comptage pour la ligne (JR-05) : le verrouillage l'exige (JR-06). */
+  readonly saved: boolean;
 }
 
 export interface ClosingCashRDto {
@@ -213,6 +215,8 @@ export interface ClosingExtras {
 
 export interface DayClosing {
   readonly date: string;
+  /** `CLOSED` une fois la journée verrouillée (JR-06) : plus aucune saisie, consultation seule. */
+  readonly status: DayStatus;
   readonly locations: readonly ClosingLocation[];
   readonly checklist: ClosingChecklistRDto;
 }
@@ -228,18 +232,6 @@ export interface ClosingCountWDto {
 
 export interface DayClosingCountsWDto {
   readonly counts: readonly ClosingCountWDto[];
-}
-
-/** Verrouillage de la journée (JR-06) : comptages, motifs et espèces comptées. */
-export interface DayLockWDto {
-  readonly date: string;
-  readonly counts: readonly {
-    readonly location: DispatchDestination;
-    readonly articleId: string;
-    readonly counted: number;
-    readonly reason: DiscrepancyReason | null;
-  }[];
-  readonly cash: readonly { readonly location: DispatchDestination; readonly counted: number }[];
 }
 
 /** Théorique d'une ligne : report + transféré + retour − vendu − livré − salon − shooting. */
@@ -270,7 +262,12 @@ export function toDayClosing(closing: DayClosingRDto, extras: ClosingExtras): Da
     const lines = block.lines.map(toClosingLine);
     return [{ location, locationId: block.locationId, lines, cash: extras.cash[location] }];
   });
-  return { date: closing.businessDate, locations, checklist: extras.checklist };
+  return {
+    date: closing.businessDate,
+    status: closing.status,
+    locations,
+    checklist: extras.checklist,
+  };
 }
 
 function toClosingLine(line: ClosingLineRDto): ClosingLine {
@@ -287,6 +284,7 @@ function toClosingLine(line: ClosingLineRDto): ClosingLine {
     shooting: line.shooting,
     counted: line.counted ?? line.systemStock,
     reason: line.reason,
+    saved: line.counted !== null,
   };
 }
 
