@@ -184,7 +184,8 @@ class DashboardIT extends StockApiTestSupport {
     }
 
     private Snapshot snapshot() throws Exception {
-        var json = dashboard().andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var json =
+                dashboard().andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
         return Snapshot.of(json, channel("STORE"));
     }
 
