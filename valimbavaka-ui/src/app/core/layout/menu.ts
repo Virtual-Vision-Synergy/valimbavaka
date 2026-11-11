@@ -1,4 +1,5 @@
 import {
+  Activity,
   ArrowLeftRight,
   BookOpen,
   ChartColumn,
@@ -56,6 +57,12 @@ export const MENU_SECTIONS: readonly MenuSection[] = [
         route: '/day/open',
         permission: 'days.open',
         icon: Sunrise,
+      },
+      {
+        labelKey: 'menu.item.dayLive',
+        route: '/day/live',
+        permission: 'reports.read',
+        icon: Activity,
       },
       {
         labelKey: 'menu.item.dayClose',

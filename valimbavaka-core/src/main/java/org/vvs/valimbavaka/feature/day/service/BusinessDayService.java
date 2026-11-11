@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.day.service;
 
+import org.jspecify.annotations.Nullable;
+
 import org.vvs.valimbavaka.feature.day.dto.BusinessDayRDto;
 import org.vvs.valimbavaka.feature.day.dto.DayOpeningRDto;
 import org.vvs.valimbavaka.feature.day.dto.DayOpeningWDto;
@@ -22,6 +24,10 @@ public interface BusinessDayService {
      * if an article is unknown.
      */
     BusinessDayRDto openDay(DayOpeningWDto request);
+
+    /** Today's business day whatever its status (JR-03), {@code null} when today is not opened yet. */
+    @Nullable
+    BusinessDayRDto findToday();
 
     /** Today's business day; 409 (CONFLICT) if today is not opened yet or already closed. */
     BusinessDayRDto requireOpenDay();

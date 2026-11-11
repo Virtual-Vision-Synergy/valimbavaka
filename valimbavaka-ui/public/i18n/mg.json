@@ -129,6 +129,7 @@
       "salonCatalog": "Katalaogin'ny salon",
       "journal": "Tahirin-kevitra",
       "dayOpen": "Fanokafana",
+      "dayLive": "Fanaraha-maso ny andro",
       "dayClose": "Fanakatonana",
       "pos": "Kaisy"
     }
@@ -1047,6 +1048,54 @@
     }
   },
   "day": {
+    "live": {
+      "title": "Fanaraha-maso ny andro",
+      "subtitle": "Varotra, fanaterana ary tolotra anio, havaozina ho azy.",
+      "refresh": "Havaozina",
+      "updatedAt": "Nohavaozina tamin'ny {{time}}",
+      "stale": "Tsy nahomby ny fanavaozana farany : mety ho tara ny isa aseho.",
+      "status": {
+        "OPEN": "Nisokatra ny andro",
+        "CLOSED": "Voatakatra ny andro",
+        "NOT_OPENED": "Tsy mbola nisokatra ny andro"
+      },
+      "sales": {
+        "title": "Varotra",
+        "count": "{{count}} varotra voamarina"
+      },
+      "deliveries": {
+        "title": "Fanaterana",
+        "detail": "{{toPrepare}} hovonjena · {{onRound}} eny an-dalana · {{failed}} tsy nahomby"
+      },
+      "services": {
+        "title": "Tolotra",
+        "count": "{{count}} tolotra"
+      },
+      "channels": {
+        "title": "Varotra isaky ny fantsona",
+        "channel": "Fantsona",
+        "revenue": "Vola niditra",
+        "count": "Varotra",
+        "retired": "Fantsona tsy mavitrika"
+      },
+      "feed": {
+        "title": "Asa farany",
+        "SALE": "Varotra",
+        "DELIVERY": "Fanaterana",
+        "SERVICE": "Tolotra",
+        "emptyTitle": "Tsy mbola misy asa",
+        "emptyMessage": "Eto no hiseho ny varotra, fanaterana ary tolotra anio."
+      },
+      "feedStatus": {
+        "VALIDATED": "Voamarina",
+        "CANCELLED": "Foana",
+        "REVERSED": "Nohamarinina ho mifanohitra",
+        "TO_PREPARE": "Hovonjena",
+        "ON_ROUND": "Eny an-dalana",
+        "DELIVERED": "Natolotra",
+        "FAILED": "Tsy nahomby"
+      }
+    },
     "destination": {
       "SHOP": "Fivarotana",
       "DELIVERY": "Fanaterana",
