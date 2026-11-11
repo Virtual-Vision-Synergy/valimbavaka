@@ -1,7 +1,17 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { HttpParams } from '@angular/common/http';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Download } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
+import { finalize } from 'rxjs';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -9,7 +19,7 @@ import { ListState } from '../../../../shared/components/list-state/list-state';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { Pagination } from '../../../../shared/components/pagination/pagination';
 import { StatusBadge } from '../../../../shared/components/status-badge/status-badge';
-import { ToastService } from '../../../../shared/components/toast/toast-service';
+import { ExportFormat, ExportService } from '../../../../shared/data-access/export-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
 import { Tone } from '../../../../shared/models/tone';
@@ -32,7 +42,7 @@ const STATUS_TONES: Readonly<Record<CommissionStatus, Tone>> = {
 /**
  * Mes commissions (COM-04) : commission du mois, avancement vers l'objectif mensuel de la fiche utilisateur et détail
  * par vente. Une vendeuse voit les siennes (le serveur impose son identifiant) ; l'administrateur arrive depuis
- * « Commissions calculées » avec `?sellerId=` et choisit le mois.
+ * « Commissions calculées » avec `?sellerId=` et choisit le mois. COM-05 : le relevé du mois s'exporte (Excel, PDF).
  */
 @Component({
   selector: 'vvs-commissions-page',
@@ -52,7 +62,8 @@ const STATUS_TONES: Readonly<Record<CommissionStatus, Tone>> = {
 })
 export class CommissionsPage {
   private readonly commissionService = inject(CommissionService);
-  private readonly toast = inject(ToastService);
+  private readonly exportService = inject(ExportService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly language = inject(LanguageService);
   private readonly isAdministrator = inject(AuthStore).hasPermission('commissions.read-all');
 
@@ -65,6 +76,7 @@ export class CommissionsPage {
   protected readonly circumference = RING_CIRCUMFERENCE;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly page = signal(1);
+  protected readonly isExporting = signal(false);
   private readonly chosenMonth = signal<string | null>(null);
   protected readonly selectedMonth = computed(
     () => this.chosenMonth() ?? this.month() ?? monthKey(new Date(), 0),
@@ -128,8 +140,24 @@ export class CommissionsPage {
     this.page.set(page);
   }
 
-  protected exportStatement(): void {
-    this.toast.show('common.demoAction', {}, 'info');
+  /**
+   * Télécharge le relevé du mois affiché (COM-05) : le serveur impose la vendeuse connectée, l'administrateur désigne
+   * la sienne. Le service d'export confirme la génération du fichier (ou l'échec) par une notification.
+   */
+  protected exportStatement(format: ExportFormat): void {
+    let params = new HttpParams().set('month', this.selectedMonth());
+    const sellerId = this.requestedSeller();
+    if (sellerId) {
+      params = params.set('sellerId', sellerId);
+    }
+    this.isExporting.set(true);
+    this.exportService
+      .download('/api/v1/commissions/follow-up/lines', format, params)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isExporting.set(false)),
+      )
+      .subscribe({ error: () => undefined });
   }
 
   protected monthLabel(value: string): string {

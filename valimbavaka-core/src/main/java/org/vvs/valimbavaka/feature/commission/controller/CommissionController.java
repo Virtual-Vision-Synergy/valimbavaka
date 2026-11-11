@@ -23,20 +23,25 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.vvs.valimbavaka.feature.commission.dto.CommissionFollowUpRDto;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionRDto;
+import org.vvs.valimbavaka.feature.commission.dto.CommissionRecalculationRDto;
+import org.vvs.valimbavaka.feature.commission.dto.CommissionRecalculationWDto;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionValidationRDto;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionValidationWDto;
 import org.vvs.valimbavaka.feature.commission.dto.SellerCommissionRDto;
 import org.vvs.valimbavaka.feature.commission.service.CommissionFollowUpService;
+import org.vvs.valimbavaka.feature.commission.service.CommissionRecalculationService;
 import org.vvs.valimbavaka.feature.commission.service.CommissionService;
 import org.vvs.valimbavaka.feature.commission.service.CommissionValidationService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 import org.vvs.valimbavaka.shared.dto.PageQuery;
 import org.vvs.valimbavaka.shared.dto.PageResponse;
+import org.vvs.valimbavaka.shared.excel.annotation.ExcelExport;
 
 /**
  * Commissions computed automatically on sales and salon services (COM-02). Read only: they are computed by the server
  * when the operation is recorded; the administrator consults those of every seller ({@code commissions.read-all}) and
- * validates them seller by seller before payout ({@code commissions.validate}, COM-03).
+ * validates them seller by seller before payout ({@code commissions.validate}, COM-03) and recalculates the ones not
+ * yet validated ({@code commissions.recalculate}, COM-05).
  */
 @Tag(name = "Commissions")
 @ApiResponses({
@@ -52,21 +57,27 @@ public class CommissionController {
     private final CommissionService commissionService;
     private final CommissionValidationService validationService;
     private final CommissionFollowUpService followUpService;
+    private final CommissionRecalculationService recalculationService;
 
     public CommissionController(
             CommissionService commissionService,
             CommissionValidationService validationService,
-            CommissionFollowUpService followUpService) {
+            CommissionFollowUpService followUpService,
+            CommissionRecalculationService recalculationService) {
         this.commissionService = commissionService;
         this.validationService = validationService;
         this.followUpService = followUpService;
+        this.recalculationService = recalculationService;
     }
 
     @GetMapping
-    @Operation(summary = "Paged list of computed commissions, filterable by seller and business days (inclusive)")
+    @Operation(
+            summary = "Paged list of computed commissions, filterable by seller and business days (inclusive)",
+            description = "/export (xlsx) and /export/pdf download the same rows for the payroll (COM-05).")
     @ApiResponse(responseCode = "200", description = "Page of commissions")
     @ApiResponse(responseCode = "422", description = "Invalid page or period (VALIDATION_FAILED)")
     @HasPermission("commissions.read-all")
+    @ExcelExport(target = "commissions", filename = "commissions", sheet = "Commissions", title = "Commissions")
     public PageResponse<CommissionRDto> getCommissions(
             @Valid PageQuery query,
             @RequestParam(required = false) @Nullable UUID sellerId,
@@ -105,11 +116,13 @@ public class CommissionController {
     @GetMapping("/follow-up/lines")
     @Operation(
             summary = "Commission of each sale of a seller for a month (base, rate, amount, status), paged",
-            description = "Same scope as the follow-up: a seller only sees her own lines.")
+            description = "Same scope as the follow-up: a seller only sees her own lines. /export (xlsx) and "
+                    + "/export/pdf download her statement (COM-05); the server imposes her identifier.")
     @ApiResponse(responseCode = "200", description = "Page of commissions, most recent business day first")
     @ApiResponse(responseCode = "404", description = "Not a seller (NOT_FOUND)")
     @ApiResponse(responseCode = "422", description = "Invalid page or administrator without sellerId")
     @HasPermission("commissions.read")
+    @ExcelExport(target = "commissions", filename = "releve-commissions", sheet = "Relevé", title = "Relevé")
     public PageResponse<CommissionRDto> getFollowUpLines(
             @Valid PageQuery query,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") @Nullable YearMonth month,
@@ -126,5 +139,17 @@ public class CommissionController {
     @HasPermission("commissions.validate")
     public CommissionValidationRDto validate(@Valid @RequestBody CommissionValidationWDto request) {
         return validationService.validate(request);
+    }
+
+    @PostMapping("/recalculation")
+    @Operation(
+            summary = "Recalculates the computed commissions over business days (inclusive), of a seller or of all",
+            description = "Validated commissions are final and cancelled ones no longer count: neither is touched. "
+                    + "Running it twice changes nothing the second time.")
+    @ApiResponse(responseCode = "200", description = "Counts of commissions updated, unchanged and left validated")
+    @ApiResponse(responseCode = "422", description = "Invalid data, inverted or longer than a year (VALIDATION_FAILED)")
+    @HasPermission("commissions.recalculate")
+    public CommissionRecalculationRDto recalculate(@Valid @RequestBody CommissionRecalculationWDto request) {
+        return recalculationService.recalculate(request);
     }
 }

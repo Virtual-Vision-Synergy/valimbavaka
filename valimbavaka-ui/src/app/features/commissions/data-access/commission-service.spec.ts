@@ -94,4 +94,22 @@ describe('CommissionService', () => {
     expect(request.request.params.get('month')).toBe('2026-11');
     request.flush(EMPTY_PAGE);
   });
+
+  it('recalcule la période demandée avec la vendeuse facultative', () => {
+    service.recalculate({ from: '2026-11-01', to: '2026-11-30' }).subscribe();
+
+    const request = httpMock.expectOne(`${COMMISSIONS_URL}/recalculation`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ from: '2026-11-01', to: '2026-11-30' });
+    request.flush({
+      from: '2026-11-01',
+      to: '2026-11-30',
+      sellerId: null,
+      updatedCount: 0,
+      unchangedCount: 0,
+      validatedCount: 0,
+      previousAmount: 0,
+      newAmount: 0,
+    });
+  });
 });

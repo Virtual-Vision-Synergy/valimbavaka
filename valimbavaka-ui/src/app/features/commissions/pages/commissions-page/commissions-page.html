@@ -115,10 +115,26 @@
           {{ 'commissions.detail' | translate }}
           <span class="code-chip" aria-hidden="true">COM-03</span>
         </h2>
-        <button class="btn btn-secondary" type="button" (click)="exportStatement()">
-          <svg [vvsIcon]="icons.Download" [size]="18"></svg>
-          {{ 'commissions.export' | translate }}
-        </button>
+        <div class="export-actions">
+          <button
+            class="btn btn-secondary"
+            type="button"
+            [disabled]="isExporting()"
+            (click)="exportStatement('xlsx')"
+          >
+            <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+            {{ 'commissions.export' | translate }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            type="button"
+            [disabled]="isExporting()"
+            (click)="exportStatement('pdf')"
+          >
+            <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+            {{ 'commissions.exportPdf' | translate }}
+          </button>
+        </div>
       </header>
       @if (lines.value(); as page) {
         @if (page.items.length > 0) {

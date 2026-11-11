@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
 
 import org.vvs.valimbavaka.feature.commission.domain.CommissionBase;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionRateSource;
+import org.vvs.valimbavaka.feature.commission.domain.CommissionTerms;
 
 /**
  * Rate applicable to a sale (COM-01 resolver, used by COM-02): rate in percent, base it applies to, level it comes
@@ -16,4 +17,10 @@ public record ApplicableCommissionRDto(
         BigDecimal rate,
         CommissionBase base,
         CommissionRateSource source,
-        @Nullable UUID ruleId) {}
+        @Nullable UUID ruleId) {
+
+    /** The terms the commission is computed with: one conversion for the calculation (COM-02) and the recalculation. */
+    public CommissionTerms toTerms() {
+        return new CommissionTerms(rate, base, source, ruleId);
+    }
+}

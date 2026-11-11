@@ -17,7 +17,7 @@ import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionStatus;
 import org.vvs.valimbavaka.shared.operation.OperationRepository;
 
-/** No delete exposed (JNL-02): a computed commission is kept; recalculation is COM-05. */
+/** No delete exposed (JNL-02): a computed commission is kept; recalculation (COM-05) only touches the computed ones. */
 public interface CommissionRepository extends OperationRepository<Commission, UUID> {
 
     /** At most one commission per operation (unique constraint on the source). */
@@ -78,4 +78,24 @@ public interface CommissionRepository extends OperationRepository<Commission, UU
     /** Whether the seller has a commission, not cancelled, over {@code [from, to]}. */
     boolean existsBySellerIdAndBusinessDateBetweenAndStatusNot(
             UUID sellerId, LocalDate from, LocalDate to, CommissionStatus status);
+
+    /** Commissions in one status over {@code [from, to]}, of one seller or of all ({@code sellerId} null). */
+    @Query("""
+            select c from Commission c
+            where c.status = :status
+              and (:sellerId is null or c.sellerId = :sellerId)
+              and c.businessDate between :from and :to
+            order by c.businessDate, c.sourceNumber, c.id
+            """)
+    List<Commission> findByStatusInPeriod(
+            CommissionStatus status, @Nullable UUID sellerId, LocalDate from, LocalDate to);
+
+    /** Number of commissions in one status over {@code [from, to]}, of one seller or of all ({@code sellerId} null). */
+    @Query("""
+            select count(c) from Commission c
+            where c.status = :status
+              and (:sellerId is null or c.sellerId = :sellerId)
+              and c.businessDate between :from and :to
+            """)
+    long countByStatusInPeriod(CommissionStatus status, @Nullable UUID sellerId, LocalDate from, LocalDate to);
 }

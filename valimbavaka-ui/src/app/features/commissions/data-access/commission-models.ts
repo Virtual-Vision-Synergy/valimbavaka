@@ -92,6 +92,26 @@ export interface CommissionValidationWDto {
   to: string;
 }
 
+/** Corps de `POST /api/v1/commissions/recalculation` : journées `[from, to]` (incluses), une vendeuse ou toutes. */
+export interface CommissionRecalculationWDto {
+  from: string;
+  to: string;
+  sellerId?: string;
+}
+
+/** Miroir de CommissionRecalculationRDto (COM-05) : ce que le recalcul a modifié, laissé tel quel ou ignoré. */
+export interface CommissionRecalculationRDto {
+  from: string;
+  to: string;
+  sellerId: string | null;
+  updatedCount: number;
+  unchangedCount: number;
+  /** Commissions validées : définitives, jamais recalculées. */
+  validatedCount: number;
+  previousAmount: number;
+  newAmount: number;
+}
+
 /** Miroir de CommissionValidationRDto : ce que la validation vient de valider. */
 export interface CommissionValidationRDto {
   sellerId: string;
