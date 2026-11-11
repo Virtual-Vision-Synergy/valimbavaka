@@ -1,6 +1,6 @@
 # Guide d'intégration — FAC-05 · Suivi des statuts de facture
 
-Statut : ✅ implémenté (tests à lancer, voir le scénario) · Ticket : [#75](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/75) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ implémenté, CI verte · Ticket : [#75](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/75) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
