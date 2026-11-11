@@ -184,8 +184,7 @@ class SaleLedgerTest {
                 UUID.randomUUID(),
                 PaymentMethod.CASH);
         var lines = List.of(new PricedSaleLine(SOAP, new BigDecimal("3"), new BigDecimal("8500"), null));
-        var discount =
-                promotionId == null ? SaleDiscount.NONE : new SaleDiscount(promotionId, new BigDecimal("3825"));
+        var discount = promotionId == null ? SaleDiscount.NONE : new SaleDiscount(promotionId, new BigDecimal("3825"));
         return Sale.record("VTE-0042", header, lines, discount);
     }
 }
