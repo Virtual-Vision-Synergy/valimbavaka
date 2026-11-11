@@ -126,4 +126,78 @@ describe('PosPage', () => {
     expect(show).toHaveBeenCalledWith('common.queuedSaved', {}, 'info');
     expect(show).not.toHaveBeenCalledWith('pos.toast.totalAdjusted', expect.anything(), 'warning');
   });
+
+  describe('raccourcis clavier (VTE-03)', () => {
+    const root = (): HTMLElement => fixture.nativeElement as HTMLElement;
+    const press = async (key: string, init: KeyboardEventInit = {}): Promise<KeyboardEvent> => {
+      const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init });
+      document.dispatchEvent(event);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      return event;
+    };
+
+    it('F2 donne le focus au champ de recherche', async () => {
+      const event = await press('F2');
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(document.activeElement).toBe(root().querySelector('input'));
+    });
+
+    it('+ ajoute une unité du dernier article et − la retire', async () => {
+      cart.add(SAVON);
+
+      await press('+');
+      expect(cart.total()).toBe(17000);
+
+      await press('-');
+      await press('-');
+      expect(cart.isEmpty()).toBe(true);
+    });
+
+    it('+ sur un ticket vide ouvre la recherche pour ajouter un article', async () => {
+      await press('+');
+
+      expect(cart.isEmpty()).toBe(true);
+      expect(document.activeElement).toBe(root().querySelector('input'));
+    });
+
+    it('F12 encaisse la vente comme le bouton', async () => {
+      record.mockReturnValue(of({ queued: false, body: sale(8500) }));
+      cart.add(SAVON);
+      cart.payment.set('MVOLA');
+
+      await press('F12');
+
+      expect(record).toHaveBeenCalledTimes(1);
+      expect(cart.isEmpty()).toBe(true);
+    });
+
+    it('F12 maintenu enfoncé n’encaisse qu’une fois', async () => {
+      record.mockReturnValue(of({ queued: false, body: sale(8500) }));
+      cart.add(SAVON);
+      cart.payment.set('MVOLA');
+
+      await press('F12');
+      await press('F12', { repeat: true });
+
+      expect(record).toHaveBeenCalledTimes(1);
+    });
+
+    it('F12 sur un ticket vide n’enregistre rien et prévient la caissière', async () => {
+      await press('F12');
+
+      expect(record).not.toHaveBeenCalled();
+      expect(show).toHaveBeenCalledWith('pos.toast.cannotCheckout', {}, 'warning');
+    });
+
+    it('Ctrl − reste le zoom du navigateur : le ticket ne change pas', async () => {
+      cart.add(SAVON);
+
+      const event = await press('-', { ctrlKey: true });
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(cart.total()).toBe(8500);
+    });
+  });
 });
