@@ -301,7 +301,8 @@ class SalePromoCodeIT extends StockApiTestSupport {
 
     @Test
     void getPromoCode_withoutTokenOrWithADeliveryDriver_returns401Then403() throws Exception {
-        mockMvc.perform(get(SALES + "/promo-codes/VT4ABCDEF").param("salesChannelId", channel("STORE").toString()))
+        mockMvc.perform(get(SALES + "/promo-codes/VT4ABCDEF")
+                        .param("salesChannelId", channel("STORE").toString()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         getPromoCode(tokenOf(RoleName.DELIVERY_DRIVER), "VT4ABCDEF", "STORE")
@@ -359,7 +360,8 @@ class SalePromoCodeIT extends StockApiTestSupport {
             Integer usageLimit,
             PromotionPeriod period,
             UUID target) {
-        var code = CODE_PREFIX + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        var code = CODE_PREFIX
+                + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
         var details = new PromotionDetails(
                 "Code " + uniqueName(),
                 null,
@@ -371,7 +373,8 @@ class SalePromoCodeIT extends StockApiTestSupport {
                 period == null ? period(0, 10) : period,
                 Set.of(channel(channelCode)),
                 usageLimit);
-        return new CodedPromotion(promotionRepository.save(Promotion.create(details)).getId(), code);
+        return new CodedPromotion(
+                promotionRepository.save(Promotion.create(details)).getId(), code);
     }
 
     private ResultActions createSale(String channelCode, String quantity, String promoCode) throws Exception {
