@@ -115,7 +115,9 @@ class SaleQueryIT extends StockApiTestSupport {
         var bySeller = "?sellerId=" + seller.getId();
 
         // Act + Assert
-        list(adminToken(), bySeller).andExpect(status().isOk()).andExpect(jsonPath("$.totalCount").value(2));
+        list(adminToken(), bySeller)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCount").value(2));
         list(adminToken(), bySeller + "&salesChannelId=" + channel("FACEBOOK"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCount").value(1))

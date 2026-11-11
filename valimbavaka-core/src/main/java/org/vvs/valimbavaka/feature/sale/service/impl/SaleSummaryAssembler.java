@@ -52,7 +52,8 @@ class SaleSummaryAssembler {
 
     private static SaleSummaryRDto toRDto(Sale sale, Names names) {
         var sellerId = sale.getSellerId();
-        var lines = sale.getLines().stream().map(line -> toLineRDto(line, names)).toList();
+        var lines =
+                sale.getLines().stream().map(line -> toLineRDto(line, names)).toList();
         return new SaleSummaryRDto(
                 sale.getId(),
                 sale.getNumber(),
