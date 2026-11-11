@@ -11,7 +11,10 @@ import org.jspecify.annotations.Nullable;
 import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
 import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
-/** Recorded sale; {@code createdAt} is the time of the sale and {@code createdBy} the account that entered it. */
+/**
+ * Recorded sale; {@code promotionId} is the promotion that gave {@code discountAmount} (PRO-02); {@code createdAt} is
+ * the time of the sale and {@code createdBy} the account that entered it.
+ */
 public record SaleRDto(
         UUID id,
         String number,
@@ -24,6 +27,7 @@ public record SaleRDto(
         OperationStatus status,
         BigDecimal subtotal,
         BigDecimal discountAmount,
+        @Nullable UUID promotionId,
         BigDecimal total,
         List<SaleLineRDto> lines,
         Instant createdAt,

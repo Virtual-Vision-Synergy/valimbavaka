@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.sale.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,6 +72,10 @@ public class Sale extends BaseEntity {
     @Column(name = "discount_amount", nullable = false, precision = 19, scale = 2)
     private BigDecimal discountAmount;
 
+    /** Promotion that gave the discount (PRO-02), {@code null} when the sale has none. */
+    @Column(name = "promotion_id", updatable = false)
+    private @Nullable UUID promotionId;
+
     @Column(name = "total", nullable = false, precision = 19, scale = 2)
     private BigDecimal total;
 
@@ -79,11 +84,17 @@ public class Sale extends BaseEntity {
     @OrderColumn(name = "line_number")
     private List<SaleLine> lines = new ArrayList<>();
 
-    /**
-     * A validated sale: subtotal = sum of the line totals; no discount yet (promotions: PRO-02, VTE-04), so the total
-     * equals the subtotal.
-     */
+    /** A validated sale without discount: the total equals the subtotal. */
     public static Sale record(String number, SaleHeader header, List<PricedSaleLine> lines) {
+        return record(number, header, lines, SaleDiscount.NONE);
+    }
+
+    /**
+     * A validated sale: subtotal = sum of the line totals, total = subtotal - discount. The discount decided by the
+     * server (PRO-02) is rounded to 2 decimals and capped at the subtotal, so the total is never negative; without
+     * a discount the promotion is forgotten.
+     */
+    public static Sale record(String number, SaleHeader header, List<PricedSaleLine> lines, SaleDiscount discount) {
         var sale = new Sale();
         sale.number = number;
         sale.businessDayId = header.businessDayId();
@@ -95,7 +106,8 @@ public class Sale extends BaseEntity {
         sale.status = OperationStatus.VALIDATED;
         lines.forEach(line -> sale.lines.add(SaleLine.of(line)));
         sale.subtotal = sale.lines.stream().map(SaleLine::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
-        sale.discountAmount = new BigDecimal("0.00");
+        sale.discountAmount = discount.amount().setScale(2, RoundingMode.HALF_UP).min(sale.subtotal);
+        sale.promotionId = sale.discountAmount.signum() > 0 ? discount.promotionId() : null;
         sale.total = sale.subtotal.subtract(sale.discountAmount);
         return sale;
     }

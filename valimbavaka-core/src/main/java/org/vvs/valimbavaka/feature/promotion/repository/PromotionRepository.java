@@ -62,4 +62,17 @@ public interface PromotionRepository extends Repository<Promotion, UUID> {
             order by p.endsOn, p.name
             """)
     List<Promotion> findActiveTargeting(Collection<UUID> targetIds, PromotionScope catalogue, LocalDate today);
+
+    /**
+     * Automatic promotions (no code) active on {@code today} (same rule as {@code PromotionPeriod.statusOn}) whose
+     * usage limit, if any, is not reached (PRO-02); closest end first, then by name.
+     */
+    @Query("""
+            select p from Promotion p
+            where p.code is null
+              and p.startsOn <= :today and p.endsOn >= :today
+              and (p.usageLimit is null or p.usageCount < p.usageLimit)
+            order by p.endsOn, p.name
+            """)
+    List<Promotion> findAutomaticActive(LocalDate today);
 }

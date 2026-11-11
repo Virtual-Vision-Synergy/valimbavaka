@@ -17,8 +17,11 @@ import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.promotion.domain.Promotion;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionBasketLine;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionDetails;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionDiscount;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionPeriod;
+import org.vvs.valimbavaka.feature.promotion.domain.PromotionPricing;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionScope;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionStatus;
 import org.vvs.valimbavaka.feature.promotion.dto.PromotionRDto;
@@ -84,6 +87,27 @@ public class PromotionServiceImpl implements PromotionService {
         return promotionRepository.findActiveTargeting(targetIds, PromotionScope.ALL, today()).stream()
                 .map(promotion -> promotionMapper.toRDto(promotion, PromotionStatus.ACTIVE))
                 .toList();
+    }
+
+    @Override
+    public List<PromotionRDto> getAutomaticPromotions() {
+        return promotionRepository.findAutomaticActive(today()).stream()
+                .map(promotion -> promotionMapper.toRDto(promotion, PromotionStatus.ACTIVE))
+                .toList();
+    }
+
+    @Override
+    public PromotionDiscount priceBasket(UUID salesChannelId, List<PromotionBasketLine> lines) {
+        if (lines.isEmpty()) {
+            return PromotionDiscount.NONE;
+        }
+        return promotionRepository.findAutomaticActive(today()).stream()
+                .filter(promotion -> promotion.isOpenTo(salesChannelId))
+                .map(promotion -> new PromotionDiscount(
+                        promotion.getId(), promotion.getName(), PromotionPricing.discountOf(promotion, lines)))
+                .filter(discount -> discount.amount().signum() > 0)
+                .reduce((best, next) -> next.amount().compareTo(best.amount()) > 0 ? next : best)
+                .orElse(PromotionDiscount.NONE);
     }
 
     @Override

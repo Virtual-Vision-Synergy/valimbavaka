@@ -111,6 +111,20 @@ public class Promotion extends BaseEntity {
         return Set.copyOf(channelIds);
     }
 
+    /** True if the promotion applies on this sales channel. */
+    public boolean isOpenTo(UUID salesChannelId) {
+        return channelIds.contains(salesChannelId);
+    }
+
+    /** True if the article is reached: whole catalogue, its range ({@code rangeId}, null if none) or itself. */
+    public boolean covers(UUID articleId, @Nullable UUID rangeId) {
+        return switch (scope) {
+            case ALL -> true;
+            case RANGES -> rangeId != null && targetIds.contains(rangeId);
+            case ARTICLES -> targetIds.contains(articleId);
+        };
+    }
+
     public PromotionPeriod getPeriod() {
         return new PromotionPeriod(startsOn, endsOn);
     }
