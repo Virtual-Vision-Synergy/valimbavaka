@@ -1894,19 +1894,21 @@
     "date": "Date de référence",
     "summary": {
       "title": "Synthèse de la période",
-      "period": "Du {{from}} au {{to}}"
+      "period": "Du {{from}} au {{to}}",
+      "previousPeriod": "Période précédente : du {{from}} au {{to}}"
+    },
+    "variation": {
+      "none": "n.d."
     },
     "channel": "Canal",
     "allChannels": "Tous les canaux",
     "range": "Gamme",
     "allRanges": "Toutes les gammes",
     "reset": "Réinitialiser",
-    "kpis": "Indicateurs",
     "kpi": {
       "revenue": "Chiffre d'affaires",
       "sales": "Ventes",
-      "basket": "Panier moyen",
-      "delivery": "Livraisons réussies"
+      "basket": "Panier moyen"
     },
     "vs": "vs {{value}} période précédente",
     "revenueTitle": "Évolution du chiffre d'affaires",
