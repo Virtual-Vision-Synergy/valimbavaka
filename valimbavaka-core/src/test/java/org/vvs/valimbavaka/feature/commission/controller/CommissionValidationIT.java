@@ -279,9 +279,7 @@ class CommissionValidationIT extends StockApiTestSupport {
         mockMvc.perform(get(SELLERS).param("from", FROM).param("to", TO))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
-        mockMvc.perform(post(VALIDATION)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body(sellerId, FROM, TO)))
+        mockMvc.perform(post(VALIDATION).contentType(MediaType.APPLICATION_JSON).content(body(sellerId, FROM, TO)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
