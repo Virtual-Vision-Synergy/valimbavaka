@@ -1,4 +1,9 @@
 import { PaymentMethod } from '../../../shared/models/commerce';
+import {
+  CommissionRateSource,
+  CommissionStatus,
+} from '../../commissions/data-access/commission-models';
+import { CommissionBase } from '../../commissions/data-access/commission-rule-models';
 import { PageQuery } from '../../../shared/models/page-response';
 
 /** Statut d'une vente (miroir de `OperationStatus` backend) : une vente ne se supprime jamais (JNL-02). */
@@ -121,4 +126,71 @@ export interface InvoiceView {
   readonly discountLabel: string | null;
   readonly discount: number;
   readonly total: number;
+}
+
+/** Ligne du détail d'une vente (miroir de `SaleDetailLineRDto`) : article nommé, prix unitaire figé. */
+export interface SaleDetailLineRDto {
+  readonly articleId: string;
+  readonly articleCode: string | null;
+  readonly articleName: string | null;
+  readonly quantity: number;
+  readonly unitPrice: number;
+  readonly lineTotal: number;
+}
+
+/** Promotion à l'origine de la remise (miroir de `SaleDetailPromotionRDto`) ; `code` nul si elle est automatique. */
+export interface SaleDetailPromotionRDto {
+  readonly id: string;
+  readonly name: string;
+  readonly code: string | null;
+}
+
+/** Facture émise pour la vente (miroir de `SaleDetailInvoiceRDto`) : le document complet reste sur l'API facture. */
+export interface SaleDetailInvoiceRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly issuedAt: string;
+  readonly status: SaleStatus;
+}
+
+/**
+ * Commission de la vente et règle appliquée (miroir de `SaleDetailCommissionRDto`, COM-02) : `rateSource` dit d'où
+ * vient le taux, `ruleName` nomme la règle du canal quand c'en est la source, `base` dit si le taux porte sur le CA
+ * ou sur la marge.
+ */
+export interface SaleDetailCommissionRDto {
+  readonly id: string;
+  readonly revenue: number;
+  readonly baseAmount: number;
+  readonly base: CommissionBase;
+  readonly rate: number;
+  readonly rateSource: CommissionRateSource;
+  readonly ruleId: string | null;
+  readonly ruleName: string | null;
+  readonly amount: number;
+  readonly status: CommissionStatus;
+}
+
+/**
+ * Détail d'une vente (VTE-09, miroir de `SaleDetailRDto`) : lignes nommées, promotion, facture et commission.
+ * `promotion`, `invoice` et `commission` sont nuls quand il n'y en a pas ; `sellerName` pour une vente sans vendeuse.
+ */
+export interface SaleDetailRDto {
+  readonly id: string;
+  readonly number: string;
+  readonly businessDate: string;
+  readonly createdAt: string;
+  readonly salesChannelId: string;
+  readonly salesChannelLabel: string | null;
+  readonly sellerId: string | null;
+  readonly sellerName: string | null;
+  readonly paymentMethod: PaymentMethod;
+  readonly status: SaleStatus;
+  readonly subtotal: number;
+  readonly discountAmount: number;
+  readonly total: number;
+  readonly promotion: SaleDetailPromotionRDto | null;
+  readonly lines: readonly SaleDetailLineRDto[];
+  readonly invoice: SaleDetailInvoiceRDto | null;
+  readonly commission: SaleDetailCommissionRDto | null;
 }

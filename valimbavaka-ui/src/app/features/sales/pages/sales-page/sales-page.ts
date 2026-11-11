@@ -22,6 +22,7 @@ import { StatusBadge } from '../../../../shared/components/status-badge/status-b
 import { Tone } from '../../../../shared/models/tone';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { InvoicePanel } from '../../components/invoice-panel/invoice-panel';
+import { SaleDetailPanel } from '../../components/sale-detail-panel/sale-detail-panel';
 import { SalesBookExport } from '../../components/sales-book-export/sales-book-export';
 import { localIsoDate, toSaleRow } from '../../data-access/sales-mapping';
 import { SaleStatus } from '../../data-access/sales-models';
@@ -38,8 +39,9 @@ const STATUS_TONES: Readonly<Record<SaleStatus, Tone>> = {
 };
 
 /**
- * Ventes du jour (VTE-07) : liste paginée par le serveur, filtrée par jour et par canal, et facture de la vente
- * sélectionnée. Une vendeuse ne voit que ses ventes (filtre imposé par le serveur), l'administrateur toutes.
+ * Ventes du jour (VTE-07) : liste paginée par le serveur, filtrée par jour et par canal, puis détail (VTE-09) et
+ * facture de la vente sélectionnée. Une vendeuse ne voit que ses ventes (filtre imposé par le serveur),
+ * l'administrateur toutes.
  */
 @Component({
   selector: 'vvs-sales-page',
@@ -54,6 +56,7 @@ const STATUS_TONES: Readonly<Record<SaleStatus, Tone>> = {
     Pagination,
     StatusBadge,
     InvoicePanel,
+    SaleDetailPanel,
     SalesBookExport,
   ],
   templateUrl: './sales-page.html',
