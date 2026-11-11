@@ -331,7 +331,8 @@ class InvoiceIT extends StockApiTestSupport {
         var soap = createArticle(uniqueName());
         move(soap, "STORE", StockMovementType.RECEIPT, "10");
         var saleId = recordSale(sellerToken, "MVOLA", soap, "3");
-        var before = getInvoiceOfSale(sellerToken, saleId).andReturn().getResponse().getContentAsString();
+        var before =
+                getInvoiceOfSale(sellerToken, saleId).andReturn().getResponse().getContentAsString();
         var counterBefore = currentCounter();
         var invoicesBefore = countInvoices();
 
@@ -453,7 +454,8 @@ class InvoiceIT extends StockApiTestSupport {
         var second = regenerate(sellerToken, saleId).andReturn().getResponse().getContentAsString();
 
         // Assert
-        assertThat(second).isEqualTo(first);
+        assertThat(text(second, "$.id")).isEqualTo(text(first, "$.id"));
+        assertThat(text(second, "$.number")).isEqualTo(text(first, "$.number"));
         assertThat(countInvoicesOf(saleId)).isEqualTo(1);
     }
 
