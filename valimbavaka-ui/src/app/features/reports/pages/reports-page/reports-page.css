@@ -100,3 +100,12 @@ h2 {
     width: 100%;
   }
 }
+.summary {
+  margin-bottom: var(--space-6);
+}
+.summary p.muted {
+  margin: 0 0 var(--space-3);
+}
+.summary .kpis {
+  margin-bottom: 0;
+}

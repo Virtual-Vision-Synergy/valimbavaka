@@ -11,24 +11,41 @@ import {
   SegmentOption,
 } from '../../../../shared/components/segmented-control/segmented-control';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
-import { SALE_CHANNELS } from '../../../../shared/models/commerce';
-import { ProductRange } from '../../../../shared/models/tone';
 import { AriaryPipe, formatAriary } from '../../../../shared/pipes/ariary-pipe';
 import { RangeDonut } from '../../components/range-donut/range-donut';
 import { RevenueCompareChart } from '../../components/revenue-compare-chart/revenue-compare-chart';
-import { REPORT_SELLERS } from '../../data-access/report-fixtures';
-import { ReportFilterWDto, ReportKpiRDto, ReportPeriod } from '../../data-access/report-models';
+import { ReferentialService } from '../../../referential/data-access/referential-service';
+import { localIsoDate } from '../../../sales/data-access/sales-mapping';
+import { ReportDemoService } from '../../data-access/report-demo-service';
+import { ReportGranularity, ReportKpiRDto, ReportQuery } from '../../data-access/report-models';
 import { ReportService } from '../../data-access/report-service';
 
-const PERIODS: readonly SegmentOption<ReportPeriod>[] = [
+const PERIODS: readonly SegmentOption<ReportGranularity>[] = [
   { value: 'DAY', labelKey: 'reports.period.DAY' },
   { value: 'MONTH', labelKey: 'reports.period.MONTH' },
   { value: 'YEAR', labelKey: 'reports.period.YEAR' },
 ];
-const RANGES: readonly ProductRange[] = ['BOTANIKA', 'ZEZIKA', 'SOLIKA'];
-const INITIAL: ReportFilterWDto = { period: 'MONTH', channel: 'ALL', range: 'ALL', seller: 'ALL' };
 
-/** Rapports (RPT-01 à RPT-06) : filtres, indicateurs comparés, courbe du CA, gammes, meilleurs produits. */
+/** Filtres du rapport : `''` = pas de restriction (tous les canaux, toutes les gammes). */
+interface ReportFilter {
+  readonly granularity: ReportGranularity;
+  readonly date: string;
+  readonly salesChannelId: string;
+  readonly rangeId: string;
+}
+
+const initialFilter = (): ReportFilter => ({
+  granularity: 'MONTH',
+  date: localIsoDate(new Date()),
+  salesChannelId: '',
+  rangeId: '',
+});
+
+/**
+ * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen) et les filtres période, canal et gamme sont
+ * branchés sur l'API (RPT-01) ; les indicateurs comparés, la courbe, les gammes et le classement restent des
+ * données de démonstration jusqu'à RPT-02 à RPT-05.
+ */
 @Component({
   selector: 'vvs-reports-page',
   imports: [
@@ -48,34 +65,48 @@ const INITIAL: ReportFilterWDto = { period: 'MONTH', channel: 'ALL', range: 'ALL
 })
 export class ReportsPage {
   private readonly reportService = inject(ReportService);
+  private readonly demoService = inject(ReportDemoService);
+  private readonly referentialService = inject(ReferentialService);
   private readonly toast = inject(ToastService);
 
   protected readonly icons = { FileText, FileSpreadsheet };
   protected readonly periods = PERIODS;
-  protected readonly channels = SALE_CHANNELS;
-  protected readonly ranges = RANGES;
-  protected readonly sellers = REPORT_SELLERS;
-  protected readonly filter = signal<ReportFilterWDto>(INITIAL);
-  protected readonly period = computed(() => this.filter().period);
+  protected readonly today = localIsoDate(new Date());
+  protected readonly filter = signal<ReportFilter>(initialFilter());
+  protected readonly granularity = computed(() => this.filter().granularity);
+  protected readonly channels = rxResource({
+    stream: () => this.referentialService.listSalesChannels(),
+  });
+  protected readonly ranges = rxResource({
+    stream: () => this.referentialService.listProductRanges(),
+  });
+  protected readonly summary = rxResource({
+    params: () => toQuery(this.filter()),
+    stream: ({ params }) => this.reportService.get(params),
+  });
   protected readonly report = rxResource({
-    params: () => this.filter(),
-    stream: ({ params }) => this.reportService.report(params),
+    params: () => this.filter().granularity,
+    stream: ({ params }) => this.demoService.report({ granularity: params }),
   });
   protected readonly dirty = computed(() => {
-    const { channel, range, seller } = this.filter();
-    return channel !== 'ALL' || range !== 'ALL' || seller !== 'ALL';
+    const { salesChannelId, rangeId } = this.filter();
+    return salesChannelId !== '' || rangeId !== '';
   });
 
-  protected setPeriod(period: ReportPeriod): void {
-    this.filter.update((current) => ({ ...current, period }));
+  protected setGranularity(granularity: ReportGranularity): void {
+    this.filter.update((current) => ({ ...current, granularity }));
   }
 
-  protected setFilter(key: 'channel' | 'range' | 'seller', value: string): void {
+  protected setDate(date: string): void {
+    this.filter.update((current) => ({ ...current, date: date || this.today }));
+  }
+
+  protected setFilter(key: 'salesChannelId' | 'rangeId', value: string): void {
     this.filter.update((current) => ({ ...current, [key]: value }));
   }
 
   protected reset(): void {
-    this.filter.update((current) => ({ ...INITIAL, period: current.period }));
+    this.filter.update((current) => ({ ...current, salesChannelId: '', rangeId: '' }));
   }
 
   protected exportAs(format: string): void {
@@ -96,4 +127,13 @@ export class ReportsPage {
   protected compact(amount: number): string {
     return formatAriary(amount, 'compact');
   }
+}
+
+function toQuery(filter: ReportFilter): ReportQuery {
+  return {
+    granularity: filter.granularity,
+    date: filter.date,
+    salesChannelId: filter.salesChannelId,
+    rangeId: filter.rangeId,
+  };
 }

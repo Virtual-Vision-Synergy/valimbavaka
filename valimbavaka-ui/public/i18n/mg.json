@@ -1891,12 +1891,15 @@
       "MONTH": "Volana",
       "YEAR": "Taona"
     },
+    "date": "Daty fanondroana",
+    "summary": {
+      "title": "Famintinana ny vanim-potoana",
+      "period": "Manomboka ny {{from}} ka hatramin'ny {{to}}"
+    },
     "channel": "Lalana",
     "allChannels": "Lalana rehetra",
     "range": "Karazana",
     "allRanges": "Karazana rehetra",
-    "seller": "Mpivarotra",
-    "allSellers": "Mpivarotra rehetra",
     "reset": "Avereno",
     "kpis": "Famantarana",
     "kpi": {
