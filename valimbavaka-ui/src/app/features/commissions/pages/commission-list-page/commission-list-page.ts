@@ -1,3 +1,4 @@
+import { HttpParams } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,24 +9,29 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { Download, RefreshCw } from 'lucide';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { errorMessage } from '../../../../core/http/problem-detail';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { Pagination } from '../../../../shared/components/pagination/pagination';
+import { ExportFormat, ExportService } from '../../../../shared/data-access/export-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { ShortDatePipe } from '../../../../shared/pipes/short-date-pipe';
 import {
   CommissionRDto,
+  CommissionRecalculationRDto,
   CommissionValidationRDto,
   SellerCommissionRDto,
 } from '../../data-access/commission-models';
 import { CommissionService } from '../../data-access/commission-service';
 
+const COMMISSIONS_URL = '/api/v1/commissions';
 const PAGE_SIZE = 20;
 /** Vendeuses affichées en une page : le maximum accepté par l'API. */
 const SELLER_PAGE_SIZE = 100;
@@ -50,7 +56,10 @@ export function monthRange(month: string): { from: string; to: string } {
  * vendeuse, avec la base (CA ou marge), le taux appliqué et son origine (service salon, canal ou vendeuse), et la
  * commission = base × taux. Le calcul est fait par le serveur à l'enregistrement de l'opération. Au-dessus, le statut
  * à valider / validée de chaque vendeuse sur le mois, et la validation de ses commissions (COM-03) après confirmation :
- * le serveur décide (`commissions.validate`), une commission validée est définitive.
+ * le serveur décide (`commissions.validate`), une commission validée est définitive. COM-05 : l'administrateur
+ * recalcule les commissions non validées du mois affiché après confirmation (`commissions.recalculate` ; une validée
+ * ou une annulée n'est jamais touchée) et exporte le mois en Excel ou en PDF ; les deux actions confirment leur
+ * exécution (message du recalcul, notification de l'export).
  */
 @Component({
   selector: 'vvs-commission-list-page',
@@ -62,6 +71,7 @@ export function monthRange(month: string): { from: string; to: string } {
     PageHeader,
     Pagination,
     ConfirmDialog,
+    Icon,
     RouterLink,
   ],
   templateUrl: './commission-list-page.html',
@@ -72,8 +82,10 @@ export class CommissionListPage {
   private readonly commissionService = inject(CommissionService);
   private readonly language = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+  private readonly exportService = inject(ExportService);
   private readonly destroyRef = inject(DestroyRef);
 
+  protected readonly icons = { Download, RefreshCw };
   protected readonly pageSize = PAGE_SIZE;
   protected readonly commissions = signal<CommissionRDto[]>([]);
   /** Page courante en base 1, comme le contrat de l'API. */
@@ -81,6 +93,10 @@ export class CommissionListPage {
   protected readonly totalCount = signal(0);
   protected readonly month = signal(monthKey(new Date(), 0));
   protected readonly canValidate = inject(AuthStore).hasPermission('commissions.validate');
+  protected readonly canRecalculate = inject(AuthStore).hasPermission('commissions.recalculate');
+  protected readonly isRecalculationPending = signal(false);
+  protected readonly isRecalculating = signal(false);
+  protected readonly isExporting = signal(false);
   protected readonly sellers = signal<SellerCommissionRDto[]>([]);
   protected readonly sellersError = signal<string | null>(null);
   /** Vendeuse dont la validation attend la confirmation. */
@@ -108,6 +124,45 @@ export class CommissionListPage {
     this.notice.set(null);
     this.loadCommissions();
     this.loadSellers();
+  }
+
+  protected askRecalculation(): void {
+    this.isRecalculationPending.set(true);
+  }
+
+  protected dismissRecalculation(): void {
+    this.isRecalculationPending.set(false);
+  }
+
+  /** Recalcule le mois affiché, toutes vendeuses ; le résultat chiffré confirme l'exécution. */
+  protected confirmRecalculation(): void {
+    this.isRecalculationPending.set(false);
+    this.isRecalculating.set(true);
+    this.sellersError.set(null);
+    this.notice.set(null);
+    this.commissionService
+      .recalculate(monthRange(this.month()))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isRecalculating.set(false)),
+      )
+      .subscribe({
+        next: (result) => this.onRecalculated(result),
+        error: (error: unknown) => this.sellersError.set(errorMessage(error)),
+      });
+  }
+
+  /** Télécharge le mois affiché, toutes vendeuses ; le service d'export confirme la génération du fichier. */
+  protected exportAs(format: ExportFormat): void {
+    const { from, to } = monthRange(this.month());
+    this.isExporting.set(true);
+    this.exportService
+      .download(COMMISSIONS_URL, format, new HttpParams().set('from', from).set('to', to))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isExporting.set(false)),
+      )
+      .subscribe({ error: () => undefined });
   }
 
   protected askValidation(seller: SellerCommissionRDto): void {
@@ -151,6 +206,17 @@ export class CommissionListPage {
           this.loadSellers();
         },
       });
+  }
+
+  private onRecalculated(result: CommissionRecalculationRDto): void {
+    const params = {
+      updated: result.updatedCount,
+      unchanged: result.unchangedCount,
+      validated: result.validatedCount,
+    };
+    this.notice.set(this.translate.instant('commissionList.recalculate.done', params));
+    this.loadSellers();
+    this.loadCommissions();
   }
 
   private onValidated(result: CommissionValidationRDto): void {

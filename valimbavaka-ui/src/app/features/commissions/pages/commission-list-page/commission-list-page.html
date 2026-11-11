@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'commissionList.title' | translate"
     [subtitle]="'commissionList.subtitle' | translate"
-    [codes]="['COM-02', 'COM-03']"
+    [codes]="['COM-02', 'COM-03', 'COM-05']"
   />
 
   <section class="card list" [attr.aria-label]="'commissionList.title' | translate">
@@ -20,6 +20,37 @@
       <p class="count" role="status">
         {{ 'commissionList.count' | translate: { count: totalCount() } }}
       </p>
+      <div class="actions">
+        @if (canRecalculate) {
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="isRecalculating()"
+            (click)="askRecalculation()"
+          >
+            <svg [vvsIcon]="icons.RefreshCw" [size]="18"></svg>
+            {{ 'commissionList.recalculate.button' | translate }}
+          </button>
+        }
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="isExporting()"
+          (click)="exportAs('xlsx')"
+        >
+          <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+          {{ 'commissionList.export.xlsx' | translate }}
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="isExporting()"
+          (click)="exportAs('pdf')"
+        >
+          <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+          {{ 'commissionList.export.pdf' | translate }}
+        </button>
+      </div>
     </div>
 
     @if (errorMessage(); as message) {
@@ -188,5 +219,15 @@
     [confirmLabel]="'commissionList.validate.button' | translate"
     (confirmed)="confirmValidation()"
     (cancelled)="dismiss()"
+  />
+}
+
+@if (isRecalculationPending()) {
+  <vvs-confirm-dialog
+    [heading]="'commissionList.recalculate.confirmTitle' | translate"
+    [message]="'commissionList.recalculate.confirmMessage' | translate"
+    [confirmLabel]="'commissionList.recalculate.button' | translate"
+    (confirmed)="confirmRecalculation()"
+    (cancelled)="dismissRecalculation()"
   />
 }

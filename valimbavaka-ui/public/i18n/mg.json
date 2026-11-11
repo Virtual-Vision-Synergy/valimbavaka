@@ -1551,6 +1551,7 @@
     "thisMonth": "ity volana ity",
     "detail": "Antsipiriany isaky ny varotra",
     "export": "Alefaso ny tatitra",
+    "exportPdf": "Tatitra PDF",
     "col": {
       "sale": "Varotra",
       "date": "Daty",
@@ -1643,6 +1644,16 @@
     "commissionCount": "Kaomisiona {{count}}",
     "sellerStatus": { "TO_VALIDATE": "Tokony hekena", "VALIDATED": "Voaekena" },
     "follow": { "button": "Fanarahana", "action": "Fanarahana ny volana ho an'i {{name}}" },
+    "recalculate": {
+      "button": "Avereno kajy",
+      "confirmTitle": "Avereno kajy ny kaomisiona ?",
+      "confirmMessage": "Avereno kajy ny kaomisiona tsy mbola voaaiky amin'ny volana aseho, ho an'ny mpivarotra rehetra, amin'ny taha mihatra ankehitriny ? Tsy ovana ny kaomisiona voaaiky sy ny nofoanana.",
+      "done": "Vita ny kajy indray : kaomisiona {{updated}} novaina, {{unchanged}} tsy niova, {{validated}} voaaiky navela toy izy."
+    },
+    "export": {
+      "xlsx": "Alefaso amin'ny Excel",
+      "pdf": "Alefaso amin'ny PDF"
+    },
     "validate": {
       "button": "Ekena",
       "action": "Ekena ny kaomisionan'i {{name}}",
