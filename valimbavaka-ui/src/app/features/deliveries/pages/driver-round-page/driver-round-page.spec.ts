@@ -64,10 +64,12 @@ const ROUND = toDriverRound(
 describe('DriverRoundPage', () => {
   let fixture: ComponentFixture<DriverRoundPage>;
   let element: HTMLElement;
+  const pendingCount = signal(0);
   const myRound = vi.fn<() => Observable<DriverRoundRDto>>();
   const updateStatus = vi.fn<(id: string, change: DeliveryStatusWDto) => Observable<string>>();
 
   const open = async (round: DriverRoundRDto): Promise<void> => {
+    pendingCount.set(0);
     myRound.mockReset().mockReturnValue(of(round));
     updateStatus.mockReset().mockReturnValue(of('order-2'));
     await TestBed.configureTestingModule({
@@ -75,7 +77,7 @@ describe('DriverRoundPage', () => {
       providers: [
         provideTestTranslations(),
         { provide: DeliveryService, useValue: { myRound, updateStatus } },
-        { provide: OutboxService, useValue: { pendingCount: signal(0) } },
+        { provide: OutboxService, useValue: { pendingCount } },
       ],
     }).compileComponents();
     TestBed.inject(AuthStore).signIn('jeton', buildUser('DELIVERY_DRIVER'));
@@ -175,6 +177,49 @@ describe('DriverRoundPage', () => {
 
     expect(updateStatus).not.toHaveBeenCalled();
     expect(text('.next h2')).toBe('Rasoa Vola');
+  });
+
+  it('envoie tout de suite la saisie en attente quand la page est masquée (onglet fermé)', async () => {
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      element.querySelector<HTMLButtonElement>('.next .deliver')?.click();
+      fixture.detectChanges();
+
+      window.dispatchEvent(new Event('pagehide'));
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).toHaveBeenCalledWith('order-2', {
+      status: 'DELIVERED',
+      failureReason: null,
+      note: null,
+    });
+  });
+
+  it('relit la tournée quand la file hors ligne se vide au retour du réseau', async () => {
+    await open(ROUND);
+    pendingCount.set(2);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(myRound).toHaveBeenCalledOnce();
+
+    pendingCount.set(0);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(myRound).toHaveBeenCalledTimes(2);
+  });
+
+  it('ne relit pas la tournée tant qu’aucune saisie n’a attendu le réseau', async () => {
+    await open(ROUND);
+
+    pendingCount.set(0);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(myRound).toHaveBeenCalledOnce();
   });
 
   it('annonce un « Livrée » refusé par le serveur et relit la tournée', async () => {
