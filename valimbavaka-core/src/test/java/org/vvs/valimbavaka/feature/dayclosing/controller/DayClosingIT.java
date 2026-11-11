@@ -309,7 +309,8 @@ class DayClosingIT extends StockApiTestSupport {
 
     /** Shooting exit from the store; returns the id of the new exit. */
     private String shootingOf(String quantity) throws Exception {
-        var body = """
+        var body =
+                """
                 {"locationId":"%s","items":[{"articleId":"%s","quantity":%s}],"expectedReturnAt":"%s"}
                 """.formatted(location("STORE"), soap, quantity, Instant.now().plus(1, ChronoUnit.DAYS));
         var json = mockMvc.perform(post("/api/v1/shootings")
