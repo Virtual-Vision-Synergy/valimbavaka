@@ -1,57 +1,53 @@
 # Guide d'intégration — VTE-06 · Mise en attente d'un ticket
 
-> **À compléter par le traiteur du ticket une fois le scénario de test rédigé et l'implémentation faite.** Ce guide est lu par les autres tickets pour utiliser cette fonctionnalité sans relire le code : quoi appeler, quels fichiers sont exposés, quel est le contrat.
-
-Statut : ☐ à compléter · Ticket : [#67](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/67) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ rédigé le 2026-11-11 · Ticket : [#67](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/67) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
-_(2 à 3 phrases : ce que la fonctionnalité fait et ce qu'elle offre aux autres.)_
+La vendeuse met le ticket courant en attente avec le bouton « Mettre en attente » ou la touche `F8` : le panier est
+vidé, **aucune vente n'est enregistrée** et le poste propose le numéro suivant. La maquette VTE-02 faisait déjà ce
+geste (état local) ; ce ticket ajoute le garde-fou pendant l'envoi d'un encaissement, le retour d'information sur un
+ticket vide, la traduction fr/mg et les tests.
 
 ## Contrat exposé
 
 ### Endpoints backend
 
-| Méthode | URL | Permission (`@HasPermission`) | Entrée (`XxxWDto`) | Sortie (`XxxRDto`) | Erreurs |
-|---|---|---|---|---|---|
-| _(à compléter)_ | | | | | |
+Aucun : l'action est purement locale au poste (aucun appel réseau, rien dans la file hors ligne).
 
 ### Services et ports Java réutilisables
 
-- _(à compléter : interface de service, port `security`, événement publié, etc.)_
+- Aucun.
 
 ### Frontend
 
-- Routes : _(à compléter)_
-- Services / stores (`data-access`) : _(à compléter)_
-- Composants réutilisables : _(à compléter)_
+- Route : `/pos` (inchangée).
+- Méthode `PosPage.hold()` (`valimbavaka-ui/src/app/features/pos/pages/pos-page/pos-page.ts`), appelée par le bouton
+  (`pos-ticket.html`, sortie `hold`) et par `F8` (`pos-shortcuts.ts`, action `hold`).
+- Clés i18n : `pos.toast.held` (existante), `pos.toast.holdEmpty` (nouvelle, `public/i18n/fr.json` et `mg.json`).
+- Compteur « En attente » : signal `heldCount` de `PosPage`, initialisé depuis `PosContextRDto.heldTickets`.
 
 ### Données
 
-- Tables et migrations Liquibase : _(à compléter)_
-- Écriture dans le journal (action, champs) : _(à compléter)_
+- Aucune table, aucune migration, aucune écriture au journal.
 
 ## Règles métier à respecter par les autres tickets
 
-- _(à compléter : statuts, états interdits, calculs, arrondis, droits par rôle)_
-
+- Mettre en attente n'est pas une vente : aucun numéro de vente, aucun stock décrémenté, aucun journal.
+- Ticket vide : l'action est refusée avec un avertissement. Pendant l'envoi d'un encaissement : ignorée.
+- La vendeuse sélectionnée est conservée ; le règlement et le montant reçu sont remis à zéro (`PosCart.clear`).
 
 ## Fichiers concernés
 
-**À exposer / créer (liste du traiteur)** : _(à compléter)_
-
-Zone de départ (voir `description.md`) :
-
-- Frontend :
-  - `valimbavaka-ui/src/app/features/pos`
-  - `valimbavaka-ui/src/app/features/sales`
-- Backend :
-  - `valimbavaka-core/src/main/java/org/vvs/valimbavaka/feature/sale (à créer)`
+- `valimbavaka-ui/src/app/features/pos/pages/pos-page/pos-page.ts` (modifié : `hold`)
+- `valimbavaka-ui/src/app/features/pos/pages/pos-page/pos-page-hold.spec.ts` (nouveau)
+- `valimbavaka-ui/public/i18n/fr.json`, `mg.json` (clé `pos.toast.holdEmpty`)
 
 ## Dépendances
 
 **Ce ticket s'appuie sur** :
-- [VTE-02](../VTE-02/description.md) · [guide](../VTE-02/guide.md)
+- [VTE-02](../VTE-02/description.md) · [guide](../VTE-02/guide.md) (poste, panier `PosCart`)
+- [VTE-03](../VTE-03/description.md) · [guide](../VTE-03/guide.md) (touche `F8`)
 
 **Ces tickets s'appuient sur lui** :
 - _(rien)_
@@ -59,9 +55,13 @@ Zone de départ (voir `description.md`) :
 ## Comment l'utiliser depuis un autre ticket
 
 ```text
-(exemple d'appel ou d'injection à compléter)
+PosPage.hold() : à appeler pour vider le poste sans vendre (ex. changement de vendeuse imposé).
 ```
 
 ## Points d'attention
 
-- _(à compléter : pièges, limites connues, dette technique, décisions en attente du client)_
+- **Hypothèse** : le seul critère du ticket est « vider le panier sans enregistrer de vente ». Le contenu du ticket
+  mis en attente n'est **pas conservé** : le compteur « En attente » est un simple compteur d'écran, et la **reprise**
+  d'un ticket en attente n'existe pas. Elle demandera une décision (stockage local ou serveur) et un ticket dédié.
+- Un ticket en attente ne survit pas au rechargement de la page ; le compteur repart de `heldTickets` fourni par le contexte.
+- Les tests ne sont pas encore exécutés : statuts à ☐ jusqu'à la CI.
