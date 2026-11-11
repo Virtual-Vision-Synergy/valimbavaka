@@ -73,6 +73,16 @@
                   }}</span>
                 </td>
                 <td class="num">
+                  <a
+                    class="btn btn-ghost"
+                    routerLink="/commissions"
+                    [queryParams]="{ sellerId: seller.sellerId, month: month() }"
+                    [attr.aria-label]="
+                      'commissionList.follow.action' | translate: { name: seller.sellerName }
+                    "
+                  >
+                    {{ 'commissionList.follow.button' | translate }}
+                  </a>
                   @if (canValidate && seller.status === 'TO_VALIDATE') {
                     <button
                       type="button"

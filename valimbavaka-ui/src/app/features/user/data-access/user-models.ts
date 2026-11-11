@@ -23,6 +23,8 @@ export interface UserRDto {
   salesChannelId: string | null;
   /** Pourcentage (0 à 100) ; renseigné uniquement pour une vendeuse. */
   commissionRate: number | null;
+  /** Objectif mensuel de chiffre d'affaires en ariary (COM-04) ; fixé par l'administrateur, vendeuse seulement. */
+  monthlyTarget: number | null;
   active: boolean;
   passwordChangeRequired: boolean;
   createdAt: string;
@@ -41,6 +43,7 @@ export interface CreateUserWDto {
   roleId: string;
   salesChannelId: string | null;
   commissionRate: number | null;
+  monthlyTarget: number | null;
 }
 
 export interface UpdateUserWDto {
@@ -50,6 +53,7 @@ export interface UpdateUserWDto {
   roleId: string;
   salesChannelId: string | null;
   commissionRate: number | null;
+  monthlyTarget: number | null;
   active: boolean;
 }
 

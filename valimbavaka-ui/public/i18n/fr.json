@@ -1480,31 +1480,39 @@
     "ofGoal": "de l'objectif",
     "estimated": "Commission estimée",
     "salesGoal": "sur {{sales}} Ar de ventes · objectif {{goal}} Ar",
-    "remaining": "Encore {{left}} Ar en {{days}} jours ouvrés, soit ≈ {{perDay}} / jour.",
+    "remaining": "Encore {{left}} Ar en {{days}} jours, soit ≈ {{perDay}} / jour.",
     "validated": "Validée",
     "toValidate": "À valider",
     "salesCount": "Ventes",
     "thisMonth": "ce mois",
-    "byChannel": "Commissions par canal",
-    "salon": "Prestations salon",
-    "fixed": "forfait",
-    "services": "{{count}} prestations",
-    "ofSales": "sur {{amount}} Ar de ventes",
     "detail": "Détail par vente",
     "export": "Exporter mon relevé",
     "col": {
       "sale": "Vente",
       "date": "Date",
-      "channel": "Canal",
       "base": "Base",
       "rate": "Taux",
       "commission": "Commission",
-      "status": "Statut"
+      "status": "Statut",
+      "source": "Origine"
     },
     "status": {
       "CALCULATED": "Calculée",
       "VALIDATED": "Validée",
-      "PAID": "Payée"
+      "CANCELLED": "Annulée"
+    },
+    "noGoal": "{{sales}} Ar de ventes ce mois · aucun objectif fixé par l'administrateur",
+    "pickSeller": {
+      "title": "Choisissez une vendeuse",
+      "message": "Ouvrez le suivi d'une vendeuse depuis « Commissions calculées »."
+    },
+    "empty": {
+      "title": "Aucune commission ce mois-ci",
+      "message": "Les commissions apparaissent dès qu'une vente ou une prestation est enregistrée."
+    },
+    "source": {
+      "SALE": "Vente",
+      "SERVICE_RECORD": "Prestation"
     }
   },
   "commissionRule": {
@@ -1570,6 +1578,7 @@
     "detail": "Détail des commissions",
     "commissionCount": "{{count}} commission(s)",
     "sellerStatus": { "TO_VALIDATE": "À valider", "VALIDATED": "Validée" },
+    "follow": { "button": "Suivi", "action": "Suivi du mois de {{name}}" },
     "validate": {
       "button": "Valider",
       "action": "Valider les commissions de {{name}}",
