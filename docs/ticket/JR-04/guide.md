@@ -1,6 +1,6 @@
 # Guide d'intégration — JR-04 · Réconciliation automatique de clôture
 
-Statut : ✅ écrit le 11/11/2026 — tests automatiques à lancer (voir « Résultat de l'exécution » du scénario) · Ticket : [#91](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/91) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 11/11/2026 — tests verts en CI le 11/11/2026 (voir « Résultat de l'exécution » du scénario) · Ticket : [#91](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/91) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
