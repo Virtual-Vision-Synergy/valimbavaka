@@ -15,7 +15,7 @@
     />
   </vvs-page-header>
 
-  @if (closing.value(); as data) {
+  @if (data(); as data) {
     @if (lockedAt(); as time) {
       <p class="locked-banner" role="status">
         <svg [vvsIcon]="icons.LockKeyhole" [size]="20"></svg>

@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.dayclosing.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -90,9 +91,8 @@ class DayClosingIT extends StockApiTestSupport {
 
     @Test
     void getClosing_dayNotOpened_returns409() throws Exception {
-        // Arrange
-        jdbcTemplate.update("delete from business_day_transfers");
-        jdbcTemplate.update("delete from business_days");
+        // Arrange: every day moves back in time, so that none is today's (the sales keep their reference to it)
+        jdbcTemplate.update("update business_days set business_date = business_date - 400");
 
         // Act + Assert
         try {
@@ -101,7 +101,7 @@ class DayClosingIT extends StockApiTestSupport {
                     .andExpect(jsonPath("$.code").value("CONFLICT"))
                     .andExpect(jsonPath("$.detail").value(startsWith("La journée du ")));
         } finally {
-            openToday();
+            jdbcTemplate.update("update business_days set business_date = business_date + 400");
         }
     }
 
@@ -112,7 +112,10 @@ class DayClosingIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.businessDate")
                         .value(LocalDate.now(BUSINESS_ZONE).toString()))
                 .andExpect(jsonPath("$.status").value("OPEN"))
-                .andExpect(jsonPath("$.locations[*].code").value(List.of("STORE", "DELIVERY", "TRADE_SHOW")));
+                .andExpect(jsonPath("$.locations", hasSize(3)))
+                .andExpect(jsonPath("$.locations[0].code").value("STORE"))
+                .andExpect(jsonPath("$.locations[1].code").value("DELIVERY"))
+                .andExpect(jsonPath("$.locations[2].code").value("TRADE_SHOW"));
     }
 
     @Test

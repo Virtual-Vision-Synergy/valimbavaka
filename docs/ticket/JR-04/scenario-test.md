@@ -67,7 +67,7 @@ Critère unique : « Chaque article affiche les 6 composantes et l'écart théor
 - **Vide** : aucun article actif sur un emplacement : bloc avec `lines` vide, l'écran affiche « Aucun écart dans cet emplacement ».
 - **Hors ligne** : lecture seule, rien n'est mis en file (`Idempotency-Key` sans objet) ; l'écran affiche l'état d'erreur avec « Réessayer ».
 - **Reste en démonstration** (JR-05, JR-06) : la caisse (espèces attendues / comptées), la liste de contrôle (livraisons soldées, tickets, shootings) et le verrouillage ; la page garde `underConstruction`.
-- **Base partagée entre classes de test** : `DayClosingIT` travaille sur ses propres articles (lignes exactes quoi qu'ait enregistré une autre classe), ouvre la journée si besoin (201 ou 409 accepté), appelle `endAutomaticPromotions()` avant la vente, crée sa vendeuse avec le prénom « Aaron » (le formulaire de vente ne liste que les 100 premières par prénom) ; le test « journée non ouverte » supprime la journée puis la rouvre dans un `finally`. Aucun test ne clôture la journée.
+- **Base partagée entre classes de test** : `DayClosingIT` travaille sur ses propres articles (lignes exactes quoi qu'ait enregistré une autre classe), ouvre la journée si besoin (201 ou 409 accepté), appelle `endAutomaticPromotions()` avant la vente, crée sa vendeuse avec le prénom « Aaron » (le formulaire de vente ne liste que les 100 premières par prénom) ; le test « journée non ouverte » décale toutes les journées de 400 jours (les ventes gardent leur référence) puis les remet dans un `finally`. Aucun test ne clôture la journée.
 
 ## Tests existants
 

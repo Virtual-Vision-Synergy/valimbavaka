@@ -123,7 +123,7 @@ describe('DayClosePage', () => {
     );
     // report, transféré, retour, vendu, livré, salon, shooting, théorique, compté, écart
     expect(cells(0).slice(0, 10)).toEqual(['4', '30', '1', '19', '0', '0', '2', '14', '12', '−2']);
-    expect(cells(1).slice(0, 10)).toEqual(['0', '10', '0', '4', '0', '0', '0', '6', '6', '']);
+    expect(cells(1).slice(0, 10)).toEqual(['0', '10', '0', '4', '0', '0', '0', '6', '6', '0']);
   });
 
   it('should compute the gap again when the administrator changes the count', async () => {
