@@ -6,6 +6,7 @@ import {
   PaymentMethod,
   PosArticleRDto,
   PosContextRDto,
+  PosPromotionRDto,
   SaleChannel,
   SaleFormRDto,
   SaleWDto,
@@ -47,7 +48,7 @@ export function toPosContext(
     openedAt: now.toTimeString().slice(0, 5),
     heldTickets: 0,
     articles: toPosArticles(form, ranges, store?.stockLocationId),
-    promotion: null,
+    promotions: toPosPromotions(form),
     openTicket: [],
     openTicketReceived: 0,
   };
@@ -62,6 +63,24 @@ function toChannelIds(form: SaleFormRDto): Partial<Record<SaleChannel, string>> 
     }
   }
   return channelIds;
+}
+
+/** Promotions automatiques du serveur : les identifiants de canal deviennent les canaux du poste. */
+function toPosPromotions(form: SaleFormRDto): PosPromotionRDto[] {
+  const posChannels = new Map(
+    form.channels.map((channel) => [channel.id, POS_CHANNEL_BY_CODE[channel.code]]),
+  );
+  return form.promotions.map((promotion) => ({
+    id: promotion.id,
+    name: promotion.name,
+    kind: promotion.kind,
+    value: promotion.value,
+    articleIds: promotion.articleIds,
+    channels: promotion.channelIds.flatMap((id) => {
+      const channel = posChannels.get(id);
+      return channel ? [channel] : [];
+    }),
+  }));
 }
 
 function toPosArticles(

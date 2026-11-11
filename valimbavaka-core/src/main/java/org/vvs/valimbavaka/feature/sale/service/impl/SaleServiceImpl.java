@@ -33,6 +33,7 @@ public class SaleServiceImpl implements SaleService {
     private final SalePolicy policy;
     private final SaleLedger ledger;
     private final SaleFormAssembler formAssembler;
+    private final SaleDiscounts discounts;
 
     SaleServiceImpl(
             SaleRepository saleRepository,
@@ -40,13 +41,15 @@ public class SaleServiceImpl implements SaleService {
             BusinessDayService businessDayService,
             SalePolicy policy,
             SaleLedger ledger,
-            SaleFormAssembler formAssembler) {
+            SaleFormAssembler formAssembler,
+            SaleDiscounts discounts) {
         this.saleRepository = saleRepository;
         this.saleMapper = saleMapper;
         this.businessDayService = businessDayService;
         this.policy = policy;
         this.ledger = ledger;
         this.formAssembler = formAssembler;
+        this.discounts = discounts;
     }
 
     @Override
@@ -61,8 +64,9 @@ public class SaleServiceImpl implements SaleService {
                 checked.channel().stockLocationId(),
                 command.sellerId(),
                 command.paymentMethod());
+        var discount = discounts.of(command, checked.lines());
         var number = "VTE-%04d".formatted(saleRepository.nextNumber());
-        var sale = saleRepository.save(Sale.record(number, header, checked.lines()));
+        var sale = saleRepository.save(Sale.record(number, header, checked.lines(), discount));
         ledger.post(sale, checked.channel().label());
         log.info(
                 "Vente {} enregistrée ({} ligne(s))",

@@ -84,7 +84,7 @@
             @if (line.discount) {
               <span class="line-discount num">
                 {{
-                  'pos.ticket.lineDiscount'
+                  (line.rate ? 'pos.ticket.lineDiscount' : 'pos.ticket.lineDiscountFree')
                     | translate: { rate: line.rate, amount: (line.discount | ariary: 'plain') }
                 }}
               </span>
@@ -99,7 +99,6 @@
     <p class="promo">
       <svg [vvsIcon]="icons.Tag" [size]="18"></svg>
       <span>{{ 'pos.ticket.promoApplied' | translate: { name: promotion.name } }}</span>
-      <span class="code-chip">{{ promotion.code }}</span>
     </p>
   }
 

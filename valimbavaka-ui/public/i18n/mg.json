@@ -447,6 +447,7 @@
       "increase": "Hanampy iray : {{name}}",
       "quantity": "Isa",
       "lineDiscount": "−{{rate}} % · −{{amount}}",
+      "lineDiscountFree": "Maimaimpoana · −{{amount}}",
       "promoApplied": "{{name}} nampiharina ho azy",
       "subtotal": "Totaly ampahany",
       "discount": "Fihenam-bidy",

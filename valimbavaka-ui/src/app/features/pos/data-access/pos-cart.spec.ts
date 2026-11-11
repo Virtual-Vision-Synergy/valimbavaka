@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { formatAriary } from '../../../shared/pipes/ariary-pipe';
 import { PosCart } from './pos-cart';
 import { POS_FIXTURE } from './pos-fixtures';
-import { PosArticleRDto } from './pos-models';
+import { PosArticleRDto, PosPromotionRDto } from './pos-models';
 
 const article = (id: string, name: string, price: number, stock = 10): PosArticleRDto => ({
   id,
@@ -19,6 +19,13 @@ const article = (id: string, name: string, price: number, stock = 10): PosArticl
 const SAVON = article('art-0031', 'Savon noir 100 g', 8500, 2);
 const GOMMAGE = article('art-0087', 'Gommage café 200 g', 12500);
 
+/** Promotion de la maquette (Octobre rose, 15 %), ramenée aux articles de ce test. */
+const promotion = (overrides: Partial<PosPromotionRDto> = {}): PosPromotionRDto => ({
+  ...POS_FIXTURE.promotions[0],
+  articleIds: [SAVON.id, GOMMAGE.id],
+  ...overrides,
+});
+
 /** Calcul automatique du ticket en caisse (VTE-02) : chaque changement recalcule les totaux. */
 describe('PosCart', () => {
   let cart: PosCart;
@@ -32,7 +39,7 @@ describe('PosCart', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [PosCart] });
     cart = TestBed.inject(PosCart);
-    cart.start([SAVON, GOMMAGE], null, [], 0);
+    cart.start([SAVON, GOMMAGE], [], [], 0);
   });
 
   it("met à jour sous-total, remise et net à payer à chaque ajout d'article", () => {
@@ -49,7 +56,7 @@ describe('PosCart', () => {
   it('applique la remise de ligne de la promotion aux seuls articles ciblés', () => {
     cart.start(
       POS_FIXTURE.articles,
-      POS_FIXTURE.promotion,
+      POS_FIXTURE.promotions,
       POS_FIXTURE.openTicket,
       POS_FIXTURE.openTicketReceived,
     );
@@ -58,6 +65,55 @@ describe('PosCart', () => {
     const discounted = cart.priced().filter((line) => line.discount > 0);
     expect(discounted.map((line) => line.discount)).toEqual([3825, 1875]);
     expect(cart.appliedPromotion()?.name).toBe('Octobre rose');
+  });
+
+  it("applique la promotion seulement sur les canaux qu'elle vise", () => {
+    const facebookOnly = promotion({ channels: ['FACEBOOK'] });
+    cart.start([SAVON, GOMMAGE], [facebookOnly], [], 0);
+    cart.add(SAVON);
+    expect(cart.discount()).toBe(0);
+    expect(cart.appliedPromotion()).toBeNull();
+
+    cart.channel.set('FACEBOOK');
+
+    expect(cart.discount()).toBe(1275);
+    expect(cart.total()).toBe(7225);
+    expect(cart.appliedPromotion()?.name).toBe('Octobre rose');
+  });
+
+  it("retire un montant fixe une seule fois du ticket et ne l'affiche sur aucune ligne", () => {
+    const amount = promotion({ kind: 'AMOUNT', value: 2000 });
+    cart.start([SAVON, GOMMAGE], [amount], [], 0);
+
+    cart.add(SAVON);
+    cart.add(GOMMAGE);
+
+    expect(totals()).toEqual({ subtotal: 21000, discount: 2000, total: 19000 });
+    expect(cart.priced().map((line) => line.discount)).toEqual([0, 0]);
+  });
+
+  it('offre une unité par groupe de deux achetées avec une promotion BUY_X', () => {
+    const savon = { ...SAVON, stock: 10 };
+    const buyTwo = promotion({ kind: 'BUY_X', value: 2, articleIds: [savon.id] });
+    cart.start([savon], [buyTwo], [], 0);
+
+    cart.add(savon);
+    expect(cart.discount()).toBe(0);
+    cart.add(savon);
+
+    expect(cart.priced()[0]).toMatchObject({ discount: 8500, rate: 0 });
+    expect(cart.total()).toBe(8500);
+  });
+
+  it("choisit la promotion la plus avantageuse quand plusieurs s'appliquent", () => {
+    const percent = promotion();
+    const amount = promotion({ id: 'montant', name: 'Mille ariary', kind: 'AMOUNT', value: 1000 });
+    cart.start([SAVON, GOMMAGE], [amount, percent], [], 0);
+
+    cart.add(SAVON);
+
+    expect(cart.appliedPromotion()?.name).toBe('Octobre rose');
+    expect(cart.discount()).toBe(1275);
   });
 
   it("recalcule les totaux quand une unité est retirée, jusqu'au ticket vide", () => {
@@ -91,7 +147,7 @@ describe('PosCart', () => {
   });
 
   it("calcule le rendu monnaie et bloque l'encaissement en espèces si le reçu ne couvre pas le net", () => {
-    cart.start(POS_FIXTURE.articles, POS_FIXTURE.promotion, POS_FIXTURE.openTicket, 60000);
+    cart.start(POS_FIXTURE.articles, POS_FIXTURE.promotions, POS_FIXTURE.openTicket, 60000);
     cart.seller.set('seller-miora');
     expect(cart.change()).toBe(1700);
     expect(cart.canCheckout()).toBe(true);

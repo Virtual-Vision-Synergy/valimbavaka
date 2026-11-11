@@ -20,12 +20,20 @@ export interface PosArticleRDto {
   readonly box: boolean;
 }
 
-/** Promotion appliquée automatiquement aux articles ciblés (PRO-02). */
+/**
+ * Règle de remise d'une promotion (PRO-01) : `PERCENT` (value %), `AMOUNT` (value Ar), `BUY_X` (une unité
+ * offerte par groupe de `value` achetées).
+ */
+export type PosPromotionKind = 'PERCENT' | 'AMOUNT' | 'BUY_X';
+
+/** Promotion automatique du jour, appliquée aux articles ciblés sur les canaux listés (PRO-02). */
 export interface PosPromotionRDto {
-  readonly code: string;
+  readonly id: string;
   readonly name: string;
-  readonly rate: number;
+  readonly kind: PosPromotionKind;
+  readonly value: number;
   readonly articleIds: readonly string[];
+  readonly channels: readonly SaleChannel[];
 }
 
 /** Ligne d'un ticket ouvert (reprise après coupure ou ticket en attente). */
@@ -42,7 +50,7 @@ export interface PosSeller {
 
 /**
  * Contexte du poste : emplacement, caissière, vendeuses, canaux (identifiants du serveur), catalogue,
- * promotion active et ticket en cours.
+ * promotions automatiques du jour et ticket en cours.
  */
 export interface PosContextRDto {
   readonly location: string;
@@ -56,7 +64,7 @@ export interface PosContextRDto {
   readonly openedAt: string;
   readonly heldTickets: number;
   readonly articles: readonly PosArticleRDto[];
-  readonly promotion: PosPromotionRDto | null;
+  readonly promotions: readonly PosPromotionRDto[];
   readonly openTicket: readonly PosTicketLineRDto[];
   readonly openTicketReceived: number;
 }
@@ -88,12 +96,23 @@ export interface SaleArticleRDto {
   readonly stock: Readonly<Record<string, number>>;
 }
 
+/** Promotion automatique utilisable aujourd'hui (PRO-02) : articles atteints et canaux où elle s'applique. */
+export interface SalePromotionRDto {
+  readonly id: string;
+  readonly name: string;
+  readonly kind: PosPromotionKind;
+  readonly value: number;
+  readonly articleIds: readonly string[];
+  readonly channelIds: readonly string[];
+}
+
 /** Formulaire de vente (VTE-01) ; `nextNumber` est indicatif, le numéro réel est donné à l'enregistrement. */
 export interface SaleFormRDto {
   readonly nextNumber: number;
   readonly channels: readonly SaleChannelOptionRDto[];
   readonly sellers: readonly SaleSellerRDto[];
   readonly articles: readonly SaleArticleRDto[];
+  readonly promotions: readonly SalePromotionRDto[];
 }
 
 /** Ligne vendue : jamais de prix, le serveur lit celui de la fiche article. */
@@ -133,6 +152,8 @@ export interface SaleRDto {
   readonly status: SaleStatus;
   readonly subtotal: number;
   readonly discountAmount: number;
+  /** Promotion qui a donné `discountAmount` (PRO-02) ; `null` sans remise. */
+  readonly promotionId: string | null;
   readonly total: number;
   readonly lines: readonly SaleLineRDto[];
   readonly createdAt: string;
