@@ -1,6 +1,6 @@
 # Scénarios de test — JR-03 · Suivi temps réel de la journée
 
-Statut : ☐ tests à lancer (CI) · Ticket : [#57](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/57) · [description](description.md) · [guide](guide.md)
+Statut : ✅ auto (CI verte le 11/11/2026), 🧪 recette à passer · Ticket : [#57](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/57) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -20,38 +20,38 @@ Critère unique : « Les indicateurs et le flux d'opérations se mettent à jour
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | Indicateurs de la journée | Étant donné la journée ouverte, quand l'administrateur lit `GET /api/v1/days/live`, alors la réponse porte la date du jour, le statut `OPEN`, les trois blocs d'indicateurs et le flux | 200, `businessDate` = aujourd'hui, `status` = `OPEN` | `DayLiveIT.getLive_administrator_returnsTodayAndOpenStatus` | ☐ |
-| 2 | Indicateurs : ventes | Quand une vente de 2 articles à 8 500 Ar est enregistrée | `sales.count` +1, `sales.revenue` +17 000, la vente est en tête du flux (type `SALE`, statut `VALIDATED`, vendeuse « Miora Rakoto ») | `DayLiveIT.getLive_newSale_raisesTheSalesIndicatorsAndTopsTheFeed` | ☐ |
-| 3 | Indicateurs : ventes annulées | Quand une vente de 8 500 Ar est annulée | elle sort du CA et du nombre de ventes, mais reste dans le flux avec le statut `CANCELLED` | `DayLiveIT.getLive_cancelledSale_staysInTheFeedButLeavesTheIndicators` | ☐ |
-| 4 | Indicateurs : tournée | Quand deux commandes à livrer sont créées pour aujourd'hui puis l'une passe `ON_ROUND` | `deliveries.total` +2, `onRound` +1, `toPrepare` +1 ; les commandes figurent dans le flux (type `DELIVERY`) | `DayLiveIT.getLive_ordersToday_countsOrdersPerStatus` | ☐ |
-| 5 | Indicateurs : tournée d'un autre jour | Une commande est prévue demain | elle n'est pas comptée aujourd'hui | `DayLiveIT.getLive_orderOfAnotherDay_isNotCounted` | ☐ |
-| 6 | Indicateurs : prestations | Quand une prestation à 35 000 Ar est enregistrée | `services.count` +1, `services.revenue` +35 000, la prestation figure dans le flux (type `SERVICE`, sans statut) | `DayLiveIT.getLive_performedService_raisesTheServicesIndicatorsAndShowsInTheFeed` | ☐ |
-| 7 | Flux d'opérations | Plusieurs opérations de la journée | au plus 30 éléments, du plus récent au plus ancien | `DayLiveIT.getLive_manyOperations_returnsAtMostThirtyFeedItemsMostRecentFirst` | ☐ |
-| 7 bis | Flux (fusion) | Ventes à 09:00 et 07:00, livraison à 08:00, prestation à 09:30 | ordre `PRE-0001`, `VTE-0002`, `LIV-0001`, `VTE-0001` ; statuts conservés | `DayLiveServiceImplTest.getLive_operationsOfTheThreeActivities_areMergedMostRecentFirst` | ☐ |
-| 7 ter | Flux (borne) | 30 ventes et 1 prestation plus ancienne | 30 éléments, la prestation la plus ancienne est écartée | `DayLiveServiceImplTest.getLive_moreOperationsThanTheFeedLimit_keepsTheLatestOnes` | ☐ |
-| 8 | Indicateurs (calcul) | Ventes 15 500 Ar sur 3 ventes, 5 commandes (2 en tournée, 3 livrées), 2 prestations de 35 000 et 20 000 | CA 15 500, 3 ventes, total 5 commandes, 2 prestations, 55 000 Ar | `DayLiveServiceImplTest.getLive_activeDay_returnsIndicatorsOfTheThreeActivities` | ☐ |
-| 8 bis | Journée non ouverte | Aucune journée aujourd'hui | `status` = `null`, tous les indicateurs à 0, flux vide | `DayLiveServiceImplTest.getLive_dayNotOpenedYet_hasNoStatusAndEmptyIndicators` | ☐ |
-| 8 ter | Fuseau | 21 h 30 UTC (déjà le lendemain à Antananarivo) | la vue porte la date du lendemain et lit la bonne plage horaire | `DayLiveServiceImplTest.getLive_lateEveningUtc_isAlreadyTomorrowInAntananarivo` | ☐ |
-| 9 | Port journée | `BusinessDayService.findToday()` | `null` sans journée ; la journée quel que soit son statut (ouverte ou close) | `BusinessDayServiceImplTest.findToday_noDayToday_returnsNull`, `findToday_dayAlreadyClosed_returnsTheDayWhateverItsStatus` | ☐ |
-| 10 | Port livraison | Comptage des commandes du jour par statut | tous les statuts présents, ceux sans commande à 0 | `DeliveryDayServiceImplTest.countByStatus_someStatusesPresent_fillsTheOthersWithZero`, `countByStatus_noOrderToday_returnsZeroForEveryStatus` | ☐ |
-| 10 bis | Port livraison | Dernières commandes du jour | page de 30 triée par dernière modification décroissante | `DeliveryDayServiceImplTest.getRecentOrders_limit_asksTheLatestUpdatedOrdersOfTheDay` | ☐ |
-| 11 | Écran : affichage | Quand l'administrateur ouvre `/day/live` | statut de la journée, CA, ventes, tournée « 2 / 4 », prestations, tableau par canal et flux (VTE-0002 avant PRE-0001) | `day-live-page.spec.ts` « should show the indicators and the feed of the day » | ☐ |
-| 11 bis | Écran : sans journée | La journée n'est pas ouverte | badge « Journée non ouverte » et flux vide expliqué | `day-live-page.spec.ts` « should show that the day is not opened yet » | ☐ |
-| 12 | Écran : mise à jour automatique | 15 secondes après la première lecture, une vente de plus a eu lieu | l'écran affiche 26 000 Ar et 3 ventes sans action de l'utilisateur | `day-live-page.spec.ts` « should read the server again by itself, without manual reload » | ☐ |
-| 12 bis | Écran : bouton Actualiser | L'administrateur clique « Actualiser » | relecture immédiate | `day-live-page.spec.ts` « should read the server at once when the administrator presses refresh » | ☐ |
-| 12 ter | Écran : lecture | Appel `GET /api/v1/days/live` | méthode GET, aucune écriture | `day-live-service.spec.ts` « should read the live view of the day from the API » | ☐ |
-| 13 | Menu | Entrée « Suivi du jour » | visible pour l'administrateur (`reports.read`), absente pour la vendeuse et le livreur | `menu.spec.ts` (assertions ajoutées) | ☐ |
+| 1 | Indicateurs de la journée | Étant donné la journée ouverte, quand l'administrateur lit `GET /api/v1/days/live`, alors la réponse porte la date du jour, le statut `OPEN`, les trois blocs d'indicateurs et le flux | 200, `businessDate` = aujourd'hui, `status` = `OPEN` | `DayLiveIT.getLive_administrator_returnsTodayAndOpenStatus` | ✅ auto |
+| 2 | Indicateurs : ventes | Quand une vente de 2 articles à 8 500 Ar est enregistrée | `sales.count` +1, `sales.revenue` +17 000, la vente est en tête du flux (type `SALE`, statut `VALIDATED`, vendeuse « Miora Rakoto ») | `DayLiveIT.getLive_newSale_raisesTheSalesIndicatorsAndTopsTheFeed` | ✅ auto |
+| 3 | Indicateurs : ventes annulées | Quand une vente de 8 500 Ar est annulée | elle sort du CA et du nombre de ventes, mais reste dans le flux avec le statut `CANCELLED` | `DayLiveIT.getLive_cancelledSale_staysInTheFeedButLeavesTheIndicators` | ✅ auto |
+| 4 | Indicateurs : tournée | Quand deux commandes à livrer sont créées pour aujourd'hui puis l'une passe `ON_ROUND` | `deliveries.total` +2, `onRound` +1, `toPrepare` +1 ; les commandes figurent dans le flux (type `DELIVERY`) | `DayLiveIT.getLive_ordersToday_countsOrdersPerStatus` | ✅ auto |
+| 5 | Indicateurs : tournée d'un autre jour | Une commande est prévue demain | elle n'est pas comptée aujourd'hui | `DayLiveIT.getLive_orderOfAnotherDay_isNotCounted` | ✅ auto |
+| 6 | Indicateurs : prestations | Quand une prestation à 35 000 Ar est enregistrée | `services.count` +1, `services.revenue` +35 000, la prestation figure dans le flux (type `SERVICE`, sans statut) | `DayLiveIT.getLive_performedService_raisesTheServicesIndicatorsAndShowsInTheFeed` | ✅ auto |
+| 7 | Flux d'opérations | Plusieurs opérations de la journée | au plus 30 éléments, du plus récent au plus ancien | `DayLiveIT.getLive_manyOperations_returnsAtMostThirtyFeedItemsMostRecentFirst` | ✅ auto |
+| 7 bis | Flux (fusion) | Ventes à 09:00 et 07:00, livraison à 08:00, prestation à 09:30 | ordre `PRE-0001`, `VTE-0002`, `LIV-0001`, `VTE-0001` ; statuts conservés | `DayLiveServiceImplTest.getLive_operationsOfTheThreeActivities_areMergedMostRecentFirst` | ✅ auto |
+| 7 ter | Flux (borne) | 30 ventes et 1 prestation plus ancienne | 30 éléments, la prestation la plus ancienne est écartée | `DayLiveServiceImplTest.getLive_moreOperationsThanTheFeedLimit_keepsTheLatestOnes` | ✅ auto |
+| 8 | Indicateurs (calcul) | Ventes 15 500 Ar sur 3 ventes, 5 commandes (2 en tournée, 3 livrées), 2 prestations de 35 000 et 20 000 | CA 15 500, 3 ventes, total 5 commandes, 2 prestations, 55 000 Ar | `DayLiveServiceImplTest.getLive_activeDay_returnsIndicatorsOfTheThreeActivities` | ✅ auto |
+| 8 bis | Journée non ouverte | Aucune journée aujourd'hui | `status` = `null`, tous les indicateurs à 0, flux vide | `DayLiveServiceImplTest.getLive_dayNotOpenedYet_hasNoStatusAndEmptyIndicators` | ✅ auto |
+| 8 ter | Fuseau | 21 h 30 UTC (déjà le lendemain à Antananarivo) | la vue porte la date du lendemain et lit la bonne plage horaire | `DayLiveServiceImplTest.getLive_lateEveningUtc_isAlreadyTomorrowInAntananarivo` | ✅ auto |
+| 9 | Port journée | `BusinessDayService.findToday()` | `null` sans journée ; la journée quel que soit son statut (ouverte ou close) | `BusinessDayServiceImplTest.findToday_noDayToday_returnsNull`, `findToday_dayAlreadyClosed_returnsTheDayWhateverItsStatus` | ✅ auto |
+| 10 | Port livraison | Comptage des commandes du jour par statut | tous les statuts présents, ceux sans commande à 0 | `DeliveryDayServiceImplTest.countByStatus_someStatusesPresent_fillsTheOthersWithZero`, `countByStatus_noOrderToday_returnsZeroForEveryStatus` | ✅ auto |
+| 10 bis | Port livraison | Dernières commandes du jour | page de 30 triée par dernière modification décroissante | `DeliveryDayServiceImplTest.getRecentOrders_limit_asksTheLatestUpdatedOrdersOfTheDay` | ✅ auto |
+| 11 | Écran : affichage | Quand l'administrateur ouvre `/day/live` | statut de la journée, CA, ventes, tournée « 2 / 4 », prestations, tableau par canal et flux (VTE-0002 avant PRE-0001) | `day-live-page.spec.ts` « should show the indicators and the feed of the day » | ✅ auto |
+| 11 bis | Écran : sans journée | La journée n'est pas ouverte | badge « Journée non ouverte » et flux vide expliqué | `day-live-page.spec.ts` « should show that the day is not opened yet » | ✅ auto |
+| 12 | Écran : mise à jour automatique | 15 secondes après la première lecture, une vente de plus a eu lieu | l'écran affiche 26 000 Ar et 3 ventes sans action de l'utilisateur | `day-live-page.spec.ts` « should read the server again by itself, without manual reload » | ✅ auto |
+| 12 bis | Écran : bouton Actualiser | L'administrateur clique « Actualiser » | relecture immédiate | `day-live-page.spec.ts` « should read the server at once when the administrator presses refresh » | ✅ auto |
+| 12 ter | Écran : lecture | Appel `GET /api/v1/days/live` | méthode GET, aucune écriture | `day-live-service.spec.ts` « should read the live view of the day from the API » | ✅ auto |
+| 13 | Menu | Entrée « Suivi du jour » | visible pour l'administrateur (`reports.read`), absente pour la vendeuse et le livreur | `menu.spec.ts` (assertions ajoutées) | ✅ auto |
 
 ## Sécurité et erreurs
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | `DayLiveIT.getLive_withoutToken_returns401` | ☐ |
-| Appel avec un mauvais rôle (vendeuse, livreur) | 403 `FORBIDDEN` | `DayLiveIT.getLive_sellerAndDeliveryDriver_return403` | ☐ |
+| Appel sans jeton | 401 `UNAUTHENTICATED` | `DayLiveIT.getLive_withoutToken_returns401` | ✅ auto |
+| Appel avec un mauvais rôle (vendeuse, livreur) | 403 `FORBIDDEN` | `DayLiveIT.getLive_sellerAndDeliveryDriver_return403` | ✅ auto |
 | Champ interdit dans le corps (`role`, `id`) | sans objet : lecture seule, aucun corps, aucun paramètre | — | — |
 | Données invalides, ressource introuvable, conflit | sans objet : aucune entrée, aucun identifiant | — | — |
-| Relecture qui échoue (réseau, 5xx) | l'écran garde la dernière vue et affiche une alerte « les chiffres peuvent être en retard » ; la relecture suivante la retire | `day-live-page.spec.ts` « should keep the last view and warn when a refresh fails, then recover » | ☐ |
-| Première lecture qui échoue | état d'erreur avec « Réessayer » | `day-live-page.spec.ts` « should offer a retry when the very first read fails » | ☐ |
+| Relecture qui échoue (réseau, 5xx) | l'écran garde la dernière vue et affiche une alerte « les chiffres peuvent être en retard » ; la relecture suivante la retire | `day-live-page.spec.ts` « should keep the last view and warn when a refresh fails, then recover » | ✅ auto |
+| Première lecture qui échoue | état d'erreur avec « Réessayer » | `day-live-page.spec.ts` « should offer a retry when the very first read fails » | ✅ auto |
 
 ## Cas limites et hors ligne
 
@@ -66,6 +66,6 @@ Critère unique : « Les indicateurs et le flux d'opérations se mettent à jour
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local)
-- Environnement : à lancer (CI ou local)
+- Date : 11/11/2026
+- Environnement : CI GitHub Actions sur la branche `feature/JR-03-suivi-temps-reel-journee` (workflows `ci.yml` : Backend Spring Boot et Frontend Angular verts, tous les tests de ce scénario passent ; `conventions.yml` verte ; Qodana for JVM verte, 0 annotation)
 - Anomalies ouvertes : aucune connue ; la recette manuelle 🧪 (écran qui se met à jour pendant qu'une vente est saisie sur un autre poste) reste à passer par Njara.

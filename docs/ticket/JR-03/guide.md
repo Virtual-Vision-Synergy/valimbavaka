@@ -1,6 +1,6 @@
 # Guide d'intégration — JR-03 · Suivi temps réel de la journée
 
-Statut : ✅ écrit le 2026-11-11 (tests à lancer en CI, voir « Résultat de l'exécution » du scénario) · Ticket : [#57](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/57) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 2026-11-11 — tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#57](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/57) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
