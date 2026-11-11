@@ -36,7 +36,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 | 1k · Écran : un geste, envoi après 5 s | `/round`, arrêt « Rasoa Vola » ; bouton « Livrée » | l'arrêt quitte « Prochain arrêt » (Hery Andry passe devant), avancement 2/3 ; rien n'est envoyé pendant 5 s ; puis `updateStatus('order-2', { status: 'DELIVERED', failureReason: null, note: null })` | `driver-round-page.spec.ts` (« marque l'arrêt livré d'un geste et ne l'envoie qu'après le délai d'annulation ») | ☐ |
 | 1l · Écran : annulation | « Livrée » puis « Annuler » avant 5 s | rien n'est envoyé, « Rasoa Vola » redevient le prochain arrêt | `driver-round-page.spec.ts` (« n'envoie rien si le livreur annule « Livrée » pendant le délai ») | ☐ |
 | 1m · Service front | `updateStatus('order-1', DELIVERED)` | `OutboxService.submit('POST', '/api/v1/deliveries/order-1/deliver')`, sans corps ; renvoie l'id | `delivery-service.spec.ts` (« marque la livraison livrée par la file hors ligne, sans corps… ») | ☐ |
-| 1n · Échec non concerné | `updateStatus(…, FAILED)` | aucun appel à `…/deliver` (l'échec est LIV-04) | `delivery-service.spec.ts` (« n'appelle pas l'API « livrée » pour un échec (LIV-04) ») | ☐ |
+| 1n · Échec non concerné | `updateStatus(…, FAILED)` | un seul appel, vers `…/failure` (LIV-04), jamais `…/deliver` | `delivery-service.spec.ts` (« n'appelle pas l'API « livrée » pour un échec (LIV-04) ») | ☐ |
 
 ## Sécurité et erreurs
 
@@ -65,6 +65,7 @@ Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT no
 | Commande `TO_PREPARE` (jamais partie en tournée) | « livrée » directement | autorisé (`TO_PREPARE → DELIVERED`, table LIV-01) | `DeliveryOrderTest.deliver_orderToPrepare_movesToDeliveredInOneStep` | ☐ |
 | Concurrence | deux « livrée » simultanés sur la même commande (deux téléphones) | une seule transaction aboutit : verrou optimiste `version` de la commande (409) et `uq_delivery_orders_sale` ; la vente de la transaction perdante est annulée avec elle | non automatisé (recette R4) | ☐ |
 | Tests qui vident les ventes | `BusinessDayIT`, `MorningTransferIT`, `SaleIT` vident `sales` | les commandes livrées sont d'abord détachées (`sale_id` vidé, statut `CANCELLED`) pour respecter la clé étrangère | `BusinessDayIT.forgetToday`, `MorningTransferIT.forgetToday`, `SaleIT.createSale_dayNotOpened_returns409` | ☐ |
+| Statut `DELIVERED` dans les tests de LIV-06 | `DeliveryTrackingIT` met des commandes à `DELIVERED` | passage par `POST …/deliver` (journée ouverte, stock en Livraison) au lieu d'un `update` SQL que `ck_delivery_orders_delivered_has_sale` refuse | `DeliveryTrackingIT.getOrders_filteredByEachStatus_returnsOnlyTheOrderInThatStatus`, `DeliveryTrackingIT.getOrders_pastDayFilteredByStatus_returnsOnlyTheOrdersOfThatDay` | ☐ |
 
 ## Tests existants
 
