@@ -98,7 +98,13 @@
   @if (cart.appliedPromotion(); as promotion) {
     <p class="promo">
       <svg [vvsIcon]="icons.Tag" [size]="18"></svg>
-      <span>{{ 'pos.ticket.promoApplied' | translate: { name: promotion.name } }}</span>
+      @if (cart.appliedCode(); as code) {
+        <span>{{
+          'pos.ticket.promoCodeApplied' | translate: { name: promotion.name, code: code }
+        }}</span>
+      } @else {
+        <span>{{ 'pos.ticket.promoApplied' | translate: { name: promotion.name } }}</span>
+      }
     </p>
   }
 
@@ -114,14 +120,52 @@
     <div>
       <dt>{{ 'pos.ticket.promoCode' | translate }}</dt>
       <dd>
-        <button
-          class="btn btn-ghost btn-sm add-promo"
-          type="button"
-          aria-keyshortcuts="F6"
-          (click)="promoCode.emit()"
-        >
-          + {{ 'pos.ticket.addPromo' | translate }} <kbd aria-hidden="true">F6</kbd>
-        </button>
+        @if (cart.promoEntry()) {
+          <form class="promo-entry" (submit)="submitCode($event)" (keydown.escape)="cancelCode()">
+            <label class="sr-only" for="pos-promo-code">{{
+              'pos.ticket.promoCodeLabel' | translate
+            }}</label>
+            <input
+              #codeField
+              id="pos-promo-code"
+              class="input"
+              maxlength="12"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+            />
+            <button class="btn btn-primary btn-sm" type="submit">
+              {{ 'pos.ticket.promoCodeApply' | translate }}
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="cancelCode()">
+              {{ 'pos.ticket.promoCodeCancel' | translate }}
+            </button>
+          </form>
+        } @else if (cart.promoCode(); as code) {
+          <span class="promo-chip">
+            {{
+              (cart.appliedCode() ? 'pos.ticket.promoCodeChip' : 'pos.ticket.promoCodeUnused')
+                | translate: { code: code }
+            }}
+            <button
+              class="btn btn-ghost btn-sm"
+              type="button"
+              [attr.aria-label]="'pos.ticket.promoCodeRemove' | translate: { code: code }"
+              (click)="cart.removeCode()"
+            >
+              ×
+            </button>
+          </span>
+        } @else {
+          <button
+            class="btn btn-ghost btn-sm add-promo"
+            type="button"
+            aria-keyshortcuts="F6"
+            (click)="promoCode.emit()"
+          >
+            + {{ 'pos.ticket.addPromo' | translate }} <kbd aria-hidden="true">F6</kbd>
+          </button>
+        }
       </dd>
     </div>
   </dl>

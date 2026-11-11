@@ -172,6 +172,21 @@
 .discount {
   color: var(--succes-dark);
 }
+.promo-entry {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.promo-entry .input {
+  width: 9rem;
+  text-transform: uppercase;
+}
+.promo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
 .add-promo {
   color: var(--secondary-strong);
   font-weight: 600;

@@ -18,7 +18,7 @@ import { formatAriary } from '../../../../shared/pipes/ariary-pipe';
 import { PosCatalog } from '../../components/pos-catalog/pos-catalog';
 import { PosTicket } from '../../components/pos-ticket/pos-ticket';
 import { PosCart } from '../../data-access/pos-cart';
-import { toSaleWDto } from '../../data-access/pos-mapping';
+import { toPosPromotion, toSaleWDto, withPromoCode } from '../../data-access/pos-mapping';
 import { PosArticleRDto, SaleRDto } from '../../data-access/pos-models';
 import { PosService } from '../../data-access/pos-service';
 import { ShortcutAction, shortcutAction } from '../../data-access/pos-shortcuts';
@@ -85,7 +85,10 @@ export class PosPage {
       return;
     }
     this.submitting.set(true);
-    const body = toSaleWDto(channelId, sellerId, this.cart.payment(), this.cart.priced());
+    const body = withPromoCode(
+      toSaleWDto(channelId, sellerId, this.cart.payment(), this.cart.priced()),
+      this.cart.appliedCode(),
+    );
     const displayedTotal = this.cart.total();
     this.posService.record(body).subscribe({
       next: (result) => this.recorded(result, displayedTotal),
@@ -114,6 +117,37 @@ export class PosPage {
     this.cart.clear();
   }
 
+  /** Ouvre la saisie du code promo (F6) ; un code déjà retenu est d'abord retiré par la vendeuse. */
+  protected openPromoEntry(): void {
+    this.cart.promoEntry.set(true);
+  }
+
+  /**
+   * Fait vérifier le code par le serveur (VTE-04) pour le canal du ticket : s'il est valable, sa promotion entre
+   * en concurrence avec l'automatique (la plus avantageuse). Il faut le réseau ; le serveur recalcule à l'encaissement.
+   */
+  protected applyPromoCode(typed: string): void {
+    const code = typed.trim().toUpperCase();
+    const channelIds = this.context.value()?.channelIds;
+    const channelId = channelIds?.[this.cart.channel()];
+    if (!code || !channelIds || !channelId) {
+      return;
+    }
+    this.posService.checkPromoCode(code, channelId).subscribe({
+      next: (promotion) => {
+        this.cart.applyCode(code, toPosPromotion(promotion, channelIds));
+        const gain = this.cart.isEmpty() || this.cart.appliedCode() !== null;
+        this.toast.show(
+          gain ? 'pos.toast.promoCodeApplied' : 'pos.toast.promoCodeNoGain',
+          { code, name: promotion.name },
+          gain ? 'info' : 'warning',
+        );
+      },
+      error: (error: unknown) =>
+        this.toast.show('pos.toast.promoCodeRefused', { message: errorMessage(error) }, 'warning'),
+    });
+  }
+
   protected demoAction(): void {
     this.toast.show('common.demoAction', {}, 'info');
   }
@@ -122,7 +156,7 @@ export class PosPage {
     const last = this.cart.lastArticle();
     const handlers: Record<ShortcutAction, () => void> = {
       search: () => this.catalog()?.focusSearch(),
-      promo: () => this.demoAction(),
+      promo: () => this.openPromoEntry(),
       hold: () => this.hold(),
       checkout: () => this.checkout(),
       increase: () => (last ? this.cart.add(last) : this.catalog()?.focusSearch()),

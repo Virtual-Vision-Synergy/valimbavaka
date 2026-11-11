@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -92,7 +93,7 @@ class SaleServiceImplTest {
         when(saleRepository.nextNumber()).thenReturn(42L);
         when(saleRepository.save(any(Sale.class))).then(returnsFirstArg());
         var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));
-        var request = new SaleWDto(CHANNEL, SELLER, PaymentMethod.CARD, lines);
+        var request = new SaleWDto(CHANNEL, SELLER, PaymentMethod.CARD, lines, null);
 
         // Act
         sut.createSale(request);
@@ -114,6 +115,28 @@ class SaleServiceImplTest {
     }
 
     @Test
+    void createSale_promoCode_isHandedToTheDiscountDecisionAndABlankCodeIsDropped() {
+        // Arrange
+        when(businessDayService.requireOpenDay()).thenReturn(openDay());
+        var line = new PricedSaleLine(SOAP, new BigDecimal("2"), new BigDecimal("8500"), null);
+        var channel = new SaleChannelOptionRDto(CHANNEL, "STORE", "Boutique", STORE);
+        when(policy.check(any())).thenReturn(new CheckedSale(channel, List.of(line)));
+        when(discounts.of(any(), any())).thenReturn(SaleDiscount.NONE);
+        when(saleRepository.nextNumber()).thenReturn(44L);
+        when(saleRepository.save(any(Sale.class))).then(returnsFirstArg());
+        var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));
+
+        // Act
+        sut.createSale(new SaleWDto(CHANNEL, SELLER, PaymentMethod.CASH, lines, " octo20 "));
+        sut.createSale(new SaleWDto(CHANNEL, SELLER, PaymentMethod.CASH, lines, "   "));
+
+        // Assert
+        var commands = ArgumentCaptor.forClass(SaleCommand.class);
+        verify(discounts, times(2)).of(commands.capture(), any());
+        assertThat(commands.getAllValues()).extracting(SaleCommand::promoCode).containsExactly(" octo20 ", null);
+    }
+
+    @Test
     void createSale_automaticPromotion_recordsTheDiscountAndThePromotionDecidedByTheServer() {
         // Arrange
         when(businessDayService.requireOpenDay()).thenReturn(openDay());
@@ -127,7 +150,7 @@ class SaleServiceImplTest {
         var lines = List.of(new SaleLineWDto(SOAP, new BigDecimal("2")));
 
         // Act
-        sut.createSale(new SaleWDto(CHANNEL, SELLER, PaymentMethod.CASH, lines));
+        sut.createSale(new SaleWDto(CHANNEL, SELLER, PaymentMethod.CASH, lines, null));
 
         // Assert
         var sales = ArgumentCaptor.forClass(Sale.class);
