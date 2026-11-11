@@ -507,6 +507,29 @@
     }
   },
   "sales": {
+    "detail": {
+      "title": "Tsipiky ny varotra",
+      "soldAt": "Voasoratra tamin'ny",
+      "noInvoice": "Tsy misy faktiora navoaka",
+      "promotion": "Fampiroboroboana",
+      "noPromotion": "Tsy misy fampiroboroboana",
+      "linesCaption": "Andian-tsoratry ny varotra",
+      "unitPrice": "Vidiny isaky ny singa",
+      "commission": {
+        "title": "Komisiona",
+        "rule": "Fitsipika nampiasaina",
+        "base": "Fototry ny kajy",
+        "rate": "Taha",
+        "amount": "Komisiona",
+        "status": "Sata",
+        "statuses": {
+          "CALCULATED": "Hovoaekena",
+          "VALIDATED": "Voaekena",
+          "CANCELLED": "Nofoanana miaraka amin'ny varotra"
+        },
+        "none": "Tsy misy komisiona : varotra tsy voaray ho an'olona, na tsy voakajy."
+      }
+    },
     "statusTotals": {
       "title": "Satan'ny faktiora",
       "subtitle": "Faktiora voaloa, foana ary nesorina tamin'ny faktiora fanitsiana, miaraka amin'ny totaly.",

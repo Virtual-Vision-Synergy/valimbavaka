@@ -1,0 +1,147 @@
+<section class="panel card" aria-labelledby="sale-detail-title">
+  @if (detail.error()) {
+    <vvs-list-state kind="error" (retry)="detail.reload()" />
+  } @else if (detail.value(); as sale) {
+    <header class="head">
+      <h2 id="sale-detail-title">
+        {{ 'sales.detail.title' | translate }}
+        <span class="mono">{{ sale.number }}</span>
+      </h2>
+      <vvs-status-badge
+        [tone]="saleTones[sale.status]"
+        [label]="'sales.saleStatus.' + sale.status | translate"
+      />
+      <span class="code-chip" aria-hidden="true">VTE-09</span>
+    </header>
+
+    <dl class="facts">
+      <div>
+        <dt>{{ 'sales.detail.soldAt' | translate }}</dt>
+        <dd class="num">{{ soldAt() }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'sales.col.channel' | translate }}</dt>
+        <dd>{{ sale.salesChannelLabel ?? '—' }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'sales.col.seller' | translate }}</dt>
+        <dd>{{ sale.sellerName ?? ('sales.noSeller' | translate) }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'sales.col.payment' | translate }}</dt>
+        <dd>{{ 'sales.payment.' + sale.paymentMethod | translate }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'sales.col.invoice' | translate }}</dt>
+        <dd class="mono">{{ sale.invoice?.number ?? ('sales.detail.noInvoice' | translate) }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'sales.detail.promotion' | translate }}</dt>
+        <dd>
+          @if (sale.promotion; as promotion) {
+            {{ promotion.name }}
+            @if (promotion.code) {
+              <span class="mono">({{ promotion.code }})</span>
+            }
+          } @else {
+            {{ 'sales.detail.noPromotion' | translate }}
+          }
+        </dd>
+      </div>
+    </dl>
+
+    <div class="table-wrap">
+      <table class="table">
+        <caption class="sr-only">
+          {{
+            'sales.detail.linesCaption' | translate
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">{{ 'sales.invoice.article' | translate }}</th>
+            <th scope="col" class="cell-num">{{ 'sales.invoice.quantity' | translate }}</th>
+            <th scope="col" class="cell-num">{{ 'sales.detail.unitPrice' | translate }}</th>
+            <th scope="col" class="cell-num">{{ 'sales.invoice.total' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of sale.lines; track line.articleId) {
+            <tr>
+              <td>
+                {{ line.articleName ?? line.articleId }}
+                @if (line.articleCode) {
+                  <span class="mono muted">{{ line.articleCode }}</span>
+                }
+              </td>
+              <td class="cell-num num">{{ line.quantity }}</td>
+              <td class="cell-num">{{ line.unitPrice | ariary }}</td>
+              <td class="cell-num">{{ line.lineTotal | ariary }}</td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" colspan="3">{{ 'sales.invoice.subtotal' | translate }}</th>
+            <td class="cell-num">{{ sale.subtotal | ariary }}</td>
+          </tr>
+          @if (sale.discountAmount) {
+            <tr>
+              <th scope="row" colspan="3">{{ 'sales.col.promo' | translate }}</th>
+              <td class="cell-num">−{{ sale.discountAmount | ariary }}</td>
+            </tr>
+          }
+          <tr>
+            <th scope="row" colspan="3">{{ 'sales.invoice.grandTotal' | translate }}</th>
+            <td class="cell-num amount">{{ sale.total | ariary }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <section class="commission" aria-labelledby="sale-commission-title">
+      <h3 id="sale-commission-title">{{ 'sales.detail.commission.title' | translate }}</h3>
+      @if (sale.commission; as commission) {
+        <dl class="facts">
+          <div>
+            <dt>{{ 'sales.detail.commission.rule' | translate }}</dt>
+            <dd>
+              {{ 'commissionList.rateSource.' + commission.rateSource | translate }}
+              @if (commission.ruleName) {
+                <span class="muted">· {{ commission.ruleName }}</span>
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>{{ 'sales.detail.commission.base' | translate }}</dt>
+            <dd>
+              {{ 'commissionList.base.' + commission.base | translate }} :
+              {{ commission.baseAmount | ariary }}
+            </dd>
+          </div>
+          <div>
+            <dt>{{ 'sales.detail.commission.rate' | translate }}</dt>
+            <dd class="num">{{ commission.rate }} %</dd>
+          </div>
+          <div>
+            <dt>{{ 'sales.detail.commission.amount' | translate }}</dt>
+            <dd class="amount">{{ commission.amount | ariary }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'sales.detail.commission.status' | translate }}</dt>
+            <dd>
+              <vvs-status-badge
+                [tone]="commissionTones[commission.status]"
+                [label]="'sales.detail.commission.statuses.' + commission.status | translate"
+              />
+            </dd>
+          </div>
+        </dl>
+      } @else {
+        <p class="note">{{ 'sales.detail.commission.none' | translate }}</p>
+      }
+    </section>
+  } @else {
+    <vvs-list-state kind="loading" [rows]="4" />
+  }
+</section>

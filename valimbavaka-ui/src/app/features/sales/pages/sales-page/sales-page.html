@@ -4,7 +4,7 @@
     [subtitle]="
       sales.value() ? ('sales.subtitle' | translate: { count: sales.value()?.totalCount }) : ''
     "
-    [codes]="['VTE-07']"
+    [codes]="['VTE-07', 'VTE-09']"
   >
     @if (canSeeChannels) {
       <a class="btn btn-secondary" routerLink="/sales/channels">
@@ -123,7 +123,10 @@
       </section>
 
       @if (selectedSale(); as sale) {
-        <vvs-invoice-panel [sale]="sale" (credited)="sales.reload()" />
+        <div class="side">
+          <vvs-sale-detail-panel [saleId]="sale.id" />
+          <vvs-invoice-panel [sale]="sale" (credited)="sales.reload()" />
+        </div>
       }
     </div>
   } @else {
