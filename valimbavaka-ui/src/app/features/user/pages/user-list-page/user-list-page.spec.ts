@@ -19,6 +19,7 @@ const user = (overrides: Partial<UserRDto> = {}): UserRDto => ({
   role: { id: '1', name: 'SELLER', description: 'Vendeuse' },
   salesChannelId: null,
   commissionRate: null,
+  monthlyTarget: null,
   active: true,
   passwordChangeRequired: false,
   createdAt: '2026-10-19T08:30:00Z',

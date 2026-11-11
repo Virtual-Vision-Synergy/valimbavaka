@@ -65,4 +65,33 @@ describe('CommissionService', () => {
     expect(request.request.body).toEqual(body);
     request.flush({ ...body, sellerName: 'Miora Rakoto', validatedCount: 2, validatedAmount: 850 });
   });
+
+  it('demande le suivi du mois sans désigner de vendeuse (le serveur impose la sienne)', () => {
+    service.followUp('2026-11').subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${COMMISSIONS_URL}/follow-up`);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('month')).toBe('2026-11');
+    expect(request.request.params.has('sellerId')).toBe(false);
+    request.flush({});
+  });
+
+  it("demande le suivi d'une vendeuse désignée par l'administrateur", () => {
+    service.followUp('2026-10', 's1').subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${COMMISSIONS_URL}/follow-up`);
+    expect(request.request.params.get('sellerId')).toBe('s1');
+    expect(request.request.params.get('month')).toBe('2026-10');
+    request.flush({});
+  });
+
+  it('demande le détail par vente du mois avec la pagination', () => {
+    service.followUpLines({ page: 2, size: 20 }, '2026-11').subscribe();
+
+    const request = httpMock.expectOne((req) => req.url === `${COMMISSIONS_URL}/follow-up/lines`);
+    expect(request.request.params.get('page')).toBe('2');
+    expect(request.request.params.get('size')).toBe('20');
+    expect(request.request.params.get('month')).toBe('2026-11');
+    request.flush(EMPTY_PAGE);
+  });
 });

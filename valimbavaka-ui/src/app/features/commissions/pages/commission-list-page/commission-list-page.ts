@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { AuthStore } from '../../../../core/auth/auth-store';
@@ -61,6 +62,7 @@ export function monthRange(month: string): { from: string; to: string } {
     PageHeader,
     Pagination,
     ConfirmDialog,
+    RouterLink,
   ],
   templateUrl: './commission-list-page.html',
   styleUrl: './commission-list-page.css',

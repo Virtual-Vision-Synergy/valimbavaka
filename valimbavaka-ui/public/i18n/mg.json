@@ -1553,31 +1553,39 @@
     "ofGoal": "amin'ny lasibatra",
     "estimated": "Komisiona kajiana",
     "salesGoal": "amin'ny varotra {{sales}} Ar · lasibatra {{goal}} Ar",
-    "remaining": "Mbola {{left}} Ar anatin'ny andro iasana {{days}}, ≈ {{perDay}} isan'andro.",
+    "remaining": "Mbola {{left}} Ar anatin'ny andro {{days}}, ≈ {{perDay}} isan'andro.",
     "validated": "Voamarina",
     "toValidate": "Hamarinina",
     "salesCount": "Varotra",
     "thisMonth": "ity volana ity",
-    "byChannel": "Komisiona isaky ny lalana",
-    "salon": "Asa salon",
-    "fixed": "mitovy sandany",
-    "services": "asa {{count}}",
-    "ofSales": "amin'ny varotra {{amount}} Ar",
     "detail": "Antsipiriany isaky ny varotra",
     "export": "Alefaso ny tatitra",
     "col": {
       "sale": "Varotra",
       "date": "Daty",
-      "channel": "Lalana",
       "base": "Fototra",
       "rate": "Tahan'ny",
       "commission": "Komisiona",
-      "status": "Sata"
+      "status": "Sata",
+      "source": "Niandohan'ny"
     },
     "status": {
       "CALCULATED": "Voakajy",
       "VALIDATED": "Voamarina",
-      "PAID": "Voaloa"
+      "CANCELLED": "Nofoanana"
+    },
+    "noGoal": "varotra {{sales}} Ar ity volana ity · tsy mbola misy lasibatra napetraky ny mpitantana",
+    "pickSeller": {
+      "title": "Safidio ny mpivarotra",
+      "message": "Sokafy ny fanarahana ny mpivarotra ao amin'ny « Komisiona voakajy »."
+    },
+    "empty": {
+      "title": "Tsy misy komisiona ity volana ity",
+      "message": "Miseho ny komisiona raha vao voasoratra ny varotra na ny asa."
+    },
+    "source": {
+      "SALE": "Varotra",
+      "SERVICE_RECORD": "Asa"
     }
   },
   "commissionRule": {
@@ -1643,6 +1651,7 @@
     "detail": "Antsipirian'ny kaomisiona",
     "commissionCount": "Kaomisiona {{count}}",
     "sellerStatus": { "TO_VALIDATE": "Tokony hekena", "VALIDATED": "Voaekena" },
+    "follow": { "button": "Fanarahana", "action": "Fanarahana ny volana ho an'i {{name}}" },
     "validate": {
       "button": "Ekena",
       "action": "Ekena ny kaomisionan'i {{name}}",

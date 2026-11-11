@@ -2,7 +2,8 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Mes commissions : données de démonstration tant que le calcul (COM-02) n'existe pas.
+ * Mes commissions et objectif mensuel (COM-04) : la vendeuse voit les siens, l'administrateur ceux de la vendeuse
+ * désignée par `?sellerId=` ; le serveur décide (`commissions.read`).
  * Règles de commission par canal (COM-01) et commissions calculées (COM-02) : administrateur seulement, le serveur
  * décide (permissions `commission-rules.*`, `commissions.read-all`).
  */
@@ -10,7 +11,6 @@ export const COMMISSIONS_ROUTES: Routes = [
   {
     path: '',
     title: 'commissions.title',
-    data: { underConstruction: true },
     loadComponent: () =>
       import('./pages/commissions-page/commissions-page').then((m) => m.CommissionsPage),
   },

@@ -169,6 +169,17 @@ class InventoryOpeningPolicyTest {
         var role = new RoleRDto(UUID.randomUUID(), RoleName.SELLER, "Vendeuse");
         var now = Instant.parse("2026-10-01T08:00:00Z");
         return new UserRDto(
-                RESPONSIBLE_ID, "hanta@valimbavaka.mg", "Hanta", "Rakoto", role, null, null, active, false, now, now);
+                RESPONSIBLE_ID,
+                "hanta@valimbavaka.mg",
+                "Hanta",
+                "Rakoto",
+                role,
+                null,
+                null,
+                null,
+                active,
+                false,
+                now,
+                now);
     }
 }
