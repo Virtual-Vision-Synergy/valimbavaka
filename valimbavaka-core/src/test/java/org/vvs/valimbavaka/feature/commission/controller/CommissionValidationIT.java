@@ -190,7 +190,7 @@ class CommissionValidationIT extends StockApiTestSupport {
 
         // Act + Assert : rien à valider, la vendeuse n'apparaît plus dans les totaux
         validation(sellerId, FROM, TO).andExpect(status().isNotFound());
-        sellers().andExpect(jsonPath("$.items[?(@.sellerId == '%s')]".formatted(sellerId)).isEmpty());
+        sellers().andExpect(jsonPath(entry()).isEmpty());
     }
 
     @Test
@@ -226,7 +226,7 @@ class CommissionValidationIT extends StockApiTestSupport {
                 Integer.class,
                 "% annulée avec l'opération " + saleNumber + " (déjà validée%");
         assertThat(cancellations).isEqualTo(1);
-        sellers().andExpect(jsonPath("$.items[?(@.sellerId == '%s')]".formatted(sellerId)).isEmpty());
+        sellers().andExpect(jsonPath(entry()).isEmpty());
     }
 
     @Test
@@ -308,6 +308,11 @@ class CommissionValidationIT extends StockApiTestSupport {
                     .andExpect(status().isForbidden());
         }
         sellers().andExpect(jsonPath(mine("toValidateCount")).value(1));
+    }
+
+    /** JSON path of the seller under test among the sellers of the page. */
+    private String entry() {
+        return "$.items[?(@.sellerId == '%s')]".formatted(sellerId);
     }
 
     /** JSON path of a field of the seller under test among the sellers of the page. */
