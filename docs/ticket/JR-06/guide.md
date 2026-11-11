@@ -1,6 +1,6 @@
 # Guide d'intégration — JR-06 · Verrouillage de la clôture du jour
 
-Statut : ✅ écrit le 12/11/2026 — tests à lancer (voir « Résultat de l'exécution » du scénario) · Ticket : [#93](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/93) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ écrit le 12/11/2026 — tests verts en CI le 12/11/2026 (voir « Résultat de l'exécution » du scénario) · Ticket : [#93](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/93) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 

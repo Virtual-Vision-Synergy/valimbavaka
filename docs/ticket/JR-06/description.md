@@ -15,7 +15,7 @@ En tant qu'administrateur, je veux verrouiller la clôture du jour afin de figer
 
 ## Critères d'acceptation
 
-- [ ] Un message confirme l'enregistrement et l'écart est consigné au journal.
+- [x] Un message confirme l'enregistrement et l'écart est consigné au journal. — *✅ vérifié en CI le 12/11/2026 (`DayClosingLockIT`, `day-close-lock.spec.ts`) ; recette manuelle 🧪 à passer*
 
 ## Détails
 
