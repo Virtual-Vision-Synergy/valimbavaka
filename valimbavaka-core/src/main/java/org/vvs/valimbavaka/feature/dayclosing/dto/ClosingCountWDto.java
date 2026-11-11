@@ -19,8 +19,10 @@ import org.vvs.valimbavaka.feature.dayclosing.domain.ClosingGapReason;
 public record ClosingCountWDto(
         @NotNull(message = "L'emplacement est obligatoire") UUID locationId,
         @NotNull(message = "L'article est obligatoire") UUID articleId,
+
         @NotNull(message = "La quantité comptée est obligatoire")
         @DecimalMin(value = "0", message = "La quantité comptée ne peut pas être négative")
         @Digits(integer = 11, fraction = 3, message = "La quantité comptée accepte 3 décimales au maximum")
         BigDecimal counted,
+
         @Nullable ClosingGapReason reason) {}

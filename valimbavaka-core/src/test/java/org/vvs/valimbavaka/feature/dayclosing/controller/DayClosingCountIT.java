@@ -265,7 +265,9 @@ class DayClosingCountIT extends StockApiTestSupport {
                 + "\"gap\":0,\"id\":\"%s\"}]}".formatted(store, soap, UUID.randomUUID());
 
         // Act + Assert: unknown fields are not read (the server computes both), the request is malformed
-        save(request).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+        save(request)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
         assertThat(savedRows()).isZero();
     }
 
