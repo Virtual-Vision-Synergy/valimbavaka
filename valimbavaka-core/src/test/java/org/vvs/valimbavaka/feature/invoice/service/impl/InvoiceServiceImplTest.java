@@ -163,6 +163,39 @@ class InvoiceServiceImplTest {
     }
 
     @Test
+    void findInvoiceBySaleId_saleWithoutInvoice_returnsEmpty() {
+        // Arrange
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThat(sut.findInvoiceBySaleId(SALE_ID)).isEmpty();
+    }
+
+    @Test
+    void findInvoiceBySaleId_activeSellerAskingForHerOwnInvoice_returnsIt() {
+        // Arrange
+        var invoice = Invoice.issue("FAC-2026-0011", draft(SELLER));
+        var expected = view("FAC-2026-0011");
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.of(invoice));
+        when(invoiceMapper.toRDto(invoice)).thenReturn(expected);
+        connectedAs(SELLER, true);
+
+        // Act + Assert
+        assertThat(sut.findInvoiceBySaleId(SALE_ID)).containsSame(expected);
+    }
+
+    @Test
+    void findInvoiceBySaleId_activeSellerAskingForAColleagueInvoice_returns404() {
+        // Arrange
+        var invoice = Invoice.issue("FAC-2026-0012", draft(COLLEAGUE));
+        when(invoiceRepository.findBySaleId(SALE_ID)).thenReturn(Optional.of(invoice));
+        connectedAs(SELLER, true);
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.findInvoiceBySaleId(SALE_ID)).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
     void getInvoiceById_administrator_readsAnyInvoice() {
         // Arrange
         var invoice = Invoice.issue("FAC-2026-0011", draft(COLLEAGUE));

@@ -15,7 +15,7 @@ En tant qu'administrateur, je veux consulter le détail d'une vente afin de vér
 
 ## Critères d'acceptation
 
-- [ ] Le détail inclut la règle de commission appliquée.
+- [x] Le détail inclut la règle de commission appliquée. — *✅ vérifié : `GET /api/v1/sales/{id}/detail` rend origine du taux, nom de la règle, base, taux, montant et statut ; panneau dans `/sales`*
 
 ## Détails
 
