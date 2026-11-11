@@ -144,14 +144,14 @@ class DashboardIT extends StockApiTestSupport {
     }
 
     @Test
-    void getDashboard_ordersToday_countsDeliveredAndPendingButNotCancelledOnesInTheTotal() throws Exception {
+    void getDashboard_ordersToday_countsOnRoundAndPendingButNotCancelledOnesInTheTotal() throws Exception {
         // Arrange
         var before = snapshot();
         var driver = createDriver();
-        var delivered = createOrder(driver, "1");
+        var onRound = createOrder(driver, "1");
         var cancelled = createOrder(driver, "1");
         createOrder(driver, "1");
-        jdbcTemplate.update("update delivery_orders set status = 'DELIVERED' where id = ?", delivered);
+        jdbcTemplate.update("update delivery_orders set status = 'ON_ROUND' where id = ?", onRound);
         jdbcTemplate.update("update delivery_orders set status = 'CANCELLED' where id = ?", cancelled);
 
         // Act
@@ -159,7 +159,7 @@ class DashboardIT extends StockApiTestSupport {
 
         // Assert
         assertThat(after.deliveriesTotal() - before.deliveriesTotal()).isEqualTo(2);
-        assertThat(after.delivered() - before.delivered()).isEqualTo(1);
+        assertThat(after.onRound() - before.onRound()).isEqualTo(1);
         assertThat(after.toPrepare() - before.toPrepare()).isEqualTo(1);
         assertThat(after.cancelled() - before.cancelled()).isEqualTo(1);
     }
@@ -231,7 +231,7 @@ class DashboardIT extends StockApiTestSupport {
             double revenue,
             long storeChannelCount,
             long deliveriesTotal,
-            long delivered,
+            long onRound,
             long toPrepare,
             long cancelled,
             double gapUnits,
@@ -243,7 +243,7 @@ class DashboardIT extends StockApiTestSupport {
                     doubleAt(json, "$.revenue.amount"),
                     channelCount(json, storeChannel),
                     longAt(json, "$.deliveries.total"),
-                    longAt(json, "$.deliveries.delivered"),
+                    longAt(json, "$.deliveries.onRound"),
                     longAt(json, "$.deliveries.toPrepare"),
                     longAt(json, "$.deliveries.cancelled"),
                     doubleAt(json, "$.stockGap.units"),
