@@ -49,4 +49,18 @@ public interface PromotionService {
      * code (409); traced in the journal.
      */
     PromotionRDto createPromotion(PromotionWDto request);
+
+    /**
+     * Counts one use of the promotion for a sale that carries it (PRO-03), in the caller's transaction. The check of
+     * the usage limit and the increment are one atomic statement: two simultaneous sales cannot go past the limit.
+     * Throws {@code ConflictException} (409) if the limit was reached in the meantime, {@code NotFoundException} if
+     * the promotion does not exist.
+     */
+    void recordUsage(UUID promotionId);
+
+    /**
+     * Gives back the use counted by {@link #recordUsage} when the sale is cancelled (PRO-03); the counter never goes
+     * below zero. No effect on an unknown promotion.
+     */
+    void releaseUsage(UUID promotionId);
 }

@@ -13,8 +13,9 @@ import org.vvs.valimbavaka.feature.promotion.domain.PromotionScope;
 import org.vvs.valimbavaka.feature.promotion.domain.PromotionStatus;
 
 /**
- * Promotion sheet. {@code status} is deduced from the period on the current business day; {@code usageCount} is
- * incremented by the till (PRO-02, VTE-04, followed by PRO-03).
+ * Promotion sheet. {@code status} is deduced from the period on the current business day (never stored);
+ * {@code usageCount} counts the validated sales that carry the promotion (PRO-03): +1 when a sale is recorded, -1 when
+ * it is cancelled, never above {@code usageLimit}.
  */
 public record PromotionRDto(
         UUID id,

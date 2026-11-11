@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 
@@ -75,4 +76,22 @@ public interface PromotionRepository extends Repository<Promotion, UUID> {
             order by p.endsOn, p.name
             """)
     List<Promotion> findAutomaticActive(LocalDate today);
+
+    /**
+     * Counts one use of the promotion if its usage limit, if any, is not reached (PRO-03). One atomic UPDATE: the
+     * check and the increment cannot be separated, so two simultaneous sales never exceed the limit. Returns the
+     * number of rows changed, 0 when the promotion is unknown or its limit is reached.
+     */
+    @Modifying
+    @Query("""
+            update Promotion p set p.usageCount = p.usageCount + 1
+            where p.id = :promotionId
+              and (p.usageLimit is null or p.usageCount < p.usageLimit)
+            """)
+    int incrementUsage(UUID promotionId);
+
+    /** Gives back one use (cancelled sale, PRO-03); never goes below zero. Returns the number of rows changed. */
+    @Modifying
+    @Query("update Promotion p set p.usageCount = p.usageCount - 1 where p.id = :promotionId and p.usageCount > 0")
+    int decrementUsage(UUID promotionId);
 }
