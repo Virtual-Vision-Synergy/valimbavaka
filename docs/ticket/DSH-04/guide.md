@@ -1,6 +1,6 @@
 # Guide d'intégration — DSH-04 · Répartition du CA par gamme et canal
 
-Statut : ☐ tests à lancer (CI ou local) · Ticket : [#97](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/97) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ CI verte · Ticket : [#97](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/97) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
