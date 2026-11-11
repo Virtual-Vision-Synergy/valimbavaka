@@ -34,9 +34,9 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 
 /**
- * RPT-01 and RPT-02: daily, monthly and yearly report filtered by channel and range, compared with the previous
- * period, administrator only. The database is shared with other test classes: every assertion is a difference between
- * two readings of the same report.
+ * RPT-01 to RPT-03: daily, monthly and yearly report filtered by channel and range, compared with the previous
+ * period, with its turnover curve, administrator only. The database is shared with other test classes: every
+ * assertion is a difference between two readings of the same report.
  */
 class ReportIT extends StockApiTestSupport {
 
@@ -274,6 +274,97 @@ class ReportIT extends StockApiTestSupport {
     }
 
     @Test
+    void getReport_monthTrend_hasOnePointPerDayAndItsSumIsTheRevenue() throws Exception {
+        // Arrange
+        var today = today();
+        var before = trendRevenue(MONTH, today);
+        createSale("STORE", soap, "1");
+        createSale("FACEBOOK", cream, "2");
+
+        // Act
+        var json = reportJson(MONTH);
+
+        // Assert
+        assertThat(trendRevenue(MONTH, today) - before).isEqualTo(25500.0);
+        assertThat((List<?>) JsonPath.read(json, "$.trend")).hasSize(today.lengthOfMonth());
+        assertThat((List<?>) JsonPath.read(json, "$.trend[?(@.date=='" + today + "')]")).hasSize(1);
+        assertThat(JsonPath.<String>read(json, "$.trend[0].date")).isEqualTo(today.withDayOfMonth(1).toString());
+        assertThat(trendSum(json)).isCloseTo(salesRevenue(json), within(0.01));
+    }
+
+    @Test
+    void getReport_yearTrend_hasTwelveMonthPointsThatIncludeTheSale() throws Exception {
+        // Arrange
+        var year = "?granularity=YEAR";
+        var firstOfMonth = today().withDayOfMonth(1);
+        var before = trendRevenue(year, firstOfMonth);
+        createSale("STORE", soap, "1");
+
+        // Act
+        var json = reportJson(year);
+
+        // Assert
+        assertThat(trendRevenue(year, firstOfMonth) - before).isEqualTo(8500.0);
+        assertThat((List<?>) JsonPath.read(json, "$.trend")).hasSize(12);
+        assertThat(JsonPath.<String>read(json, "$.trend[0].date")).isEqualTo(today().getYear() + "-01-01");
+        assertThat(trendSum(json)).isCloseTo(salesRevenue(json), within(0.01));
+    }
+
+    @Test
+    void getReport_dayTrend_isASinglePointOfTheDay() throws Exception {
+        // Arrange
+        var day = "?granularity=DAY";
+        var before = trendRevenue(day, today());
+        createSale("STORE", soap, "1");
+
+        // Act + Assert
+        assertThat((List<?>) JsonPath.read(reportJson(day), "$.trend")).hasSize(1);
+        assertThat(trendRevenue(day, today()) - before).isEqualTo(8500.0);
+    }
+
+    @Test
+    void getReport_trendWithFilters_appliesTheChannelAndTheRange() throws Exception {
+        // Arrange
+        var today = today();
+        var soapFilter = MONTH + "&salesChannelId=" + channel("FACEBOOK") + "&rangeId=" + soapRange;
+        var creamFilter = MONTH + "&rangeId=" + creamRange;
+        var soapBefore = trendRevenue(soapFilter, today);
+        var creamBefore = trendRevenue(creamFilter, today);
+        createSale("FACEBOOK", List.of(soap, cream), List.of("1", "2"));
+        createSale("STORE", soap, "1");
+
+        // Act + Assert
+        assertThat(trendRevenue(soapFilter, today) - soapBefore).isEqualTo(8500.0);
+        assertThat(trendRevenue(creamFilter, today) - creamBefore).isEqualTo(17000.0);
+    }
+
+    @Test
+    void getReport_cancelledSale_isNotInTheTrend() throws Exception {
+        // Arrange
+        var before = trendRevenue(MONTH, today());
+        var saleId = createSale("STORE", soap, "1");
+        jdbcTemplate.update("update sales set status = 'CANCELLED' where id = ?", saleId);
+
+        // Act + Assert
+        assertThat(trendRevenue(MONTH, today())).isEqualTo(before);
+    }
+
+    @Test
+    void getReport_pastPeriodWithoutSale_hasAContinuousTrendOfZeros() throws Exception {
+        report(adminToken(), "?granularity=MONTH&date=2000-02-10")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.trend.length()").value(29))
+                .andExpect(jsonPath("$.trend[0].date").value("2000-02-01"))
+                .andExpect(jsonPath("$.trend[28].date").value("2000-02-29"))
+                .andExpect(jsonPath("$.trend[0].revenue").value(0.0))
+                .andExpect(jsonPath("$.trend[28].revenue").value(0.0));
+        report(adminToken(), "?granularity=YEAR&date=2000-06-15")
+                .andExpect(jsonPath("$.trend.length()").value(12))
+                .andExpect(jsonPath("$.trend[11].date").value("2000-12-01"))
+                .andExpect(jsonPath("$.trend[11].revenue").value(0.0));
+    }
+
+    @Test
     void getReport_withoutToken_returns401() throws Exception {
         mockMvc.perform(get(REPORTS))
                 .andExpect(status().isUnauthorized())
@@ -292,6 +383,33 @@ class ReportIT extends StockApiTestSupport {
 
     private ResultActions report(String token, String parameters) throws Exception {
         return mockMvc.perform(get(REPORTS + parameters).header(HttpHeaders.AUTHORIZATION, bearer(token)));
+    }
+
+    private LocalDate today() {
+        return LocalDate.now(ZoneId.of("Indian/Antananarivo"));
+    }
+
+    private String reportJson(String parameters) throws Exception {
+        return report(adminToken(), parameters)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+    }
+
+    /** Turnover of the point of the curve at {@code date}. */
+    private double trendRevenue(String parameters, LocalDate date) throws Exception {
+        var values = (List<?>) JsonPath.read(reportJson(parameters), "$.trend[?(@.date=='" + date + "')].revenue");
+        return ((Number) values.get(0)).doubleValue();
+    }
+
+    private double salesRevenue(String json) {
+        return ((Number) JsonPath.read(json, "$.sales.revenue")).doubleValue();
+    }
+
+    private double trendSum(String json) {
+        var values = (List<?>) JsonPath.read(json, "$.trend[*].revenue");
+        return values.stream().mapToDouble(value -> ((Number) value).doubleValue()).sum();
     }
 
     private double revenue(String parameters) throws Exception {

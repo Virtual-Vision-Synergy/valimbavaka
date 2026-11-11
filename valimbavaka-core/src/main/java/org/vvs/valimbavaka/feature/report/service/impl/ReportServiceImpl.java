@@ -48,10 +48,12 @@ public class ReportServiceImpl implements ReportService {
         if (period.startsAfter(today)) {
             throw new BusinessException("Le rapport ne peut pas porter sur une période qui n'a pas commencé.");
         }
-        var sales = reportSalesService.getSales(new ReportFilter(period, salesChannelId, rangeId));
+        var filter = new ReportFilter(period, salesChannelId, rangeId);
+        var sales = reportSalesService.getSales(filter);
         var comparison = compare(sales, new ReportFilter(period.previous(), salesChannelId, rangeId));
+        var trend = reportSalesService.getTrend(filter);
         return new ReportRDto(
-                period.granularity(), period.from(), period.to(), salesChannelId, rangeId, sales, comparison);
+                period.granularity(), period.from(), period.to(), salesChannelId, rangeId, sales, comparison, trend);
     }
 
     private ReportComparisonRDto compare(ReportSalesRDto current, ReportFilter previousFilter) {

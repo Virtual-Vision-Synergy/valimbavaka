@@ -13,6 +13,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,7 @@ import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.feature.report.domain.ReportFilter;
 import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 import org.vvs.valimbavaka.feature.report.dto.ReportSalesRDto;
+import org.vvs.valimbavaka.feature.report.dto.ReportTrendPointRDto;
 import org.vvs.valimbavaka.feature.report.service.ReportSalesService;
 
 @ExtendWith(MockitoExtension.class)
@@ -191,6 +193,36 @@ class ReportServiceImplTest {
         // Assert
         assertThat(result.comparison().variation().revenue()).isEqualByComparingTo("-100.0");
         assertThat(result.comparison().variation().salesCount()).isEqualByComparingTo("-100.0");
+    }
+
+    @Test
+    void getReport_trend_isTheCurveOfThePeriodWithTheSameFilters() {
+        // Arrange
+        var channel = UUID.randomUUID();
+        var range = UUID.randomUUID();
+        var point = new ReportTrendPointRDto(LocalDate.of(2026, 3, 1), new BigDecimal("1000.00"));
+        when(reportSalesService.getSales(any(ReportFilter.class))).thenReturn(SALES);
+        when(reportSalesService.getTrend(any(ReportFilter.class))).thenReturn(List.of(point));
+
+        // Act
+        var result = sut.getReport(ReportGranularity.MONTH, LocalDate.of(2026, 3, 10), channel, range);
+
+        // Assert
+        var captor = ArgumentCaptor.forClass(ReportFilter.class);
+        verify(reportSalesService).getTrend(captor.capture());
+        assertThat(captor.getValue().period().from()).isEqualTo(LocalDate.of(2026, 3, 1));
+        assertThat(captor.getValue().period().to()).isEqualTo(LocalDate.of(2026, 3, 31));
+        assertThat(captor.getValue().salesChannelId()).isEqualTo(channel);
+        assertThat(captor.getValue().rangeId()).isEqualTo(range);
+        assertThat(result.trend()).containsExactly(point);
+    }
+
+    @Test
+    void getReport_dayInTheFuture_doesNotReadTheCurve() {
+        // Act + Assert
+        assertThatThrownBy(() -> sut.getReport(ReportGranularity.DAY, LocalDate.of(2026, 12, 2), null, null))
+                .isInstanceOf(BusinessException.class);
+        verify(reportSalesService, never()).getTrend(any(ReportFilter.class));
     }
 
     private void stubCurrentAndPrevious(ReportSalesRDto current, ReportSalesRDto previous) {
