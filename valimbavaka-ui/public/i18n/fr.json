@@ -541,6 +541,15 @@
     "title": "Ventes du jour",
     "subtitle": "{{count}} ventes",
     "book": "Livre des ventes",
+    "bookExport": {
+      "title": "Export du livre des ventes",
+      "help": "Les factures de la période et leurs avoirs (en négatif) pour la comptabilité. 366 jours au plus.",
+      "from": "Du",
+      "to": "Au",
+      "xlsx": "Exporter en XLSX",
+      "pdf": "Exporter en PDF",
+      "invalidPeriod": "Choisissez une période valide : début avant fin, 366 jours au plus."
+    },
     "newSale": "Nouvelle vente",
     "listLabel": "Ventes de la journée",
     "showInvoice": "Afficher la facture de {{number}}",
