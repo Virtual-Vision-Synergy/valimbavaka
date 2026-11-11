@@ -213,8 +213,7 @@ class SalesBookIT extends StockApiTestSupport {
         issueCreditNote(sale, "Erreur de saisie");
 
         // Act
-        var json = mockMvc.perform(bookRequest(
-                        adminToken(), businessDate(sale), businessDate(sale), saleNumber(sale)))
+        var json = mockMvc.perform(bookRequest(adminToken(), businessDate(sale), businessDate(sale), saleNumber(sale)))
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
@@ -222,9 +221,8 @@ class SalesBookIT extends StockApiTestSupport {
 
         // Assert
         List<Number> totals = JsonPath.read(json, "$.items[*].total");
-        var net = totals.stream()
-                .map(total -> new BigDecimal(total.toString()))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        var net =
+                totals.stream().map(total -> new BigDecimal(total.toString())).reduce(BigDecimal.ZERO, BigDecimal::add);
         assertThat(totals).hasSize(2);
         assertThat(net).isEqualByComparingTo("0");
     }
@@ -237,7 +235,10 @@ class SalesBookIT extends StockApiTestSupport {
 
         // Act + Assert
         mockMvc.perform(bookRequest(
-                        adminToken(), day.plusDays(1).toString(), day.plusDays(10).toString(), invoiceNumber(sale)))
+                        adminToken(),
+                        day.plusDays(1).toString(),
+                        day.plusDays(10).toString(),
+                        invoiceNumber(sale)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCount").value(0))
                 .andExpect(jsonPath("$.items.length()").value(0));
@@ -251,7 +252,10 @@ class SalesBookIT extends StockApiTestSupport {
 
         // Act + Assert
         mockMvc.perform(bookRequest(
-                        adminToken(), day.minusDays(10).toString(), day.minusDays(1).toString(), invoiceNumber(sale)))
+                        adminToken(),
+                        day.minusDays(10).toString(),
+                        day.minusDays(1).toString(),
+                        invoiceNumber(sale)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCount").value(0));
     }
@@ -269,7 +273,9 @@ class SalesBookIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.totalCount").value(2))
                 .andExpect(jsonPath("$.totalPages").value(2))
                 .andExpect(jsonPath("$.items[0].type").value("Facture"));
-        mockMvc.perform(bookRequest(adminToken(), day, day, invoice).param("size", "1").param("page", "2"))
+        mockMvc.perform(bookRequest(adminToken(), day, day, invoice)
+                        .param("size", "1")
+                        .param("page", "2"))
                 .andExpect(jsonPath("$.items[0].type").value("Avoir"));
     }
 

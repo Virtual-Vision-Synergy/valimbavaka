@@ -110,7 +110,7 @@ describe('SalesBookExport', () => {
     buttons()[0].click();
     httpMock
       .expectOne((req) => req.url === `${BOOK_URL}/export`)
-      .flush('refus', { status: 403, statusText: 'Forbidden' });
+      .flush(new Blob(['{}']), { status: 403, statusText: 'Forbidden' });
     fixture.detectChanges();
 
     expect(toast.toasts()).toEqual([

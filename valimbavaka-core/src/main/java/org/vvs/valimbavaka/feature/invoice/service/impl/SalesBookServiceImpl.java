@@ -38,8 +38,8 @@ public class SalesBookServiceImpl implements SalesBookService {
         checkPeriod(from, to);
         var requested = query.toPageable(SORT_FIELDS, "businessDate", SortDirection.ASC);
         // A stable order inside a day, so that two pages never overlap nor skip a line.
-        var pageable = PageRequest.of(
-                requested.getPageNumber(), requested.getPageSize(), requested.getSort().and(TIE_BREAK));
+        var sort = requested.getSort().and(TIE_BREAK);
+        var pageable = PageRequest.of(requested.getPageNumber(), requested.getPageSize(), sort);
         var page = salesBookRepository.search(from, to, query.searchTerm(), pageable);
         return PageResponse.from(page.map(salesBookMapper::toRDto));
     }
@@ -49,8 +49,8 @@ public class SalesBookServiceImpl implements SalesBookService {
             throw new BusinessException("La date de début doit précéder la date de fin.");
         }
         if (ChronoUnit.DAYS.between(from, to) >= MAX_PERIOD_DAYS) {
-            throw new BusinessException("La période du livre des ventes ne peut pas dépasser %d jours."
-                    .formatted(MAX_PERIOD_DAYS));
+            var message = "La période du livre des ventes ne peut pas dépasser %d jours.".formatted(MAX_PERIOD_DAYS);
+            throw new BusinessException(message);
         }
     }
 }
