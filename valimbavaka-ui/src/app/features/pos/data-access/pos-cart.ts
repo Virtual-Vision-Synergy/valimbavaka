@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { formatAriary } from '../../../shared/pipes/ariary-pipe';
 import {
   PaymentMethod,
   PosArticleRDto,
@@ -6,13 +7,14 @@ import {
   PosTicketLineRDto,
   SaleChannel,
 } from './pos-models';
+import { changeDue, lineDiscount, lineTotal, ticketTotals } from './pos-pricing';
 
 export interface CartLine {
   readonly article: PosArticleRDto;
   readonly quantity: number;
 }
 
-/** Ligne valorisée : brut, taux et montant de remise (arrondi à l'ariary). */
+/** Ligne valorisée : total de la ligne (règle du serveur), taux et montant de remise (arrondi à l'ariary). */
 export interface PricedLine extends CartLine {
   readonly gross: number;
   readonly rate: number;
@@ -27,7 +29,7 @@ export interface CartAnnouncement {
 
 /**
  * Ticket en cours d'un poste de caisse (état local, fourni par la page) : lignes, canal, paiement
- * et totaux dérivés. Le calcul réel fait foi côté serveur à l'encaissement.
+ * et totaux recalculés à chaque changement (VTE-02, `pos-pricing`). Le serveur fait foi à l'encaissement.
  */
 @Injectable()
 export class PosCart {
@@ -44,19 +46,20 @@ export class PosCart {
   readonly priced = computed<readonly PricedLine[]>(() => {
     const promotion = this.promotion();
     return this.lines().map((line) => {
-      const gross = line.article.price * line.quantity;
+      const gross = lineTotal(line.article.price, line.quantity);
       const rate = promotion?.articleIds.includes(line.article.id) ? promotion.rate : 0;
-      return { ...line, gross, rate, discount: Math.round((gross * rate) / 100) };
+      return { ...line, gross, rate, discount: lineDiscount(gross, rate) };
     });
   });
   readonly quantities = computed(
     () => new Map(this.lines().map((line) => [line.article.id, line.quantity])),
   );
   readonly isEmpty = computed(() => this.lines().length === 0);
-  readonly subtotal = computed(() => this.priced().reduce((sum, line) => sum + line.gross, 0));
-  readonly discount = computed(() => this.priced().reduce((sum, line) => sum + line.discount, 0));
-  readonly total = computed(() => this.subtotal() - this.discount());
-  readonly change = computed(() => this.received() - this.total());
+  private readonly totals = computed(() => ticketTotals(this.priced()));
+  readonly subtotal = computed(() => this.totals().subtotal);
+  readonly discount = computed(() => this.totals().discount);
+  readonly total = computed(() => this.totals().total);
+  readonly change = computed(() => changeDue(this.received(), this.total()));
   readonly appliedPromotion = computed(() => (this.discount() > 0 ? this.promotion() : null));
   readonly canCheckout = computed(
     () =>
@@ -97,7 +100,11 @@ export class PosCart {
             line.article.id === article.id ? { ...line, quantity: line.quantity + 1 } : line,
           ),
     );
-    this.announce('pos.ticket.added', { name: article.name, quantity: quantity + 1 });
+    this.announce('pos.ticket.added', {
+      name: article.name,
+      quantity: quantity + 1,
+      total: formatAriary(this.total()),
+    });
     return true;
   }
 
@@ -117,6 +124,7 @@ export class PosCart {
     this.announce(line.quantity <= 1 ? 'pos.ticket.removed' : 'pos.ticket.decreased', {
       name: line.article.name,
       quantity: line.quantity - 1,
+      total: formatAriary(this.total()),
     });
   }
 
