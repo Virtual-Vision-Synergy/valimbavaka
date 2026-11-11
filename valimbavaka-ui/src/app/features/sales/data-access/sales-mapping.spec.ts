@@ -1,5 +1,12 @@
-import { articlesLabel, localIsoDate, toInvoicePreview, toSaleRow } from './sales-mapping';
-import { SaleSummaryRDto } from './sales-models';
+import {
+  articlesLabel,
+  localDateTime,
+  localIsoDate,
+  toInvoicePreview,
+  toInvoiceView,
+  toSaleRow,
+} from './sales-mapping';
+import { InvoiceRDto, SaleSummaryRDto } from './sales-models';
 
 const SALE: SaleSummaryRDto = {
   id: 'vente-42',
@@ -18,6 +25,35 @@ const SALE: SaleSummaryRDto = {
   lines: [
     { articleId: 'savon', articleName: 'Savon coco', quantity: 2, lineTotal: 17000 },
     { articleId: 'huile', articleName: 'Huile de ricin', quantity: 1, lineTotal: 12000 },
+  ],
+};
+
+const INVOICE: InvoiceRDto = {
+  id: 'facture-1',
+  number: 'FAC-2026-0042',
+  saleId: 'vente-42',
+  saleNumber: 'VTE-0042',
+  issuedAt: '2026-11-08T07:52:00Z',
+  businessDate: '2026-11-08',
+  status: 'VALIDATED',
+  salesChannelLabel: 'Boutique',
+  sellerId: 'miora',
+  sellerName: 'Miora Rakoto',
+  paymentMethod: 'ORANGE_MONEY',
+  issuerName: 'By Valimbavaka Cosmetics',
+  issuerNif: '4001234567',
+  subtotal: 29000,
+  discountAmount: 1500,
+  total: 27500,
+  lines: [
+    { articleId: 'savon', label: 'Savon coco', quantity: 2, unitPrice: 8500, lineTotal: 17000 },
+    {
+      articleId: 'huile',
+      label: 'Huile de ricin',
+      quantity: 1,
+      unitPrice: 12000,
+      lineTotal: 12000,
+    },
   ],
 };
 
@@ -86,5 +122,48 @@ describe('sales mapping', () => {
 
   it('donne le jour local au format yyyy-MM-dd', () => {
     expect(localIsoDate(new Date(2026, 10, 8, 0, 30))).toBe('2026-11-08');
+  });
+
+  it('prépare le document de la facture émise : numéro, date, émetteur, lignes figées et totaux (FAC-01)', () => {
+    const view = toInvoiceView(INVOICE);
+
+    expect(view.number).toBe('FAC-2026-0042');
+    expect(view.issuedAt).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/);
+    expect(view.status).toBe('PAID');
+    expect(view).toEqual(
+      expect.objectContaining({
+        saleNumber: 'VTE-0042',
+        channelLabel: 'Boutique',
+        sellerName: 'Miora Rakoto',
+        payment: 'ORANGE_MONEY',
+        issuerName: 'By Valimbavaka Cosmetics',
+        issuerNif: '4001234567',
+        subtotal: 29000,
+        discount: 1500,
+        total: 27500,
+      }),
+    );
+    expect(view.lines).toEqual([
+      { label: 'Savon coco', quantity: 2, total: 17000 },
+      { label: 'Huile de ricin', quantity: 1, total: 12000 },
+    ]);
+  });
+
+  it('garde une facture sans vendeuse ni NIF telle quelle (affichés « Sans vendeuse » et « [à compléter] »)', () => {
+    const view = toInvoiceView({ ...INVOICE, sellerId: null, sellerName: null, issuerNif: null });
+
+    expect(view.sellerName).toBeNull();
+    expect(view.issuerNif).toBeNull();
+  });
+
+  it.each(['CANCELLED', 'REVERSED'] as const)(
+    "montre l'avoir d'une facture dont la vente est %s",
+    (status) => {
+      expect(toInvoiceView({ ...INVOICE, status }).status).toBe('CREDITED');
+    },
+  );
+
+  it("donne la date et l'heure locales au format jj/mm/aaaa HH:MM", () => {
+    expect(localDateTime(new Date(2026, 10, 8, 9, 5).toISOString())).toBe('08/11/2026 09:05');
   });
 });

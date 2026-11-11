@@ -553,7 +553,7 @@
       "creditNote": "Une facture émise ne se supprime pas : un avoir motivé l'annule partiellement ou totalement.",
       "open": "Voir",
       "pendingNumber": "À émettre",
-      "previewNote": "Aperçu établi depuis la vente : la facture numérotée sera émise par le module de facturation."
+      "previewNote": "Aucune facture n'a été émise pour cette vente (vente antérieure à la facturation automatique) : aperçu établi depuis la vente."
     },
     "noSeller": "Sans vendeuse",
     "filters": {
