@@ -106,8 +106,9 @@ export class PosPage {
     }
     this.submitting.set(true);
     const body = toSaleWDto(channelId, sellerId, this.cart.payment(), this.cart.priced());
+    const displayedTotal = this.cart.total();
     this.posService.record(body).subscribe({
-      next: (result) => this.recorded(result),
+      next: (result) => this.recorded(result, displayedTotal),
       error: (error: unknown) => {
         this.submitting.set(false);
         this.toast.show('pos.toast.failed', { message: errorMessage(error) }, 'danger');
@@ -142,15 +143,27 @@ export class PosPage {
     handlers[action]();
   }
 
-  private recorded(result: SubmitResult<SaleRDto>): void {
+  /**
+   * Le serveur recalcule la vente avec les prix du moment (VTE-01) : si son net diffère du net affiché
+   * (prix modifié depuis l'ouverture du poste), la caissière est avertie pour ajuster le rendu (VTE-02).
+   */
+  private recorded(result: SubmitResult<SaleRDto>, displayedTotal: number): void {
     this.submitting.set(false);
-    if (result.queued || !result.body) {
+    const sale = result.body;
+    if (result.queued || !sale) {
       this.toast.show('common.queuedSaved', {}, 'info');
+    } else if (sale.total !== displayedTotal) {
+      this.toast.show(
+        'pos.toast.totalAdjusted',
+        {
+          ticket: sale.number,
+          amount: formatAriary(sale.total),
+          displayed: formatAriary(displayedTotal),
+        },
+        'warning',
+      );
     } else {
-      this.toast.show('pos.toast.paid', {
-        ticket: result.body.number,
-        amount: formatAriary(result.body.total),
-      });
+      this.toast.show('pos.toast.paid', { ticket: sale.number, amount: formatAriary(sale.total) });
     }
     this.ticketNumber.update((number) => number + 1);
     this.cart.clear();
