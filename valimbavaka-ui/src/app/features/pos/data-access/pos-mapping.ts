@@ -9,6 +9,7 @@ import {
   PosPromotionRDto,
   SaleChannel,
   SaleFormRDto,
+  SalePromotionRDto,
   SaleWDto,
 } from './pos-models';
 
@@ -83,6 +84,25 @@ function toPosPromotions(form: SaleFormRDto): PosPromotionRDto[] {
   }));
 }
 
+/** Promotion d'un code promo vérifié par le serveur (`GET /api/v1/sales/promo-codes/{code}`) au format du poste. */
+export function toPosPromotion(
+  promotion: SalePromotionRDto,
+  channelIds: Partial<Record<SaleChannel, string>>,
+): PosPromotionRDto {
+  const channels = (Object.keys(channelIds) as SaleChannel[]).filter((channel) => {
+    const id = channelIds[channel];
+    return id !== undefined && promotion.channelIds.includes(id);
+  });
+  return {
+    id: promotion.id,
+    name: promotion.name,
+    kind: promotion.kind,
+    value: promotion.value,
+    articleIds: promotion.articleIds,
+    channels,
+  };
+}
+
 function toPosArticles(
   form: SaleFormRDto,
   ranges: readonly ProductRangeRDto[],
@@ -108,6 +128,11 @@ function toPosArticles(
       },
     ];
   });
+}
+
+/** Ajoute le code promo retenu au corps de la vente ; sans code, le corps reste tel quel. */
+export function withPromoCode(body: SaleWDto, promoCode: string | null): SaleWDto {
+  return promoCode ? { ...body, promoCode } : body;
 }
 
 /** Corps de `POST /api/v1/sales` : canal, vendeuse, règlement et lignes, sans aucun prix. */

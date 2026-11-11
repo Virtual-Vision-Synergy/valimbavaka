@@ -101,13 +101,16 @@ function totalOff(applied: AppliedPromotion): number {
 }
 
 /**
- * Promotion automatique du canal qui donne la plus grande remise sur le ticket (la première en cas d'égalité,
- * dans l'ordre du serveur : fin la plus proche) ; pas de cumul, aucune si aucune n'a d'effet.
+ * Promotion retenue sur le ticket (VTE-04, même règle que le serveur) : parmi les promotions automatiques du canal,
+ * celle qui donne la plus grande remise (la première en cas d'égalité, dans l'ordre du serveur : fin la plus
+ * proche). Le code promo saisi (`codePromotion`) la remplace s'il donne au moins autant (il gagne l'égalité) ; une
+ * seule promotion, pas de cumul, aucune si aucune n'a d'effet.
  */
 export function bestPromotion(
   promotions: readonly PosPromotionRDto[],
   channel: SaleChannel,
   lines: readonly PromotionLine[],
+  codePromotion: PosPromotionRDto | null = null,
 ): AppliedPromotion {
   let best = NO_PROMOTION;
   let bestOff = 0;
@@ -116,6 +119,12 @@ export function bestPromotion(
     if (totalOff(applied) > bestOff) {
       best = applied;
       bestOff = totalOff(applied);
+    }
+  }
+  if (codePromotion?.channels.includes(channel)) {
+    const coded = applyPromotion(codePromotion, lines);
+    if (totalOff(coded) > 0 && totalOff(coded) >= bestOff) {
+      return coded;
     }
   }
   return best;
