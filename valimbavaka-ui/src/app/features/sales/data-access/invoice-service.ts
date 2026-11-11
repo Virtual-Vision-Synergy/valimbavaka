@@ -10,6 +10,8 @@ import { InvoiceRDto } from './sales-models';
  *
  * Régénération (FAC-02) : `POST /api/v1/invoices/sales/{saleId}/regenerate` (permission `invoices.regenerate`), sans
  * corps : le serveur rend la même facture (même numéro, même contenu) ou, pour une vente sans facture, l'émet.
+ *
+ * PDF (FAC-03) : `GET /api/v1/invoices/{id}/pdf` (permission `sales.read`), le fichier de la facture telle qu'émise.
  */
 @Injectable({ providedIn: 'root' })
 export class InvoiceService {
@@ -25,6 +27,12 @@ export class InvoiceService {
       `${this.baseUrl}/sales/${encodeURIComponent(saleId)}/regenerate`,
       null,
     );
+  }
+
+  downloadPdf(invoiceId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${encodeURIComponent(invoiceId)}/pdf`, {
+      responseType: 'blob',
+    });
   }
 
   getById(invoiceId: string): Observable<InvoiceRDto> {
