@@ -74,11 +74,12 @@ class ReportServiceImplTest {
 
         // Assert
         var captor = ArgumentCaptor.forClass(ReportFilter.class);
-        verify(reportSalesService).getSales(captor.capture());
-        assertThat(captor.getValue().period().from()).isEqualTo(LocalDate.of(2025, 1, 1));
-        assertThat(captor.getValue().period().to()).isEqualTo(LocalDate.of(2025, 12, 31));
-        assertThat(captor.getValue().salesChannelId()).isEqualTo(channel);
-        assertThat(captor.getValue().rangeId()).isEqualTo(range);
+        verify(reportSalesService, times(2)).getSales(captor.capture());
+        var current = captor.getAllValues().get(0);
+        assertThat(current.period().from()).isEqualTo(LocalDate.of(2025, 1, 1));
+        assertThat(current.period().to()).isEqualTo(LocalDate.of(2025, 12, 31));
+        assertThat(current.salesChannelId()).isEqualTo(channel);
+        assertThat(current.rangeId()).isEqualTo(range);
         assertThat(result.salesChannelId()).isEqualTo(channel);
         assertThat(result.rangeId()).isEqualTo(range);
     }

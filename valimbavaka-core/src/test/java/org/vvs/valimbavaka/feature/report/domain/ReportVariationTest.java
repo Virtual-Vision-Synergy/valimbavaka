@@ -33,7 +33,7 @@ class ReportVariationTest {
 
     @Test
     void percent_previousZero_isNull() {
-        assertThat(ReportVariation.percent(new BigDecimal("100.00"), BigDecimal.ZERO)).isNull();
+        assertThat(ReportVariation.percent(BigDecimal.TEN, BigDecimal.ZERO)).isNull();
         assertThat(ReportVariation.percent(3, 0)).isNull();
         assertThat(ReportVariation.percent(0, 0)).isNull();
     }
