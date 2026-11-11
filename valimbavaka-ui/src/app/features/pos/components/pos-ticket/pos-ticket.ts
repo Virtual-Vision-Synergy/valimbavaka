@@ -18,7 +18,7 @@ import {
 } from '../../../../shared/components/segmented-control/segmented-control';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { PosCart } from '../../data-access/pos-cart';
-import { PaymentMethod, SaleChannel } from '../../data-access/pos-models';
+import { PaymentMethod, PosSeller, SaleChannel } from '../../data-access/pos-models';
 import { KeypadKey, PosKeypad } from '../pos-keypad/pos-keypad';
 
 const CHANNELS: readonly SegmentOption<SaleChannel>[] = [
@@ -52,6 +52,7 @@ export class PosTicket {
   readonly ticketNumber = input.required<number>();
   readonly cashierName = input.required<string>();
   readonly openedAt = input.required<string>();
+  readonly sellers = input<readonly PosSeller[]>([]);
   readonly checkout = output();
   readonly hold = output();
   readonly promoCode = output();
@@ -60,6 +61,10 @@ export class PosTicket {
   protected readonly channels = CHANNELS;
   protected readonly payments = PAYMENTS;
   protected readonly channel = this.cart.channel;
+
+  protected selectSeller(sellerId: string): void {
+    this.cart.seller.set(sellerId || null);
+  }
 
   protected selectPayment(method: PaymentMethod): void {
     this.cart.payment.set(method);

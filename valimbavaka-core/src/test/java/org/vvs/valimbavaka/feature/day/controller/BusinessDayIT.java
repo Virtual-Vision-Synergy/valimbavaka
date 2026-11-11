@@ -44,9 +44,11 @@ class BusinessDayIT extends StockApiTestSupport {
     @Autowired
     private BusinessDayService businessDayService;
 
-    /** One day per date: each test starts with today not opened yet. */
+    /** One day per date: each test starts with today not opened yet (the sales of VTE-01 reference the day). */
     @BeforeEach
     void forgetToday() {
+        jdbcTemplate.update("delete from sale_lines");
+        jdbcTemplate.update("delete from sales");
         jdbcTemplate.update("delete from business_day_transfers");
         jdbcTemplate.update("delete from business_days");
     }

@@ -29,9 +29,11 @@ class MorningTransferIT extends StockApiTestSupport {
     private static final String TRANSFERS = "/api/v1/transfers";
     private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    /** One day per date: each test starts with today not opened yet. */
+    /** One day per date: each test starts with today not opened yet (the sales of VTE-01 reference the day). */
     @BeforeEach
     void forgetToday() {
+        jdbcTemplate.update("delete from sale_lines");
+        jdbcTemplate.update("delete from sales");
         jdbcTemplate.update("delete from business_day_transfers");
         jdbcTemplate.update("delete from business_days");
     }

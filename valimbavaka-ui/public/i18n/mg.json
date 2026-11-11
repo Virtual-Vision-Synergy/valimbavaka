@@ -470,7 +470,9 @@
       "invoiceNote": "Misy faktiora misy laharana mivoaka rehefa voaray ny vola.",
       "added": "{{name}} nampidirina · isa {{quantity}}",
       "decreased": "{{name}} · isa {{quantity}}",
-      "removed": "{{name}} nesorina tamin'ny tapakila"
+      "removed": "{{name}} nesorina tamin'ny tapakila",
+      "sellerLabel": "Mpivarotra",
+      "sellerPlaceholder": "Safidio ny mpivarotra"
     },
     "shortcuts": {
       "label": "Hitsin-dalana amin'ny klavie",
@@ -484,7 +486,9 @@
       "paid": "Voaray ny varotra {{ticket}} · {{amount}}",
       "held": "Nampiandrasina ny tapakila {{ticket}}",
       "cannotCheckout": "Tsy ampy ny vola voaray",
-      "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}"
+      "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}",
+      "sellerRequired": "Safidio aloha ny mpivarotra vao mandoa",
+      "failed": "Nolavina ny varotra : {{message}}"
     }
   },
   "sales": {
