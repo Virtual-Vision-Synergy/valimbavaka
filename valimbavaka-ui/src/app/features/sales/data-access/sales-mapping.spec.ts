@@ -57,6 +57,16 @@ describe('sales mapping', () => {
     expect(row.channelLabel).toBeNull();
   });
 
+  it.each(['CASH', 'MVOLA', 'ORANGE_MONEY', 'CARD', 'ON_DELIVERY'] as const)(
+    'reporte le mode de règlement %s de la vente sur la ligne du tableau et sur la facture (VTE-05)',
+    (paymentMethod) => {
+      const sale = { ...SALE, paymentMethod };
+
+      expect(toSaleRow(sale).payment).toBe(paymentMethod);
+      expect(toInvoicePreview(sale).payment).toBe(paymentMethod);
+    },
+  );
+
   it("prépare l'aperçu de facture non émise depuis la vente", () => {
     const invoice = toInvoicePreview(SALE);
 
