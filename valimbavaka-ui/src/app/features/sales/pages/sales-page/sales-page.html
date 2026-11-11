@@ -108,7 +108,7 @@
       </section>
 
       @if (selectedSale(); as sale) {
-        <vvs-invoice-panel [sale]="sale" />
+        <vvs-invoice-panel [sale]="sale" (credited)="sales.reload()" />
       }
     </div>
   } @else {

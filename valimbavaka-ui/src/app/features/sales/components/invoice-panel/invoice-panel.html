@@ -40,8 +40,8 @@
       <button
         class="btn btn-danger"
         type="button"
-        [disabled]="doc.status === 'CREDITED'"
-        (click)="demoAction()"
+        [disabled]="doc.status === 'CREDITED' || !issued.hasValue()"
+        (click)="creditDialogOpen.set(true)"
       >
         {{ 'sales.invoice.credit' | translate }}
       </button>
@@ -50,5 +50,18 @@
       <p class="note">{{ 'sales.invoice.previewNote' | translate }}</p>
     }
     <p class="note">{{ 'sales.invoice.creditNote' | translate }}</p>
+    @if (issued.hasValue()) {
+      @if (doc.status === 'CREDITED') {
+        <vvs-credit-note-notice [invoiceId]="issued.value().id" />
+      }
+      @if (creditDialogOpen()) {
+        <vvs-credit-note-dialog
+          [invoiceId]="issued.value().id"
+          [invoiceNumber]="issued.value().number"
+          (credited)="onCredited($event)"
+          (cancelled)="creditDialogOpen.set(false)"
+        />
+      }
+    }
   }
 </section>

@@ -584,6 +584,17 @@
       "pendingNumber": "Mbola hamoahina",
       "previewNote": "Tsy nisy faktiora nalefa ho an'ity varotra ity (varotra talohan'ny faktiora ho azy) : topimaso avy amin'ny varotra."
     },
+    "credit": {
+      "title": "Avoir ho an'ny faktiora {{number}}",
+      "intro": "Ny avoir dia manafoana ny faktiora sy ny varotra ary mamerina ny entana ao amin'ny tahiry. Tsy azo averina ity asa ity.",
+      "reason": "Antony ny avoir",
+      "reasonHint": "Tsy maintsy fenoina, litera {{max}} ho farafahabetsany.",
+      "reasonInvalid": "Soraty ny antony (litera {{max}} ho farafahabetsany).",
+      "confirm": "Hamoaka ny avoir",
+      "issued": "Avoir {{number}} navoaka : nofoanana ny varotra ary naverina tao amin'ny tahiry ny entana.",
+      "noticeTitle": "Avoir {{number}} tamin'ny {{date}}",
+      "noticeReason": "Antony : {{reason}}"
+    },
     "noSeller": "Tsy misy mpivarotra",
     "filters": {
       "date": "Andro"
