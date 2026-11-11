@@ -2,6 +2,7 @@ package org.vvs.valimbavaka.feature.invoice.service.impl;
 
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.AuditorAware;
@@ -60,7 +61,29 @@ public class InvoiceServiceImpl implements InvoiceService {
         if (existing.isPresent()) {
             return invoiceMapper.toRDto(existing.get());
         }
+        return issue(saleService.getSaleById(saleId));
+    }
+
+    @Override
+    @Transactional
+    public InvoiceRDto regenerateForSale(UUID saleId) {
+        var existing = invoiceRepository.findBySaleId(saleId);
+        if (existing.isPresent()) {
+            var invoice = readable(existing.get());
+            journalService.record(
+                    JournalAction.UPDATE,
+                    RESOURCE_TYPE,
+                    invoice.getId(),
+                    "Facture %s régénérée · vente %s".formatted(invoice.getNumber(), invoice.getSaleNumber()));
+            log.info("Facture {} régénérée", invoice.getNumber());
+            return invoiceMapper.toRDto(invoice);
+        }
         var sale = saleService.getSaleById(saleId);
+        ensureSaleReadable(sale);
+        return issue(sale);
+    }
+
+    private InvoiceRDto issue(SaleRDto sale) {
         var draft = drafts.of(sale);
         var year = draft.businessDate().getYear();
         var number = "FAC-%d-%04d".formatted(year, invoiceRepository.nextNumber(year));
@@ -88,11 +111,22 @@ public class InvoiceServiceImpl implements InvoiceService {
 
     /** An active seller only reads the invoices of the sales credited to her (as for the sales list, VTE-07). */
     private Invoice readable(Invoice invoice) {
-        var own = auditorAware.getCurrentAuditor().filter(userService::isActiveSeller);
-        if (own.isPresent() && !own.get().equals(invoice.getSellerId())) {
+        if (!isReadableBySeller(invoice.getSellerId())) {
             throw new NotFoundException("Facture introuvable : " + invoice.getId());
         }
         return invoice;
+    }
+
+    /** Same rule for a sale that has no invoice yet (catch-up of a sale recorded before FAC-01). */
+    private void ensureSaleReadable(SaleRDto sale) {
+        if (!isReadableBySeller(sale.sellerId())) {
+            throw new NotFoundException("Vente introuvable : " + sale.id());
+        }
+    }
+
+    private boolean isReadableBySeller(@Nullable UUID sellerId) {
+        var own = auditorAware.getCurrentAuditor().filter(userService::isActiveSeller);
+        return own.isEmpty() || own.get().equals(sellerId);
     }
 
     /** E.g. {@code Facture FAC-2026-0042 · vente VTE-0042 · 64000.00 Ar · Espèces}. */

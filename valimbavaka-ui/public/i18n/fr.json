@@ -576,6 +576,8 @@
       "pdf": "PDF",
       "send": "Envoyer",
       "regenerate": "Régénérer",
+      "regenerated": "Facture {{number}} régénérée : même numéro, même contenu.",
+      "regenerateFailed": "Régénération impossible : {{message}}",
       "credit": "Émettre un avoir…",
       "creditNote": "Une facture émise ne se supprime pas : un avoir motivé l'annule partiellement ou totalement.",
       "open": "Voir",
