@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { TranslatePipe } from '@ngx-translate/core';
 import { RangeTag } from '../../../../shared/components/range-tag/range-tag';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
-import { DashboardRDto } from '../../data-access/dashboard-models';
+import { DashboardDemoRDto } from '../../data-access/dashboard-models';
 
 /** Répartition du chiffre d'affaires du jour par gamme puis par canal (DSH-04). */
 @Component({
@@ -13,7 +13,7 @@ import { DashboardRDto } from '../../data-access/dashboard-models';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RevenueSplitCard {
-  readonly data = input.required<DashboardRDto>();
+  readonly data = input.required<DashboardDemoRDto>();
 
   protected readonly ranges = computed(() => withShare(this.data().revenueByRange));
   protected readonly channels = computed(() => withShare(this.data().revenueByChannel));

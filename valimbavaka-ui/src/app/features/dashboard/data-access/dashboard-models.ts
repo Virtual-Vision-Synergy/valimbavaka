@@ -12,29 +12,44 @@ export interface DayStepRDto {
   readonly params: Readonly<Record<string, string | number>>;
 }
 
+/** Statut de la journée du jour ; `null` tant qu'elle n'est pas ouverte (JR-01). */
+export type BusinessDayStatus = 'OPEN' | 'CLOSED';
+
+/** Chiffre d'affaires du jour et de la veille ; `changePercent` est `null` sans comparaison possible. */
 export interface RevenueKpiRDto {
   readonly amount: number;
   readonly previousAmount: number;
-  readonly changePercent: number;
-  readonly dailyTarget: number;
+  readonly changePercent: number | null;
+}
+
+/** Un canal de vente (VTE-08) : chiffre d'affaires, ventes validées et part du total en pourcent. */
+export interface ChannelSalesRDto {
+  readonly salesChannelId: string;
+  /** `null` pour un canal désactivé depuis. */
+  readonly salesChannelLabel: string | null;
+  readonly revenue: number;
+  readonly salesCount: number;
+  readonly revenueSharePercent: number;
 }
 
 export interface SalesKpiRDto {
-  readonly tickets: number;
-  readonly delta: number;
+  readonly count: number;
+  readonly previousCount: number;
   readonly averageBasket: number;
-  readonly byChannel: Readonly<Record<SalesChannel, number>>;
+  readonly channels: readonly ChannelSalesRDto[];
 }
 
+/** Commandes du jour ; `total` ne compte pas les annulées (`cancelled`). */
 export interface DeliveryKpiRDto {
-  readonly done: number;
   readonly total: number;
-  readonly inProgress: number;
+  readonly delivered: number;
+  readonly onRound: number;
+  readonly toPrepare: number;
   readonly failed: number;
-  readonly activeRounds: number;
-  readonly collected: number;
+  readonly cancelled: number;
 }
 
+/** Écart de la réconciliation de clôture : somme signée des unités et nombre d'articles concernés. */
 export interface StockGapKpiRDto {
   readonly units: number;
   readonly articles: number;
@@ -80,10 +95,26 @@ export interface SellerPerformanceRDto {
 }
 
 /**
- * Cockpit du jour (DSH-01, DSH-02, DSH-04) : agrégat en lecture seule, calculé côté serveur. Les alertes de stock
- * (DSH-03) n'en font pas partie : la page les lit à part sur `GET /api/v1/stocks/alerts` (STK-04).
+ * Les 4 indicateurs du cockpit (DSH-01), lus sur `GET /api/v1/dashboard` (administrateur). `stockGap` est `null` tant
+ * que la journée n'est pas ouverte. Les alertes de stock (DSH-03) sont lues à part sur `GET /api/v1/stocks/alerts`.
  */
 export interface DashboardRDto {
+  readonly businessDate: string;
+  readonly status: BusinessDayStatus | null;
+  /** Instant ISO de la lecture (heure du serveur). */
+  readonly generatedAt: string;
+  readonly revenue: RevenueKpiRDto;
+  readonly sales: SalesKpiRDto;
+  readonly deliveries: DeliveryKpiRDto;
+  readonly stockGap: StockGapKpiRDto | null;
+}
+
+/**
+ * Zones du cockpit encore simulées : graphiques (DSH-02), répartition (DSH-04), flux d'activité, meilleurs articles,
+ * vendeuses, objectif mensuel et étapes. Chaque zone sortira d'ici quand son API existera ; elles ne contiennent plus
+ * aucun des 4 indicateurs.
+ */
+export interface DashboardDemoRDto {
   readonly businessDate: string;
   readonly openedAt: string;
   readonly openedBy: string;
@@ -91,10 +122,6 @@ export interface DashboardRDto {
   readonly monthlyTarget: number;
   readonly monthlyRevenue: number;
   readonly steps: readonly DayStepRDto[];
-  readonly revenue: RevenueKpiRDto;
-  readonly sales: SalesKpiRDto;
-  readonly deliveries: DeliveryKpiRDto;
-  readonly stockGap: StockGapKpiRDto;
   readonly revenueLast7Days: readonly DailyRevenueRDto[];
   /** Chiffre d'affaires des 4 dernières semaines, `date` = lundi de la semaine. */
   readonly revenueLast4Weeks: readonly DailyRevenueRDto[];
