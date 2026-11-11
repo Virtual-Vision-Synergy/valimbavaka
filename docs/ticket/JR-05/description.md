@@ -14,7 +14,7 @@ En tant qu'administrateur, je veux qu'un motif soit obligatoire en cas d'écart 
 
 ## Critères d'acceptation
 
-- [ ] La clôture n'est validée qu'après sélection d'un motif si un écart existe.
+- [x] La clôture n'est validée qu'après sélection d'un motif si un écart existe.
 
 ## Détails
 

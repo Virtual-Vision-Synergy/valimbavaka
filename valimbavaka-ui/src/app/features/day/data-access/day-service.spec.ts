@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { vi } from 'vitest';
+import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
 import {
   DayClosing,
@@ -38,6 +39,7 @@ const OPENING: DayOpeningRDto = {
 };
 
 const CLOSING: DayClosingRDto = {
+  businessDayId: 'day-id',
   businessDate: '2026-11-11',
   status: 'OPEN',
   locations: [
@@ -60,6 +62,8 @@ const CLOSING: DayClosingRDto = {
           theoretical: 14,
           systemStock: 12,
           gap: -2,
+          counted: null,
+          reason: null,
         },
       ],
     },
@@ -169,8 +173,52 @@ describe('DayService', () => {
     expect(closing?.locations.map((block) => block.location)).toEqual(['SHOP', 'DELIVERY']);
     const line = closing?.locations[0].lines[0];
     expect(line).toMatchObject({ reference: 'ART-0031', opening: 4, transferred: 30, shooting: 2 });
-    // le comptage proposé est le stock du système, sans motif
+    // sans comptage enregistré, le comptage proposé est le stock du système, sans motif
     expect(line).toMatchObject({ counted: 12, reason: null });
+    expect(closing?.locations[0].locationId).toBe('store-id');
+  });
+
+  it('reprend le comptage et le motif enregistrés par le serveur (JR-05)', () => {
+    let closing: DayClosing | undefined;
+    const saved = structuredClone(CLOSING);
+    const stored = { ...saved.locations[0].lines[0], counted: 9, reason: 'BREAKAGE' as const };
+    const body: DayClosingRDto = {
+      ...saved,
+      locations: [{ ...saved.locations[0], lines: [stored] }],
+    };
+
+    TestBed.inject(DayService)
+      .closing()
+      .subscribe((value) => (closing = value));
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/days/closing').flush(body);
+
+    expect(closing?.locations[0].lines[0]).toMatchObject({ counted: 9, reason: 'BREAKAGE' });
+  });
+
+  it('enregistre le comptage par la file hors ligne (PUT /api/v1/days/closing/counts)', () => {
+    const request = {
+      counts: [{ locationId: 'store-id', articleId: 'soap', counted: 9, reason: 'LOSS' as const }],
+    };
+    let queued: boolean | undefined;
+
+    TestBed.inject(DayService)
+      .saveCounts(request)
+      .subscribe((result) => (queued = result.queued));
+
+    expect(submit).toHaveBeenCalledWith('PUT', '/api/v1/days/closing/counts', request);
+    expect(queued).toBe(true);
+  });
+
+  it('range la réconciliation renvoyée après l’enregistrement du comptage', () => {
+    submit.mockReturnValue(of({ queued: false, body: CLOSING }));
+    let result: SubmitResult<DayClosing> | undefined;
+
+    TestBed.inject(DayService)
+      .saveCounts({ counts: [] })
+      .subscribe((value) => (result = value));
+
+    expect(result?.queued).toBe(false);
+    expect(result?.body?.locations.map((block) => block.location)).toEqual(['SHOP', 'DELIVERY']);
   });
 
   it('calcule le théorique : report + transféré + retour − vendu − livré − salon − shooting', () => {

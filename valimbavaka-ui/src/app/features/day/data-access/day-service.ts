@@ -8,6 +8,7 @@ import { closingExtras } from './day-fixtures';
 import {
   BusinessDayRDto,
   DayClosing,
+  DayClosingCountsWDto,
   DayClosingRDto,
   DayLockWDto,
   DayOpeningGrid,
@@ -20,8 +21,9 @@ import {
 /**
  * Journée de vente. L'ouverture (JR-01) est branchée sur l'API : grille `GET /api/v1/days/opening`, ouverture
  * `POST /api/v1/days` par la file hors ligne (`OutboxService`, SYS-07). La réconciliation de clôture (JR-04) est
- * branchée sur `GET /api/v1/days/closing` ; la caisse, la liste de contrôle et le verrouillage restent en données de
- * démonstration jusqu'à JR-05 / JR-06.
+ * branchée sur `GET /api/v1/days/closing`, le comptage du soir avec ses motifs d'écart (JR-05) sur
+ * `PUT /api/v1/days/closing/counts` par la file hors ligne ; la caisse, la liste de contrôle et le verrouillage restent
+ * en données de démonstration jusqu'à JR-06.
  */
 @Injectable({ providedIn: 'root' })
 export class DayService {
@@ -44,6 +46,21 @@ export class DayService {
     return this.http
       .get<DayClosingRDto>(`${this.baseUrl}/closing`)
       .pipe(map((closing) => toDayClosing(closing, closingExtras())));
+  }
+
+  /**
+   * Enregistre le comptage du soir : le serveur refuse (422) un écart sans motif ; `queued` si la saisie attend le
+   * réseau, sinon `body` porte la réconciliation relue avec les comptages enregistrés.
+   */
+  saveCounts(request: DayClosingCountsWDto): Observable<SubmitResult<DayClosing>> {
+    return this.outbox
+      .submit<DayClosingRDto>('PUT', `${this.baseUrl}/closing/counts`, request)
+      .pipe(
+        map((result) => ({
+          queued: result.queued,
+          body: result.body ? toDayClosing(result.body, closingExtras()) : undefined,
+        })),
+      );
   }
 
   /** Simulation : renvoie l'heure de verrouillage. */

@@ -3,16 +3,22 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import axe from 'axe-core';
+import { of, throwError } from 'rxjs';
+import { vi } from 'vitest';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { buildUser } from '../../../../core/auth/auth-testing';
 import { errorInterceptor } from '../../../../core/http/error-interceptor';
+import { ApiError } from '../../../../core/http/problem-detail';
 import { provideTestTranslations } from '../../../../core/i18n/i18n-testing';
+import { OutboxService } from '../../../../core/offline/outbox-service';
 import { DayClosingRDto } from '../../data-access/day-models';
 import { DayClosePage } from './day-close-page';
 
 const URL = '/api/v1/days/closing';
+const COUNTS_URL = '/api/v1/days/closing/counts';
 
 const CLOSING: DayClosingRDto = {
+  businessDayId: 'day-id',
   businessDate: '2026-11-11',
   status: 'OPEN',
   locations: [
@@ -35,6 +41,8 @@ const CLOSING: DayClosingRDto = {
           theoretical: 14,
           systemStock: 12,
           gap: -2,
+          counted: null,
+          reason: null,
         },
         {
           articleId: 'oil',
@@ -50,6 +58,8 @@ const CLOSING: DayClosingRDto = {
           theoretical: 6,
           systemStock: 6,
           gap: 0,
+          counted: null,
+          reason: null,
         },
       ],
     },
@@ -67,6 +77,7 @@ const CLOSING: DayClosingRDto = {
 describe('DayClosePage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<DayClosePage>;
+  const submit = vi.fn();
 
   const open = async (): Promise<void> => {
     await TestBed.configureTestingModule({
@@ -76,6 +87,7 @@ describe('DayClosePage', () => {
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
         provideTestTranslations(),
+        { provide: OutboxService, useValue: { submit } },
       ],
     }).compileComponents();
     TestBed.inject(AuthStore).signIn('jeton', buildUser('ADMIN'));
@@ -97,6 +109,18 @@ describe('DayClosePage', () => {
       const input = cell.querySelector('input');
       return (input ? input.value : (cell.textContent ?? '')).replace(/\s+/g, ' ').trim();
     });
+
+  const saveButton = (): HTMLButtonElement =>
+    Array.from(host().querySelectorAll<HTMLButtonElement>('.count button'))[0];
+
+  const chooseReason = (key: string, reason: string): void => {
+    const select = host().querySelector<HTMLSelectElement>(`[id="reason-${key}"]`)!;
+    select.value = reason;
+    select.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+  };
+
+  beforeEach(() => submit.mockReset());
 
   afterEach(() => httpMock.verify());
 
@@ -136,6 +160,95 @@ describe('DayClosePage', () => {
     fixture.detectChanges();
 
     expect(cells(1).slice(7, 10)).toEqual(['6', '5', '−1']);
+  });
+
+  it('should keep the count disabled while a gap has no reason', async () => {
+    await open();
+    await answer(CLOSING);
+
+    expect(saveButton().disabled).toBe(true);
+    expect(host().querySelector('.count .hint')?.textContent).toContain('1 écart sans motif');
+    saveButton().click();
+    expect(submit).not.toHaveBeenCalled();
+  });
+
+  it('should save every count with the reason of each gap once all gaps are explained', async () => {
+    await open();
+    await answer(CLOSING);
+    submit.mockReturnValue(of({ queued: true }));
+
+    chooseReason('SHOP:soap', 'BREAKAGE');
+    expect(saveButton().disabled).toBe(false);
+    saveButton().click();
+
+    expect(submit).toHaveBeenCalledWith('PUT', COUNTS_URL, {
+      counts: [
+        { locationId: 'store-id', articleId: 'soap', counted: 12, reason: 'BREAKAGE' },
+        { locationId: 'store-id', articleId: 'oil', counted: 6, reason: null },
+      ],
+    });
+  });
+
+  it('should not send the reason of a line whose count matches the theoretical', async () => {
+    await open();
+    await answer(CLOSING);
+    submit.mockReturnValue(of({ queued: true }));
+    chooseReason('SHOP:soap', 'LOSS');
+    const input = host().querySelectorAll('tbody tr')[0].querySelector('input')!;
+    input.value = '14';
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    saveButton().click();
+
+    const request = submit.mock.calls[0][2] as { counts: { reason: string | null }[] };
+    expect(request.counts[0].reason).toBeNull();
+  });
+
+  it('should show the refusal of the server when a gap has no reason (422)', async () => {
+    await open();
+    await answer(CLOSING);
+    submit.mockReturnValue(
+      throwError(
+        () =>
+          new ApiError(
+            422,
+            'VALIDATION_FAILED',
+            'Un motif est obligatoire pour chaque écart : ART-0031.',
+          ),
+      ),
+    );
+    chooseReason('SHOP:soap', 'LOSS');
+
+    saveButton().click();
+    fixture.detectChanges();
+
+    expect(host().querySelector('.count [role="alert"]')?.textContent).toContain(
+      'Un motif est obligatoire',
+    );
+  });
+
+  it('should show the saved count and reason returned by the server', async () => {
+    await open();
+    await answer(CLOSING);
+    const stored = { ...CLOSING.locations[0].lines[0], counted: 12, reason: 'BREAKAGE' as const };
+    const saved: DayClosingRDto = {
+      ...CLOSING,
+      locations: [
+        { ...CLOSING.locations[0], lines: [stored, CLOSING.locations[0].lines[1]] },
+        ...CLOSING.locations.slice(1),
+      ],
+    };
+    submit.mockReturnValue(of({ queued: false, body: saved }));
+    chooseReason('SHOP:soap', 'BREAKAGE');
+
+    saveButton().click();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const select = host().querySelector<HTMLSelectElement>('[id="reason-SHOP:soap"]')!;
+    expect(select.value).toBe('BREAKAGE');
+    expect(host().querySelectorAll('tbody tr')).toHaveLength(2);
   });
 
   it('should list the three locations of the closing', async () => {

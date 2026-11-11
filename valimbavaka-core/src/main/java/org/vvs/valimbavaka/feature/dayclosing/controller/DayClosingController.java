@@ -1,7 +1,11 @@
 package org.vvs.valimbavaka.feature.dayclosing.controller;
 
+import jakarta.validation.Valid;
+
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,13 +14,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingCountsWDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingRDto;
+import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingCountService;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 
-/** Closing reconciliation of today (JR-04), read by the administrator's closing screen. */
+/** Closing of today: the reconciliation (JR-04) and the evening count with its gap reasons (JR-05). */
 @Tag(name = "Business days")
 @ApiResponses({
+    @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
     @ApiResponse(responseCode = "401", description = "Not authenticated (UNAUTHENTICATED)"),
     @ApiResponse(responseCode = "403", description = "Missing permission (FORBIDDEN)")
 })
@@ -26,9 +33,11 @@ import org.vvs.valimbavaka.security.annotation.HasPermission;
 public class DayClosingController {
 
     private final DayClosingService dayClosingService;
+    private final DayClosingCountService dayClosingCountService;
 
-    public DayClosingController(DayClosingService dayClosingService) {
+    public DayClosingController(DayClosingService dayClosingService, DayClosingCountService dayClosingCountService) {
         this.dayClosingService = dayClosingService;
+        this.dayClosingCountService = dayClosingCountService;
     }
 
     @GetMapping("/closing")
@@ -41,5 +50,19 @@ public class DayClosingController {
     @HasPermission("days.close")
     public DayClosingRDto getClosing() {
         return dayClosingService.getClosing();
+    }
+
+    @PutMapping("/closing/counts")
+    @Operation(
+            summary = "Saves the evening counts of today",
+            description = "Records the counted quantity of each article; a count that differs from the theoretical"
+                    + " quantity needs a reason. All or nothing; a new count of a line replaces the previous one.")
+    @ApiResponse(responseCode = "200", description = "Reconciliation of today with the saved counts")
+    @ApiResponse(responseCode = "404", description = "Line not part of today's closing (NOT_FOUND)")
+    @ApiResponse(responseCode = "409", description = "Today's day is not open (CONFLICT)")
+    @ApiResponse(responseCode = "422", description = "Invalid data or gap without reason (VALIDATION_FAILED)")
+    @HasPermission("days.close")
+    public DayClosingRDto saveCounts(@Valid @RequestBody DayClosingCountsWDto request) {
+        return dayClosingCountService.saveCounts(request);
     }
 }

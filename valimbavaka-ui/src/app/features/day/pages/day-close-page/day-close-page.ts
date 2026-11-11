@@ -14,7 +14,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Lock, LockKeyhole } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ApiError } from '../../../../core/http/problem-detail';
+import { ApiError, errorMessage } from '../../../../core/http/problem-detail';
+import { SubmitResult } from '../../../../core/offline/outbox-models';
 import { LanguageService } from '../../../../core/i18n/language-service';
 import { ChipOption, FilterChips } from '../../../../shared/components/filter-chips/filter-chips';
 import { Icon } from '../../../../shared/components/icon/icon';
@@ -28,6 +29,7 @@ import {
 } from '../../components/closing-checklist/closing-checklist';
 import { ClosingState } from '../../data-access/closing-state';
 import {
+  DayClosing,
   DISCREPANCY_REASONS,
   DISPATCH_DESTINATIONS,
   DispatchDestination,
@@ -76,6 +78,8 @@ export class DayClosePage {
   protected readonly onlyGaps = signal(false);
   protected readonly lockedAt = signal<string | null>(null);
   protected readonly locking = signal(false);
+  protected readonly saving = signal(false);
+  protected readonly saveError = signal<string | null>(null);
 
   protected readonly locationOptions = computed<readonly ChipOption<DispatchDestination>[]>(() =>
     DISPATCH_DESTINATIONS.map((value) => ({
@@ -110,6 +114,14 @@ export class DayClosePage {
       this.state.missingReasons() === 0
     );
   });
+  /** Comptage enregistrable : au moins une ligne, un motif pour chaque écart (le serveur le vérifie aussi). */
+  protected readonly canSave = computed(
+    () =>
+      !this.saving() &&
+      !this.lockedAt() &&
+      this.state.rows().length > 0 &&
+      this.state.missingReasons() === 0,
+  );
   protected readonly title = computed(() => {
     const date = this.data()?.date;
     const label = date
@@ -144,6 +156,32 @@ export class DayClosePage {
         { injector: this.injector },
       );
     }
+  }
+
+  /** Enregistre le comptage et les motifs ; le serveur renvoie 422 pour tout écart sans motif. */
+  protected saveCounts(): void {
+    if (!this.canSave()) {
+      return;
+    }
+    this.saving.set(true);
+    this.saveError.set(null);
+    this.dayService.saveCounts(this.state.toCountsRequest()).subscribe({
+      next: (result) => this.saved(result),
+      error: (error: unknown) => {
+        this.saving.set(false);
+        this.saveError.set(errorMessage(error));
+      },
+    });
+  }
+
+  private saved(result: SubmitResult<DayClosing>): void {
+    this.saving.set(false);
+    if (result.queued || !result.body) {
+      this.toast.show('common.queuedSaved', {}, 'info');
+      return;
+    }
+    this.closing.set(result.body);
+    this.toast.show('day.close.count.saved', { count: this.state.rows().length });
   }
 
   protected openLock(): void {
