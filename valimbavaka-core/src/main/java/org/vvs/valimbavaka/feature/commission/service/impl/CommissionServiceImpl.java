@@ -17,7 +17,6 @@ import org.vvs.valimbavaka.feature.commission.domain.CommissionBase;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSource;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionSourceType;
 import org.vvs.valimbavaka.feature.commission.domain.CommissionStatus;
-import org.vvs.valimbavaka.feature.commission.domain.CommissionTerms;
 import org.vvs.valimbavaka.feature.commission.dto.CommissionRDto;
 import org.vvs.valimbavaka.feature.commission.mapper.CommissionMapper;
 import org.vvs.valimbavaka.feature.commission.repository.CommissionRepository;
@@ -74,7 +73,7 @@ public class CommissionServiceImpl implements CommissionService {
             return Optional.empty();
         }
         var applicable = rateResolver.resolve(source.sellerId(), source.salesChannelId(), source.salonServiceId());
-        var terms = new CommissionTerms(applicable.rate(), applicable.base(), applicable.source(), applicable.ruleId());
+        var terms = applicable.toTerms();
         var commission = commissionRepository.save(Commission.calculate(source, sellerName(source), terms));
         journalService.record(JournalAction.CREATE, RESOURCE_TYPE, commission.getId(), description(commission));
         log.info("Commission {} calculée pour {}", commission.getId(), source.number());

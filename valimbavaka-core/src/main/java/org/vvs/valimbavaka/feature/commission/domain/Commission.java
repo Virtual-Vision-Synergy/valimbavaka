@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import jakarta.persistence.Column;
@@ -124,6 +126,24 @@ public class Commission extends BaseEntity {
         commission.revenue = source.revenue().setScale(AMOUNT_SCALE, RoundingMode.HALF_UP);
         commission.applyTerms(source.purchaseCost(), terms);
         return commission;
+    }
+
+    /**
+     * Applies the terms in force today to a commission not yet validated (COM-05), with the same computation as
+     * {@link #calculate}. The revenue, the operation and the seller never change. Returns whether anything changed:
+     * recalculating twice in a row changes nothing the second time.
+     */
+    public boolean recalculate(@Nullable BigDecimal purchaseCost, CommissionTerms terms) {
+        if (status != CommissionStatus.CALCULATED) {
+            throw new IllegalStateException("Seule une commission calculée peut être recalculée : " + status);
+        }
+        var before = appliedTerms();
+        applyTerms(purchaseCost, terms);
+        return !before.equals(appliedTerms());
+    }
+
+    private List<@Nullable Object> appliedTerms() {
+        return Arrays.asList(baseAmount, base, rate, rateSource, ruleId, amount);
     }
 
     private void applyTerms(@Nullable BigDecimal purchaseCost, CommissionTerms terms) {
