@@ -1566,6 +1566,17 @@
   "commissionList": {
     "title": "Kaomisiona voakajy",
     "subtitle": "Kajy ho azy isaky ny varotra na tolotra : fototra × taha mazava indrindra (tolotra salon, na fantsona, na mpivarotra).",
+    "sellers": { "title": "Kaomisiona isaky ny mpivarotra" },
+    "detail": "Antsipirian'ny kaomisiona",
+    "commissionCount": "Kaomisiona {{count}}",
+    "sellerStatus": { "TO_VALIDATE": "Tokony hekena", "VALIDATED": "Voaekena" },
+    "validate": {
+      "button": "Ekena",
+      "action": "Ekena ny kaomisionan'i {{name}}",
+      "confirmTitle": "Ekena ny kaomisiona ?",
+      "confirmMessage": "Ekena ny kaomisiona {{count}} an'i {{name}}, dia {{amount}} Ar, amin'ny volana aseho ? Tsy azo foana intsony ny kaomisiona voaaiky.",
+      "done": "Voaekena ny kaomisiona {{count}} an'i {{name}}."
+    },
     "month": "Volana",
     "count": "Kaomisiona {{count}}",
     "col": {
@@ -1574,13 +1585,18 @@
       "seller": "Mpivarotra",
       "base": "Fototra (Ar)",
       "rate": "Taha",
-      "amount": "Kaomisiona"
+      "amount": "Kaomisiona",
+      "status": "Sata",
+      "toValidate": "Hekena",
+      "validated": "Voaekena",
+      "action": "Hetsika"
     },
     "source": {
       "SALE": "Varotra",
       "SERVICE_RECORD": "Tolotra salon"
     },
     "status": {
+      "VALIDATED": "Voaekena",
       "CANCELLED": "Nofoanana miaraka amin'ny varotra"
     },
     "base": {

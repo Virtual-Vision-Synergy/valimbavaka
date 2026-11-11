@@ -72,8 +72,11 @@ export interface CommissionRDto {
   rateSource: CommissionRateSource;
   ruleId: string | null;
   amount: number;
-  /** `CANCELLED` quand la vente est annulée : la commission reste consultable mais ne compte plus. */
-  status: 'CALCULATED' | 'CANCELLED';
+  /**
+   * `VALIDATED` une fois validée par l'administrateur (COM-03) ; `CANCELLED` quand la vente est annulée : la commission
+   * reste consultable mais ne compte plus.
+   */
+  status: 'CALCULATED' | 'VALIDATED' | 'CANCELLED';
   createdAt: string;
 }
 
@@ -82,4 +85,35 @@ export interface CommissionListQuery extends PageQuery {
   sellerId?: string;
   from?: string;
   to?: string;
+}
+
+/** Miroir de SellerCommissionStatus : à valider tant qu'une commission est encore `CALCULATED` (COM-03). */
+export type SellerCommissionStatus = 'TO_VALIDATE' | 'VALIDATED';
+
+/** Miroir de SellerCommissionRDto : commissions d'une vendeuse sur une période, les annulées exclues des totaux. */
+export interface SellerCommissionRDto {
+  sellerId: string;
+  sellerName: string;
+  status: SellerCommissionStatus;
+  toValidateCount: number;
+  toValidateAmount: number;
+  validatedCount: number;
+  validatedAmount: number;
+}
+
+/** Corps de `POST /api/v1/commissions/validation` : vendeuse et journées `[from, to]` (incluses). */
+export interface CommissionValidationWDto {
+  sellerId: string;
+  from: string;
+  to: string;
+}
+
+/** Miroir de CommissionValidationRDto : ce que la validation vient de valider. */
+export interface CommissionValidationRDto {
+  sellerId: string;
+  sellerName: string;
+  from: string;
+  to: string;
+  validatedCount: number;
+  validatedAmount: number;
 }
