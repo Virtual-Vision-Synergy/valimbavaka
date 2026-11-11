@@ -69,9 +69,7 @@ class RevenueSplitServiceImplTest {
 
         // Assert
         assertThat(split.date()).isEqualTo(TODAY);
-        assertThat(split.byRange())
-                .extracting(RangeShareRDto::code)
-                .containsExactly("ZEZIKA", "SOLIKA", "BOTANIKA");
+        assertThat(split.byRange()).extracting(RangeShareRDto::code).containsExactly("ZEZIKA", "SOLIKA", "BOTANIKA");
         assertThat(split.byRange())
                 .extracting(RangeShareRDto::sharePercent)
                 .containsExactly(new BigDecimal("43.8"), new BigDecimal("33.9"), new BigDecimal("22.3"));
@@ -90,9 +88,7 @@ class RevenueSplitServiceImplTest {
         var split = sut.getToday();
 
         // Assert
-        assertThat(split.byChannel())
-                .extracting(ChannelShareRDto::label)
-                .containsExactly("Boutique", "Facebook", null);
+        assertThat(split.byChannel()).extracting(ChannelShareRDto::label).containsExactly("Boutique", "Facebook", null);
         assertThat(split.byChannel())
                 .extracting(ChannelShareRDto::sharePercent)
                 .containsExactly(new BigDecimal("33.4"), new BigDecimal("33.3"), new BigDecimal("33.3"));
@@ -157,10 +153,7 @@ class RevenueSplitServiceImplTest {
 
     private RevenueSplitServiceImpl serviceAt(Instant instant) {
         return new RevenueSplitServiceImpl(
-                reportSalesService,
-                channelDashboardService,
-                referentialService,
-                Clock.fixed(instant, ZoneOffset.UTC));
+                reportSalesService, channelDashboardService, referentialService, Clock.fixed(instant, ZoneOffset.UTC));
     }
 
     private void stubRanges(ProductRangeRDto... ranges) {

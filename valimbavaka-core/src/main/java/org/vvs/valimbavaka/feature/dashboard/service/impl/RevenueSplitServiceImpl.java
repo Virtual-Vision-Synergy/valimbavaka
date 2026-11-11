@@ -57,18 +57,19 @@ public class RevenueSplitServiceImpl implements RevenueSplitService {
     private List<RangeShareRDto> byRange(LocalDate day) {
         var period = ReportPeriod.containing(ReportGranularity.DAY, day);
         var ranges = referentialService.getProductRanges(ALL_RANGES).items();
-        var revenues = ranges.stream().map(range -> revenueOf(period, range.id())).toList();
+        var revenues =
+                ranges.stream().map(range -> revenueOf(period, range.id())).toList();
         var shares = PercentageShares.of(revenues);
         return IntStream.range(0, ranges.size())
                 .mapToObj(i -> toRange(ranges.get(i), revenues.get(i), shares.get(i)))
-                .sorted(Comparator.comparing(RangeShareRDto::revenue)
-                        .reversed()
-                        .thenComparing(RangeShareRDto::label))
+                .sorted(Comparator.comparing(RangeShareRDto::revenue).reversed().thenComparing(RangeShareRDto::label))
                 .toList();
     }
 
     private BigDecimal revenueOf(ReportPeriod period, UUID rangeId) {
-        return reportSalesService.getSales(new ReportFilter(period, null, rangeId)).revenue();
+        return reportSalesService
+                .getSales(new ReportFilter(period, null, rangeId))
+                .revenue();
     }
 
     private static RangeShareRDto toRange(ProductRangeRDto range, BigDecimal revenue, BigDecimal share) {

@@ -41,7 +41,8 @@ final class PercentageShares {
 
     /** Gives the tenths lost by rounding down, one each, to the largest remainders (the first one on a tie). */
     private static void distributeLeftover(List<Long> tenths, List<BigDecimal> remainders) {
-        var leftover = WHOLE.longValue() - tenths.stream().mapToLong(Long::longValue).sum();
+        var leftover =
+                WHOLE.longValue() - tenths.stream().mapToLong(Long::longValue).sum();
         var order = new ArrayList<>(IntStream.range(0, tenths.size()).boxed().toList());
         order.sort(Comparator.comparing(remainders::get, Comparator.reverseOrder()));
         for (var rank = 0; rank < leftover; rank++) {
