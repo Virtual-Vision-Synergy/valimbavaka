@@ -87,3 +87,7 @@ databaseChangeLog:
       file: db/changelog/changes/2026_11_11-90-changelog.sql
   - include:
       file: db/changelog/changes/2026_11_11-91-changelog.sql
+  - include:
+      file: db/changelog/changes/2026_11_11-94-changelog.sql
+  - include:
+      file: db/changelog/changes/2026_11_11-95-changelog.sql
