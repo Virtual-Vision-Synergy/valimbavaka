@@ -283,7 +283,8 @@ class CommissionExportIT extends StockApiTestSupport {
     }
 
     private static MockHttpServletRequestBuilder statementRequest(String token, UUID sellerId) {
-        var request = get(STATEMENT_EXPORT).param("month", YearMonth.now(MADAGASCAR).toString());
+        var request =
+                get(STATEMENT_EXPORT).param("month", YearMonth.now(MADAGASCAR).toString());
         request.header(HttpHeaders.AUTHORIZATION, bearer(token));
         if (sellerId != null) {
             request.param("sellerId", sellerId.toString());
