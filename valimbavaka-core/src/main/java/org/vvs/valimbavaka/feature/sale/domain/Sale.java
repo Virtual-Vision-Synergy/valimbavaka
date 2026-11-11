@@ -100,6 +100,12 @@ public class Sale extends BaseEntity {
         return sale;
     }
 
+    /** Hot cancellation (JNL-02, used by the undo of LIV-05): 409 unless the sale is still validated. */
+    public void cancel() {
+        status.ensureCanCancel();
+        status = OperationStatus.CANCELLED;
+    }
+
     /** Lines in the order they were entered; they never change once recorded. */
     public List<SaleLine> getLines() {
         return Collections.unmodifiableList(lines);

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
 import org.vvs.valimbavaka.feature.journal.service.JournalService;
 import org.vvs.valimbavaka.feature.sale.domain.Sale;
+import org.vvs.valimbavaka.feature.sale.domain.SaleCancelledEvent;
 import org.vvs.valimbavaka.feature.sale.domain.SaleRecordedEvent;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementCommand;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
@@ -46,6 +47,28 @@ class SaleLedger {
         stockMovementService.recordAll(movements);
         journalService.record(JournalAction.CREATE, RESOURCE_TYPE, sale.getId(), description(sale, channelLabel));
         events.publishEvent(new SaleRecordedEvent(sale.getId(), sale.getNumber()));
+    }
+
+    /**
+     * Undoes {@link #post}: the articles come back into the location they left, as {@code RETURN} movements
+     * referencing the sale (a {@code SALE} movement only takes stock out); the cancellation is journaled and published.
+     */
+    void unpost(Sale sale, String reason) {
+        var movements = sale.getLines().stream()
+                .map(line -> new StockMovementCommand(
+                        line.getArticleId(),
+                        sale.getStockLocationId(),
+                        StockMovementType.RETURN,
+                        line.getQuantity(),
+                        sale.getId()))
+                .toList();
+        stockMovementService.recordAll(movements);
+        journalService.record(
+                JournalAction.CANCEL,
+                RESOURCE_TYPE,
+                sale.getId(),
+                "Annulation de la vente %s : %s".formatted(sale.getNumber(), reason));
+        events.publishEvent(new SaleCancelledEvent(sale.getId(), sale.getNumber()));
     }
 
     /** E.g. {@code Vente VTE-0042 · Boutique · 3 article(s) · 64000.00 Ar · Espèces}. */

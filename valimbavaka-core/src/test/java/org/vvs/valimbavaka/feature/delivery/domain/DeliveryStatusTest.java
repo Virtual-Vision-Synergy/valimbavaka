@@ -53,6 +53,13 @@ class DeliveryStatusTest {
         }
     }
 
+    @ParameterizedTest
+    @EnumSource(DeliveryStatus.class)
+    void isUndoable_everyStatus_onlyDeliveredAndFailedCanBeUndone(DeliveryStatus sut) {
+        var expected = sut == DeliveryStatus.DELIVERED || sut == DeliveryStatus.FAILED;
+        assertThat(sut.isUndoable()).isEqualTo(expected);
+    }
+
     @Test
     void ensureCanMoveTo_deliveredToFailed_throwsConflictWithFrenchLabels() {
         assertThatThrownBy(() -> DeliveryStatus.DELIVERED.ensureCanMoveTo(DeliveryStatus.FAILED))

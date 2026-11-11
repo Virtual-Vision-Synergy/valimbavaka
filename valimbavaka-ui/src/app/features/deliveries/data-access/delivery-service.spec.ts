@@ -72,6 +72,12 @@ describe('DeliveryService', () => {
     expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries/order-1/deliver');
   });
 
+  it('annule la dernière action par la file hors ligne (POST /api/v1/deliveries/{id}/undo)', () => {
+    TestBed.inject(DeliveryService).undoLastAction('order-1').subscribe();
+
+    expect(submit).toHaveBeenCalledWith('POST', '/api/v1/deliveries/order-1/undo');
+  });
+
   it('lit les commandes du jour dans l’ordre des arrêts et les livreurs pour le tableau', () => {
     let board: DeliveryBoardRDto | undefined;
     TestBed.inject(DeliveryService)

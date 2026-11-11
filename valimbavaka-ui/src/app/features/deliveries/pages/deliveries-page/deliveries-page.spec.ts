@@ -37,6 +37,8 @@ function order(stopNumber: number, status: DeliveryOrderStatus): DeliveryOrderRD
     failureNote: null,
     returnTransferId: null,
     saleId: null,
+    previousStatus: null,
+    updatedAt: '2026-11-08T05:32:00Z',
     lines: [{ articleId: 'soap', quantity: 1, unitPrice: 8500, amount: 8500 }],
     createdAt: '2026-11-08T05:32:00Z',
     createdBy: 'seller',

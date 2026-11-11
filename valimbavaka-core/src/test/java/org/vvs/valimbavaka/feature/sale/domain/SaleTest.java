@@ -1,6 +1,7 @@
 package org.vvs.valimbavaka.feature.sale.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.shared.operation.OperationStatus;
 
 class SaleTest {
@@ -55,5 +57,32 @@ class SaleTest {
         // Assert
         assertThat(sut.getLines().getFirst().getLineTotal()).isEqualTo(new BigDecimal("5000.00"));
         assertThat(sut.getTotal()).isEqualTo(new BigDecimal("5000.00"));
+    }
+
+    @Test
+    void cancel_validatedSale_becomesCancelled() {
+        // Arrange
+        var sut = Sale.record("VTE-0044", HEADER, List.of(line()));
+
+        // Act
+        sut.cancel();
+
+        // Assert
+        assertThat(sut.getStatus()).isEqualTo(OperationStatus.CANCELLED);
+    }
+
+    @Test
+    void cancel_alreadyCancelledSale_throwsConflict() {
+        // Arrange
+        var sut = Sale.record("VTE-0044", HEADER, List.of(line()));
+        sut.cancel();
+
+        // Act + Assert
+        assertThatThrownBy(sut::cancel).isInstanceOf(ConflictException.class);
+        assertThat(sut.getStatus()).isEqualTo(OperationStatus.CANCELLED);
+    }
+
+    private static PricedSaleLine line() {
+        return new PricedSaleLine(UUID.randomUUID(), BigDecimal.ONE, new BigDecimal("8500"), null);
     }
 }

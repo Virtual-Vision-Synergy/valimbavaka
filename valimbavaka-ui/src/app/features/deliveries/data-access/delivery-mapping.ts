@@ -63,6 +63,7 @@ export function toDelivery(order: DeliveryOrderRDto, status: DeliveryOrderStatus
     scheduledDate: order.scheduledDate,
     note: order.note,
     failureReason: order.failureReason,
+    changedAt: order.updatedAt,
   };
 }
 
@@ -89,6 +90,19 @@ export function toBoard(
     }
   }
   return { rounds, deliveries };
+}
+
+/** Délai pendant lequel le serveur accepte d'annuler la dernière action d'une livraison (LIV-05). */
+export const UNDO_WINDOW_MS = 5 * 60_000;
+
+/**
+ * Dernière action annulable (LIV-05) : livrée ou en échec depuis moins de 5 minutes. Indicatif : le serveur reste
+ * juge du délai (409 passé ce délai).
+ */
+export function isUndoable(delivery: DeliveryRDto, now: number): boolean {
+  const changed = Date.parse(delivery.changedAt);
+  const recent = Number.isFinite(changed) && now - changed <= UNDO_WINDOW_MS;
+  return recent && (delivery.status === 'DELIVERED' || delivery.status === 'FAILED');
 }
 
 /** Arrêt encore à faire : ni livré ni en échec (une commande à préparer peut être livrée d'un geste, LIV-01). */

@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.vvs.valimbavaka.core.exception.BusinessException;
+import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryCustomer;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrder;
 import org.vvs.valimbavaka.feature.delivery.domain.DeliveryOrderCommand;
@@ -77,6 +78,41 @@ class DeliveryReturnTest {
                         new TransferLineCommand(SOAP_ID, new BigDecimal("2")),
                         new TransferLineCommand(OIL_ID, new BigDecimal("0.5")));
         assertThat(command.getValue().note()).isEqualTo("Retour de la livraison en échec LIV-0042");
+    }
+
+    @Test
+    void undoReturn_orderWithTwoLines_sendsEveryArticleBackFromTheWarehouseToDelivery() {
+        // Arrange
+        when(referentialService.requireActiveStockLocationId("DELIVERY")).thenReturn(DELIVERY_ID);
+        when(referentialService.requireActiveStockLocationId("WAREHOUSE")).thenReturn(WAREHOUSE_ID);
+        when(transferService.record(any())).thenReturn(transfer(UUID.randomUUID()));
+
+        // Act
+        sut.undoReturn(order());
+
+        // Assert
+        var command = ArgumentCaptor.forClass(TransferCommand.class);
+        verify(transferService).record(command.capture());
+        assertThat(command.getValue().origin()).isEqualTo(TransferOrigin.MANUAL);
+        assertThat(command.getValue().fromLocationId()).isEqualTo(WAREHOUSE_ID);
+        assertThat(command.getValue().toLocationId()).isEqualTo(DELIVERY_ID);
+        assertThat(command.getValue().lines())
+                .containsExactly(
+                        new TransferLineCommand(SOAP_ID, new BigDecimal("2")),
+                        new TransferLineCommand(OIL_ID, new BigDecimal("0.5")));
+        assertThat(command.getValue().note()).isEqualTo("Annulation du retour de la livraison LIV-0042");
+    }
+
+    @Test
+    void undoReturn_warehouseLacksTheArticles_propagatesTheConflict() {
+        // Arrange
+        when(referentialService.requireActiveStockLocationId("DELIVERY")).thenReturn(DELIVERY_ID);
+        when(referentialService.requireActiveStockLocationId("WAREHOUSE")).thenReturn(WAREHOUSE_ID);
+        when(transferService.record(any())).thenThrow(new ConflictException("Stock insuffisant."));
+        var order = order();
+
+        // Act + Assert
+        assertThatThrownBy(() -> sut.undoReturn(order)).isInstanceOf(ConflictException.class);
     }
 
     @Test

@@ -120,6 +120,17 @@ export class DeliveryService {
     );
   }
 
+  /**
+   * Annule la dernière action, livrée ou échec (LIV-05), pendant 5 minutes : la commande retrouve son statut
+   * d'avant, la vente ou le retour de stock est annulé ; `queued` si l'annulation attend le réseau.
+   */
+  undoLastAction(deliveryId: string): Observable<SubmitResult<DeliveryOrderRDto>> {
+    return this.outbox.submit<DeliveryOrderRDto>(
+      'POST',
+      `${this.baseUrl}/${encodeURIComponent(deliveryId)}/undo`,
+    );
+  }
+
   /** Saisie du livreur : « livrée » (LIV-03) et l'échec (LIV-04) partent vers l'API par la file hors ligne. */
   updateStatus(deliveryId: string, change: DeliveryStatusWDto): Observable<string> {
     if (change.status === 'DELIVERED') {
