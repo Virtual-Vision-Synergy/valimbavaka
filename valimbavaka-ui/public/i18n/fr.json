@@ -1591,6 +1591,7 @@
     "thisMonth": "ce mois",
     "detail": "Détail par vente",
     "export": "Exporter mon relevé",
+    "exportPdf": "Relevé en PDF",
     "col": {
       "sale": "Vente",
       "date": "Date",
@@ -1683,6 +1684,16 @@
     "commissionCount": "{{count}} commission(s)",
     "sellerStatus": { "TO_VALIDATE": "À valider", "VALIDATED": "Validée" },
     "follow": { "button": "Suivi", "action": "Suivi du mois de {{name}}" },
+    "recalculate": {
+      "button": "Recalculer",
+      "confirmTitle": "Recalculer les commissions ?",
+      "confirmMessage": "Recalculer les commissions non validées du mois affiché, pour toutes les vendeuses, avec les taux en vigueur ? Les commissions validées et annulées ne sont pas modifiées.",
+      "done": "Recalcul terminé : {{updated}} commission(s) mise(s) à jour, {{unchanged}} inchangée(s), {{validated}} validée(s) laissée(s) telle(s) quelle(s)."
+    },
+    "export": {
+      "xlsx": "Exporter en Excel",
+      "pdf": "Exporter en PDF"
+    },
     "validate": {
       "button": "Valider",
       "action": "Valider les commissions de {{name}}",
