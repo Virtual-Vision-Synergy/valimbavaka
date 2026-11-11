@@ -11,6 +11,10 @@
         <svg [vvsIcon]="icons.ChartColumn" [size]="18"></svg>
         {{ 'sales.dashboard.link' | translate }}
       </a>
+      <a class="btn btn-secondary" routerLink="/sales/statuses">
+        <svg [vvsIcon]="icons.Receipt" [size]="18"></svg>
+        {{ 'sales.statusTotals.link' | translate }}
+      </a>
     }
     @if (canExportBook) {
       <button

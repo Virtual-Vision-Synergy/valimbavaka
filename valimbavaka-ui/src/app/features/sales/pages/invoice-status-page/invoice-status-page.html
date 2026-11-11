@@ -1,0 +1,74 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'sales.statusTotals.title' | translate"
+    [subtitle]="'sales.statusTotals.subtitle' | translate"
+    [codes]="['FAC-05']"
+  >
+    <a class="btn btn-secondary" routerLink="/sales">{{ 'sales.dashboard.back' | translate }}</a>
+  </vvs-page-header>
+
+  <div class="filters">
+    <label class="date-field">
+      <span>{{ 'sales.dashboard.from' | translate }}</span>
+      <input class="input" type="date" [value]="from()" (change)="onFromChange($event)" />
+    </label>
+    <label class="date-field">
+      <span>{{ 'sales.dashboard.to' | translate }}</span>
+      <input class="input" type="date" [value]="to()" (change)="onToChange($event)" />
+    </label>
+  </div>
+
+  @if (invalidPeriod()) {
+    <p class="card invalid" role="alert">{{ 'sales.dashboard.invalidPeriod' | translate }}</p>
+  } @else if (totals.error()) {
+    <div class="card"><vvs-list-state kind="error" (retry)="totals.reload()" /></div>
+  } @else if (totals.value(); as result) {
+    <div class="totals">
+      <div class="card total">
+        <span class="label">{{ 'sales.statusTotals.totalAmount' | translate }}</span>
+        <span class="amount num">{{ result.amount | ariary }}</span>
+      </div>
+      <div class="card total">
+        <span class="label">{{ 'sales.statusTotals.totalCount' | translate }}</span>
+        <span class="amount num">{{ result.invoiceCount }}</span>
+      </div>
+    </div>
+
+    <section class="card flush" [attr.aria-label]="'sales.statusTotals.listLabel' | translate">
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">
+            {{
+              'sales.statusTotals.listLabel' | translate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'sales.statusTotals.status' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'sales.statusTotals.count' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'sales.statusTotals.amount' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of result.statuses; track entry.status) {
+              <tr>
+                <td>{{ 'sales.statusTotals.status_' + entry.status | translate }}</td>
+                <td class="cell-num num">{{ entry.invoiceCount }}</td>
+                <td class="cell-num amount">{{ entry.amount | ariary }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">{{ 'sales.statusTotals.total' | translate }}</th>
+              <td class="cell-num num">{{ result.invoiceCount }}</td>
+              <td class="cell-num amount">{{ result.amount | ariary }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  } @else {
+    <div class="card"><vvs-list-state kind="loading" [rows]="3" /></div>
+  }
+</div>
