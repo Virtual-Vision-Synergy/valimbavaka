@@ -36,7 +36,7 @@ import org.vvs.valimbavaka.feature.user.domain.UserProfile;
 import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 
-/** FAC-01: every recorded sale produces its numbered invoice, in the transaction of the sale. */
+/** FAC-01: every recorded sale produces its numbered invoice; FAC-02: the invoice of a sale can be regenerated. */
 class InvoiceIT extends StockApiTestSupport {
 
     private static final String INVOICES = "/api/v1/invoices";
@@ -323,6 +323,249 @@ class InvoiceIT extends StockApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.salesChannelLabel").value("Livraison"))
                 .andExpect(jsonPath("$.paymentMethod").value("ON_DELIVERY"));
+    }
+
+    @Test
+    void regenerateInvoice_existingInvoice_returnsTheSameNumberAndContentWithoutUsingANumber() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "MVOLA", soap, "3");
+        var before = getInvoiceOfSale(sellerToken, saleId).andReturn().getResponse().getContentAsString();
+        var counterBefore = currentCounter();
+        var invoicesBefore = countInvoices();
+
+        // Act
+        var after = regenerate(sellerToken, saleId).andExpect(status().isOk());
+
+        // Assert
+        var json = after.andReturn().getResponse().getContentAsString();
+        assertThat(json).isEqualTo(before);
+        assertThat(currentCounter()).isEqualTo(counterBefore);
+        assertThat(countInvoices()).isEqualTo(invoicesBefore);
+    }
+
+    @Test
+    void regenerateInvoice_existingInvoice_repeatsTheLinesAmountsAndPaymentMethodOfTheSale() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "ORANGE_MONEY", soap, "2");
+        var sale = mockMvc.perform(get(SALES + "/" + saleId).header(HttpHeaders.AUTHORIZATION, bearer(sellerToken)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Act
+        var invoice = regenerate(sellerToken, saleId)
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        // Assert
+        assertThat(text(invoice, "$.paymentMethod")).isEqualTo(text(sale, "$.paymentMethod"));
+        assertThat(amount(invoice, "$.subtotal")).isEqualTo(amount(sale, "$.subtotal"));
+        assertThat(amount(invoice, "$.discountAmount")).isEqualTo(amount(sale, "$.discountAmount"));
+        assertThat(amount(invoice, "$.total")).isEqualTo(amount(sale, "$.total"));
+        assertThat(text(invoice, "$.lines[0].articleId")).isEqualTo(text(sale, "$.lines[0].articleId"));
+        assertThat(amount(invoice, "$.lines[0].quantity")).isEqualTo(amount(sale, "$.lines[0].quantity"));
+        assertThat(amount(invoice, "$.lines[0].lineTotal")).isEqualTo(amount(sale, "$.lines[0].lineTotal"));
+    }
+
+    @Test
+    void regenerateInvoice_afterAnArticleRenameAndAPriceChange_keepsTheIssuedContent() throws Exception {
+        // Arrange
+        var name = uniqueName();
+        var soap = createArticle(name);
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        jdbcTemplate.update("update articles set name = 'Renommé', price = 9900 where id = ?", soap);
+
+        // Act + Assert
+        regenerate(sellerToken, saleId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lines[0].label").value(name))
+                .andExpect(jsonPath("$.lines[0].unitPrice").value(8500.0))
+                .andExpect(jsonPath("$.total").value(8500.0));
+    }
+
+    @Test
+    void regenerateInvoice_existingInvoice_tracesTheReeditionInTheJournal() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        var invoiceId = jdbcTemplate.queryForObject("select id from invoices where sale_id = ?", UUID.class, saleId);
+
+        // Act
+        regenerate(sellerToken, saleId).andExpect(status().isOk());
+        regenerate(adminToken(), saleId).andExpect(status().isOk());
+
+        // Assert
+        var descriptions = jdbcTemplate.queryForList(
+                "select description from journal_entries where resource_type = 'INVOICE' and resource_id = ? "
+                        + "and action = 'UPDATE'",
+                String.class,
+                invoiceId);
+        assertThat(descriptions).hasSize(2);
+        assertThat(descriptions).allMatch(d -> d.startsWith("Facture FAC-") && d.contains("régénérée · vente VTE-"));
+    }
+
+    @Test
+    void regenerateInvoice_saleWithoutInvoice_issuesItWithTheNextNumberAndTracesIt() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CARD", soap, "2");
+        deleteInvoiceOf(saleId);
+        var counterBefore = currentCounter();
+
+        // Act
+        regenerate(sellerToken, saleId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.number").value(matchesPattern(NUMBER_FORMAT)))
+                .andExpect(jsonPath("$.saleId").value(saleId.toString()))
+                .andExpect(jsonPath("$.paymentMethod").value("CARD"))
+                .andExpect(jsonPath("$.total").value(17000.0));
+
+        // Assert
+        assertThat(sequenceOf(invoiceNumber(saleId))).isEqualTo(counterBefore + 1);
+        var created = jdbcTemplate.queryForObject(
+                "select count(*) from journal_entries j join invoices i on i.id = j.resource_id "
+                        + "where i.sale_id = ? and j.action = 'CREATE'",
+                Integer.class,
+                saleId);
+        assertThat(created).isEqualTo(1);
+    }
+
+    @Test
+    void regenerateInvoice_twiceOnASaleWithoutInvoice_issuesOneInvoiceOnly() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        deleteInvoiceOf(saleId);
+
+        // Act
+        var first = regenerate(sellerToken, saleId).andReturn().getResponse().getContentAsString();
+        var second = regenerate(sellerToken, saleId).andReturn().getResponse().getContentAsString();
+
+        // Assert
+        assertThat(second).isEqualTo(first);
+        assertThat(countInvoicesOf(saleId)).isEqualTo(1);
+    }
+
+    @Test
+    void regenerateInvoice_withoutToken_returns401() throws Exception {
+        mockMvc.perform(post(INVOICES + "/sales/" + UUID.randomUUID() + "/regenerate"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void regenerateInvoice_deliveryDriver_returns403() throws Exception {
+        regenerate(tokenOf(RoleName.DELIVERY_DRIVER), UUID.randomUUID())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    void regenerateInvoice_unknownSale_returns404AndCreatesNoInvoice() throws Exception {
+        // Arrange
+        var invoicesBefore = countInvoices();
+        var counterBefore = currentCounter();
+
+        // Act
+        regenerate(adminToken(), UUID.randomUUID())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+
+        // Assert
+        assertThat(countInvoices()).isEqualTo(invoicesBefore);
+        assertThat(currentCounter()).isEqualTo(counterBefore);
+    }
+
+    @Test
+    void regenerateInvoice_malformedSaleId_returns400() throws Exception {
+        mockMvc.perform(post(INVOICES + "/sales/pas-un-uuid/regenerate")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(adminToken())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    }
+
+    @Test
+    void regenerateInvoice_bodyWithFreeLinesAndNumber_isIgnored() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        var number = invoiceNumber(saleId);
+
+        // Act
+        mockMvc.perform(post(INVOICES + "/sales/" + saleId + "/regenerate")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(sellerToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"number\":\"FAC-1999-0001\",\"total\":1,\"lines\":[{\"label\":\"Libre\"}]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.number").value(number))
+                .andExpect(jsonPath("$.total").value(8500.0))
+                .andExpect(jsonPath("$.lines.length()").value(1));
+    }
+
+    @Test
+    void regenerateInvoice_sellerAskingForAColleagueSale_returns404ButAdministratorRegenerates() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        var colleagueToken = login(createSeller("Lova").getEmail());
+
+        // Act + Assert
+        regenerate(colleagueToken, saleId)
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND"));
+        regenerate(adminToken(), saleId).andExpect(status().isOk());
+    }
+
+    @Test
+    void regenerateInvoice_sellerAskingForAColleagueSaleWithoutInvoice_returns404AndIssuesNothing() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "10");
+        var saleId = recordSale(sellerToken, "CASH", soap, "1");
+        deleteInvoiceOf(saleId);
+        var colleagueToken = login(createSeller("Lova").getEmail());
+
+        // Act
+        regenerate(colleagueToken, saleId).andExpect(status().isNotFound());
+
+        // Assert
+        assertThat(countInvoicesOf(saleId)).isZero();
+    }
+
+    private void deleteInvoiceOf(UUID saleId) {
+        jdbcTemplate.update(
+                "delete from invoice_lines where invoice_id in (select id from invoices where sale_id = ?)", saleId);
+        jdbcTemplate.update("delete from invoices where sale_id = ?", saleId);
+    }
+
+    private Integer countInvoicesOf(UUID saleId) {
+        return jdbcTemplate.queryForObject("select count(*) from invoices where sale_id = ?", Integer.class, saleId);
+    }
+
+    private static String text(String json, String path) {
+        return JsonPath.read(json, path);
+    }
+
+    private static double amount(String json, String path) {
+        return JsonPath.<Number>read(json, path).doubleValue();
+    }
+
+    private ResultActions regenerate(String token, UUID saleId) throws Exception {
+        return mockMvc.perform(
+                post(INVOICES + "/sales/" + saleId + "/regenerate").header(HttpHeaders.AUTHORIZATION, bearer(token)));
     }
 
     private UUID recordSale(String token, String payment, UUID articleId, String quantity) throws Exception {
