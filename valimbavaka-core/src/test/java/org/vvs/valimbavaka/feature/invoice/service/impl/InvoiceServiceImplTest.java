@@ -226,7 +226,6 @@ class InvoiceServiceImplTest {
                 null,
                 amount,
                 new BigDecimal("0.00"),
-                null,
                 amount,
                 List.of(new InvoiceLineDraft(
                         UUID.randomUUID(), "Savon coco", new BigDecimal("2.000"), amount, amount)));
@@ -250,7 +249,6 @@ class InvoiceServiceImplTest {
                 null,
                 amount,
                 new BigDecimal("0.00"),
-                null,
                 amount,
                 List.of());
     }
