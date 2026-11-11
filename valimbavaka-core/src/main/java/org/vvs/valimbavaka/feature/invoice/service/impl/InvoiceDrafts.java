@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import org.vvs.valimbavaka.feature.article.dto.ArticleRDto;
@@ -77,7 +78,7 @@ class InvoiceDrafts {
     }
 
     /** Active channels only: a channel deactivated in the meantime leaves the label empty. */
-    private String channelLabel(UUID salesChannelId) {
+    private @Nullable String channelLabel(UUID salesChannelId) {
         return referentialService.getSalesChannels(ALL_CHANNELS).items().stream()
                 .filter(channel -> channel.id().equals(salesChannelId))
                 .map(SalesChannelRDto::label)
