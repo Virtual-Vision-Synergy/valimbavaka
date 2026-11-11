@@ -32,7 +32,7 @@ const CONTEXT: PosContextRDto = {
   openedAt: '08:30',
   heldTickets: 1,
   articles: [SAVON],
-  promotion: null,
+  promotions: [],
   openTicket: [],
   openTicketReceived: 0,
 };
