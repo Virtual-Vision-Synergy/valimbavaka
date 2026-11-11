@@ -127,6 +127,8 @@ export interface SaleWDto {
   readonly sellerId: string;
   readonly paymentMethod: PaymentMethod;
   readonly lines: readonly SaleLineWDto[];
+  /** Code promo saisi (VTE-04) : une demande, le serveur le vérifie et calcule la remise. Absent sans code. */
+  readonly promoCode?: string;
 }
 
 export type SaleStatus = 'VALIDATED' | 'CANCELLED' | 'REVERSED';

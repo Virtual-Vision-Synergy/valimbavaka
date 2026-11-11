@@ -59,4 +59,27 @@ describe('PosService', () => {
 
     expect(submit).toHaveBeenCalledWith('POST', '/api/v1/sales', body);
   });
+
+  it('fait vérifier le code promo par le serveur pour le canal du ticket (VTE-04)', () => {
+    let name: string | undefined;
+
+    TestBed.inject(PosService)
+      .checkPromoCode(' octo20 ', 'channel-store')
+      .subscribe((promotion) => (name = promotion.name));
+    const request = TestBed.inject(HttpTestingController).expectOne(
+      (req) => req.url === '/api/v1/sales/promo-codes/octo20',
+    );
+    request.flush({
+      id: 'promo',
+      name: 'Code Octobre',
+      kind: 'PERCENT',
+      value: 20,
+      articleIds: [],
+      channelIds: ['channel-store'],
+    });
+
+    expect(request.request.method).toBe('GET');
+    expect(request.request.params.get('salesChannelId')).toBe('channel-store');
+    expect(name).toBe('Code Octobre');
+  });
 });

@@ -448,6 +448,13 @@
       "quantity": "Isa",
       "lineDiscount": "−{{rate}} % · −{{amount}}",
       "lineDiscountFree": "Maimaimpoana · −{{amount}}",
+      "promoCodeApplied": "{{name}} nampiharina tamin'ny kaody {{code}}",
+      "promoCodeLabel": "Kaody promo",
+      "promoCodeApply": "Ampiharo",
+      "promoCodeCancel": "Foano",
+      "promoCodeChip": "Kaody {{code}}",
+      "promoCodeUnused": "Tsy misy vokany amin'ity tapakila ity ny kaody {{code}}",
+      "promoCodeRemove": "Esory ny kaody {{code}}",
       "promoApplied": "{{name}} nampiharina ho azy",
       "subtotal": "Totaly ampahany",
       "discount": "Fihenam-bidy",
@@ -491,6 +498,9 @@
       "cannotCheckout": "Tsy ampy ny vola voaray",
       "outOfStock": "Tsy ampy ny tahiry ho an'ny {{name}}",
       "sellerRequired": "Safidio aloha ny mpivarotra vao mandoa",
+      "promoCodeApplied": "Kaody {{code}} nampiharina : {{name}}",
+      "promoCodeNoGain": "Voatahiry ny kaody {{code}}, saingy tsy mampihena ny tokony haloa amin'ity tapakila ity",
+      "promoCodeRefused": "Nolavina ny kaody promo : {{message}}",
       "failed": "Nolavina ny varotra : {{message}}"
     }
   },

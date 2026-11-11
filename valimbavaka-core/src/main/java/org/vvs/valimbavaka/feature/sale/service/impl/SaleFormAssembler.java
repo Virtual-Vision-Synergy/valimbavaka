@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 import org.vvs.valimbavaka.feature.article.domain.ArticleFilter;
@@ -90,11 +91,32 @@ class SaleFormAssembler {
     }
 
     private static boolean reaches(PromotionRDto promotion, SaleArticleRDto article) {
+        return reaches(promotion, article.id(), article.rangeId());
+    }
+
+    private static boolean reaches(PromotionRDto promotion, UUID articleId, @Nullable UUID rangeId) {
         return switch (promotion.scope()) {
             case ALL -> true;
-            case RANGES -> article.rangeId() != null && promotion.targetIds().contains(article.rangeId());
-            case ARTICLES -> promotion.targetIds().contains(article.id());
+            case RANGES -> rangeId != null && promotion.targetIds().contains(rangeId);
+            case ARTICLES -> promotion.targetIds().contains(articleId);
         };
+    }
+
+    /** Promotion of a promo code usable today on the channel (VTE-04), with the sellable articles it reaches. */
+    SalePromotionRDto promoCode(String code, UUID salesChannelId) {
+        var promotion = promotionService.getPromotionByCode(code, salesChannelId);
+        var articleIds = sellableArticles().stream()
+                .filter(article -> reaches(promotion, article.id(), article.rangeId()))
+                .filter(article -> article.price() != null)
+                .map(ArticleRDto::id)
+                .toList();
+        return new SalePromotionRDto(
+                promotion.id(),
+                promotion.name(),
+                promotion.kind(),
+                promotion.value(),
+                articleIds,
+                List.copyOf(promotion.channelIds()));
     }
 
     private List<SaleArticleRDto> articles(List<SaleChannelOptionRDto> options) {

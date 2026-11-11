@@ -41,7 +41,8 @@
         [openedAt]="ctx.openedAt"
         (checkout)="checkout()"
         (hold)="hold()"
-        (promoCode)="demoAction()"
+        (promoCode)="openPromoEntry()"
+        (promoCodeSubmit)="applyPromoCode($event)"
         (customer)="demoAction()"
       />
     </div>

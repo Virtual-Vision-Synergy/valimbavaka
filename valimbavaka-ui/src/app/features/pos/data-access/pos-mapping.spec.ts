@@ -1,6 +1,6 @@
 import { CurrentUserRDto } from '../../../core/auth/auth-models';
 import { ProductRangeRDto } from '../../referential/data-access/referential-models';
-import { toPosContext, toSaleWDto } from './pos-mapping';
+import { toPosContext, toPosPromotion, toSaleWDto, withPromoCode } from './pos-mapping';
 import { PosArticleRDto, SaleFormRDto } from './pos-models';
 
 const RANGES: ProductRangeRDto[] = [{ id: 'range-botanika', code: 'BOTANIKA', label: 'Botanika' }];
@@ -128,6 +128,48 @@ describe('toSaleWDto', () => {
       sellerId: 'seller-miora',
       paymentMethod: 'MVOLA',
       lines: [{ articleId: 'soap', quantity: 3 }],
+    });
+  });
+});
+
+describe('withPromoCode', () => {
+  const body = {
+    salesChannelId: 'channel-store',
+    sellerId: 'seller-miora',
+    paymentMethod: 'CASH' as const,
+    lines: [{ articleId: 'soap', quantity: 1 }],
+  };
+
+  it('ajoute le code retenu au corps de la vente, sans rien d’autre (VTE-04)', () => {
+    expect(withPromoCode(body, 'OCTO20')).toEqual({ ...body, promoCode: 'OCTO20' });
+  });
+
+  it('laisse le corps tel quel sans code (VTE-04)', () => {
+    expect(withPromoCode(body, null)).toBe(body);
+  });
+});
+
+describe('toPosPromotion', () => {
+  it('traduit les canaux du serveur en canaux du poste (VTE-04)', () => {
+    const promotion = toPosPromotion(
+      {
+        id: 'promo-code',
+        name: 'Code Octobre',
+        kind: 'PERCENT',
+        value: 20,
+        articleIds: ['soap'],
+        channelIds: ['channel-store', 'channel-unknown'],
+      },
+      { SHOP: 'channel-store', FACEBOOK: 'channel-facebook' },
+    );
+
+    expect(promotion).toEqual({
+      id: 'promo-code',
+      name: 'Code Octobre',
+      kind: 'PERCENT',
+      value: 20,
+      articleIds: ['soap'],
+      channels: ['SHOP'],
     });
   });
 });

@@ -17,8 +17,9 @@ import org.vvs.valimbavaka.feature.sale.domain.SaleCommand;
 import org.vvs.valimbavaka.feature.sale.domain.SaleDiscount;
 
 /**
- * Discount of a sale decided by the server (PRO-02): the best automatic promotion of the channel on the lines sold at
- * the catalogue price. A line with an agreed price (an order delivered, LIV-03) is already negotiated: it is left out.
+ * Discount of a sale decided by the server (PRO-02, VTE-04): the best automatic promotion of the channel on the lines
+ * sold at the catalogue price, or the promo code typed by the customer if it gives at least as much. A line with an
+ * agreed price (an order delivered, LIV-03) is already negotiated: it is left out.
  */
 @Component
 class SaleDiscounts {
@@ -42,7 +43,8 @@ class SaleDiscounts {
         var eligible = lines.stream()
                 .filter(line -> catalogued.contains(line.articleId()))
                 .toList();
-        if (eligible.isEmpty()) {
+        var promoCode = command.promoCode();
+        if (eligible.isEmpty() && promoCode == null) {
             return SaleDiscount.NONE;
         }
         var ranges = rangesOf(eligible);
@@ -50,12 +52,17 @@ class SaleDiscounts {
                 .map(line -> new PromotionBasketLine(
                         line.articleId(), ranges.get(line.articleId()), line.unitPrice(), line.quantity()))
                 .toList();
-        var discount = promotionService.priceBasket(command.salesChannelId(), basket);
+        var discount = promoCode == null
+                ? promotionService.priceBasket(command.salesChannelId(), basket)
+                : promotionService.priceBasket(command.salesChannelId(), promoCode, basket);
         return new SaleDiscount(discount.promotionId(), discount.amount());
     }
 
     /** Article id → range id; an article without a range is absent. */
     private Map<UUID, UUID> rangesOf(List<PricedSaleLine> lines) {
+        if (lines.isEmpty()) {
+            return Map.of();
+        }
         var ids = lines.stream().map(PricedSaleLine::articleId).toList();
         var ranges = new HashMap<UUID, UUID>();
         for (ArticleRDto article : articleService.getArticlesByIds(ids)) {

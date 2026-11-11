@@ -15,6 +15,7 @@ import org.vvs.valimbavaka.feature.sale.domain.SaleCommand;
 import org.vvs.valimbavaka.feature.sale.domain.SaleHeader;
 import org.vvs.valimbavaka.feature.sale.domain.SaleLineCommand;
 import org.vvs.valimbavaka.feature.sale.dto.SaleFormRDto;
+import org.vvs.valimbavaka.feature.sale.dto.SalePromotionRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleRDto;
 import org.vvs.valimbavaka.feature.sale.dto.SaleWDto;
 import org.vvs.valimbavaka.feature.sale.mapper.SaleMapper;
@@ -81,7 +82,9 @@ public class SaleServiceImpl implements SaleService {
         var lines = request.lines().stream()
                 .map(line -> new SaleLineCommand(line.articleId(), line.quantity(), null))
                 .toList();
-        return record(new SaleCommand(request.salesChannelId(), request.sellerId(), request.paymentMethod(), lines));
+        var promoCode = request.promoCode() == null || request.promoCode().isBlank() ? null : request.promoCode();
+        return record(new SaleCommand(
+                request.salesChannelId(), request.sellerId(), request.paymentMethod(), lines, promoCode));
     }
 
     @Override
@@ -111,5 +114,10 @@ public class SaleServiceImpl implements SaleService {
     @Override
     public SaleFormRDto getForm() {
         return formAssembler.build(saleRepository.peekNextNumber());
+    }
+
+    @Override
+    public SalePromotionRDto getPromoCode(String code, UUID salesChannelId) {
+        return formAssembler.promoCode(code, salesChannelId);
     }
 }

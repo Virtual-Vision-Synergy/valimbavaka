@@ -448,6 +448,13 @@
       "quantity": "Quantité",
       "lineDiscount": "−{{rate}} % · −{{amount}}",
       "lineDiscountFree": "Offert · −{{amount}}",
+      "promoCodeApplied": "{{name}} appliquée avec le code {{code}}",
+      "promoCodeLabel": "Code promo",
+      "promoCodeApply": "Appliquer",
+      "promoCodeCancel": "Annuler",
+      "promoCodeChip": "Code {{code}}",
+      "promoCodeUnused": "Code {{code}} sans effet sur ce ticket",
+      "promoCodeRemove": "Retirer le code {{code}}",
       "promoApplied": "{{name}} appliquée automatiquement",
       "subtotal": "Sous-total",
       "discount": "Remise",
@@ -491,6 +498,9 @@
       "cannotCheckout": "Montant reçu insuffisant pour encaisser",
       "outOfStock": "Stock insuffisant pour {{name}}",
       "sellerRequired": "Choisissez la vendeuse avant d’encaisser",
+      "promoCodeApplied": "Code {{code}} appliqué : {{name}}",
+      "promoCodeNoGain": "Code {{code}} enregistré, mais il ne baisse pas le net de ce ticket",
+      "promoCodeRefused": "Code promo refusé : {{message}}",
       "failed": "Vente refusée : {{message}}"
     }
   },
