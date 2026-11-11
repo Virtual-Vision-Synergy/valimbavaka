@@ -18,6 +18,7 @@ import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.day.domain.DayStatus;
+import org.vvs.valimbavaka.feature.day.service.BusinessDayService;
 import org.vvs.valimbavaka.feature.dayclosing.domain.CountResult;
 import org.vvs.valimbavaka.feature.dayclosing.domain.DayClosingCount;
 import org.vvs.valimbavaka.feature.dayclosing.dto.ClosingCountWDto;
@@ -41,16 +42,19 @@ public class DayClosingCountServiceImpl implements DayClosingCountService {
     private static final int LISTED_LIMIT = 10;
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    private final BusinessDayService businessDayService;
     private final DayClosingService dayClosingService;
     private final DayClosingCountRepository countRepository;
     private final JournalService journalService;
     private final Clock clock;
 
     DayClosingCountServiceImpl(
+            BusinessDayService businessDayService,
             DayClosingService dayClosingService,
             DayClosingCountRepository countRepository,
             JournalService journalService,
             Clock clock) {
+        this.businessDayService = businessDayService;
         this.dayClosingService = dayClosingService;
         this.countRepository = countRepository;
         this.journalService = journalService;
@@ -60,6 +64,8 @@ public class DayClosingCountServiceImpl implements DayClosingCountService {
     @Override
     @Transactional
     public DayClosingRDto saveCounts(DayClosingCountsWDto request) {
+        // The day is locked first: a closing running at the same time (JR-06) finishes before this count is read.
+        businessDayService.lockOpenDay();
         var closing = dayClosingService.getClosing();
         if (closing.status() != DayStatus.OPEN) {
             throw new ConflictException(

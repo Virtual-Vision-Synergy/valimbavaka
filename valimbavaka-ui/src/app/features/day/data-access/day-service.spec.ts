@@ -221,6 +221,47 @@ describe('DayService', () => {
     expect(result?.body?.locations.map((block) => block.location)).toEqual(['SHOP', 'DELIVERY']);
   });
 
+  it('marque comme enregistrée une ligne que le serveur a déjà comptée (JR-06)', () => {
+    let closing: DayClosing | undefined;
+    const saved = structuredClone(CLOSING);
+    const block = saved.locations[0];
+    const body: DayClosingRDto = {
+      ...saved,
+      locations: [{ ...block, lines: [{ ...block.lines[0], counted: 9, reason: null }] }],
+    };
+
+    TestBed.inject(DayService)
+      .closing()
+      .subscribe((value) => (closing = value));
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/days/closing').flush(body);
+
+    expect(closing?.status).toBe('OPEN');
+    expect(closing?.locations[0].lines[0].saved).toBe(true);
+  });
+
+  it('verrouille la clôture par la file hors ligne, sans corps (POST /api/v1/days/closing/lock)', () => {
+    let queued: boolean | undefined;
+
+    TestBed.inject(DayService)
+      .lock()
+      .subscribe((result) => (queued = result.queued));
+
+    expect(submit).toHaveBeenCalledWith('POST', '/api/v1/days/closing/lock');
+    expect(queued).toBe(true);
+  });
+
+  it('range la réconciliation de la journée clôturée renvoyée par le verrouillage', () => {
+    submit.mockReturnValue(of({ queued: false, body: { ...CLOSING, status: 'CLOSED' } }));
+    let result: SubmitResult<DayClosing> | undefined;
+
+    TestBed.inject(DayService)
+      .lock()
+      .subscribe((value) => (result = value));
+
+    expect(result?.queued).toBe(false);
+    expect(result?.body?.status).toBe('CLOSED');
+  });
+
   it('calcule le théorique : report + transféré + retour − vendu − livré − salon − shooting', () => {
     const line = {
       articleId: 'soap',
@@ -235,6 +276,7 @@ describe('DayService', () => {
       shooting: 1,
       counted: 0,
       reason: null,
+      saved: false,
     };
 
     expect(theoretical(line)).toBe(10);
