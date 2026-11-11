@@ -118,6 +118,39 @@ describe('PosPage', () => {
     expect(cart.isEmpty()).toBe(true);
   });
 
+  it.each(['MVOLA', 'ORANGE_MONEY', 'CARD'] as const)(
+    'enregistre la vente avec le mode de règlement choisi (%s)',
+    async (method) => {
+      record.mockReturnValue(of({ queued: false, body: sale(8500) }));
+      cart.add(SAVON);
+      cart.payment.set(method);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      (fixture.nativeElement as HTMLElement)
+        .querySelector<HTMLButtonElement>('button.pay')
+        ?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(record).toHaveBeenCalledWith(expect.objectContaining({ paymentMethod: method }));
+    },
+  );
+
+  it('enregistre la vente en espèces par défaut quand le reçu couvre le net', async () => {
+    record.mockReturnValue(of({ queued: false, body: sale(8500) }));
+    cart.add(SAVON);
+    cart.received.set(10000);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('button.pay')?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(record).toHaveBeenCalledWith(expect.objectContaining({ paymentMethod: 'CASH' }));
+  });
+
   it("ne compare pas les montants d'une vente mise en file hors connexion", async () => {
     record.mockReturnValue(of({ queued: true }));
 

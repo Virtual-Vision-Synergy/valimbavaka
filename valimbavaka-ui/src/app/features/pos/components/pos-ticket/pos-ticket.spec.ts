@@ -88,4 +88,62 @@ describe('PosTicket', () => {
     expect(text('output.change')).toBe(`Manque ${formatAriary(3500)}`);
     expect(element.querySelector('output.change')?.classList).toContain('missing');
   });
+
+  describe('mode de règlement (VTE-05)', () => {
+    const radios = (): HTMLInputElement[] =>
+      Array.from(element.querySelectorAll<HTMLInputElement>('input[name="pos-payment"]'));
+
+    const choose = async (method: string): Promise<void> => {
+      radios()
+        .find((radio) => radio.value === method)
+        ?.click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+
+    it("propose espèces, MVola, Orange Money et carte, espèces étant choisi à l'ouverture", () => {
+      expect(radios().map((radio) => radio.value)).toEqual([
+        'CASH',
+        'MVOLA',
+        'ORANGE_MONEY',
+        'CARD',
+      ]);
+      expect(
+        radios()
+          .filter((radio) => radio.checked)
+          .map((radio) => radio.value),
+      ).toEqual(['CASH']);
+      expect(text('.payment.selected')).toBe('Espèces');
+    });
+
+    it('enregistre le mode choisi dans le ticket, un seul mode à la fois', async () => {
+      await choose('CARD');
+
+      expect(cart.payment()).toBe('CARD');
+      expect(
+        radios()
+          .filter((radio) => radio.checked)
+          .map((radio) => radio.value),
+      ).toEqual(['CARD']);
+      expect(text('.payment.selected')).toBe('Carte');
+    });
+
+    it('masque la saisie du reçu hors espèces et encaisse sans montant reçu', async () => {
+      cart.add(SAVON);
+      cart.seller.set('seller-miora');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(element.querySelector('#pos-received')).not.toBeNull();
+      expect(element.querySelector<HTMLButtonElement>('button.pay')?.disabled).toBe(true);
+
+      await choose('MVOLA');
+
+      expect(element.querySelector('#pos-received')).toBeNull();
+      expect(element.querySelector<HTMLButtonElement>('button.pay')?.disabled).toBe(false);
+    });
+
+    it('ne propose pas « à la livraison », réservé au livreur', () => {
+      expect(radios().map((radio) => radio.value)).not.toContain('ON_DELIVERY');
+    });
+  });
 });

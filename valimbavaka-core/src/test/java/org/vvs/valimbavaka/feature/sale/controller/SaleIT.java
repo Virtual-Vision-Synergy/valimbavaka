@@ -14,6 +14,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,6 +24,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import com.jayway.jsonpath.JsonPath;
 
+import org.vvs.valimbavaka.feature.sale.domain.PaymentMethod;
 import org.vvs.valimbavaka.feature.stock.controller.StockApiTestSupport;
 import org.vvs.valimbavaka.feature.stock.domain.StockMovementType;
 import org.vvs.valimbavaka.feature.user.domain.RoleName;
@@ -155,6 +158,45 @@ class SaleIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.lines[0].unitPrice").value(8500.0))
                 .andExpect(jsonPath("$.lines[0].unitCost").doesNotExist())
                 .andExpect(jsonPath("$.total").value(8500.0));
+    }
+
+    @ParameterizedTest
+    @EnumSource(PaymentMethod.class)
+    void createSale_eachPaymentMethod_isStoredWithTheSaleAndReturnedByGetById(PaymentMethod method) throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "5");
+
+        // Act
+        var saleId = createdId(createSale(sellerToken, storeSale(method.name(), line(soap, "1"))));
+
+        // Assert
+        var stored = jdbcTemplate.queryForObject("select payment_method from sales where id = ?", String.class, saleId);
+        assertThat(stored).isEqualTo(method.name());
+        getSale(sellerToken, saleId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paymentMethod").value(method.name()));
+    }
+
+    @Test
+    void createSale_unknownPaymentMethod_returns400AndRecordsNothing() throws Exception {
+        // Arrange
+        var soap = createArticle(uniqueName());
+        move(soap, "STORE", StockMovementType.RECEIPT, "5");
+        var before = countSales();
+
+        // Act + Assert
+        createSale(sellerToken, storeSale("CHEQUE", line(soap, "1")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+        assertThat(countSales()).isEqualTo(before);
+    }
+
+    @Test
+    void createSale_nullPaymentMethod_returns422() throws Exception {
+        var soap = createArticle(uniqueName());
+        assertValidationFailed("{\"salesChannelId\":\"%s\",\"sellerId\":\"%s\",\"paymentMethod\":null,\"lines\":[%s]}"
+                .formatted(channel("STORE"), seller.getId(), line(soap, "1")));
     }
 
     @Test
