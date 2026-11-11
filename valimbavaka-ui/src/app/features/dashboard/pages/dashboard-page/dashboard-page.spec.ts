@@ -198,19 +198,24 @@ describe('DashboardPage', () => {
     httpMock.expectOne((req) => req.url === ALERTS_URL).flush(page([]));
     await render();
 
-    const text = (selector: string): string[] =>
-      Array.from(element.querySelectorAll(selector)).map((node) =>
-        (node.textContent ?? '')
-          .replace(/[\u202f\u00a0]/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim(),
+    const clean = (value: string | null): string =>
+      (value ?? '')
+        .replace(/[\u202f\u00a0]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    /** Texte de chaque ligne : ses éléments de texte séparés par une espace. */
+    const rows = (selector: string, parts: string): string[] =>
+      Array.from(element.querySelectorAll(selector)).map((row) =>
+        Array.from(row.querySelectorAll(parts))
+          .map((part) => clean(part.textContent))
+          .join(' '),
       );
-    expect(text('vvs-revenue-split-card .range')).toEqual([
+    expect(rows('vvs-revenue-split-card .range', '.tag, .amount')).toEqual([
       'Zezika 562 000 Ar · 43,8 %',
       'Solika 436 000 Ar · 33,9 %',
       'Botanika 286 000 Ar · 22,3 %',
     ]);
-    expect(text('vvs-revenue-split-card .channels > div')).toEqual([
+    expect(rows('vvs-revenue-split-card .channels > div', 'dt, dd')).toEqual([
       'Boutique 668 k 52,0 %',
       'Facebook 398 k 31,0 %',
       'Canal désactivé 218 k 17,0 %',
