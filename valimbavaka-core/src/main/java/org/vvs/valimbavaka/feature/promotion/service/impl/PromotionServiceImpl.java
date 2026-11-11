@@ -3,6 +3,7 @@ package org.vvs.valimbavaka.feature.promotion.service.impl;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.journal.domain.JournalAction;
@@ -43,6 +45,12 @@ public class PromotionServiceImpl implements PromotionService {
     private static final String CODE_ALREADY_USED = "Ce code promo est déjà utilisé par une autre promotion.";
     private static final String LIMIT_REACHED =
             "Cette promotion a atteint son plafond d'utilisation : la vente doit être recalculée.";
+    private static final String CODE_UNKNOWN = "Ce code promo n'existe pas.";
+    private static final String CODE_NOT_STARTED = "Ce code promo n'est pas encore valable.";
+    private static final String CODE_ENDED = "Ce code promo est expiré.";
+    private static final String CODE_OTHER_CHANNEL = "Ce code promo ne s'applique pas à ce canal de vente.";
+    private static final String CODE_LIMIT_REACHED = "Ce code promo a atteint son plafond d'utilisation.";
+    private static final String CODE_WITHOUT_EFFECT = "Ce code promo ne donne aucune remise sur ce panier.";
     private static final Set<String> SORT_FIELDS = Set.of("startsOn", "endsOn", "name", "createdAt");
 
     private final PromotionRepository promotionRepository;
@@ -113,6 +121,23 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    public PromotionRDto getPromotionByCode(String code, UUID salesChannelId) {
+        return promotionMapper.toRDto(requireUsable(code, salesChannelId), PromotionStatus.ACTIVE);
+    }
+
+    @Override
+    public PromotionDiscount priceBasket(UUID salesChannelId, String code, List<PromotionBasketLine> lines) {
+        var promotion = requireUsable(code, salesChannelId);
+        var coded = new PromotionDiscount(
+                promotion.getId(), promotion.getName(), PromotionPricing.discountOf(promotion, lines));
+        if (coded.amount().signum() <= 0) {
+            throw new BusinessException(CODE_WITHOUT_EFFECT);
+        }
+        var automatic = priceBasket(salesChannelId, lines);
+        return automatic.amount().compareTo(coded.amount()) > 0 ? automatic : coded;
+    }
+
+    @Override
     @Transactional
     public PromotionRDto createPromotion(PromotionWDto request) {
         var details = toDetails(request);
@@ -144,6 +169,28 @@ public class PromotionServiceImpl implements PromotionService {
     @Transactional
     public void releaseUsage(UUID promotionId) {
         promotionRepository.decrementUsage(promotionId);
+    }
+
+    /** The promotion of a typed code if it can be used today on the channel (404 or 422 otherwise). */
+    private Promotion requireUsable(String code, UUID salesChannelId) {
+        var promotion = promotionRepository
+                .findByCode(code.strip().toUpperCase(Locale.ROOT))
+                .orElseThrow(() -> new NotFoundException(CODE_UNKNOWN));
+        var status = promotion.getPeriod().statusOn(today());
+        if (status == PromotionStatus.SCHEDULED) {
+            throw new BusinessException(CODE_NOT_STARTED);
+        }
+        if (status == PromotionStatus.ENDED) {
+            throw new BusinessException(CODE_ENDED);
+        }
+        if (!promotion.isOpenTo(salesChannelId)) {
+            throw new BusinessException(CODE_OTHER_CHANNEL);
+        }
+        var limit = promotion.getUsageLimit();
+        if (limit != null && promotion.getUsageCount() >= limit) {
+            throw new BusinessException(CODE_LIMIT_REACHED);
+        }
+        return promotion;
     }
 
     private PromotionRDto toRDto(Promotion promotion) {

@@ -45,6 +45,21 @@ public interface PromotionService {
     PromotionDiscount priceBasket(UUID salesChannelId, List<PromotionBasketLine> lines);
 
     /**
+     * Promotion of a promo code typed at the till (VTE-04), checked for the channel of the sale; the code is read
+     * without case and surrounding spaces. 404 if no promotion has this code; 422 if it is not valid today
+     * (Antananarivo), does not apply on the channel or has reached its usage limit.
+     */
+    PromotionRDto getPromotionByCode(String code, UUID salesChannelId);
+
+    /**
+     * Discount of a basket when the customer gives a promo code (VTE-04): the code is checked as in
+     * {@link #getPromotionByCode} and must give a discount on the basket (422 otherwise). One promotion per sale,
+     * no accumulation: if an automatic promotion of the channel gives strictly more, it wins (the code is then not
+     * used); on a tie the code wins. The server decides the discount of a sale with this method.
+     */
+    PromotionDiscount priceBasket(UUID salesChannelId, String code, List<PromotionBasketLine> lines);
+
+    /**
      * Creates a promotion after checking its period, value, targets and channels (422) and the uniqueness of its
      * code (409); traced in the journal.
      */
