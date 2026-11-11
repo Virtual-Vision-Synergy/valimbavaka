@@ -1,5 +1,7 @@
 package org.vvs.valimbavaka.feature.invoice.repository;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,4 +26,14 @@ public interface InvoiceRepository extends OperationRepository<Invoice, UUID> {
                     + "returning last_value",
             nativeQuery = true)
     long nextNumber(@Param("year") int year);
+
+    /** Count and amount of the invoices per status over the business days {@code [from, to]} (FAC-05). */
+    @Query("""
+            select new org.vvs.valimbavaka.feature.invoice.repository.InvoiceStatusTotal(
+                i.status, count(i), sum(i.total))
+            from Invoice i
+            where i.businessDate between :from and :to
+            group by i.status
+            """)
+    List<InvoiceStatusTotal> totalsByStatus(@Param("from") LocalDate from, @Param("to") LocalDate to);
 }

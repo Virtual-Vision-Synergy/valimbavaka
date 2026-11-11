@@ -507,6 +507,21 @@
     }
   },
   "sales": {
+    "statusTotals": {
+      "title": "Satan'ny faktiora",
+      "subtitle": "Faktiora voaloa, foana ary nesorina tamin'ny faktiora fanitsiana, miaraka amin'ny totaly.",
+      "link": "Satan'ny faktiora",
+      "totalAmount": "Vola nofaktiorana",
+      "totalCount": "Faktiora",
+      "listLabel": "Faktiora isaky ny satana",
+      "status": "Satana",
+      "count": "Faktiora",
+      "amount": "Vola",
+      "total": "Totaly",
+      "status_VALIDATED": "Voaloa",
+      "status_CANCELLED": "Foana",
+      "status_REVERSED": "Avoir"
+    },
     "dashboard": {
       "title": "Varotra isaky ny fantsona",
       "subtitle": "Vola azo, isan'ny varotra ary anjara amin'ny totaly isaky ny fantsona (varotra nekena).",

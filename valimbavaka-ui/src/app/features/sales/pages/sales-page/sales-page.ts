@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { ChartColumn, Download, Plus } from 'lucide';
+import { ChartColumn, Download, Plus, Receipt } from 'lucide';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthStore } from '../../../../core/auth/auth-store';
 import { ReferentialService } from '../../../referential/data-access/referential-service';
@@ -69,7 +69,7 @@ export class SalesPage {
   /** Paramètre `?sale=` : lien partageable vers la facture d'une vente de la page. */
   readonly sale = input<string>();
 
-  protected readonly icons = { ChartColumn, Download, Plus };
+  protected readonly icons = { ChartColumn, Download, Plus, Receipt };
   protected readonly tones = STATUS_TONES;
   protected readonly pageSize = PAGE_SIZE;
   protected readonly date = signal(localIsoDate(new Date()));
