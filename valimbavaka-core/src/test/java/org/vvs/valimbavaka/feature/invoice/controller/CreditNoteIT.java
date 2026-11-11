@@ -96,8 +96,7 @@ class CreditNoteIT extends StockApiTestSupport {
     }
 
     @Test
-    void issueCreditNote_validInvoice_reversesTheInvoiceCancelsTheSaleAndPutsTheArticlesBackInStock()
-            throws Exception {
+    void issueCreditNote_validInvoice_reversesTheInvoiceCancelsTheSaleAndPutsTheArticlesBackInStock() throws Exception {
         // Arrange
         var soap = stockedArticle("10");
         var sale = recordSale(sellerToken, soap, "3");
@@ -139,7 +138,10 @@ class CreditNoteIT extends StockApiTestSupport {
                         + "and action = 'REVERSE'",
                 String.class,
                 invoice);
-        assertThat(reversal).startsWith("Avoir AV-").contains("de la facture FAC-").endsWith(" : " + REASON);
+        assertThat(reversal)
+                .startsWith("Avoir AV-")
+                .contains("de la facture FAC-")
+                .endsWith(" : " + REASON);
         var cancellation = jdbcTemplate.queryForObject(
                 "select description from journal_entries where resource_type = 'SALE' and resource_id = ? "
                         + "and action = 'CANCEL'",
@@ -180,7 +182,7 @@ class CreditNoteIT extends StockApiTestSupport {
 
         // Act
         issue(adminToken(), invoiceOf(sale), "x".repeat(501))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
 
         // Assert
@@ -196,10 +198,10 @@ class CreditNoteIT extends StockApiTestSupport {
 
         // Act + Assert
         mockMvc.perform(creditNoteRequest(adminToken(), invoice, "{}"))
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
         issue(adminToken(), invoice, "   ")
-                .andExpect(status().isUnprocessableEntity())
+                .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
         assertNothingChanged(sale, soap, "8");
     }
@@ -259,8 +261,14 @@ class CreditNoteIT extends StockApiTestSupport {
         var admin = adminToken();
         var executor = Executors.newFixedThreadPool(2);
         List<Callable<Integer>> tasks = List.of(
-                () -> issue(admin, invoice, "Demande 1").andReturn().getResponse().getStatus(),
-                () -> issue(admin, invoice, "Demande 2").andReturn().getResponse().getStatus());
+                () -> issue(admin, invoice, "Demande 1")
+                        .andReturn()
+                        .getResponse()
+                        .getStatus(),
+                () -> issue(admin, invoice, "Demande 2")
+                        .andReturn()
+                        .getResponse()
+                        .getStatus());
 
         // Act
         var statuses = new ArrayList<Integer>();
@@ -297,8 +305,7 @@ class CreditNoteIT extends StockApiTestSupport {
     }
 
     @Test
-    void issueCreditNote_saleAlreadyCancelledBeforeFac04_issuesItWithoutPuttingTheArticlesBackTwice()
-            throws Exception {
+    void issueCreditNote_saleAlreadyCancelledBeforeFac04_issuesItWithoutPuttingTheArticlesBackTwice() throws Exception {
         // Arrange: a sale cancelled by the undo of LIV-05 before credit notes existed leaves a VALIDATED invoice
         var soap = stockedArticle("10");
         var sale = recordSale(sellerToken, soap, "2");
