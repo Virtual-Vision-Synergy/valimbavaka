@@ -53,7 +53,10 @@ class RevenueTrendServiceImplTest {
         // Assert
         assertThat(trend.from()).isEqualTo(TODAY.minusDays(6));
         assertThat(trend.to()).isEqualTo(TODAY);
-        assertThat(trend.points()).extracting(RevenueTrendPointRDto::date).hasSize(7).isSorted();
+        assertThat(trend.points())
+                .extracting(RevenueTrendPointRDto::date)
+                .hasSize(7)
+                .isSorted();
         assertThat(trend.points().getFirst().revenue()).isEqualByComparingTo("1000");
         assertThat(trend.points().get(1).revenue()).isEqualByComparingTo("0");
         assertThat(trend.points().get(1).salesCount()).isZero();

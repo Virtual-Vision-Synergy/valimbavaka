@@ -35,8 +35,9 @@ public class RevenueTrendServiceImpl implements RevenueTrendService {
     public RevenueTrendRDto getLastSevenDays() {
         var today = LocalDate.now(clock.withZone(DashboardServiceImpl.BUSINESS_ZONE));
         var from = today.minusDays(DAYS - 1L);
-        List<RevenueTrendPointRDto> points =
-                IntStream.range(0, DAYS).mapToObj(offset -> point(from.plusDays(offset))).toList();
+        List<RevenueTrendPointRDto> points = IntStream.range(0, DAYS)
+                .mapToObj(offset -> point(from.plusDays(offset)))
+                .toList();
         return new RevenueTrendRDto(from, today, points);
     }
 
