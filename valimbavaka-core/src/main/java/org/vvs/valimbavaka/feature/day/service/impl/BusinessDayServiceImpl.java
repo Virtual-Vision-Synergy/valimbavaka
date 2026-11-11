@@ -99,11 +99,39 @@ public class BusinessDayServiceImpl implements BusinessDayService {
     @Override
     public BusinessDayRDto requireOpenDay() {
         var date = policy.today();
-        var day = dayRepository.findByBusinessDate(date).filter(BusinessDay::isOpen);
-        if (day.isEmpty()) {
+        return dayMapper.toRDto(
+                requireOpen(date, dayRepository.findByBusinessDate(date).orElse(null)));
+    }
+
+    @Override
+    @Transactional
+    public BusinessDayRDto lockOpenDay() {
+        var date = policy.today();
+        return dayMapper.toRDto(requireOpen(
+                date, dayRepository.findByBusinessDateForUpdate(date).orElse(null)));
+    }
+
+    @Override
+    @Transactional
+    public BusinessDayRDto closeDay() {
+        var date = policy.today();
+        var day = requireOpen(
+                date, dayRepository.findByBusinessDateForUpdate(date).orElse(null));
+        day.close();
+        var saved = dayRepository.saveAndFlush(day);
+        log.info("Journée du {} clôturée", date);
+        return dayMapper.toRDto(saved);
+    }
+
+    /** The day found for the date ({@code null} if none), if it is open; 409 when it is missing or already closed. */
+    private static BusinessDay requireOpen(LocalDate date, @Nullable BusinessDay found) {
+        if (found == null) {
             throw new ConflictException("La journée du %s n'est pas ouverte.".formatted(format(date)));
         }
-        return dayMapper.toRDto(day.get());
+        if (!found.isOpen()) {
+            throw new ConflictException("La journée du %s est déjà clôturée.".formatted(format(date)));
+        }
+        return found;
     }
 
     private static TransferCommand morningTransfer(

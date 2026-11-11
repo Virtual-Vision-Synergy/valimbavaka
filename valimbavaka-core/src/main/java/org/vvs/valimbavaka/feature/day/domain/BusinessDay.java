@@ -64,6 +64,14 @@ public class BusinessDay extends BaseEntity {
         transfers.add(new DayTransfer(transferId, transferNumber, locationId, quantities.size(), total));
     }
 
+    /** Locks the day (JR-06): nothing more is recorded for this date. Only an open day can be closed. */
+    public void close() {
+        if (!isOpen()) {
+            throw new IllegalStateException("La journée du " + businessDate + " est déjà clôturée.");
+        }
+        status = DayStatus.CLOSED;
+    }
+
     /** True while sales can be recorded for this date. */
     public boolean isOpen() {
         return status == DayStatus.OPEN;

@@ -31,6 +31,7 @@ import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.core.exception.ConflictException;
 import org.vvs.valimbavaka.core.exception.NotFoundException;
 import org.vvs.valimbavaka.feature.day.domain.DayStatus;
+import org.vvs.valimbavaka.feature.day.service.BusinessDayService;
 import org.vvs.valimbavaka.feature.dayclosing.domain.ClosingGapReason;
 import org.vvs.valimbavaka.feature.dayclosing.domain.CountResult;
 import org.vvs.valimbavaka.feature.dayclosing.domain.DayClosingCount;
@@ -55,6 +56,9 @@ class DayClosingCountServiceImplTest {
     private static final UUID OIL_ID = UUID.randomUUID();
 
     @Mock
+    private BusinessDayService businessDayService;
+
+    @Mock
     private DayClosingService dayClosingService;
 
     @Mock
@@ -68,7 +72,11 @@ class DayClosingCountServiceImplTest {
     @BeforeEach
     void setUp() {
         sut = new DayClosingCountServiceImpl(
-                dayClosingService, countRepository, journalService, Clock.fixed(NOW, ZoneOffset.UTC));
+                businessDayService,
+                dayClosingService,
+                countRepository,
+                journalService,
+                Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     @Test
