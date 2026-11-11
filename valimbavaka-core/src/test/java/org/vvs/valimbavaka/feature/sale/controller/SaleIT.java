@@ -420,7 +420,7 @@ class SaleIT extends StockApiTestSupport {
                 location(locationCode));
     }
 
-    /** Prénom en tête de l'ordre alphabétique : le formulaire ne liste que les 100 premières vendeuses de la base partagée. */
+    /** Prénom en tête de l'ordre alphabétique : le formulaire ne liste que les 100 premières vendeuses. */
     private User createSeller() {
         var email = "vendeuse-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = roleRepository.findByName(RoleName.SELLER).orElseThrow();
