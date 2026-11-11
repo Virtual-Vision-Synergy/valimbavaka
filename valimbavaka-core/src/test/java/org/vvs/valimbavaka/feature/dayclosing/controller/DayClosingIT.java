@@ -96,7 +96,8 @@ class DayClosingIT extends StockApiTestSupport {
 
         // Act + Assert
         try {
-            closing().andExpect(status().isConflict())
+            closing()
+                    .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.code").value("CONFLICT"))
                     .andExpect(jsonPath("$.detail").value(startsWith("La journée du ")));
         } finally {
@@ -106,7 +107,8 @@ class DayClosingIT extends StockApiTestSupport {
 
     @Test
     void getClosing_openDay_listsStoreDeliveryAndSalonButNotTheWarehouse() throws Exception {
-        closing().andExpect(status().isOk())
+        closing()
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.businessDate")
                         .value(LocalDate.now(BUSINESS_ZONE).toString()))
                 .andExpect(jsonPath("$.status").value("OPEN"))

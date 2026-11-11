@@ -109,7 +109,8 @@ class DayClosingServiceImplTest {
         assertThat(closing.locations())
                 .extracting(ClosingLocationRDto::code)
                 .containsExactly("STORE", "DELIVERY", "TRADE_SHOW");
-        assertThat(closing.locations()).allSatisfy(location -> assertThat(location.lines()).isEmpty());
+        assertThat(closing.locations())
+                .allSatisfy(location -> assertThat(location.lines()).isEmpty());
     }
 
     @Test

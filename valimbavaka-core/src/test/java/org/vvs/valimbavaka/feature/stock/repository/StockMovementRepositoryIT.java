@@ -114,10 +114,10 @@ class StockMovementRepositoryIT {
         var now = Instant.now();
 
         // Act
-        var totals = sut.totalsByType(now.minus(Duration.ofHours(1)), now.plus(Duration.ofHours(1)), List.of(store))
-                .stream()
-                .filter(total -> total.articleId().equals(articleId))
-                .toList();
+        var totals =
+                sut.totalsByType(now.minus(Duration.ofHours(1)), now.plus(Duration.ofHours(1)), List.of(store)).stream()
+                        .filter(total -> total.articleId().equals(articleId))
+                        .toList();
 
         // Assert
         assertThat(totals)
