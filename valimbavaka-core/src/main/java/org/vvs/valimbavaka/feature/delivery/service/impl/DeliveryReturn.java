@@ -31,12 +31,8 @@ class DeliveryReturn {
 
     /** @return id of the recorded stock return; 409 if the delivery location does not hold the articles */
     UUID record(DeliveryOrder order) {
-        return transfer(
-                order,
-                TransferOrigin.RETURN,
-                FROM_LOCATION,
-                TO_LOCATION,
-                "Retour de la livraison en échec " + order.getNumber());
+        var leg = new Leg(TransferOrigin.RETURN, FROM_LOCATION, TO_LOCATION);
+        return transfer(order, leg, "Retour de la livraison en échec " + order.getNumber());
     }
 
     /**
@@ -44,24 +40,23 @@ class DeliveryReturn {
      * that cancels the return (a recorded transfer is never deleted); 409 if the warehouse no longer holds them.
      */
     void undoReturn(DeliveryOrder order) {
-        transfer(
-                order,
-                TransferOrigin.MANUAL,
-                TO_LOCATION,
-                FROM_LOCATION,
-                "Annulation du retour de la livraison " + order.getNumber());
+        var leg = new Leg(TransferOrigin.MANUAL, TO_LOCATION, FROM_LOCATION);
+        transfer(order, leg, "Annulation du retour de la livraison " + order.getNumber());
     }
 
-    private UUID transfer(DeliveryOrder order, TransferOrigin origin, String from, String to, String note) {
+    private UUID transfer(DeliveryOrder order, Leg leg, String note) {
         var lines = order.getLines().stream()
                 .map(line -> new TransferLineCommand(line.getArticleId(), line.getQuantity()))
                 .toList();
         var command = new TransferCommand(
-                origin,
-                referentialService.requireActiveStockLocationId(from),
-                referentialService.requireActiveStockLocationId(to),
+                leg.origin(),
+                referentialService.requireActiveStockLocationId(leg.from()),
+                referentialService.requireActiveStockLocationId(leg.to()),
                 lines,
                 note);
         return transferService.record(command).id();
     }
+
+    /** Kind of transfer and the codes of the locations it leaves and reaches. */
+    private record Leg(TransferOrigin origin, String from, String to) {}
 }

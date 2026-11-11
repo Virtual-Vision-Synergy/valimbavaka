@@ -74,7 +74,9 @@ class DeliveryUndoIT extends DeliveryApiTestSupport {
         markDelivered(token, orderId).andExpect(status().isOk());
 
         // Act
-        undo(token, orderId).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ON_ROUND"));
+        undo(token, orderId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ON_ROUND"));
 
         // Assert
         assertThat(statusOf(orderId)).isEqualTo("ON_ROUND");
@@ -147,7 +149,9 @@ class DeliveryUndoIT extends DeliveryApiTestSupport {
         undo(token, orderId).andExpect(status().isOk());
 
         // Act
-        markDelivered(token, orderId).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("DELIVERED"));
+        markDelivered(token, orderId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("DELIVERED"));
 
         // Assert
         assertThat(saleIdOf(orderId)).isNotNull().isNotEqualTo(firstSaleId);
@@ -168,7 +172,9 @@ class DeliveryUndoIT extends DeliveryApiTestSupport {
                 "update delivery_orders set updated_at = now() - interval '10 minutes' where id = ?", orderId);
 
         // Act + Assert
-        undo(token, orderId).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("CONFLICT"));
+        undo(token, orderId)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONFLICT"));
         assertThat(statusOf(orderId)).isEqualTo("DELIVERED");
         assertThat(saleIdOf(orderId)).isEqualTo(saleId);
         assertThat(balance(articleId, "DELIVERY")).isEqualByComparingTo("0");
@@ -229,7 +235,9 @@ class DeliveryUndoIT extends DeliveryApiTestSupport {
         markDelivered(tokenOfDriver(driverId), orderId).andExpect(status().isOk());
 
         // Act + Assert
-        undo(adminToken(), orderId).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("TO_PREPARE"));
+        undo(adminToken(), orderId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("TO_PREPARE"));
     }
 
     @Test
