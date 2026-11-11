@@ -11,7 +11,14 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
  */
 public record InvoiceLineRDto(
         UUID articleId,
-        @ExcelColumn(header = "Désignation", order = 1, width = 40) String label,
+
+        @ExcelColumn(header = "Désignation", order = 1, width = 40)
+        String label,
+
         @ExcelColumn(header = "Qté", order = 2, width = 8) BigDecimal quantity,
-        @ExcelColumn(header = "Prix unitaire (Ar)", order = 3, width = 16) BigDecimal unitPrice,
-        @ExcelColumn(header = "Total (Ar)", order = 4, width = 16) BigDecimal lineTotal) {}
+
+        @ExcelColumn(header = "Prix unitaire (Ar)", order = 3, width = 16)
+        BigDecimal unitPrice,
+
+        @ExcelColumn(header = "Total (Ar)", order = 4, width = 16)
+        BigDecimal lineTotal) {}

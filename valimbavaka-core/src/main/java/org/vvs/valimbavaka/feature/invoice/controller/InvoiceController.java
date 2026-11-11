@@ -82,7 +82,8 @@ public class InvoiceController {
     }
 
     private static ResponseEntity<Resource> download(InvoiceFile file) {
-        var disposition = ContentDisposition.attachment().filename(file.filename()).build();
+        var disposition =
+                ContentDisposition.attachment().filename(file.filename()).build();
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())

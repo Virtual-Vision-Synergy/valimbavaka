@@ -131,11 +131,7 @@ class InvoiceDocumentServiceImplTest {
 
     private static InvoiceRDto invoice(OperationStatus status, String discount, String total) {
         var line = new InvoiceLineRDto(
-                UUID.randomUUID(),
-                "Savon coco",
-                new BigDecimal("3"),
-                new BigDecimal("8500"),
-                new BigDecimal("25500"));
+                UUID.randomUUID(), "Savon coco", new BigDecimal("3"), new BigDecimal("8500"), new BigDecimal("25500"));
         return new InvoiceRDto(
                 INVOICE_ID,
                 "FAC-2026-0042",
