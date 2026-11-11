@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +44,10 @@ class CommissionRecalculationIT extends StockApiTestSupport {
     private static final String VALIDATION = COMMISSIONS + "/validation";
     private static final String FROM = "2020-01-01";
     private static final String TO = "2099-12-31";
+    /** The recalculation is bounded to a year: a window around today (Madagascar day or UTC day). */
+    private static final String PERIOD_FROM = LocalDate.now().minusDays(30).toString();
+
+    private static final String PERIOD_TO = LocalDate.now().plusDays(30).toString();
     private static final String SELLER_PASSWORD = "mot-de-passe-vendeuse-long";
 
     @Autowired
@@ -87,7 +92,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         setSellerRate("8.00");
 
         // Act + Assert : 8 500 × 8 % = 680 Ar
-        recalculation(sellerId, FROM, TO)
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sellerId").value(sellerId.toString()))
                 .andExpect(jsonPath("$.updatedCount").value(1))
@@ -106,10 +111,10 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         // Arrange
         var saleNumber = createSale();
         setSellerRate("8.00");
-        recalculation(sellerId, FROM, TO).andExpect(jsonPath("$.updatedCount").value(1));
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO).andExpect(jsonPath("$.updatedCount").value(1));
 
         // Act + Assert : rien à changer la deuxième fois
-        recalculation(sellerId, FROM, TO)
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.updatedCount").value(0))
                 .andExpect(jsonPath("$.unchangedCount").value(1))
@@ -125,7 +130,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         setSellerRate("8.00");
 
         // Act
-        recalculation(sellerId, FROM, TO).andExpect(status().isOk());
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO).andExpect(status().isOk());
 
         // Assert
         var expected = "Commission %s · Miora Rakoto recalculée : 425.00 → 680.00 Ar (taux 5.00 %% → 8.00 %%)"
@@ -140,7 +145,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         createChannelRule("3", "REVENUE");
 
         // Act + Assert : 8 500 × 3 % = 255 Ar (et non 5 % + 3 %)
-        recalculation(sellerId, FROM, TO)
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.updatedCount").value(1))
                 .andExpect(jsonPath("$.newAmount").value(255.0));
@@ -157,7 +162,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         setSellerRate("8.00");
 
         // Act + Assert
-        recalculation(sellerId, FROM, TO)
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.updatedCount").value(0))
                 .andExpect(jsonPath("$.unchangedCount").value(0))
@@ -175,7 +180,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         setSellerRate("8.00");
 
         // Act + Assert
-        recalculation(sellerId, FROM, TO)
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.updatedCount").value(0))
                 .andExpect(jsonPath("$.validatedCount").value(0));
@@ -194,7 +199,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         jdbcTemplate.update("update users set commission_rate = 8.00 where id = ?", other.getId());
 
         // Act
-        recalculation(sellerId, FROM, TO).andExpect(jsonPath("$.updatedCount").value(1));
+        recalculation(sellerId, PERIOD_FROM, PERIOD_TO).andExpect(jsonPath("$.updatedCount").value(1));
 
         // Assert : seule la vendeuse désignée est recalculée
         commissions().andExpect(jsonPath("$.items[0].amount").value(680.0));
@@ -243,7 +248,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
         createSale();
         setSellerRate("8.00");
         var body = "{\"sellerId\":\"%s\",\"from\":\"%s\",\"to\":\"%s\",\"status\":\"VALIDATED\",\"amount\":1}"
-                .formatted(sellerId, FROM, TO);
+                .formatted(sellerId, PERIOD_FROM, PERIOD_TO);
 
         // Act + Assert : le statut et le montant viennent du serveur
         mockMvc.perform(post(RECALCULATION)
@@ -257,7 +262,9 @@ class CommissionRecalculationIT extends StockApiTestSupport {
 
     @Test
     void recalculate_withoutToken_returns401() throws Exception {
-        mockMvc.perform(post(RECALCULATION).contentType(MediaType.APPLICATION_JSON).content(body(sellerId, FROM, TO)))
+        mockMvc.perform(post(RECALCULATION)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body(sellerId, PERIOD_FROM, PERIOD_TO)))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
     }
@@ -275,7 +282,7 @@ class CommissionRecalculationIT extends StockApiTestSupport {
             mockMvc.perform(post(RECALCULATION)
                             .header(HttpHeaders.AUTHORIZATION, bearer(token))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(body(sellerId, FROM, TO)))
+                            .content(body(sellerId, PERIOD_FROM, PERIOD_TO)))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath("$.code").value("FORBIDDEN"));
         }

@@ -91,7 +91,9 @@ public class CommissionRecalculationServiceImpl implements CommissionRecalculati
         var key = TermsKey.of(commission);
         var terms = termsCache.get(key);
         if (terms == null) {
-            terms = rateResolver.resolve(key.sellerId(), key.salesChannelId(), key.salonServiceId()).toTerms();
+            terms = rateResolver
+                    .resolve(key.sellerId(), key.salesChannelId(), key.salonServiceId())
+                    .toTerms();
             termsCache.put(key, terms);
         }
         return commission.recalculate(purchaseCost(commission), terms);
@@ -128,7 +130,8 @@ public class CommissionRecalculationServiceImpl implements CommissionRecalculati
     }
 
     /** What the rate depends on: two commissions with the same key get the same terms. */
-    private record TermsKey(UUID sellerId, UUID salesChannelId, @Nullable UUID salonServiceId) {
+    private record TermsKey(
+            UUID sellerId, UUID salesChannelId, @Nullable UUID salonServiceId) {
 
         static TermsKey of(Commission commission) {
             return new TermsKey(

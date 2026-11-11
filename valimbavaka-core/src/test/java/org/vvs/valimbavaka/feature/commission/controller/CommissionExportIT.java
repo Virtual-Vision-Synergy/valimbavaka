@@ -60,8 +60,8 @@ class CommissionExportIT extends StockApiTestSupport {
     private static final String TO = "2099-12-31";
     private static final String SELLER_PASSWORD = "mot-de-passe-vendeuse-long";
     private static final ZoneId MADAGASCAR = ZoneId.of("Indian/Antananarivo");
-    private static final List<String> HEADERS = List.of(
-            "Date", "Opération", "Vendeuse", "CA (Ar)", "Base (Ar)", "Taux (%)", "Commission (Ar)", "Statut");
+    private static final List<String> HEADERS =
+            List.of("Date", "Opération", "Vendeuse", "CA (Ar)", "Base (Ar)", "Taux (%)", "Commission (Ar)", "Statut");
 
     @Autowired
     private RoleRepository roleRepository;

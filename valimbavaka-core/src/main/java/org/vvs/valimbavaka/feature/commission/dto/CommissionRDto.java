@@ -23,18 +23,39 @@ public record CommissionRDto(
         UUID id,
         CommissionSourceType sourceType,
         UUID sourceId,
-        @ExcelColumn(header = "Opération", order = 2, width = 14) String sourceNumber,
+
+        @ExcelColumn(header = "Opération", order = 2, width = 14)
+        String sourceNumber,
+
         UUID sellerId,
-        @ExcelColumn(header = "Vendeuse", order = 3, width = 28) String sellerName,
+
+        @ExcelColumn(header = "Vendeuse", order = 3, width = 28)
+        String sellerName,
+
         UUID salesChannelId,
         @Nullable UUID salonServiceId,
-        @ExcelColumn(header = "Date", order = 1, width = 12) LocalDate businessDate,
-        @ExcelColumn(header = "CA (Ar)", order = 4, format = "#,##0.00", width = 16) BigDecimal revenue,
-        @ExcelColumn(header = "Base (Ar)", order = 5, format = "#,##0.00", width = 16) BigDecimal baseAmount,
+
+        @ExcelColumn(header = "Date", order = 1, width = 12)
+        LocalDate businessDate,
+
+        @ExcelColumn(header = "CA (Ar)", order = 4, format = "#,##0.00", width = 16)
+        BigDecimal revenue,
+
+        @ExcelColumn(header = "Base (Ar)", order = 5, format = "#,##0.00", width = 16)
+        BigDecimal baseAmount,
+
         CommissionBase base,
-        @ExcelColumn(header = "Taux (%)", order = 6, format = "0.00", width = 10) BigDecimal rate,
+
+        @ExcelColumn(header = "Taux (%)", order = 6, format = "0.00", width = 10)
+        BigDecimal rate,
+
         CommissionRateSource rateSource,
         @Nullable UUID ruleId,
-        @ExcelColumn(header = "Commission (Ar)", order = 7, format = "#,##0.00", width = 18) BigDecimal amount,
-        @ExcelColumn(header = "Statut", order = 8, width = 14) CommissionStatus status,
+
+        @ExcelColumn(header = "Commission (Ar)", order = 7, format = "#,##0.00", width = 18)
+        BigDecimal amount,
+
+        @ExcelColumn(header = "Statut", order = 8, width = 14)
+        CommissionStatus status,
+
         Instant createdAt) {}

@@ -12,7 +12,8 @@ import org.jspecify.annotations.Nullable;
  * recalculation is always bounded), of one seller or, without {@code sellerId}, of all of them.
  */
 public record CommissionRecalculationWDto(
-        @NotNull(message = "La date de début est obligatoire") LocalDate from,
+        @NotNull(message = "La date de début est obligatoire")
+        LocalDate from,
 
         @NotNull(message = "La date de fin est obligatoire") LocalDate to,
 
