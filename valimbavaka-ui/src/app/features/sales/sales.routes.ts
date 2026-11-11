@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 import { permissionGuard } from '../../core/auth/permission-guard';
 
 /**
- * Ventes par canal (VTE-08, administrateur) et ventes du jour (VTE-07, API) ; « en construction » tant que factures
- * (FAC-01) et livre des ventes manquent.
+ * Ventes par canal (VTE-08, administrateur) et ventes du jour (VTE-07, API) ; « en construction » tant que FAC-02 à
+ * FAC-06 (impression, avoir, livre des ventes) manquent.
  */
 export const SALES_ROUTES: Routes = [
   {
