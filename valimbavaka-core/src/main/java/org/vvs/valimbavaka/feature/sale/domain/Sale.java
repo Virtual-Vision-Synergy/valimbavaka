@@ -113,6 +113,21 @@ public class Sale extends BaseEntity {
         return sale;
     }
 
+    /**
+     * Purchase cost of the goods sold (margin, COM-02): sum of quantity × unit cost frozen on the lines, rounded half
+     * up to 2 decimals; a line without cost counts zero.
+     */
+    public BigDecimal purchaseCost() {
+        var cost = BigDecimal.ZERO;
+        for (var line : lines) {
+            var unitCost = line.getUnitCost();
+            if (unitCost != null) {
+                cost = cost.add(unitCost.multiply(line.getQuantity()));
+            }
+        }
+        return cost.setScale(2, RoundingMode.HALF_UP);
+    }
+
     /** Hot cancellation (JNL-02, used by the undo of LIV-05): 409 unless the sale is still validated. */
     public void cancel() {
         status.ensureCanCancel();

@@ -124,6 +124,7 @@
       "services": "Salon & shooting",
       "reports": "Rapports",
       "users": "Utilisateurs",
+      "commissionList": "Commissions calculées",
       "commissionRules": "Règles de commission",
       "salonCatalog": "Catalogue salon",
       "journal": "Journal",
@@ -1552,6 +1553,41 @@
       "baseRequired": "La base de calcul est obligatoire.",
       "cancel": "Annuler",
       "save": "Enregistrer"
+    }
+  },
+  "commissionList": {
+    "title": "Commissions calculées",
+    "subtitle": "Calculées automatiquement à chaque vente ou prestation : base × taux le plus précis (service salon, sinon canal, sinon vendeuse).",
+    "month": "Mois",
+    "count": "{{count}} commission(s)",
+    "col": {
+      "operation": "Opération",
+      "date": "Date",
+      "seller": "Vendeuse",
+      "base": "Base (Ar)",
+      "rate": "Taux",
+      "amount": "Commission"
+    },
+    "source": {
+      "SALE": "Vente",
+      "SERVICE_RECORD": "Prestation salon"
+    },
+    "status": {
+      "CANCELLED": "Annulée avec la vente"
+    },
+    "base": {
+      "REVENUE": "Chiffre d'affaires",
+      "MARGIN": "Marge brute"
+    },
+    "rateSource": {
+      "SALON_SERVICE": "Service salon",
+      "SALES_CHANNEL": "Règle du canal",
+      "SELLER": "Taux de la vendeuse",
+      "NONE": "Aucun taux"
+    },
+    "empty": {
+      "title": "Aucune commission ce mois-ci",
+      "message": "Les commissions apparaissent dès qu'une vente ou une prestation est enregistrée pour une vendeuse."
     }
   },
   "salonCatalog": {

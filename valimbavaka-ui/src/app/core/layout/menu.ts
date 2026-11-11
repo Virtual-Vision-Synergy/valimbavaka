@@ -185,6 +185,12 @@ export const MENU_SECTIONS: readonly MenuSection[] = [
         icon: Users,
       },
       {
+        labelKey: 'menu.item.commissionList',
+        route: '/commissions/calculated',
+        permission: 'commissions.read-all',
+        icon: HandCoins,
+      },
+      {
         labelKey: 'menu.item.commissionRules',
         route: '/commissions/rules',
         permission: 'commission-rules.read',

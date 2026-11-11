@@ -124,6 +124,7 @@
       "services": "Salon & sary",
       "reports": "Tatitra",
       "users": "Mpampiasa",
+      "commissionList": "Kaomisiona voakajy",
       "commissionRules": "Fitsipiky ny kaomisiona",
       "salonCatalog": "Katalaogin'ny salon",
       "journal": "Tahirin-kevitra",
@@ -1552,6 +1553,41 @@
       "baseRequired": "Tsy maintsy fenoina ny fototra kajiana.",
       "cancel": "Foano",
       "save": "Tehirizo"
+    }
+  },
+  "commissionList": {
+    "title": "Kaomisiona voakajy",
+    "subtitle": "Kajy ho azy isaky ny varotra na tolotra : fototra × taha mazava indrindra (tolotra salon, na fantsona, na mpivarotra).",
+    "month": "Volana",
+    "count": "Kaomisiona {{count}}",
+    "col": {
+      "operation": "Asa",
+      "date": "Daty",
+      "seller": "Mpivarotra",
+      "base": "Fototra (Ar)",
+      "rate": "Taha",
+      "amount": "Kaomisiona"
+    },
+    "source": {
+      "SALE": "Varotra",
+      "SERVICE_RECORD": "Tolotra salon"
+    },
+    "status": {
+      "CANCELLED": "Nofoanana miaraka amin'ny varotra"
+    },
+    "base": {
+      "REVENUE": "Vola miditra",
+      "MARGIN": "Tombony"
+    },
+    "rateSource": {
+      "SALON_SERVICE": "Tolotra salon",
+      "SALES_CHANNEL": "Fitsipiky ny fantsona",
+      "SELLER": "Tahan'ny mpivarotra",
+      "NONE": "Tsy misy taha"
+    },
+    "empty": {
+      "title": "Tsy misy kaomisiona amin'ity volana ity",
+      "message": "Miseho ny kaomisiona raha vao misy varotra na tolotra voasoratra ho an'ny mpivarotra."
     }
   },
   "salonCatalog": {
