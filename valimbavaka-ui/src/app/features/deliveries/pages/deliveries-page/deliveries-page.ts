@@ -16,16 +16,22 @@ import { Icon } from '../../../../shared/components/icon/icon';
 import { ListState } from '../../../../shared/components/list-state/list-state';
 import { SidePanel, isPanelDocked } from '../../../../shared/components/side-panel/side-panel';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
-import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { formatAriary } from '../../../../shared/pipes/ariary-pipe';
 import { DeliveryCard } from '../../components/delivery-card/delivery-card';
 import { DeliveryDetail } from '../../components/delivery-detail/delivery-detail';
-import { DELIVERY_STATUSES } from '../../data-access/delivery-models';
+import { businessToday } from '../../data-access/delivery-mapping';
+import {
+  DELIVERY_STATUSES,
+  DELIVERY_STATUS_FILTERS,
+  DeliveryOrderStatus,
+  DeliveryStatusFilter,
+} from '../../data-access/delivery-models';
 import { DeliveryService } from '../../data-access/delivery-service';
 
 /**
- * Suivi des livraisons du jour (LIV-01, LIV-06, LIV-07) : colonnes par statut et détail. Les commandes viennent
- * de l'API ; la vendeuse et l'administrateur en créent une avec « Nouvelle commande » (LIV-01).
+ * Suivi des livraisons (LIV-01, LIV-06) : colonnes par statut pour un jour (aujourd'hui par défaut, un jour passé
+ * donne son historique), filtres par tournée et par statut, détail avec l'historique de la commande. Tout vient de
+ * l'API ; la vendeuse et l'administrateur créent une commande avec « Nouvelle commande » (LIV-01).
  */
 @Component({
   selector: 'vvs-deliveries-page',
@@ -46,14 +52,19 @@ import { DeliveryService } from '../../data-access/delivery-service';
 })
 export class DeliveriesPage {
   private readonly deliveryService = inject(DeliveryService);
-  private readonly toast = inject(ToastService);
 
   private readonly docked = isPanelDocked();
 
   protected readonly icons = { Plus };
   protected readonly canCreate = inject(AuthStore).hasPermission('deliveries.create');
-  protected readonly board = rxResource({ stream: () => this.deliveryService.board() });
+  /** Jour affiché (`yyyy-MM-dd`, Antananarivo). */
+  protected readonly day = signal(businessToday());
+  protected readonly board = rxResource({
+    params: () => this.day(),
+    stream: ({ params }) => this.deliveryService.board(params),
+  });
   protected readonly round = signal('ALL');
+  protected readonly status = signal<DeliveryStatusFilter>('ALL');
 
   protected readonly roundOptions = computed<readonly ChipOption<string>[]>(() => [
     { value: 'ALL', labelKey: 'deliveries.allRounds' },
@@ -62,19 +73,36 @@ export class DeliveriesPage {
       label: round.name === round.driverName ? round.name : `${round.name} · ${round.driverName}`,
     })),
   ]);
-  protected readonly visible = computed(() => {
+  /** Commandes de la tournée choisie, annulées comprises. */
+  private readonly ofRound = computed(() => {
     const round = this.round();
     const all = this.board.value()?.deliveries ?? [];
     return round === 'ALL' ? all : all.filter((delivery) => delivery.roundId === round);
   });
-  protected readonly columns = computed(() =>
-    DELIVERY_STATUSES.map((status) => ({
-      status,
-      items: this.visible().filter((delivery) => delivery.status === status),
+  protected readonly statusOptions = computed<readonly ChipOption<DeliveryStatusFilter>[]>(() =>
+    DELIVERY_STATUS_FILTERS.map((status) => ({
+      value: status,
+      labelKey: status === 'ALL' ? 'deliveries.allStatuses' : `deliveries.status.${status}`,
+      count:
+        status === 'ALL'
+          ? this.ofRound().filter((delivery) => delivery.status !== 'CANCELLED').length
+          : this.ofRound().filter((delivery) => delivery.status === status).length,
     })),
   );
+  /** Colonnes affichées : les quatre du tableau (sans les annulées), ou la seule du statut choisi. */
+  protected readonly columns = computed(() => {
+    const status = this.status();
+    const statuses: readonly DeliveryOrderStatus[] =
+      status === 'ALL' ? DELIVERY_STATUSES : [status];
+    return statuses.map((column) => ({
+      status: column,
+      items: this.ofRound().filter((delivery) => delivery.status === column),
+    }));
+  });
   protected readonly summary = computed(() => {
-    const all = this.board.value()?.deliveries ?? [];
+    const all = (this.board.value()?.deliveries ?? []).filter(
+      (delivery) => delivery.status !== 'CANCELLED',
+    );
     const collected = all
       .filter((delivery) => delivery.status === 'DELIVERED')
       .reduce((sum, delivery) => sum + delivery.amount, 0);
@@ -96,11 +124,15 @@ export class DeliveriesPage {
   );
 
   protected stopCount(roundId: string | null): number {
-    return (this.board.value()?.deliveries ?? []).filter((delivery) => delivery.roundId === roundId)
-      .length;
+    return (this.board.value()?.deliveries ?? []).filter(
+      (delivery) => delivery.roundId === roundId && delivery.status !== 'CANCELLED',
+    ).length;
   }
 
-  protected demoAction(): void {
-    this.toast.show('common.demoAction', {}, 'info');
+  /** Un champ date vidé garde le jour affiché. */
+  protected pickDay(value: string): void {
+    if (value) {
+      this.day.set(value);
+    }
   }
 }

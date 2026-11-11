@@ -178,6 +178,24 @@ class JournalServiceImplTest {
                 .isEqualTo(Sort.Direction.DESC);
     }
 
+    @Test
+    void getResourceEntries_oneOrder_queriesOnlyItsLinesOldestFirst() {
+        // given
+        var orderId = UUID.randomUUID();
+        var query = new PageQuery(null, null, null, null, null);
+        when(journalEntryRepository.findByResourceTypeAndResourceId(eq("DELIVERY_ORDER"), eq(orderId), any()))
+                .thenReturn(Page.empty());
+        // when
+        sut.getResourceEntries("DELIVERY_ORDER", orderId, query);
+        // then
+        var pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(journalEntryRepository)
+                .findByResourceTypeAndResourceId(eq("DELIVERY_ORDER"), eq(orderId), pageable.capture());
+        assertThat(pageable.getValue().getSort().getOrderFor("occurredAt").getDirection())
+                .isEqualTo(Sort.Direction.ASC);
+        assertThat(pageable.getValue().getPageNumber()).isZero();
+    }
+
     private JournalEntry savedEntry() {
         var captor = ArgumentCaptor.forClass(JournalEntry.class);
         verify(journalEntryRepository).save(captor.capture());

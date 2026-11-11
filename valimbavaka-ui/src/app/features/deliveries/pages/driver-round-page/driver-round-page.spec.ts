@@ -40,6 +40,9 @@ function order(
     stopNumber,
     amount: 8500 * stopNumber,
     note: null,
+    failureReason: null,
+    failureNote: null,
+    returnTransferId: null,
     lines: [
       { articleId: 'soap', quantity: stopNumber, unitPrice: 8500, amount: 8500 * stopNumber },
     ],
@@ -78,6 +81,30 @@ describe('DriverRoundPage', () => {
     element = fixture.nativeElement as HTMLElement;
     fixture.detectChanges();
     await fixture.whenStable();
+  };
+
+  /** jsdom n'ouvre pas les <dialog> modales : la feuille « Échec » reste dans le DOM, on simule l'ouverture. */
+  const stubDialog = (): void => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    HTMLDialogElement.prototype.close = vi.fn();
+  };
+
+  /** Ouvre la feuille « Échec » du prochain arrêt, choisit le motif, écrit le commentaire et valide. */
+  /** Choisit le motif par son libellé visible, comme le livreur. */
+  const reportFailure = (reasonLabel: string, note: string): void => {
+    element.querySelector<HTMLButtonElement>('.next .fail')?.click();
+    fixture.detectChanges();
+    const reason = Array.from(
+      element.querySelectorAll<HTMLLabelElement>('dialog label.reason'),
+    ).find((label) => label.textContent?.trim() === reasonLabel);
+    reason?.querySelector('input')?.click();
+    const textarea = element.querySelector<HTMLTextAreaElement>('dialog textarea');
+    if (textarea) {
+      textarea.value = note;
+      textarea.dispatchEvent(new Event('input'));
+    }
+    element.querySelector('dialog form')?.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
   };
 
   const text = (selector: string): string =>
@@ -177,6 +204,52 @@ describe('DriverRoundPage', () => {
 
     expect(text('.empty h2')).toBe("Aucun arrêt aujourd'hui");
     expect(element.querySelector('.next')).toBeNull();
+  });
+
+  it('envoie l’échec avec son motif et son commentaire une fois le délai d’annulation passé', async () => {
+    stubDialog();
+    await open(ROUND);
+    vi.useFakeTimers();
+    try {
+      reportFailure('Colis refusé', '  Le client a changé d’avis  ');
+      expect(updateStatus).not.toHaveBeenCalled();
+      expect(text('.next h2')).toBe('Hery Andry');
+
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(updateStatus).toHaveBeenCalledOnce();
+    expect(updateStatus).toHaveBeenCalledWith('order-2', {
+      status: 'FAILED',
+      failureReason: 'REFUSED',
+      note: 'Le client a changé d’avis',
+    });
+  });
+
+  it('annonce un échec refusé par le serveur et relit la tournée', async () => {
+    stubDialog();
+    await open(ROUND);
+    const message = 'La livraison ne peut pas passer de « livrée » à « en échec ».';
+    updateStatus.mockReturnValue(throwError(() => new ApiError(409, 'CONFLICT', message)));
+    const show = vi.spyOn(TestBed.inject(ToastService), 'show');
+    vi.useFakeTimers();
+    try {
+      reportFailure('Client absent', '');
+      vi.advanceTimersByTime(UNDO_DELAY_MS);
+    } finally {
+      vi.useRealTimers();
+    }
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(show).toHaveBeenCalledWith(
+      'deliveries.driver.refusedToast',
+      { name: 'Rasoa Vola', message },
+      'danger',
+    );
+    expect(myRound).toHaveBeenCalledTimes(2);
   });
 
   it('n’a aucune violation d’accessibilité détectable', async () => {

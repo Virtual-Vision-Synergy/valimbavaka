@@ -75,6 +75,14 @@ public class JournalServiceImpl implements JournalService {
                 .map(journalMapper::toRDto));
     }
 
+    @Override
+    public PageResponse<JournalEntryRDto> getResourceEntries(String resourceType, UUID resourceId, PageQuery query) {
+        var pageable = query.toPageable(SORT_FIELDS, "occurredAt", SortDirection.ASC);
+        return PageResponse.from(journalEntryRepository
+                .findByResourceTypeAndResourceId(resourceType, resourceId, pageable)
+                .map(journalMapper::toRDto));
+    }
+
     private Actor currentActor() {
         return auditorAware
                 .getCurrentAuditor()

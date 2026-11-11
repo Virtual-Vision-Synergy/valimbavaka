@@ -33,4 +33,7 @@ public interface JournalEntryRepository extends Repository<JournalEntry, UUID> {
                or lower(e.description) like lower(concat('%', :search, '%')))
             """)
     Page<JournalEntry> searchBetween(String search, Instant from, Instant to, Pageable pageable);
+
+    /** Lignes d'une seule ressource (historique d'une fiche), servies par l'index ix_journal_entries_resource. */
+    Page<JournalEntry> findByResourceTypeAndResourceId(String resourceType, UUID resourceId, Pageable pageable);
 }

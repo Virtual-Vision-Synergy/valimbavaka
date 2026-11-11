@@ -48,7 +48,7 @@ interface PendingChange {
  * Tournée du jour du livreur (LIV-02, LIV-08), pensée pour une main, dehors et parfois hors ligne :
  * un seul arrêt mis en avant, deux grosses actions, annulation possible pendant 5 s.
  * Les arrêts viennent de l'API (LIV-02) ; « Livrée » part vers l'API d'un geste, sans saisie (LIV-03) ;
- * « Échec » reste simulé (LIV-04).
+ * « Échec » part vers l'API avec son motif (LIV-04).
  */
 @Component({
   selector: 'vvs-driver-round-page',
