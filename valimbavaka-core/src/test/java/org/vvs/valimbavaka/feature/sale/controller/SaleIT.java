@@ -353,7 +353,7 @@ class SaleIT extends StockApiTestSupport {
                 .andExpect(jsonPath("$.nextNumber").isNumber())
                 .andExpect(jsonPath(channelPath.formatted("STORE")).value(store))
                 .andExpect(jsonPath(channelPath.formatted("PHONE")).value(store))
-                .andExpect(jsonPath(sellerName).value("Miora"))
+                .andExpect(jsonPath(sellerName).value("Aina"))
                 .andExpect(jsonPath("$.sellers[0].email").doesNotExist())
                 .andExpect(jsonPath(article + ".price").value(8500.0))
                 .andExpect(jsonPath(article + ".stock['" + store + "']").value(6.0));
@@ -420,10 +420,11 @@ class SaleIT extends StockApiTestSupport {
                 location(locationCode));
     }
 
+    /** Prénom en tête de l'ordre alphabétique : le formulaire ne liste que les 100 premières vendeuses de la base partagée. */
     private User createSeller() {
         var email = "vendeuse-" + UUID.randomUUID() + "@valimbavaka.mg";
         var role = roleRepository.findByName(RoleName.SELLER).orElseThrow();
-        var profile = new UserProfile(email, "Miora", "Rakoto");
+        var profile = new UserProfile(email, "Aina", "Rakoto");
         var terms = new SellerTerms(channel("STORE"), new BigDecimal("5.00"));
         return userRepository.save(User.create(profile, passwordEncoder.encode(SELLER_PASSWORD), role, terms));
     }
