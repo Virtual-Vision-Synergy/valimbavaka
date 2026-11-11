@@ -1,6 +1,6 @@
 # Guide d'intégration — DSH-02 · Graphique du CA sur 7 jours
 
-Statut : ☐ à relire après la CI · Ticket : [#95](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/95) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ CI verte · Ticket : [#95](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/95) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
