@@ -19,5 +19,4 @@ public record UserRDto(
         boolean active,
         boolean passwordChangeRequired,
         Instant createdAt,
-        Instant updatedAt) {
-}
+        Instant updatedAt) {}

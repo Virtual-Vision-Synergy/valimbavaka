@@ -63,11 +63,7 @@ class SellerTargetIT extends StockApiTestSupport {
     @Test
     void createUser_sellerWithTarget_returnsAndStoresTheTarget() throws Exception {
         // Arrange
-        var email = "nouvelle-" + UUID.randomUUID() + "@valimbavaka.mg";
-        var body = ("{\"email\":\"%s\",\"password\":\"mot-de-passe-vendeuse-long\",\"firstName\":\"Hanta\","
-                        + "\"lastName\":\"Rabe\",\"roleId\":\"%s\",\"salesChannelId\":\"%s\",\"commissionRate\":4.5,"
-                        + "\"monthlyTarget\":1500000}")
-                .formatted(email, sellerRoleId(), channelId);
+        var body = newSellerJson(",\"monthlyTarget\":1500000");
 
         // Act
         var json = mockMvc.perform(post(USERS)
@@ -81,22 +77,17 @@ class SellerTargetIT extends StockApiTestSupport {
                 .getContentAsString();
 
         // Assert
-        var stored = jdbcTemplate.queryForObject(
-                "select monthly_target from users where id = ?", BigDecimal.class, UUID.fromString(idOf(json)));
+        var id = UUID.fromString(idOf(json));
+        var stored = jdbcTemplate.queryForObject("select monthly_target from users where id = ?", BigDecimal.class, id);
         assertThat(stored).isEqualByComparingTo("1500000");
     }
 
     @Test
     void createUser_sellerWithoutTarget_hasNoTarget() throws Exception {
-        var email = "sans-objectif-" + UUID.randomUUID() + "@valimbavaka.mg";
-        var body = ("{\"email\":\"%s\",\"password\":\"mot-de-passe-vendeuse-long\",\"firstName\":\"Hanta\","
-                        + "\"lastName\":\"Rabe\",\"roleId\":\"%s\",\"salesChannelId\":\"%s\",\"commissionRate\":4.5}")
-                .formatted(email, sellerRoleId(), channelId);
-
         mockMvc.perform(post(USERS)
                         .header(HttpHeaders.AUTHORIZATION, bearer(adminToken()))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
+                        .content(newSellerJson("")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.monthlyTarget").doesNotExist());
     }
@@ -181,13 +172,9 @@ class SellerTargetIT extends StockApiTestSupport {
     void updateUser_targetOnAnAdministrator_returns422() throws Exception {
         // Arrange : l'objectif n'a de sens que pour une vendeuse
         var administrator = userRepository.findByEmailWithRoleAndPermissions(ADMIN_EMAIL).orElseThrow();
-        var body = ("{\"email\":\"%s\",\"firstName\":\"%s\",\"lastName\":\"%s\",\"roleId\":\"%s\","
-                        + "\"monthlyTarget\":1000000,\"active\":true}")
-                .formatted(
-                        administrator.getEmail(),
-                        administrator.getFirstName(),
-                        administrator.getLastName(),
-                        administrator.getRole().getId());
+        var identity = "\"email\":\"%s\",\"firstName\":\"Tiana\",\"lastName\":\"Admin\"".formatted(ADMIN_EMAIL);
+        var role = "\"roleId\":\"%s\"".formatted(administrator.getRole().getId());
+        var body = "{" + identity + "," + role + ",\"monthlyTarget\":1000000,\"active\":true}";
 
         // Act + Assert
         mockMvc.perform(put(USERS + "/" + administrator.getId())
@@ -210,9 +197,20 @@ class SellerTargetIT extends StockApiTestSupport {
 
     /** Body of the modification of a seller; {@code target} is a JSON number or {@code null}. */
     private String body(User user, String target) {
-        return ("{\"email\":\"%s\",\"firstName\":\"Miora\",\"lastName\":\"Rakoto\",\"roleId\":\"%s\","
-                        + "\"salesChannelId\":\"%s\",\"commissionRate\":5.00,\"monthlyTarget\":%s,\"active\":true}")
-                .formatted(user.getEmail(), sellerRoleId(), channelId, target);
+        var identity = "\"email\":\"%s\",\"firstName\":\"Miora\",\"lastName\":\"Rakoto\"".formatted(user.getEmail());
+        var terms = "\"salesChannelId\":\"%s\",\"commissionRate\":5.00".formatted(channelId);
+        var role = "\"roleId\":\"%s\"".formatted(sellerRoleId());
+        return "{" + identity + "," + role + "," + terms + ",\"monthlyTarget\":" + target + ",\"active\":true}";
+    }
+
+    /** Body of the creation of a seller on the test channel; {@code extra} adds JSON fields after the commission. */
+    private String newSellerJson(String extra) {
+        var email = "nouvelle-" + UUID.randomUUID() + "@valimbavaka.mg";
+        var identity = "\"email\":\"%s\",\"password\":\"mot-de-passe-vendeuse-long\"".formatted(email);
+        var names = "\"firstName\":\"Hanta\",\"lastName\":\"Rabe\"";
+        var role = "\"roleId\":\"%s\"".formatted(sellerRoleId());
+        var terms = "\"salesChannelId\":\"%s\",\"commissionRate\":4.5".formatted(channelId);
+        return "{" + identity + "," + names + "," + role + "," + terms + extra + "}";
     }
 
     private static String idOf(String json) {

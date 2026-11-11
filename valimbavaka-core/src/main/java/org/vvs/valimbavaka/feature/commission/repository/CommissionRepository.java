@@ -68,7 +68,8 @@ public interface CommissionRepository extends OperationRepository<Commission, UU
               and c.status <> org.vvs.valimbavaka.feature.commission.domain.CommissionStatus.CANCELLED
               and c.businessDate between :from and :to
             """)
-    @Nullable BigDecimal sumRevenue(UUID sellerId, LocalDate from, LocalDate to);
+    @Nullable
+    BigDecimal sumRevenue(UUID sellerId, LocalDate from, LocalDate to);
 
     /** Commissions of a seller in one status over {@code [from, to]}. */
     List<Commission> findBySellerIdAndStatusAndBusinessDateBetween(

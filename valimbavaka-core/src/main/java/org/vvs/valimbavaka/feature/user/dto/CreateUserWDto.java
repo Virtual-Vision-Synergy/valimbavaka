@@ -44,4 +44,5 @@ public record CreateUserWDto(
         BigDecimal commissionRate,
         @DecimalMin(value = "0.00", inclusive = false, message = "L'objectif mensuel doit être supérieur à 0")
         @Digits(integer = 17, fraction = 2, message = "L'objectif mensuel accepte 2 décimales au maximum")
-        @Nullable BigDecimal monthlyTarget) {}
+        @Nullable
+        BigDecimal monthlyTarget) {}

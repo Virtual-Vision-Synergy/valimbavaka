@@ -10,7 +10,9 @@ import org.jspecify.annotations.Nullable;
  * mensuel de chiffre d'affaires en ariary (COM-04, fixé par l'administrateur seul ; facultatif).
  */
 public record SellerTerms(
-        @Nullable UUID salesChannelId, @Nullable BigDecimal commissionRate, @Nullable BigDecimal monthlyTarget) {
+        @Nullable UUID salesChannelId,
+        @Nullable BigDecimal commissionRate,
+        @Nullable BigDecimal monthlyTarget) {
 
     public static final SellerTerms NONE = new SellerTerms(null, null, null);
 

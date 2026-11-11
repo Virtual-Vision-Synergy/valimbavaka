@@ -275,8 +275,8 @@ class UserServiceImplTest {
     void createUser_sellerWithoutCommission_throwsBusinessException() {
         // given
         var roleId = UUID.randomUUID();
-        var request = new CreateUserWDto(
-                "vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null, null);
+        var request =
+                new CreateUserWDto("vendeuse@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null, null);
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(sellerRole));
         when(sellerRole.getName()).thenReturn(RoleName.SELLER);
         when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);
@@ -305,8 +305,8 @@ class UserServiceImplTest {
     void createUser_validRequest_recordsCreationInJournal() {
         // given
         var roleId = UUID.randomUUID();
-        var request = new CreateUserWDto(
-                "admin2@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null, null);
+        var request =
+                new CreateUserWDto("admin2@valimbavaka.mg", "mot-de-passe", "Hery", "Rabe", roleId, null, null, null);
         when(roleRepository.findById(roleId)).thenReturn(Optional.of(administratorRole));
         when(administratorRole.getName()).thenReturn(RoleName.ADMIN);
         when(passwordEncoder.encode("mot-de-passe")).thenReturn(PASSWORD_HASH);

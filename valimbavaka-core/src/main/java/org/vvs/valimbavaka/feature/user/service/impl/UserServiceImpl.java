@@ -146,11 +146,8 @@ public class UserServiceImpl implements UserService {
         var terms = sellerTerms(request.salesChannelId(), request.commissionRate(), request.monthlyTarget());
         var previousTarget = user.getMonthlyTarget();
         user.update(profile, role, terms, request.active());
-        journalService.record(
-                JournalAction.UPDATE,
-                RESOURCE_TYPE,
-                userId,
-                "Modification de l'utilisateur " + user.getEmail() + targetChange(previousTarget, terms));
+        var description = "Modification de l'utilisateur " + user.getEmail() + targetChange(previousTarget, terms);
+        journalService.record(JournalAction.UPDATE, RESOURCE_TYPE, userId, description);
         return userMapper.toRDto(user);
     }
 
