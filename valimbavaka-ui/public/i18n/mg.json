@@ -541,6 +541,15 @@
     "title": "Varotra androany",
     "subtitle": "Varotra {{count}}",
     "book": "Bokin'ny varotra",
+    "bookExport": {
+      "title": "Fanafarana ny bokin'ny varotra",
+      "help": "Ny faktiora tao anatin'ny fe-potoana sy ny avoir-ny (amin'ny totalin'ny lany) ho an'ny kaonty. 366 andro ho farafahabetsany.",
+      "from": "Manomboka",
+      "to": "Hatramin'ny",
+      "xlsx": "Hamoaha XLSX",
+      "pdf": "Hamoaha PDF",
+      "invalidPeriod": "Safidio ny fe-potoana mety: ny fiandohana alohan'ny farany, 366 andro ho farafahabetsany."
+    },
     "newSale": "Varotra vaovao",
     "listLabel": "Varotra tamin'ny andro",
     "showInvoice": "Hijery ny faktioran'ny {{number}}",

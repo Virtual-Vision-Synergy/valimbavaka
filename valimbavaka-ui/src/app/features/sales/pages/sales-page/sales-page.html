@@ -16,15 +16,26 @@
         {{ 'sales.statusTotals.link' | translate }}
       </a>
     }
-    <button class="btn btn-secondary" type="button" (click)="exportBook()">
-      <svg [vvsIcon]="icons.Download" [size]="18"></svg>
-      {{ 'sales.book' | translate }}
-    </button>
+    @if (canExportBook) {
+      <button
+        class="btn btn-secondary"
+        type="button"
+        [attr.aria-expanded]="bookOpen()"
+        (click)="toggleBook()"
+      >
+        <svg [vvsIcon]="icons.Download" [size]="18"></svg>
+        {{ 'sales.book' | translate }}
+      </button>
+    }
     <a class="btn btn-primary" routerLink="/pos">
       <svg [vvsIcon]="icons.Plus" [size]="18"></svg>
       {{ 'sales.newSale' | translate }}
     </a>
   </vvs-page-header>
+
+  @if (canExportBook && bookOpen()) {
+    <vvs-sales-book-export />
+  }
 
   <div class="filters">
     <label class="date-field">
