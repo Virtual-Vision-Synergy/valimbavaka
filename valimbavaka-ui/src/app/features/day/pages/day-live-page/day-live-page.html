@@ -1,0 +1,145 @@
+<div class="page">
+  <vvs-page-header
+    [heading]="'day.live.title' | translate"
+    [subtitle]="'day.live.subtitle' | translate"
+    [codes]="['JR-03']"
+  >
+    <button type="button" class="btn btn-secondary" (click)="refresh()">
+      <svg [vvsIcon]="icons.RefreshCw" [size]="16"></svg>
+      {{ 'day.live.refresh' | translate }}
+    </button>
+  </vvs-page-header>
+
+  @if (live(); as view) {
+    <div class="status-line">
+      @switch (view.status) {
+        @case ('OPEN') {
+          <vvs-status-badge tone="success" [label]="'day.live.status.OPEN' | translate" />
+        }
+        @case ('CLOSED') {
+          <vvs-status-badge tone="muted" [label]="'day.live.status.CLOSED' | translate" />
+        }
+        @default {
+          <vvs-status-badge tone="warning" [label]="'day.live.status.NOT_OPENED' | translate" />
+        }
+      }
+      <span class="updated">
+        {{ 'day.live.updatedAt' | translate: { time: time(view.generatedAt) } }}
+      </span>
+    </div>
+
+    @if (stale()) {
+      <p class="card stale" role="alert">{{ 'day.live.stale' | translate }}</p>
+    }
+
+    <div class="kpis">
+      <section class="card kpi" [attr.aria-label]="'day.live.sales.title' | translate">
+        <h2 class="label">{{ 'day.live.sales.title' | translate }}</h2>
+        <p class="big num amount">{{ view.sales.revenue | ariary }}</p>
+        <p class="hint">{{ 'day.live.sales.count' | translate: { count: view.sales.count } }}</p>
+      </section>
+
+      <section class="card kpi" [attr.aria-label]="'day.live.deliveries.title' | translate">
+        <h2 class="label">{{ 'day.live.deliveries.title' | translate }}</h2>
+        <p class="big num">
+          {{ view.deliveries.delivered }} / {{ view.deliveries.total - view.deliveries.cancelled }}
+        </p>
+        <p class="hint">
+          {{
+            'day.live.deliveries.detail'
+              | translate
+                : {
+                    toPrepare: view.deliveries.toPrepare,
+                    onRound: view.deliveries.onRound,
+                    failed: view.deliveries.failed,
+                  }
+          }}
+        </p>
+      </section>
+
+      <section class="card kpi" [attr.aria-label]="'day.live.services.title' | translate">
+        <h2 class="label">{{ 'day.live.services.title' | translate }}</h2>
+        <p class="big num amount">{{ view.services.revenue | ariary }}</p>
+        <p class="hint">
+          {{ 'day.live.services.count' | translate: { count: view.services.count } }}
+        </p>
+      </section>
+    </div>
+
+    <section class="card flush" [attr.aria-label]="'day.live.channels.title' | translate">
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">
+            {{
+              'day.live.channels.title' | translate
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">{{ 'day.live.channels.channel' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'day.live.channels.revenue' | translate }}</th>
+              <th scope="col" class="cell-num">{{ 'day.live.channels.count' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (channel of view.sales.channels; track channel.salesChannelId) {
+              <tr>
+                <td>
+                  {{ channel.salesChannelLabel ?? ('day.live.channels.retired' | translate) }}
+                </td>
+                <td class="cell-num amount">{{ channel.revenue | ariary }}</td>
+                <td class="cell-num num">{{ channel.salesCount }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3"><vvs-list-state kind="empty" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" [attr.aria-label]="'day.live.feed.title' | translate">
+      <h2 class="section-title">{{ 'day.live.feed.title' | translate }}</h2>
+      @if (view.feed.length === 0) {
+        <vvs-list-state
+          kind="empty"
+          titleKey="day.live.feed.emptyTitle"
+          messageKey="day.live.feed.emptyMessage"
+        />
+      } @else {
+        <ol class="feed">
+          @for (item of view.feed; track item.type + item.id) {
+            <li class="feed-item">
+              <span class="time num">{{ time(item.occurredAt) }}</span>
+              <span class="kind">{{ feedLabelKey(item.type) | translate }}</span>
+              <span class="ref mono">{{ item.reference }}</span>
+              <span class="what">
+                {{ item.label ?? '—' }}
+                @if (item.actorName) {
+                  <span class="actor">· {{ item.actorName }}</span>
+                }
+              </span>
+              @if (item.status) {
+                <vvs-status-badge
+                  [tone]="tone(item.status)"
+                  [label]="'day.live.feedStatus.' + item.status | translate"
+                />
+              }
+              <span class="num amount">
+                @if (item.amount !== null) {
+                  {{ item.amount | ariary }}
+                }
+              </span>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  } @else if (loading()) {
+    <div class="card"><vvs-list-state kind="loading" [rows]="4" /></div>
+  } @else {
+    <div class="card"><vvs-list-state kind="error" (retry)="refresh()" /></div>
+  }
+</div>
