@@ -6,6 +6,7 @@ import { SubmitResult } from '../../../core/offline/outbox-models';
 import { OutboxService } from '../../../core/offline/outbox-service';
 import { PageResponse } from '../../../shared/models/page-response';
 import { businessToday, toBoard, toDriverRound } from './delivery-mapping';
+import { withQueuedActions } from './delivery-queue';
 import {
   DeliveryBoardRDto,
   DeliveryDriverRDto,
@@ -70,7 +71,12 @@ export class DeliveryService {
     const params = dayParams(day).set('driverId', driver.id);
     return this.http
       .get<PageResponse<DeliveryOrderRDto>>(this.baseUrl, { params })
-      .pipe(map((page) => toDriverRound(page.items, driver, day)));
+      .pipe(map((page) => this.withQueue(toDriverRound(page.items, driver, day))));
+  }
+
+  /** Les saisies encore en file (LIV-08) sont reportées sur la tournée lue : le serveur ne les connaît pas. */
+  private withQueue(round: DriverRoundRDto): DriverRoundRDto {
+    return { ...round, stops: withQueuedActions(round.stops, this.outbox.pending()) };
   }
 
   /** Historique d'une commande (LIV-06) : ses lignes du journal, de la plus ancienne à la plus récente. */
