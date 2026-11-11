@@ -1,44 +1,91 @@
 # Scénarios de test — COM-04 · Suivi de commission et objectif
 
-> **À compléter par le traiteur du ticket**, avant de passer en revue. Le scénario sert de base au QA (Njara) et de référence aux tickets liés.
-
-Statut : ☐ à compléter · Ticket : [#88](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/88) · [description](description.md) · [guide](guide.md)
+Statut : ✅ rédigé · Ticket : [#88](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/88) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
+
+Décision PO du 07/11/2026 : l'objectif mensuel de la vendeuse est un champ de sa fiche utilisateur, modifiable par l'administrateur seulement. Hypothèse prise : l'objectif est un chiffre d'affaires mensuel en ariary, comparé au CA des ventes et prestations commissionnées du mois (annulées exclues).
 
 ## Pré-requis
 
 | Élément | Valeur |
 |---|---|
-| Rôle(s) utilisé(s) | _(à compléter)_ |
-| Données de départ | _(à compléter)_ |
-| Tickets à avoir déployés avant | COM-02 |
+| Rôle(s) utilisé(s) | `SELLER` : ses commissions et son objectif ; `ADMIN` : fixe l'objectif (fiche utilisateur) et consulte toute vendeuse ; `DELIVERY_DRIVER` pour le refus 403 |
+| Données de départ | journée du jour ouverte (JR-01) ; un canal neuf par test, deux vendeuses « Miora Rakoto » et « Hanta Rakoto » à 5,00 % (la base est partagée) ; chaque vente d'un article à 8 500 Ar rapporte 425 Ar de commission ; objectif de 20 000 Ar |
+| Tickets à avoir déployés avant | COM-02 (table `commissions`), COM-03 (statut `VALIDATED`), AUTH-03 (fiche utilisateur) ; migration `2026_11_11-61` |
 
 ## Scénarios issus des critères d'acceptation
 
-| # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
+| # | Cas | Exemple | Résultat attendu | Test | Statut |
 |---|---|---|---|---|---|
-| 1 | Le détail par vente (base, taux, commission, statut) est affiché. | _(à compléter)_ | _(à compléter)_ | _(à compléter)_ | ☐ |
+| 1 | Détail par vente : base, taux, commission, statut | une vente validée, une vente à valider (8 500 Ar, 5 %) | chaque ligne porte `baseAmount = 8500`, `rate = 5`, `amount = 425` et son `status` (`VALIDATED`, `CALCULATED`) | `CommissionFollowUpIT.getLines_sellerWithSales_returnsBaseRateAmountAndStatusOfEachSale` | ✅ auto |
+| 1b | Écran : détail par vente | 3 lignes (calculée, validée à 4,5 %, annulée) | numéro, base, taux, commission et pastille de statut (Calculée / Validée / Annulée) par ligne | `commissions-page.spec.ts` › should show the base, the rate, the commission and the status of each sale | ✅ auto |
+| 1c | Vente annulée visible mais non comptée | vente annulée par un avoir | listée avec `CANCELLED` ; totaux : 0 commission | `CommissionFollowUpIT.getLines_cancelledSale_isListedWithItsStatusButNotCounted` | ✅ auto |
+| 2 | Commission du mois et objectif | 2 ventes de 8 500 Ar, objectif 20 000 Ar | 2 commissions, CA 17 000, commission 850, à valider 850, objectif 20 000, avancement 85 % | `CommissionFollowUpIT.getFollowUp_sellerWithSales_returnsTotalsOfTheMonthAndProgressTowardsTheTarget` | ✅ auto |
+| 2b | Part validée et à valider | une vente validée puis une nouvelle | validée 425, à valider 425, total 850 | `CommissionFollowUpIT.getFollowUp_validatedCommissions_areSplitFromThoseToValidate` | ✅ auto |
+| 2c | Annulées exclues des totaux (COM-03) | 1 vente gardée, 1 annulée | 1 commission, CA 8 500, commission 425 | `CommissionFollowUpIT.getFollowUp_cancelledSale_isNotCounted` | ✅ auto |
+| 2d | Écran : commission, objectif et anneau | objectif 20 000, avancement 85 | montant de la commission, objectif affiché, anneau étiqueté 85 % | `commissions-page.spec.ts` › should show the commission of the month and the progress towards the target | ✅ auto |
+| 3 | Objectif fixé sur la fiche par l'administrateur | `PUT /users/{id}` avec `monthlyTarget = 2500000.50` par l'administrateur | 200, objectif renvoyé et relu par `GET /users/{id}` ; retiré avec `null` | `SellerTargetIT.updateUser_byAdministrator_setsChangesAndClearsTheTargetAndTracesIt` | ✅ auto |
+| 3b | Objectif à la création | `POST /users` vendeuse avec `monthlyTarget = 1500000` | 201, objectif renvoyé et stocké | `SellerTargetIT.createUser_sellerWithTarget_returnsAndStoresTheTarget` | ✅ auto |
+| 3c | Objectif facultatif | `POST /users` vendeuse sans objectif | 201, pas d'objectif ; le suivi renvoie `monthlyTarget` et `targetProgressPercent` nuls | `SellerTargetIT.createUser_sellerWithoutTarget_hasNoTarget` ; `CommissionFollowUpIT.getFollowUp_sellerWithoutTarget_hasNullTargetAndProgress` | ✅ auto |
+| 3d | Écran sans objectif | `monthlyTarget = null` | pas d'anneau, message « aucun objectif fixé par l'administrateur » | `commissions-page.spec.ts` › should say that no target is set instead of showing a progress ring | ✅ auto |
+| 4 | Journal du changement d'objectif | objectif : aucun → 1 000 000 → 2 500 000,50 → aucun | 3 lignes `UPDATE` `USER` « … · objectif mensuel : ancien → nouveau Ar » ; un objectif inchangé n'ajoute rien | `SellerTargetIT.updateUser_byAdministrator_setsChangesAndClearsTheTargetAndTracesIt` ; `SellerTargetIT.updateUser_sameTarget_isNotTracedAgain` | ✅ auto |
 
 ## Sécurité et erreurs
 
-| Cas | Résultat attendu | Test auto | OK |
-|---|---|---|---|
-| Appel sans jeton | 401 `UNAUTHENTICATED` | _(à compléter)_ | ☐ |
-| Appel avec un mauvais rôle | 403 `FORBIDDEN` | _(à compléter)_ | ☐ |
-| Champ interdit dans le corps (`role`, `id`) | ignoré (mass assignment) | _(à compléter)_ | ☐ |
-| Données invalides | 422 `VALIDATION_FAILED` | _(à compléter)_ | ☐ |
-| Ressource introuvable | 404 `NOT_FOUND` | _(à compléter)_ | ☐ |
-| Conflit / doublon | 409 `CONFLICT` | _(à compléter)_ | ☐ |
-
-_Supprimer les lignes qui ne s'appliquent pas (ticket frontend seul, pas d'écriture, etc.)._
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Sans jeton | GET `/follow-up`, `/follow-up/lines` ; PUT `/users/{id}` | 401 `UNAUTHENTICATED` | `CommissionFollowUpIT.followUp_withoutToken_returns401` ; `SellerTargetIT.updateUser_withoutToken_returns401` | ✅ auto |
+| Mauvais rôle | jeton livreur sur le suivi | 403 `FORBIDDEN` | `CommissionFollowUpIT.followUp_deliveryDriver_returns403` | ✅ auto |
+| La vendeuse ne s'augmente pas l'objectif | jeton vendeuse, `PUT /users/{son id}` avec `monthlyTarget = 1` | 403 `FORBIDDEN` ; l'objectif en base reste 1 000 000 (aucun DTO d'entrée de la vendeuse ne porte l'objectif) | `SellerTargetIT.updateUser_sellerOnHerOwnProfile_returns403AndTheTargetStaysUnchanged` | ✅ auto |
+| Le serveur impose l'identifiant (comme VTE-07) | la vendeuse envoie `sellerId` d'une collègue (objectif 99 999, 2 ventes) | elle reçoit ses propres chiffres (1 vente, pas d'objectif) ; les lignes sont les siennes | `CommissionFollowUpIT.getFollowUp_sellerNamingAnotherSeller_stillGetsHerOwnFigures` ; `CommissionFollowUpServiceImplTest.getFollowUp_seller_readsHerOwnFiguresWhateverSellerIdIsRequested` | ✅ auto |
+| L'administrateur voit tout | `sellerId` de Hanta, objectif 10 000 | ses chiffres : 425 Ar, avancement 85 % | `CommissionFollowUpIT.getFollowUp_administratorNamingASeller_readsHerFigures` | ✅ auto |
+| Administrateur sans vendeuse | aucun `sellerId` | 422 `VALIDATION_FAILED` (suivi et lignes) | `CommissionFollowUpIT.getFollowUp_administratorWithoutSellerId_returns422` ; `CommissionFollowUpServiceImplTest.getFollowUp_administratorWithoutSellerId_throwsBusinessException` | ✅ auto |
+| Vendeuse inconnue ou compte non vendeuse | `sellerId` aléatoire ; id de l'administrateur | 404 `NOT_FOUND` | `CommissionFollowUpIT.getFollowUp_administratorWithUnknownOrNonSellerId_returns404` ; `CommissionFollowUpServiceImplTest.getFollowUp_administratorNamingANonSeller_throwsNotFound` | ✅ auto |
+| Objectif invalide | `0`, `-5`, `100.123` | 422 `VALIDATION_FAILED` | `SellerTargetIT.updateUser_invalidTarget_returns422` | ✅ auto |
+| Objectif sur un non-vendeur | l'administrateur reçoit `monthlyTarget = 1000000` | 422 (réservé aux vendeuses) | `SellerTargetIT.updateUser_targetOnAnAdministrator_returns422` | ✅ auto |
+| Mois mal formé | `month=2026-13`, `month=novembre` | 400 | `CommissionFollowUpIT.getFollowUp_malformedMonth_returns400` | ✅ auto |
+| Taille de page | `size=101` | 422 `VALIDATION_FAILED` | `CommissionFollowUpIT.getLines_pagingAndSort_pageOfOneAndSizeAbove100` | ✅ auto |
+| Mass assignment | l'objectif n'est accepté que par `CreateUserWDto` et `UpdateUserWDto` (`users.create` / `users.update`, administrateur) ; le suivi n'a aucune écriture | voir ligne « La vendeuse ne s'augmente pas l'objectif » | `SellerTargetIT.updateUser_sellerOnHerOwnProfile_returns403AndTheTargetStaysUnchanged` | ✅ auto |
 
 ## Cas limites et hors ligne
 
-- _(à compléter : valeurs extrêmes, listes vides, pagination, perte de connexion, rejeu avec `Idempotency-Key` si la saisie passe par la file hors ligne)_
+| Cas | Exemple | Résultat attendu | Test | Statut |
+|---|---|---|---|---|
+| Aucune vente ce mois | vendeuse avec objectif 20 000 | totaux à 0, avancement 0 % | `CommissionFollowUpIT.getFollowUp_sellerWithoutSaleThisMonth_returnsZeroTotals` ; `CommissionFollowUpServiceImplTest.getFollowUp_noTargetAndNoSale_hasZeroTotalsAndNullProgress` | ✅ auto |
+| Écran : mois vide | aucune commission | état vide « Aucune commission ce mois-ci » | `commissions-page.spec.ts` › should show an empty state when there is no commission this month | ✅ auto |
+| Dépassement de l'objectif | CA 8 500 pour un objectif 5 000 | avancement 170 % (non plafonné côté API) ; l'anneau s'arrête à 100 %, le texte garde 170 % | `CommissionFollowUpIT.getFollowUp_revenueAboveTheTarget_progressExceeds100Percent` ; `commissions-page.spec.ts` › should let the ring stop at 100 % while the text keeps the real progress | ✅ auto |
+| Arrondi de l'avancement | CA 1 000, objectif 3 000 | 33,3 % (une décimale, arrondi HALF_UP) | `CommissionFollowUpServiceImplTest.getFollowUp_targetSet_progressIsRevenueOverTargetRoundedToOneDecimal` | ✅ auto |
+| Mois précédent | `month` = mois précédent | les ventes du mois en cours n'y figurent pas ; bornes `AAAA-MM-01` à fin de mois | `CommissionFollowUpIT.getFollowUp_otherMonth_leavesTheSalesOfTheCurrentMonthOut` | ✅ auto |
+| Mois par défaut | pas de `month` | mois en cours à Madagascar (`Indian/Antananarivo`) | `CommissionFollowUpServiceImplTest.getFollowUp_noMonth_usesTheCurrentMonthOfTheClock` | ✅ auto |
+| Pagination du détail | `size=1` trié par `amount`, 2 ventes | 1 ligne, 2 au total, 2 pages | `CommissionFollowUpIT.getLines_pagingAndSort_pageOfOneAndSizeAbove100` | ✅ auto |
+| Écran : changement de mois | autre mois choisi | nouvel appel avec ce `month` | `commissions-page.spec.ts` › should ask again when another month is chosen | ✅ auto |
+| Écran : vendeuse | la page ne nomme jamais de vendeuse | aucun `sellerId` envoyé, même si l'URL en porte un | `commissions-page.spec.ts` › should ask the server for the month of a seller without naming any seller | ✅ auto |
+| Écran : administrateur | sans `?sellerId=` ; avec `?sellerId=u1` | « Choisissez une vendeuse », aucun appel ; sinon `sellerId=u1` envoyé | `commissions-page.spec.ts` › should ask an administrator to pick a seller and call nothing meanwhile ; should send the seller named by the administrator | ✅ auto |
+| Appels HTTP du service | `followUp`, `followUpLines` | `GET /follow-up?month[&sellerId]`, `GET /follow-up/lines?page&size&month` | `commission-service.spec.ts` (3 tests ajoutés) | ✅ auto |
+| Calcul des mois et jours restants | 30 novembre ; passage d'année | 1 jour restant ; `2025-12` pour `2026-01` − 1 mois | `commission-months.spec.ts` (3 tests) | ✅ auto |
+| Objectif modifié en cours de mois | l'objectif change le 15 | le suivi utilise l'objectif courant de la fiche (pas d'historique) | — | 🔍 code (`CommissionFollowUpServiceImpl.getFollowUp`) |
+| Hors ligne | consultation sans connexion | lecture seule : l'écran affiche l'erreur et « Réessayer » ; rien n'est mis en file | — | 🔍 code (`commissions-page.html`) |
+| Hors périmètre | recalcul, export du relevé | bouton « Exporter mon relevé » toujours en démonstration | — | ⏭ COM-05 |
+
+## Tests existants
+
+- Backend : `feature/commission/controller/CommissionFollowUpIT.java`, `feature/user/controller/SellerTargetIT.java`, `feature/commission/service/impl/CommissionFollowUpServiceImplTest.java` ; constructeurs adaptés dans `UserServiceImplTest` (`CreateUserWDto`, `UpdateUserWDto`) et dans les tests qui construisent un `UserRDto`.
+- Frontend : `commissions-page.spec.ts`, `commission-service.spec.ts`, `commission-months.spec.ts` ; `user-list-page.spec.ts` (nouveau champ `monthlyTarget`) ; `demo-pages.a11y.spec.ts` charge toujours la page.
+
+## Recette manuelle (🧪)
+
+| Étape | Résultat attendu | Statut |
+|---|---|---|
+| Admin : Utilisateurs › fiche d'une vendeuse, champ « Objectif mensuel de ventes (Ar) », enregistrer | objectif enregistré ; ligne « objectif mensuel » dans le journal | 🧪 |
+| Vendeuse : Mes commissions, mois en cours | commission, anneau d'avancement, jours restants, détail par vente avec statut | 🧪 |
+| Vendeuse : vérifier qu'aucun champ ne permet de modifier l'objectif | aucun | 🧪 |
+| Admin : Commissions calculées › bouton « Suivi » d'une vendeuse | page « Mes commissions » de cette vendeuse, mois repris | 🧪 |
+| Accessibilité : anneau (rôle image, libellé), tableau, sélecteur de mois au clavier | libellés lus, focus visible | 🧪 |
 
 ## Résultat de l'exécution
 
-- Date : _(à compléter)_
-- Environnement : _(à compléter)_
-- Anomalies ouvertes : _(à compléter)_
+- Date : 11/11/2026.
+- Environnement : CI GitHub sur la branche `feature/COM-04-suivi-commission-objectif` (commit `6c01b46a`) : « CI » vert (backend Spring Boot : 864 tests dont 6 `CommissionFollowUpServiceImplTest`, 8 `SellerTargetIT`, 17 `CommissionFollowUpIT` ; frontend Angular : 820 tests, 129 fichiers), « Convention VVS » vert (Spotless, Checkstyle, Prettier, ESLint, migrations), « Qodana for JVM » vert, 0 annotation.
+- Anomalies ouvertes : aucune connue.
+- Étapes 🧪 restantes : 5 (recette manuelle ci-dessus).

@@ -184,6 +184,7 @@ class InvoiceDraftsTest {
                 role,
                 STORE,
                 new BigDecimal("5.00"),
+                null,
                 true,
                 false,
                 Instant.EPOCH,

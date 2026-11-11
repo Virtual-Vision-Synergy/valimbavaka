@@ -19,13 +19,14 @@ import { ToastService } from '../../../../shared/components/toast/toast-service'
 import { RoleService } from '../../data-access/role-service';
 import { SalesChannelService } from '../../data-access/sales-channel-service';
 import { UserService } from '../../data-access/user-service';
-import { UserRDto, roleLabel } from '../../data-access/user-models';
+import { CreateUserWDto, UserRDto, roleLabel } from '../../data-access/user-models';
 
 /** 15 caractères minimum sans MFA (convention §9.2), comme le serveur. */
 const MIN_PASSWORD_LENGTH = 15;
 const MAX_NAME_LENGTH = 100;
 const MIN_COMMISSION_RATE = 0;
 const MAX_COMMISSION_RATE = 100;
+const MIN_MONTHLY_TARGET = 0.01;
 
 @Component({
   selector: 'vvs-user-form-page',
@@ -65,6 +66,7 @@ export class UserFormPage implements OnInit {
       Validators.min(MIN_COMMISSION_RATE),
       Validators.max(MAX_COMMISSION_RATE),
     ]),
+    monthlyTarget: new FormControl<number | null>(null, [Validators.min(MIN_MONTHLY_TARGET)]),
     active: [true],
   });
 
@@ -134,28 +136,33 @@ export class UserFormPage implements OnInit {
   private saveRequest(): Observable<SubmitResult<UserRDto>> {
     const { email, password, firstName, lastName, roleId, active, ...terms } =
       this.form.getRawValue();
-    const salesChannelId = this.isSeller() ? terms.salesChannelId || null : null;
-    const commissionRate = this.isSeller() ? terms.commissionRate : null;
+    const sellerTerms = this.sellerTerms(terms);
     const id = this.id();
     return id
-      ? this.userService.update(id, {
-          email,
-          firstName,
-          lastName,
-          roleId,
-          salesChannelId,
-          commissionRate,
-          active,
-        })
+      ? this.userService.update(id, { email, firstName, lastName, roleId, ...sellerTerms, active })
       : this.userService
-          .create({ email, password, firstName, lastName, roleId, salesChannelId, commissionRate })
+          .create({ email, password, firstName, lastName, roleId, ...sellerTerms })
           .pipe(map((user): SubmitResult<UserRDto> => ({ queued: false, body: user })));
+  }
+
+  /** Canal, taux et objectif mensuel (COM-04) : envoyés pour une vendeuse seulement, `null` sinon. */
+  private sellerTerms(terms: {
+    salesChannelId: string;
+    commissionRate: number | null;
+    monthlyTarget: number | null;
+  }): Pick<CreateUserWDto, 'salesChannelId' | 'commissionRate' | 'monthlyTarget'> {
+    const isSeller = this.isSeller();
+    return {
+      salesChannelId: isSeller ? terms.salesChannelId || null : null,
+      commissionRate: isSeller ? terms.commissionRate : null,
+      monthlyTarget: isSeller ? terms.monthlyTarget || null : null,
+    };
   }
 
   /** Les champs vendeuse ne sont validés ni envoyés pour un autre rôle. */
   private toggleSellerFields(isSeller: boolean): void {
-    const { salesChannelId, commissionRate } = this.form.controls;
-    for (const control of [salesChannelId, commissionRate]) {
+    const { salesChannelId, commissionRate, monthlyTarget } = this.form.controls;
+    for (const control of [salesChannelId, commissionRate, monthlyTarget]) {
       if (isSeller) {
         control.enable({ emitEvent: false });
       } else {
@@ -185,6 +192,7 @@ export class UserFormPage implements OnInit {
       roleId: user.role.id,
       salesChannelId: user.salesChannelId ?? '',
       commissionRate: user.commissionRate,
+      monthlyTarget: user.monthlyTarget,
       active: user.active,
     });
   }
