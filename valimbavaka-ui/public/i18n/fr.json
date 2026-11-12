@@ -1916,7 +1916,11 @@
     },
     "ranges": {
       "title": "CA par gamme",
-      "total": "total"
+      "total": "total",
+      "emptyTitle": "Aucune vente sur la période",
+      "emptyMessage": "Aucune vente validée ne porte sur cette période et ce canal.",
+      "rangeIgnored": "Le filtre gamme ne s'applique pas ici : toutes les gammes sont affichées.",
+      "gap": "Écart avec le CA de la synthèse : {{amount}} (remises appliquées à l'ensemble d'une vente, non réparties par gamme)."
     },
     "top": {
       "title": "Produits les plus vendus",

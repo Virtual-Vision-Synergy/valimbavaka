@@ -1,5 +1,3 @@
-import { ProductRange } from '../../../shared/models/tone';
-
 /** Durée de la période d'un rapport (RPT-01) : le jour, le mois ou l'année civile qui contient la date. */
 export type ReportGranularity = 'DAY' | 'MONTH' | 'YEAR';
 
@@ -46,7 +44,29 @@ export interface ReportTrendPointRDto {
   readonly revenue: number;
 }
 
-/** Rapport d'une période (RPT-01 à RPT-03) : période effective, filtres, indicateurs, comparaison et courbe du CA. */
+/**
+ * CA d'une gamme sur la période (RPT-04) : somme des totaux de ligne de ses articles (avant la remise globale de la
+ * vente) et sa part du CA de toutes les gammes, en % à une décimale.
+ */
+export interface ReportRangeRDto {
+  readonly rangeId: string;
+  /** Code de la gamme (`BOTANIKA`…) : il donne la couleur (`data-range`). */
+  readonly code: string;
+  readonly label: string;
+  readonly revenue: number;
+  readonly share: number;
+}
+
+/**
+ * Répartition du CA par gamme (RPT-04) : les gammes qui ont vendu, la plus forte d'abord, et la somme de leurs CA.
+ * Les parts totalisent exactement 100,0 ; `items` est vide quand rien n'a été vendu. Le filtre gamme est ignoré.
+ */
+export interface ReportRangesRDto {
+  readonly revenue: number;
+  readonly items: readonly ReportRangeRDto[];
+}
+
+/** Rapport d'une période (RPT-01 à RPT-04) : période effective, filtres, indicateurs, comparaison, courbe et gammes. */
 export interface ReportRDto {
   readonly granularity: ReportGranularity;
   readonly from: string;
@@ -56,16 +76,12 @@ export interface ReportRDto {
   readonly sales: ReportSalesRDto;
   readonly comparison: ReportComparisonRDto;
   readonly trend: readonly ReportTrendPointRDto[];
+  readonly ranges: ReportRangesRDto;
 }
 
-/** Filtre de la démonstration des sections RPT-04 et RPT-05, branchées une à une par leurs tickets. */
+/** Filtre de la démonstration de la section RPT-05, branchée par son ticket. */
 export interface ReportDemoFilter {
   readonly granularity: ReportGranularity;
-}
-
-export interface ReportRangeRDto {
-  readonly range: ProductRange;
-  readonly amount: number;
 }
 
 export interface ReportTopArticleRDto {
@@ -74,8 +90,7 @@ export interface ReportTopArticleRDto {
   readonly revenue: number;
 }
 
-/** Sections de démonstration (RPT-04 et RPT-05) : remplacées par l'API ticket par ticket. */
+/** Section de démonstration (RPT-05) : remplacée par l'API par son ticket. */
 export interface ReportDemoRDto {
-  readonly ranges: readonly ReportRangeRDto[];
   readonly top: readonly ReportTopArticleRDto[];
 }

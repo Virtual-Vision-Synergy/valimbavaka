@@ -1,10 +1,10 @@
 <div class="donut">
   <svg viewBox="0 0 120 120" aria-hidden="true">
     <circle class="track" cx="60" cy="60" r="52" />
-    @for (arc of arcs(); track arc.item.range) {
+    @for (arc of arcs(); track arc.item.rangeId) {
       <circle
         class="slice"
-        [attr.data-range]="arc.item.range"
+        [attr.data-range]="arc.item.code"
         cx="60"
         cy="60"
         r="52"
@@ -15,15 +15,15 @@
     }
   </svg>
   <p class="center">
-    <strong class="num">{{ total() | ariary: 'compact' }}</strong>
+    <strong class="num">{{ ranges().revenue | ariary: 'compact' }}</strong>
     <span>{{ 'reports.ranges.total' | translate }}</span>
   </p>
 </div>
 <ul class="legend">
-  @for (arc of arcs(); track arc.item.range) {
-    <li>
-      <vvs-range-tag [range]="arc.item.range" />
-      <span class="amount num">{{ arc.item.amount | ariary: 'compact' }} Ar</span>
+  @for (arc of arcs(); track arc.item.rangeId) {
+    <li [attr.data-range]="arc.item.code">
+      <span class="name"><span class="dot" aria-hidden="true"></span>{{ arc.item.label }}</span>
+      <span class="amount num">{{ arc.item.revenue | ariary }}</span>
       <strong class="num">{{ arc.percent }} %</strong>
     </li>
   }

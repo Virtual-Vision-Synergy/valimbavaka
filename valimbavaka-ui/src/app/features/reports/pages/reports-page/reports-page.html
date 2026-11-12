@@ -147,15 +147,34 @@
       }
     </section>
 
-    @if (report.value(); as data) {
-      <section class="card" aria-labelledby="range-title">
-        <h2 id="range-title">
-          {{ 'reports.ranges.title' | translate }}
-          <span class="code-chip" aria-hidden="true">RPT-04</span>
-        </h2>
-        <vvs-range-donut [ranges]="data.ranges" />
-      </section>
+    <section class="card" aria-labelledby="range-title">
+      <h2 id="range-title">
+        {{ 'reports.ranges.title' | translate }}
+        <span class="code-chip" aria-hidden="true">RPT-04</span>
+      </h2>
+      @if (summary.value(); as data) {
+        @if (data.ranges.items.length > 0 && data.ranges.revenue > 0) {
+          <vvs-range-donut [ranges]="data.ranges" />
+        } @else {
+          <vvs-list-state
+            kind="empty"
+            titleKey="reports.ranges.emptyTitle"
+            messageKey="reports.ranges.emptyMessage"
+          />
+        }
+        @if (data.rangeId) {
+          <p class="note">{{ 'reports.ranges.rangeIgnored' | translate }}</p>
+        } @else if (rangesGap(data); as gap) {
+          <p class="note">{{ 'reports.ranges.gap' | translate: { amount: (gap | ariary) } }}</p>
+        }
+      } @else if (summary.error()) {
+        <vvs-list-state kind="error" (retry)="summary.reload()" />
+      } @else {
+        <vvs-list-state kind="loading" [rows]="4" />
+      }
+    </section>
 
+    @if (report.value(); as data) {
       <section class="card" aria-labelledby="top-title">
         <h2 id="top-title">
           {{ 'reports.top.title' | translate }}
@@ -180,9 +199,9 @@
         </button>
       </section>
     } @else if (report.error()) {
-      <div class="card wide"><vvs-list-state kind="error" (retry)="report.reload()" /></div>
+      <div class="card"><vvs-list-state kind="error" (retry)="report.reload()" /></div>
     } @else {
-      <div class="card wide"><vvs-list-state kind="loading" [rows]="6" /></div>
+      <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
     }
   </div>
 </div>

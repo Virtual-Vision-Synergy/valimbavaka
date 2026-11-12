@@ -1916,7 +1916,11 @@
     },
     "ranges": {
       "title": "Vola miditra isaky ny karazana",
-      "total": "fitambarany"
+      "total": "fitambarany",
+      "emptyTitle": "Tsy mbola nisy varotra tamin'ity vanim-potoana ity",
+      "emptyMessage": "Tsy misy varotra voamarina amin'ity vanim-potoana sy fantsona ity.",
+      "rangeIgnored": "Tsy mihatra eto ny sivana karazana : aseho ny karazana rehetra.",
+      "gap": "Elanelana amin'ny fitambaran'ny famintinana : {{amount}} (fihenam-bidy ho an'ny varotra iray manontolo, tsy zaraina isaky ny karazana)."
     },
     "top": {
       "title": "Vokatra be varotra indrindra",

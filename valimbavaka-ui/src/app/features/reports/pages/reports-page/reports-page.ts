@@ -17,7 +17,7 @@ import { RevenueTrendChart } from '../../components/revenue-trend-chart/revenue-
 import { ReferentialService } from '../../../referential/data-access/referential-service';
 import { localIsoDate } from '../../../sales/data-access/sales-mapping';
 import { ReportDemoService } from '../../data-access/report-demo-service';
-import { ReportGranularity, ReportQuery } from '../../data-access/report-models';
+import { ReportGranularity, ReportQuery, ReportRDto } from '../../data-access/report-models';
 import { ReportService } from '../../data-access/report-service';
 
 const PERIODS: readonly SegmentOption<ReportGranularity>[] = [
@@ -43,8 +43,8 @@ const initialFilter = (): ReportFilter => ({
 
 /**
  * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen), sa comparaison à la période précédente, la
- * courbe d'évolution du CA et les filtres période, canal et gamme sont branchés sur l'API (RPT-01 à RPT-03) ; les
- * gammes et le classement restent des données de démonstration jusqu'à RPT-04 et RPT-05.
+ * courbe d'évolution du CA, la répartition par gamme et les filtres période, canal et gamme sont branchés sur l'API
+ * (RPT-01 à RPT-04) ; le classement reste une donnée de démonstration jusqu'à RPT-05.
  */
 @Component({
   selector: 'vvs-reports-page',
@@ -125,6 +125,15 @@ export class ReportsPage {
     }
     const sign = variation > 0 ? '+' : '−';
     return { tone: variation > 0 ? 'success' : 'danger', label: `${sign}${magnitude} %` };
+  }
+
+  /**
+   * Écart entre le CA de la synthèse et celui des gammes (remises appliquées à toute la vente, non réparties par
+   * gamme) ; 0 quand il n'y en a pas, ou quand un filtre gamme restreint la synthèse.
+   */
+  protected rangesGap(report: ReportRDto): number {
+    const gap = report.sales.revenue - report.ranges.revenue;
+    return report.rangeId === null && Math.abs(gap) >= 0.005 ? Math.abs(gap) : 0;
   }
 
   protected compact(amount: number): string {
