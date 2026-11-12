@@ -127,6 +127,6 @@ public interface ReportSaleRepository extends Repository<Sale, UUID> {
               and (:rangeId is null or a.rangeId = :rangeId)
               and (:salesChannelId is null or s.salesChannelId = :salesChannelId)
             """)
-    @Nullable BigDecimal linesRevenue(
-            LocalDate from, LocalDate to, @Nullable UUID salesChannelId, @Nullable UUID rangeId);
+    @Nullable
+    BigDecimal linesRevenue(LocalDate from, LocalDate to, @Nullable UUID salesChannelId, @Nullable UUID rangeId);
 }

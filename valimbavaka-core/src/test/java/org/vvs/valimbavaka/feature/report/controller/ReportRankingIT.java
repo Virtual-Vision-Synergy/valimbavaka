@@ -197,7 +197,8 @@ class ReportRankingIT extends StockApiTestSupport {
         report(rangeFilter)
                 .andExpect(jsonPath("$.ranking.items.length()").value(10))
                 .andExpect(jsonPath("$.ranking.revenue").value(93500.0))
-                .andExpect(jsonPath("$.ranking.items[0].articleId").value(articles.get(0).toString()))
+                .andExpect(jsonPath("$.ranking.items[0].articleId")
+                        .value(articles.get(0).toString()))
                 .andExpect(jsonPath("$.ranking.items[0].share").value(9.1));
     }
 
