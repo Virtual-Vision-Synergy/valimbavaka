@@ -11,7 +11,8 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
  * and the variation in percent ({@code null} when the previous value is 0), as shown by the cards of the screen.
  */
 public record ReportIndicatorRowRDto(
-        @ExcelColumn(header = "Indicateur", order = 1, width = 28) String indicator,
+        @ExcelColumn(header = "Indicateur", order = 1, width = 28)
+        String indicator,
 
         @ExcelColumn(header = "Période", order = 2, width = 18)
         BigDecimal current,
