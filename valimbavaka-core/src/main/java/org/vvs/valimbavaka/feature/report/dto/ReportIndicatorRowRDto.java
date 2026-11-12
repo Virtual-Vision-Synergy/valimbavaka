@@ -12,6 +12,12 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
  */
 public record ReportIndicatorRowRDto(
         @ExcelColumn(header = "Indicateur", order = 1, width = 28) String indicator,
-        @ExcelColumn(header = "Période", order = 2, width = 18) BigDecimal current,
-        @ExcelColumn(header = "Période précédente", order = 3, width = 22) BigDecimal previous,
-        @ExcelColumn(header = "Variation (%)", order = 4, format = "0.0", width = 16) @Nullable BigDecimal variation) {}
+
+        @ExcelColumn(header = "Période", order = 2, width = 18)
+        BigDecimal current,
+
+        @ExcelColumn(header = "Période précédente", order = 3, width = 22)
+        BigDecimal previous,
+
+        @ExcelColumn(header = "Variation (%)", order = 4, format = "0.0", width = 16) @Nullable
+        BigDecimal variation) {}

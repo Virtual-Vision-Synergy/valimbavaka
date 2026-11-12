@@ -13,6 +13,12 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
 public record ReportRangeRDto(
         UUID rangeId,
         @ExcelColumn(header = "Code", order = 1, width = 14) String code,
-        @ExcelColumn(header = "Gamme", order = 2, width = 30) String label,
-        @ExcelColumn(header = "CA (Ar)", order = 3, format = "#,##0.00", width = 18) BigDecimal revenue,
-        @ExcelColumn(header = "Part (%)", order = 4, format = "0.0", width = 12) BigDecimal share) {}
+
+        @ExcelColumn(header = "Gamme", order = 2, width = 30)
+        String label,
+
+        @ExcelColumn(header = "CA (Ar)", order = 3, format = "#,##0.00", width = 18)
+        BigDecimal revenue,
+
+        @ExcelColumn(header = "Part (%)", order = 4, format = "0.0", width = 12)
+        BigDecimal share) {}

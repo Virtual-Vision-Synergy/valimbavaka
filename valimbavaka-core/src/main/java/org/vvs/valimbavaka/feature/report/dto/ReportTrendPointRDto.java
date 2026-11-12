@@ -11,4 +11,6 @@ import org.vvs.valimbavaka.shared.excel.annotation.ExcelColumn;
  */
 public record ReportTrendPointRDto(
         @ExcelColumn(header = "Date", order = 1, width = 14) LocalDate date,
-        @ExcelColumn(header = "CA (Ar)", order = 2, format = "#,##0.00", width = 18) BigDecimal revenue) {}
+
+        @ExcelColumn(header = "CA (Ar)", order = 2, format = "#,##0.00", width = 18)
+        BigDecimal revenue) {}

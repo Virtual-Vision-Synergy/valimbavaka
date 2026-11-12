@@ -110,10 +110,7 @@ class ReportExportIT extends StockApiTestSupport {
         var soap = article("A-savon");
         var oil = article("B-huile");
         createSale("STORE", List.of(soap, oil), List.of("3", "1"));
-        var json = mockMvc.perform(authorized(REPORTS + rangeFilter))
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        var json = mockMvc.perform(authorized(REPORTS + rangeFilter)).andReturn().getResponse().getContentAsString();
 
         // Act
         var bytes = download(XLSX + rangeFilter, ExcelHttpMessageConverter.XLSX);
@@ -137,10 +134,10 @@ class ReportExportIT extends StockApiTestSupport {
             assertThat(ranking.getRow(1).getCell(3).getNumericCellValue()).isEqualTo(25500.0);
             assertThat(ranking.getRow(1).getCell(4).getNumericCellValue()).isEqualTo(16138.5);
             assertThat(ranking.getRow(1).getCell(5).getNumericCellValue()).isEqualTo(75.0);
-            var ranges = workbook.getSheet("Gammes");
-            assertThat(ranges.getLastRowNum()).isEqualTo(1);
-            assertThat(ranges.getRow(1).getCell(1).getStringCellValue()).isEqualTo("Gamme RPT-06");
-            assertThat(ranges.getRow(1).getCell(3).getNumericCellValue()).isEqualTo(100.0);
+            // the split by range ignores the range filter (RPT-04): the range of the test is one row among others
+            var range = rowWith(workbook.getSheet("Gammes"), 1, "Gamme RPT-06");
+            assertThat(range.getCell(2).getNumericCellValue()).isEqualTo(34000.0);
+            assertThat(range.getCell(3).getNumericCellValue()).isPositive();
             var trend = workbook.getSheet("Évolution");
             int days = JsonPath.<List<Object>>read(json, "$.trend").size();
             assertThat(trend.getLastRowNum()).isEqualTo(days);
@@ -186,8 +183,7 @@ class ReportExportIT extends StockApiTestSupport {
             var ranking = workbook.getSheet("Classement");
             assertThat(ranking.getLastRowNum()).isEqualTo(1);
             assertThat(ranking.getRow(1).getCell(1).getStringCellValue()).startsWith("B-huile");
-            assertThat(workbook.getSheet("Synthèse").getRow(1).getCell(1).getNumericCellValue())
-                    .isEqualTo(17000.0);
+            assertThat(workbook.getSheet("Synthèse").getRow(1).getCell(1).getNumericCellValue()).isEqualTo(17000.0);
         }
     }
 
@@ -203,7 +199,7 @@ class ReportExportIT extends StockApiTestSupport {
             assertThat(workbook.getSheet("Évolution").getLastRowNum()).isEqualTo(12);
             var summary = workbook.getSheet("Synthèse");
             assertThat(summary.getRow(1).getCell(1).getNumericCellValue()).isZero();
-            assertThat(summary.getRow(1).getCell(3)).isNull();
+            assertThat(FORMATTER.formatCellValue(summary.getRow(1).getCell(3))).isEmpty();
         }
     }
 
@@ -309,6 +305,15 @@ class ReportExportIT extends StockApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(type));
         return result.andReturn().getResponse().getContentAsByteArray();
+    }
+
+    private static Row rowWith(Sheet sheet, int column, String value) {
+        for (Row row : sheet) {
+            if (value.equals(FORMATTER.formatCellValue(row.getCell(column)))) {
+                return row;
+            }
+        }
+        throw new AssertionError("No row with " + value + " in column " + column + " of " + sheet.getSheetName());
     }
 
     private static List<String> text(Row row) {
