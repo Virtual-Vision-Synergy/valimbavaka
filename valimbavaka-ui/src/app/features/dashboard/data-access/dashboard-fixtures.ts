@@ -17,21 +17,6 @@ export const DASHBOARD_DEMO_FIXTURE: DashboardDemoRDto = {
     { code: 'DELIVERIES', state: 'current', params: { done: 9, total: 14 } },
     { code: 'CLOSING', state: 'upcoming', params: { time: '19:00' } },
   ],
-  revenueLast7Days: [
-    { date: '2026-10-15', amount: 980_000 },
-    { date: '2026-10-16', amount: 1_120_000 },
-    { date: '2026-10-17', amount: 1_460_000 },
-    { date: '2026-10-18', amount: 1_710_000 },
-    { date: '2026-10-19', amount: 640_000 },
-    { date: '2026-10-20', amount: 1_050_000 },
-    { date: '2026-10-21', amount: 1_284_000 },
-  ],
-  revenueLast4Weeks: [
-    { date: '2026-09-28', amount: 6_420_000 },
-    { date: '2026-10-05', amount: 7_180_000 },
-    { date: '2026-10-12', amount: 7_640_000 },
-    { date: '2026-10-19', amount: 2_974_000 },
-  ],
   activity: [
     {
       id: 'a1',

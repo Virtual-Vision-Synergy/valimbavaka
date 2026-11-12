@@ -352,15 +352,11 @@
       "PHONE": "Téléphone"
     },
     "chart": {
-      "week": "7 jours",
-      "month": "4 semaines",
-      "window": "Période du graphique",
       "today": "Aujourd'hui",
-      "thisWeek": "Cette semaine",
       "titleWeek": "Chiffre d'affaires · 7 derniers jours",
-      "titleMonth": "Chiffre d'affaires · 4 dernières semaines",
       "summary": "Total {{total}} · moyenne {{average}}",
-      "previous": "Périodes précédentes"
+      "previous": "Jours précédents",
+      "tooltip": "{{date}} : {{amount}} · {{count}} vente(s)"
     },
     "split": {
       "title": "Répartition du CA",
@@ -1918,10 +1914,9 @@
     },
     "vs": "vs {{value}} période précédente",
     "revenueTitle": "Évolution du chiffre d'affaires",
-    "current": "Période en cours",
-    "previous": "Période précédente",
     "chart": {
-      "day": "Jour"
+      "day": "Jour",
+      "month": "Mois"
     },
     "ranges": {
       "title": "CA par gamme",

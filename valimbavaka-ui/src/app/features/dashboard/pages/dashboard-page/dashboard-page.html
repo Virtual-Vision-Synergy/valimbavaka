@@ -2,7 +2,7 @@
   <vvs-page-header
     [heading]="'dashboard.title' | translate"
     [subtitle]="'dashboard.subtitle' | translate"
-    [codes]="['DSH-01', 'DSH-03', 'DSH-04']"
+    [codes]="['DSH-01', 'DSH-02', 'DSH-03', 'DSH-04']"
   >
     <a *vvsHasPermission="'sales.read'" class="btn btn-primary" routerLink="/day/close">
       <svg [vvsIcon]="icons.Lock"></svg>
@@ -65,7 +65,11 @@
           }
           @case ('analysis') {
             <div class="grid grid-main-aside">
-              <vvs-revenue-chart-card [data]="data.demo" />
+              <vvs-revenue-chart-card
+                [trend]="revenueTrendValue()"
+                [failed]="revenueTrendFailed()"
+                (retry)="revenueTrend.reload()"
+              />
               <vvs-revenue-split-card
                 [split]="revenueSplitValue()"
                 [failed]="revenueSplitFailed()"

@@ -18,6 +18,9 @@
               <span class="value">{{ bar.display }}</span>
             </span>
           </div>
+          @if (bar.tooltip) {
+            <span class="tip">{{ bar.tooltip }}</span>
+          }
           <span class="label">{{ bar.label }}</span>
         </div>
       }

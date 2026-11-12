@@ -20,7 +20,7 @@ Listes de taille fixe (une entrée par gamme active et par canal), donc non pagi
 
 - `RevenueSplitService.getToday()` (`feature/dashboard/service`), implémenté par `RevenueSplitServiceImpl` (`RevenueSplitServiceImpl.java:51`) : gammes = une lecture de `ReportSalesService.getSales(new ReportFilter(jour, null, rangeId))` par gamme active (`byRange`, ligne 57) ; canaux = `ChannelDashboardService.getDashboard(jour, jour).channels()` (`byChannel`, ligne 79). Aucun calcul de CA propre, donc aucune règle dupliquée (ventes `VALIDATED`, `business_date`). Constructeur package-private, il ne prend que des interfaces publiques.
 - `PercentageShares.of(revenues)` (package-private, `PercentageShares.java:25`) : parts à une décimale qui totalisent exactement 100,0 (méthode du plus grand reste), toutes à 0,0 quand le total est nul.
-- `RevenueSplitController` (nouveau, route `GET /api/v1/dashboard/revenue-split`) : un contrôleur à part pour ne pas toucher `DashboardController` (DSH-02 y ajoute sa route).
+- `RevenueSplitController` (nouveau, route `GET /api/v1/dashboard/revenue-split`) : un contrôleur à part de `DashboardController`, qui porte `GET /api/v1/dashboard/revenue-trend` (DSH-02) : les deux chemins sont distincts.
 
 ### Frontend
 
@@ -78,4 +78,4 @@ protected readonly revenueSplit = rxResource({
 - **Gammes désactivées** : seules les gammes actives sont listées (`ReferentialService.getProductRanges`) ; le CA d'une gamme désactivée depuis n'apparaît pas, contrairement aux canaux désactivés (libellé `null`, affiché « Canal désactivé »).
 - **Coût** : 1 lecture du rapport de ventes par gamme active (3 aujourd'hui) et 1 lecture par canal (VTE-08), à chaque ouverture de l'onglet. Pas de relecture automatique.
 - **Maquette** : les canaux fixes `SHOP`, `FACEBOOK`, `PHONE` de la démonstration deviennent ceux du référentiel (libellé de l'API) ; la légende affiche aussi la part de chaque canal.
-- **Conflits attendus avec DSH-02** (branche non mergée) : `dashboard-page.*`, `dashboard-service.ts`, `dashboard-models.ts`, `dashboard-fixtures.ts` et `dashboard-page.spec.ts` sont touchés par les deux tickets, à des endroits voisins ; le reste (contrôleur, services, types, tests) est dans des fichiers distincts.
+- **Coexistence avec DSH-02** (mergé dans `develop`, `develop` fusionné dans cette branche) : le cockpit lit deux endpoints à part de l'agrégat, `revenue-trend` (graphique sur 7 jours) et `revenue-split` (cette répartition), chacun avec son `rxResource`, son état d'échec et son bouton de réessai. Plus aucun des champs `revenueLast7Days`, `revenueLast4Weeks`, `revenueByRange`, `revenueByChannel` ne subsiste dans les zones simulées. Pour un administrateur, la page émet donc 4 lectures (agrégat, 2 CA, alertes) ; vendeuse et livreur n'en émettent aucune des deux.

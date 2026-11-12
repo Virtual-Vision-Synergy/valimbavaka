@@ -15,14 +15,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import org.vvs.valimbavaka.feature.dayclosing.dto.ClosingSalonRDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingCountsWDto;
 import org.vvs.valimbavaka.feature.dayclosing.dto.DayClosingRDto;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingCountService;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingLockService;
+import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingSalonService;
 import org.vvs.valimbavaka.feature.dayclosing.service.DayClosingService;
 import org.vvs.valimbavaka.security.annotation.HasPermission;
 
-/** Closing of today: reconciliation (JR-04), evening count with its gap reasons (JR-05) and lock (JR-06). */
+/**
+ * Closing of today: reconciliation (JR-04), salon consumption (SRV-04), evening count with its gap reasons (JR-05)
+ * and lock (JR-06).
+ */
 @Tag(name = "Business days")
 @ApiResponses({
     @ApiResponse(responseCode = "400", description = "Malformed request (MALFORMED_REQUEST)"),
@@ -37,14 +42,17 @@ public class DayClosingController {
     private final DayClosingService dayClosingService;
     private final DayClosingCountService dayClosingCountService;
     private final DayClosingLockService dayClosingLockService;
+    private final DayClosingSalonService dayClosingSalonService;
 
     public DayClosingController(
             DayClosingService dayClosingService,
             DayClosingCountService dayClosingCountService,
-            DayClosingLockService dayClosingLockService) {
+            DayClosingLockService dayClosingLockService,
+            DayClosingSalonService dayClosingSalonService) {
         this.dayClosingService = dayClosingService;
         this.dayClosingCountService = dayClosingCountService;
         this.dayClosingLockService = dayClosingLockService;
+        this.dayClosingSalonService = dayClosingSalonService;
     }
 
     @GetMapping("/closing")
@@ -57,6 +65,18 @@ public class DayClosingController {
     @HasPermission("days.close")
     public DayClosingRDto getClosing() {
         return dayClosingService.getClosing();
+    }
+
+    @GetMapping("/closing/salon")
+    @Operation(
+            summary = "Salon consumption of today against the closing",
+            description = "Per article, the quantity consumed by the services performed today and the « Salon »"
+                    + " column of the closing, with the two totals and whether they match.")
+    @ApiResponse(responseCode = "200", description = "Salon consumption of today")
+    @ApiResponse(responseCode = "409", description = "Today's day is not opened (CONFLICT)")
+    @HasPermission("days.close")
+    public ClosingSalonRDto getSalonConsumption() {
+        return dayClosingSalonService.getSalonConsumption();
     }
 
     @PutMapping("/closing/counts")
