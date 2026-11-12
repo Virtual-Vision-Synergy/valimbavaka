@@ -1885,7 +1885,6 @@
     "title": "Rapports",
     "subtitle": "Chiffre d'affaires, ventes et livraisons comparés à la période précédente.",
     "exportXlsx": "Exporter XLSX",
-    "exported": "Export {{format}} préparé (démonstration)",
     "filters": "Filtres du rapport",
     "periodLabel": "Période",
     "period": {

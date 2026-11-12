@@ -3,6 +3,7 @@ package org.vvs.valimbavaka.feature.report.repository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.jspecify.annotations.Nullable;
@@ -129,4 +130,12 @@ public interface ReportSaleRepository extends Repository<Sale, UUID> {
             """)
     @Nullable
     BigDecimal linesRevenue(LocalDate from, LocalDate to, @Nullable UUID salesChannelId, @Nullable UUID rangeId);
+
+    /** Label of a sales channel (the export of the report prints the filter it applied, RPT-06). */
+    @Query("select c.label from SalesChannel c where c.id = :id")
+    Optional<String> salesChannelLabel(UUID id);
+
+    /** Label of a product range (the export of the report prints the filter it applied, RPT-06). */
+    @Query("select r.label from ProductRange r where r.id = :id")
+    Optional<String> productRangeLabel(UUID id);
 }

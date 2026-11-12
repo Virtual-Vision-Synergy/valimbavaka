@@ -38,7 +38,7 @@ const REPORT: ReportRDto = {
 };
 const page = (items: object[]) => ({ items, page: 1, pageSize: 100, totalCount: 1, totalPages: 1 });
 
-/** Rapports (RPT-01 à RPT-04) : synthèse, comparaison, courbe et gammes suivent la période et les filtres. */
+/** Rapports (RPT-04) : synthèse, comparaison, courbe et gammes suivent la période et les filtres. */
 describe('ReportsPage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<ReportsPage>;

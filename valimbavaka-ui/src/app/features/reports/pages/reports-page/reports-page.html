@@ -4,11 +4,21 @@
     [subtitle]="'reports.subtitle' | translate"
     [codes]="['RPT-01', 'RPT-02', 'RPT-06']"
   >
-    <button class="btn btn-secondary" type="button" (click)="exportAs('PDF')">
+    <button
+      class="btn btn-secondary"
+      type="button"
+      [disabled]="isExporting()"
+      (click)="exportAs('pdf')"
+    >
       <svg [vvsIcon]="icons.FileText" [size]="18"></svg>
       PDF
     </button>
-    <button class="btn btn-secondary" type="button" (click)="exportAs('XLSX')">
+    <button
+      class="btn btn-secondary"
+      type="button"
+      [disabled]="isExporting()"
+      (click)="exportAs('xlsx')"
+    >
       <svg [vvsIcon]="icons.FileSpreadsheet" [size]="18"></svg>
       {{ 'reports.exportXlsx' | translate }}
     </button>

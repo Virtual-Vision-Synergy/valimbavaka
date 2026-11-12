@@ -1,7 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSpreadsheet, FileText } from 'lucide';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { finalize } from 'rxjs';
 import { Icon } from '../../../../shared/components/icon/icon';
 import { KpiCard, KpiTrend } from '../../../../shared/components/kpi-card/kpi-card';
 import { ListState } from '../../../../shared/components/list-state/list-state';
@@ -10,7 +18,7 @@ import {
   SegmentedControl,
   SegmentOption,
 } from '../../../../shared/components/segmented-control/segmented-control';
-import { ToastService } from '../../../../shared/components/toast/toast-service';
+import { ExportFormat } from '../../../../shared/data-access/export-service';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { RangeDonut } from '../../components/range-donut/range-donut';
 import { RevenueTrendChart } from '../../components/revenue-trend-chart/revenue-trend-chart';
@@ -45,8 +53,8 @@ const initialFilter = (): ReportFilter => ({
 /**
  * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen), sa comparaison à la période précédente, la
  * courbe d'évolution du CA, la répartition par gamme, le classement des articles les plus vendus et les filtres
- * période, canal et gamme sont branchés sur l'API (RPT-01 à RPT-05) ; seuls les boutons d'export restent à
- * brancher (RPT-06).
+ * période, canal et gamme sont branchés sur l'API (RPT-01 à RPT-05) ; les boutons PDF et XLSX téléchargent le
+ * rapport affiché, avec les mêmes critères (RPT-06).
  */
 @Component({
   selector: 'vvs-reports-page',
@@ -68,13 +76,14 @@ const initialFilter = (): ReportFilter => ({
 export class ReportsPage {
   private readonly reportService = inject(ReportService);
   private readonly referentialService = inject(ReferentialService);
-  private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
 
   protected readonly icons = { FileText, FileSpreadsheet };
   protected readonly periods = PERIODS;
   protected readonly today = localIsoDate(new Date());
   protected readonly filter = signal<ReportFilter>(initialFilter());
+  protected readonly isExporting = signal(false);
   protected readonly granularity = computed(() => this.filter().granularity);
   protected readonly channels = rxResource({
     stream: () => this.referentialService.listSalesChannels(),
@@ -107,8 +116,19 @@ export class ReportsPage {
     this.filter.update((current) => ({ ...current, salesChannelId: '', rangeId: '' }));
   }
 
-  protected exportAs(format: string): void {
-    this.toast.show('reports.exported', { format }, 'info');
+  /**
+   * Télécharge le rapport affiché (période, date, canal et gamme courants) ; le service d'export confirme la
+   * génération du fichier, ou signale l'échec, par une notification.
+   */
+  protected exportAs(format: ExportFormat): void {
+    this.isExporting.set(true);
+    this.reportService
+      .export(toQuery(this.filter()), format)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isExporting.set(false)),
+      )
+      .subscribe({ error: () => undefined });
   }
 
   /** Badge de variation en % ; `null` = pas de période précédente à comparer (pas de pourcentage). */
