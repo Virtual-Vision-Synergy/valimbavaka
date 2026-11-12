@@ -396,9 +396,8 @@ class ReportIT extends StockApiTestSupport {
         var values = (List<?>) JsonPath.read(reportJson(MONTH), "$.ranges.items[*].revenue");
 
         // Assert
-        var amounts = values.stream()
-                .map(value -> ((Number) value).doubleValue())
-                .toList();
+        var amounts =
+                values.stream().map(value -> ((Number) value).doubleValue()).toList();
         assertThat(amounts).isSortedAccordingTo(Comparator.reverseOrder());
     }
 

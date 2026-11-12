@@ -35,7 +35,9 @@ public final class ReportShare {
             remainders.add(division[1]);
         }
         giveMissingTenths(tenths, remainders);
-        return tenths.stream().map(count -> BigDecimal.valueOf(count, PERCENT_SCALE)).toList();
+        return tenths.stream()
+                .map(count -> BigDecimal.valueOf(count, PERCENT_SCALE))
+                .toList();
     }
 
     private static void giveMissingTenths(List<Long> tenths, List<BigDecimal> remainders) {
