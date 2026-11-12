@@ -49,6 +49,8 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-}
       ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-}
+      # NIF de l'emetteur imprime sur les factures (vide = pas de NIF)
+      INVOICE_ISSUER_NIF: ${INVOICE_ISSUER_NIF:-}
     # Pas de port publie : le backend n'est joignable que par nginx (service ui), sur /api/.
     mem_limit: ${CORE_MEM_LIMIT:-1g}
 
