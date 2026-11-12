@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-/** Rapports : synthèse réelle (RPT-01) ; les autres sections restent en démonstration jusqu'à RPT-02 à RPT-05. */
+/** Rapports : tout est branché sur l'API (RPT-01 à RPT-05) sauf l'export PDF/XLSX (RPT-06), d'où le marqueur. */
 export const REPORTS_ROUTES: Routes = [
   {
     path: '',

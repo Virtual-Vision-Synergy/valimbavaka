@@ -1928,8 +1928,16 @@
     },
     "top": {
       "title": "Vokatra be varotra indrindra",
-      "units": "{{count}} isa",
-      "all": "Top 20 →"
+      "caption": "Ireo entana {{count}} be varotra indrindra, voalahatra araka ny vola niditra",
+      "rank": "Laharana",
+      "article": "Entana",
+      "quantity": "Isa",
+      "revenue": "Vola niditra",
+      "margin": "Tombony",
+      "share": "% amin'ny vola niditra",
+      "marginUnknown": "Tombony tsy fantatra : tsy voasoratra ny vidin'ny fividianana",
+      "emptyTitle": "Tsy nisy entana lafo tamin'ity vanim-potoana ity",
+      "emptyMessage": "Tsy misy varotra voamarina mifanaraka amin'ity vanim-potoana sy ireo sivana ity."
     }
   },
   "article": {

@@ -20,6 +20,8 @@ import org.vvs.valimbavaka.feature.report.domain.ReportFilter;
 import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 import org.vvs.valimbavaka.feature.report.domain.ReportPeriod;
 import org.vvs.valimbavaka.feature.report.dto.ReportRangeRDto;
+import org.vvs.valimbavaka.feature.report.dto.ReportRankedArticleRDto;
+import org.vvs.valimbavaka.feature.report.repository.ArticleSales;
 import org.vvs.valimbavaka.feature.report.repository.DailyRevenue;
 import org.vvs.valimbavaka.feature.report.repository.RangeRevenue;
 import org.vvs.valimbavaka.feature.report.repository.ReportSaleRepository;
@@ -236,5 +238,91 @@ class ReportSalesServiceImplTest {
         // Assert
         assertThat(result.items().getFirst().share()).isEqualByComparingTo("0.0");
         assertThat(result.revenue()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    void getRanking_twoArticles_givesQuantityRevenueMarginAndShareOfAllTheLines() {
+        // Arrange
+        var soap = sales("SAV-1", "3", "9000.00", "3000.00");
+        var oil = sales("HUI-1", "1.5", "4000.00", "1000.50");
+        when(reportSaleRepository.topArticles(FIRST, LAST, STORE, BOTANIKA)).thenReturn(List.of(soap, oil));
+        when(reportSaleRepository.linesRevenue(FIRST, LAST, STORE, BOTANIKA)).thenReturn(new BigDecimal("16000.00"));
+
+        // Act
+        var result = sut.getRanking(new ReportFilter(NOVEMBER, STORE, BOTANIKA));
+
+        // Assert: the shares are against the 16000 of all the lines, not against the two rows (13000)
+        assertThat(result.size()).isEqualTo(ReportSaleRepository.RANKING_SIZE);
+        assertThat(result.revenue()).isEqualByComparingTo("16000");
+        assertThat(result.items()).extracting(ReportRankedArticleRDto::code).containsExactly("SAV-1", "HUI-1");
+        assertThat(result.items().get(0).quantity()).isEqualByComparingTo("3.000");
+        assertThat(result.items().get(0).margin()).isEqualByComparingTo("6000");
+        assertThat(result.items().get(0).share()).isEqualByComparingTo("56.3");
+        assertThat(result.items().get(1).quantity()).isEqualByComparingTo("1.500");
+        assertThat(result.items().get(1).margin()).isEqualByComparingTo("2999.50");
+        assertThat(result.items().get(1).share()).isEqualByComparingTo("25.0");
+    }
+
+    @Test
+    void getRanking_unknownCostOnALine_hasNoMargin() {
+        // Arrange
+        var soap = new ArticleSales(
+                UUID.randomUUID(),
+                "SAV-1",
+                "Savon",
+                new BigDecimal("3"),
+                new BigDecimal("9000.00"),
+                new BigDecimal("3000.00"),
+                2,
+                1);
+        when(reportSaleRepository.topArticles(FIRST, LAST, null, null)).thenReturn(List.of(soap));
+        when(reportSaleRepository.linesRevenue(FIRST, LAST, null, null)).thenReturn(new BigDecimal("9000.00"));
+
+        // Act
+        var result = sut.getRanking(new ReportFilter(NOVEMBER, null, null));
+
+        // Assert
+        assertThat(result.items().getFirst().margin()).isNull();
+        assertThat(result.items().getFirst().share()).isEqualByComparingTo("100.0");
+    }
+
+    @Test
+    void getRanking_noSale_isEmptyWithZeroRevenue() {
+        // Arrange
+        when(reportSaleRepository.topArticles(FIRST, LAST, null, null)).thenReturn(List.of());
+
+        // Act
+        var result = sut.getRanking(new ReportFilter(NOVEMBER, null, null));
+
+        // Assert
+        assertThat(result.items()).isEmpty();
+        assertThat(result.revenue()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    void getRanking_zeroRevenueArticle_hasZeroShareWithoutDividingByZero() {
+        // Arrange
+        var gift = sales("GIF-1", "1", "0.00", "0.00");
+        when(reportSaleRepository.topArticles(FIRST, LAST, null, null)).thenReturn(List.of(gift));
+        when(reportSaleRepository.linesRevenue(FIRST, LAST, null, null)).thenReturn(BigDecimal.ZERO);
+
+        // Act
+        var result = sut.getRanking(new ReportFilter(NOVEMBER, null, null));
+
+        // Assert
+        assertThat(result.items().getFirst().share()).isEqualByComparingTo("0.0");
+    }
+
+    /** One sale line of an article whose cost was known. */
+    private static ArticleSales sales(String code, String quantity, String revenue, String cost) {
+        return new ArticleSales(
+                UUID.randomUUID(),
+                code,
+                "Article " + code,
+                new BigDecimal(quantity),
+                new BigDecimal(revenue),
+                new BigDecimal(cost),
+                1,
+                1);
     }
 }

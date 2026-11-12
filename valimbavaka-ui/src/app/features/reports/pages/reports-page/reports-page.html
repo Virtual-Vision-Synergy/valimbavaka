@@ -174,34 +174,66 @@
       }
     </section>
 
-    @if (report.value(); as data) {
-      <section class="card" aria-labelledby="top-title">
-        <h2 id="top-title">
-          {{ 'reports.top.title' | translate }}
-          <span class="code-chip" aria-hidden="true">RPT-05</span>
-        </h2>
-        <ol class="top">
-          @for (item of data.top; track item.name; let rank = $index) {
-            <li>
-              <span class="rank num" aria-hidden="true">{{ rank + 1 }}</span>
-              <span class="name">
-                <strong>{{ item.name }}</strong>
-                <span class="muted num">{{
-                  'reports.top.units' | translate: { count: item.units }
-                }}</span>
-              </span>
-              <strong class="num">{{ compact(item.revenue) }} Ar</strong>
-            </li>
-          }
-        </ol>
-        <button class="link" type="button" (click)="exportAs('Top 20')">
-          {{ 'reports.top.all' | translate }}
-        </button>
-      </section>
-    } @else if (report.error()) {
-      <div class="card"><vvs-list-state kind="error" (retry)="report.reload()" /></div>
-    } @else {
-      <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
-    }
+    <section class="card wide" aria-labelledby="top-title">
+      <h2 id="top-title">
+        {{ 'reports.top.title' | translate }}
+        <span class="code-chip" aria-hidden="true">RPT-05</span>
+      </h2>
+      @if (summary.value(); as data) {
+        @if (data.ranking.items.length > 0) {
+          <div class="table-wrap">
+            <table class="ranking">
+              <caption class="sr-only">
+                {{
+                  'reports.top.caption' | translate: { count: data.ranking.size }
+                }}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">{{ 'reports.top.rank' | translate }}</th>
+                  <th scope="col">{{ 'reports.top.article' | translate }}</th>
+                  <th scope="col" class="num">{{ 'reports.top.quantity' | translate }}</th>
+                  <th scope="col" class="num">{{ 'reports.top.revenue' | translate }}</th>
+                  <th scope="col" class="num">{{ 'reports.top.margin' | translate }}</th>
+                  <th scope="col" class="num">{{ 'reports.top.share' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of data.ranking.items; track item.articleId; let rank = $index) {
+                  <tr>
+                    <td class="num">{{ rank + 1 }}</td>
+                    <th scope="row">
+                      <strong>{{ item.name }}</strong>
+                      <span class="muted">{{ item.code }}</span>
+                    </th>
+                    <td class="num">{{ quantity(item.quantity) }}</td>
+                    <td class="num">{{ item.revenue | ariary }}</td>
+                    <td class="num">
+                      @if (item.margin !== null) {
+                        {{ item.margin | ariary }}
+                      } @else {
+                        <span aria-hidden="true">—</span>
+                        <span class="sr-only">{{ 'reports.top.marginUnknown' | translate }}</span>
+                      }
+                    </td>
+                    <td class="num">{{ percent(item.share) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <vvs-list-state
+            kind="empty"
+            titleKey="reports.top.emptyTitle"
+            messageKey="reports.top.emptyMessage"
+          />
+        }
+      } @else if (summary.error()) {
+        <vvs-list-state kind="error" (retry)="summary.reload()" />
+      } @else {
+        <vvs-list-state kind="loading" [rows]="6" />
+      }
+    </section>
   </div>
 </div>

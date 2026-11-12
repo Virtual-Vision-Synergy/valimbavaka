@@ -34,6 +34,7 @@ const REPORT: ReportRDto = {
       { rangeId: 'r-bot', code: 'BOTANIKA', label: 'Botanika', revenue: 8500, share: 33.3 },
     ],
   },
+  ranking: { size: 10, revenue: 0, items: [] },
 };
 const page = (items: object[]) => ({ items, page: 1, pageSize: 100, totalCount: 1, totalPages: 1 });
 

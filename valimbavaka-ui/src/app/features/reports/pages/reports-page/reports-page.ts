@@ -11,14 +11,15 @@ import {
   SegmentOption,
 } from '../../../../shared/components/segmented-control/segmented-control';
 import { ToastService } from '../../../../shared/components/toast/toast-service';
-import { AriaryPipe, formatAriary } from '../../../../shared/pipes/ariary-pipe';
+import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
 import { RangeDonut } from '../../components/range-donut/range-donut';
 import { RevenueTrendChart } from '../../components/revenue-trend-chart/revenue-trend-chart';
 import { ReferentialService } from '../../../referential/data-access/referential-service';
 import { localIsoDate } from '../../../sales/data-access/sales-mapping';
-import { ReportDemoService } from '../../data-access/report-demo-service';
 import { ReportGranularity, ReportQuery, ReportRDto } from '../../data-access/report-models';
 import { ReportService } from '../../data-access/report-service';
+
+const QUANTITY = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 });
 
 const PERIODS: readonly SegmentOption<ReportGranularity>[] = [
   { value: 'DAY', labelKey: 'reports.period.DAY' },
@@ -43,8 +44,9 @@ const initialFilter = (): ReportFilter => ({
 
 /**
  * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen), sa comparaison à la période précédente, la
- * courbe d'évolution du CA, la répartition par gamme et les filtres période, canal et gamme sont branchés sur l'API
- * (RPT-01 à RPT-04) ; le classement reste une donnée de démonstration jusqu'à RPT-05.
+ * courbe d'évolution du CA, la répartition par gamme, le classement des articles les plus vendus et les filtres
+ * période, canal et gamme sont branchés sur l'API (RPT-01 à RPT-05) ; seuls les boutons d'export restent à
+ * brancher (RPT-06).
  */
 @Component({
   selector: 'vvs-reports-page',
@@ -65,7 +67,6 @@ const initialFilter = (): ReportFilter => ({
 })
 export class ReportsPage {
   private readonly reportService = inject(ReportService);
-  private readonly demoService = inject(ReportDemoService);
   private readonly referentialService = inject(ReferentialService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
@@ -84,10 +85,6 @@ export class ReportsPage {
   protected readonly summary = rxResource({
     params: () => toQuery(this.filter()),
     stream: ({ params }) => this.reportService.get(params),
-  });
-  protected readonly report = rxResource({
-    params: () => this.filter().granularity,
-    stream: ({ params }) => this.demoService.report({ granularity: params }),
   });
   protected readonly dirty = computed(() => {
     const { salesChannelId, rangeId } = this.filter();
@@ -136,8 +133,14 @@ export class ReportsPage {
     return report.rangeId === null && Math.abs(gap) >= 0.005 ? Math.abs(gap) : 0;
   }
 
-  protected compact(amount: number): string {
-    return formatAriary(amount, 'compact');
+  /** Quantité vendue : séparateur français, jusqu'à 3 décimales (les articles se vendent aussi au poids). */
+  protected quantity(value: number): string {
+    return QUANTITY.format(value);
+  }
+
+  /** Part du CA en %, une décimale fixe (« 9,1 % »). */
+  protected percent(value: number): string {
+    return `${value.toFixed(1).replace('.', ',')} %`;
   }
 }
 

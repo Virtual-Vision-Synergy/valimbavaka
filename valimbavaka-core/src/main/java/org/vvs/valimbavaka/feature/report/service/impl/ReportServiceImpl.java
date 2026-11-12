@@ -53,6 +53,7 @@ public class ReportServiceImpl implements ReportService {
         var comparison = compare(sales, new ReportFilter(period.previous(), salesChannelId, rangeId));
         var trend = reportSalesService.getTrend(filter);
         var ranges = reportSalesService.getRanges(filter);
+        var ranking = reportSalesService.getRanking(filter);
         return new ReportRDto(
                 period.granularity(),
                 period.from(),
@@ -62,7 +63,8 @@ public class ReportServiceImpl implements ReportService {
                 sales,
                 comparison,
                 trend,
-                ranges);
+                ranges,
+                ranking);
     }
 
     private ReportComparisonRDto compare(ReportSalesRDto current, ReportFilter previousFilter) {
