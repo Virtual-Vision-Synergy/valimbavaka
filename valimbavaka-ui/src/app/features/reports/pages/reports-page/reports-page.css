@@ -47,47 +47,39 @@ h2 {
   margin-bottom: var(--space-4);
   font-size: var(--text-lg);
 }
-.top {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.table-wrap {
+  overflow-x: auto;
 }
-.top li {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-3);
+.ranking {
+  width: 100%;
+  border-collapse: collapse;
 }
-.rank {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--gris-fond);
-  font-weight: 700;
+.ranking th,
+.ranking td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: middle;
 }
-.name {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
+.ranking thead th {
+  color: var(--gris-moyen);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ranking tbody th {
+  font-weight: inherit;
+}
+.ranking tbody th .muted {
+  display: block;
+}
+.ranking .num {
+  text-align: right;
+  white-space: nowrap;
 }
 .muted {
   color: var(--gris-moyen);
   font-size: var(--text-sm);
-}
-.link {
-  margin-top: var(--space-4);
-  padding: var(--space-2) 0;
-  border: 0;
-  background: none;
-  color: var(--secondary-strong);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
 }
 @media (max-width: 1100px) {
   .grid {

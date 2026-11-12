@@ -22,6 +22,21 @@ const REPORT: ReportRDto = {
     revenue: 25500,
     items: [{ rangeId: 'r-bot', code: 'BOTANIKA', label: 'Botanika', revenue: 25500, share: 100 }],
   },
+  ranking: {
+    size: 10,
+    revenue: 25500,
+    items: [
+      {
+        articleId: 'a-sav',
+        code: 'SAV-1',
+        name: 'Savon noir',
+        quantity: 3,
+        revenue: 25500,
+        margin: 16138.5,
+        share: 100,
+      },
+    ],
+  },
 };
 
 /** Rapports (RPT-01) : `GET /api/v1/reports` avec la période et les filtres canal et gamme. */

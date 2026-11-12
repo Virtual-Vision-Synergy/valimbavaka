@@ -1924,8 +1924,16 @@
     },
     "top": {
       "title": "Produits les plus vendus",
-      "units": "{{count}} unités",
-      "all": "Top 20 →"
+      "caption": "Les {{count}} articles les plus vendus, classés par chiffre d'affaires",
+      "rank": "Rang",
+      "article": "Article",
+      "quantity": "Quantité",
+      "revenue": "CA",
+      "margin": "Marge",
+      "share": "% du CA",
+      "marginUnknown": "Marge inconnue : le coût d'achat d'une vente n'était pas renseigné",
+      "emptyTitle": "Aucun article vendu sur la période",
+      "emptyMessage": "Aucune vente validée ne porte sur cette période, ce canal et cette gamme."
     }
   },
   "article": {

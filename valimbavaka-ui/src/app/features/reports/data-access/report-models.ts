@@ -66,7 +66,33 @@ export interface ReportRangesRDto {
   readonly items: readonly ReportRangeRDto[];
 }
 
-/** Rapport d'une période (RPT-01 à RPT-04) : période effective, filtres, indicateurs, comparaison, courbe et gammes. */
+/**
+ * Une ligne du classement des articles (RPT-05) : quantité vendue, CA (somme des totaux de ligne, avant la remise
+ * globale de la vente), marge brute (CA moins coût d'achat ; `null` si le coût d'une ligne était inconnu à la vente)
+ * et part du CA de toutes les lignes de la période, en % à une décimale.
+ */
+export interface ReportRankedArticleRDto {
+  readonly articleId: string;
+  readonly code: string;
+  readonly name: string;
+  readonly quantity: number;
+  readonly revenue: number;
+  readonly margin: number | null;
+  readonly share: number;
+}
+
+/**
+ * Classement des articles les plus vendus (RPT-05) : au plus `size` articles, le plus fort CA d'abord (égalité :
+ * nom puis code). `revenue` est le CA de toutes les lignes de la période et des filtres, base des parts (pas la
+ * somme des lignes listées) ; `items` est vide quand rien n'a été vendu. Les trois filtres s'appliquent.
+ */
+export interface ReportRankingRDto {
+  readonly size: number;
+  readonly revenue: number;
+  readonly items: readonly ReportRankedArticleRDto[];
+}
+
+/** Rapport d'une période (RPT-01 à RPT-05) : période, filtres, indicateurs, comparaison, courbe, gammes, classement. */
 export interface ReportRDto {
   readonly granularity: ReportGranularity;
   readonly from: string;
@@ -77,20 +103,5 @@ export interface ReportRDto {
   readonly comparison: ReportComparisonRDto;
   readonly trend: readonly ReportTrendPointRDto[];
   readonly ranges: ReportRangesRDto;
-}
-
-/** Filtre de la démonstration de la section RPT-05, branchée par son ticket. */
-export interface ReportDemoFilter {
-  readonly granularity: ReportGranularity;
-}
-
-export interface ReportTopArticleRDto {
-  readonly name: string;
-  readonly units: number;
-  readonly revenue: number;
-}
-
-/** Section de démonstration (RPT-05) : remplacée par l'API par son ticket. */
-export interface ReportDemoRDto {
-  readonly top: readonly ReportTopArticleRDto[];
+  readonly ranking: ReportRankingRDto;
 }
