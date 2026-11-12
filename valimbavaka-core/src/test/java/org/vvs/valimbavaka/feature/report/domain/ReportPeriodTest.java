@@ -95,4 +95,53 @@ class ReportPeriodTest {
         assertThat(sut.startsAfter(LocalDate.of(2026, 11, 1))).isFalse();
         assertThat(sut.startsAfter(LocalDate.of(2026, 10, 31))).isTrue();
     }
+
+    @Test
+    void points_month_isEveryDayOfTheMonthWithoutGap() {
+        // Arrange
+        var sut = ReportPeriod.containing(ReportGranularity.MONTH, LocalDate.of(2026, 2, 10));
+
+        // Act
+        var result = sut.points();
+
+        // Assert
+        assertThat(result).hasSize(28);
+        assertThat(result.getFirst()).isEqualTo(LocalDate.of(2026, 2, 1));
+        assertThat(result.getLast()).isEqualTo(LocalDate.of(2026, 2, 28));
+    }
+
+    @Test
+    void points_year_isTheFirstDayOfEachOfTheTwelveMonths() {
+        // Arrange
+        var sut = ReportPeriod.containing(ReportGranularity.YEAR, LocalDate.of(2026, 6, 1));
+
+        // Act
+        var result = sut.points();
+
+        // Assert
+        assertThat(result).hasSize(12);
+        assertThat(result.getFirst()).isEqualTo(LocalDate.of(2026, 1, 1));
+        assertThat(result.get(10)).isEqualTo(LocalDate.of(2026, 11, 1));
+        assertThat(result.getLast()).isEqualTo(LocalDate.of(2026, 12, 1));
+    }
+
+    @Test
+    void points_day_isThatSingleDay() {
+        // Arrange
+        var sut = ReportPeriod.containing(ReportGranularity.DAY, LocalDate.of(2026, 11, 11));
+
+        // Act + Assert
+        assertThat(sut.points()).containsExactly(LocalDate.of(2026, 11, 11));
+    }
+
+    @Test
+    void pointOf_yearAndMonth_isTheMonthStartOrTheDayItself() {
+        // Arrange
+        var year = ReportPeriod.containing(ReportGranularity.YEAR, LocalDate.of(2026, 6, 1));
+        var month = ReportPeriod.containing(ReportGranularity.MONTH, LocalDate.of(2026, 6, 1));
+
+        // Act + Assert
+        assertThat(year.pointOf(LocalDate.of(2026, 6, 17))).isEqualTo(LocalDate.of(2026, 6, 1));
+        assertThat(month.pointOf(LocalDate.of(2026, 6, 17))).isEqualTo(LocalDate.of(2026, 6, 17));
+    }
 }

@@ -1910,10 +1910,9 @@
     },
     "vs": "vs {{value}} période précédente",
     "revenueTitle": "Évolution du chiffre d'affaires",
-    "current": "Période en cours",
-    "previous": "Période précédente",
     "chart": {
-      "day": "Jour"
+      "day": "Jour",
+      "month": "Mois"
     },
     "ranges": {
       "title": "CA par gamme",

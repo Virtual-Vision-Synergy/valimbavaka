@@ -37,7 +37,16 @@ export interface ReportComparisonRDto {
   readonly variation: ReportVariationRDto;
 }
 
-/** Rapport d'une période (RPT-01, RPT-02) : période effective `[from, to]`, filtres, indicateurs et comparaison. */
+/**
+ * Un point de la courbe du CA (RPT-03) : un jour (période d'un jour ou d'un mois) ou le premier jour d'un mois
+ * (période d'une année), et son chiffre d'affaires (0 sans vente : la série n'a pas de trou).
+ */
+export interface ReportTrendPointRDto {
+  readonly date: string;
+  readonly revenue: number;
+}
+
+/** Rapport d'une période (RPT-01 à RPT-03) : période effective, filtres, indicateurs, comparaison et courbe du CA. */
 export interface ReportRDto {
   readonly granularity: ReportGranularity;
   readonly from: string;
@@ -46,19 +55,12 @@ export interface ReportRDto {
   readonly rangeId: string | null;
   readonly sales: ReportSalesRDto;
   readonly comparison: ReportComparisonRDto;
+  readonly trend: readonly ReportTrendPointRDto[];
 }
 
-/** Filtre de la démonstration des sections RPT-03 à RPT-05, branchées une à une par leurs tickets. */
+/** Filtre de la démonstration des sections RPT-04 et RPT-05, branchées une à une par leurs tickets. */
 export interface ReportDemoFilter {
   readonly granularity: ReportGranularity;
-}
-
-/** Un point de la courbe de chiffre d'affaires (RPT-03). */
-export interface ReportPointRDto {
-  readonly label: string;
-  readonly current: number;
-  readonly previous: number;
-  readonly today: boolean;
 }
 
 export interface ReportRangeRDto {
@@ -72,9 +74,8 @@ export interface ReportTopArticleRDto {
   readonly revenue: number;
 }
 
-/** Sections de démonstration (RPT-03 à RPT-05) : remplacées par l'API ticket par ticket. */
+/** Sections de démonstration (RPT-04 et RPT-05) : remplacées par l'API ticket par ticket. */
 export interface ReportDemoRDto {
-  readonly points: readonly ReportPointRDto[];
   readonly ranges: readonly ReportRangeRDto[];
   readonly top: readonly ReportTopArticleRDto[];
 }

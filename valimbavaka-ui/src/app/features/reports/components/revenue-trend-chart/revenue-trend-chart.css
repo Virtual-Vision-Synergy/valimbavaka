@@ -23,9 +23,6 @@
 .key.current::before {
   background: var(--primary);
 }
-.key.previous::before {
-  background: var(--gris-clair, #d9dde0);
-}
 .scroll {
   overflow-x: auto;
   padding-bottom: var(--space-2);
@@ -73,16 +70,13 @@
   gap: 2px;
 }
 .bar {
-  width: 9px;
-  max-width: 45%;
+  width: 14px;
+  max-width: 80%;
   border-radius: 3px 3px 0 0;
   transition: height 300ms ease;
 }
 .bar.current {
   background: var(--primary);
-}
-.bar.previous {
-  background: var(--gris-clair, #d9dde0);
 }
 .today .bar.current {
   outline: 2px solid var(--primary-strong, var(--primary));

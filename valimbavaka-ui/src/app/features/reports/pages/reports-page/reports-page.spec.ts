@@ -22,10 +22,15 @@ const REPORT: ReportRDto = {
     sales: { revenue: 20000, salesCount: 4, averageBasket: 5000 },
     variation: { revenue: 27.5, salesCount: -50, averageBasket: 155 },
   },
+  trend: [
+    { date: '2026-11-01', revenue: 0 },
+    { date: '2026-11-02', revenue: 8500 },
+    { date: '2026-11-03', revenue: 17000 },
+  ],
 };
 const page = (items: object[]) => ({ items, page: 1, pageSize: 100, totalCount: 1, totalPages: 1 });
 
-/** Rapports (RPT-01, RPT-02) : la synthèse, comparée à la période précédente, suit la période et les filtres. */
+/** Rapports (RPT-01 à RPT-03) : la synthèse, sa comparaison et la courbe du CA suivent la période et les filtres. */
 describe('ReportsPage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<ReportsPage>;
@@ -171,5 +176,44 @@ describe('ReportsPage', () => {
     const request = httpMock.expectOne((req) => req.url === REPORTS);
     expect(request.request.params.has('salesChannelId')).toBe(false);
     request.flush(REPORT);
+  });
+
+  it('should draw one bar per day of the period, a day without sale being an empty bar', async () => {
+    const element = await open();
+
+    const columns = element.querySelectorAll('.chart .column');
+    expect(columns).toHaveLength(3);
+    const heights = Array.from(element.querySelectorAll<HTMLElement>('.chart .bar')).map(
+      (bar) => bar.style.height,
+    );
+    expect(heights).toEqual(['0%', '42.5%', '85%']);
+    const rows = element.querySelectorAll('.chart table tbody tr');
+    expect(rows).toHaveLength(3);
+    expect(rows[2].textContent).toContain('17');
+  });
+
+  it('should draw one bar per month for a year, with a month column in the data table', async () => {
+    const element = await open();
+    const year = element.querySelector('input[type="radio"][value="YEAR"]') as HTMLInputElement;
+    year.click();
+    fixture.detectChanges();
+
+    httpMock
+      .expectOne((req) => req.url === REPORTS)
+      .flush({
+        ...REPORT,
+        granularity: 'YEAR',
+        from: '2026-01-01',
+        to: '2026-12-31',
+        trend: Array.from({ length: 12 }, (_, index) => ({
+          date: `2026-${String(index + 1).padStart(2, '0')}-01`,
+          revenue: index === 10 ? 25500 : 0,
+        })),
+      });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(element.querySelectorAll('.chart .column')).toHaveLength(12);
+    expect(element.querySelector('.chart thead th')?.textContent).toContain('Mois');
   });
 });
