@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.vvs.valimbavaka.core.exception.BusinessException;
 import org.vvs.valimbavaka.feature.report.domain.ReportFilter;
 import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
+import org.vvs.valimbavaka.feature.report.dto.ReportRangesRDto;
 import org.vvs.valimbavaka.feature.report.dto.ReportSalesRDto;
 import org.vvs.valimbavaka.feature.report.dto.ReportTrendPointRDto;
 import org.vvs.valimbavaka.feature.report.service.ReportSalesService;
@@ -218,11 +219,32 @@ class ReportServiceImplTest {
     }
 
     @Test
+    void getReport_ranges_isTheSplitOfThePeriodWithTheSameFilters() {
+        // Arrange
+        var channel = UUID.randomUUID();
+        var range = UUID.randomUUID();
+        var ranges = new ReportRangesRDto(new BigDecimal("1000.00"), List.of());
+        when(reportSalesService.getSales(any(ReportFilter.class))).thenReturn(SALES);
+        when(reportSalesService.getRanges(any(ReportFilter.class))).thenReturn(ranges);
+
+        // Act
+        var result = sut.getReport(ReportGranularity.MONTH, LocalDate.of(2026, 3, 10), channel, range);
+
+        // Assert
+        var captor = ArgumentCaptor.forClass(ReportFilter.class);
+        verify(reportSalesService).getRanges(captor.capture());
+        assertThat(captor.getValue().period().from()).isEqualTo(LocalDate.of(2026, 3, 1));
+        assertThat(captor.getValue().salesChannelId()).isEqualTo(channel);
+        assertThat(result.ranges()).isSameAs(ranges);
+    }
+
+    @Test
     void getReport_dayInTheFuture_doesNotReadTheCurve() {
         // Act + Assert
         assertThatThrownBy(() -> sut.getReport(ReportGranularity.DAY, LocalDate.of(2026, 12, 2), null, null))
                 .isInstanceOf(BusinessException.class);
         verify(reportSalesService, never()).getTrend(any(ReportFilter.class));
+        verify(reportSalesService, never()).getRanges(any(ReportFilter.class));
     }
 
     private void stubCurrentAndPrevious(ReportSalesRDto current, ReportSalesRDto previous) {

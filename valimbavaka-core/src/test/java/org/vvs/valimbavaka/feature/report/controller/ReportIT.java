@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,9 +35,9 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 
 /**
- * RPT-01 to RPT-03: daily, monthly and yearly report filtered by channel and range, compared with the previous
- * period, with its turnover curve, administrator only. The database is shared with other test classes: every
- * assertion is a difference between two readings of the same report.
+ * RPT-01 to RPT-04: daily, monthly and yearly report filtered by channel and range, compared with the previous
+ * period, with its turnover curve and its split by range, administrator only. The database is shared with other test
+ * classes: every assertion is a difference between two readings of the same report.
  */
 class ReportIT extends StockApiTestSupport {
 
@@ -367,6 +368,74 @@ class ReportIT extends StockApiTestSupport {
     }
 
     @Test
+    void getReport_ranges_splitTheRevenueOfEachRangeAndTheSharesAddUpTo100() throws Exception {
+        // Arrange
+        var soapBefore = rangeRevenue(MONTH, soapRange);
+        var creamBefore = rangeRevenue(MONTH, creamRange);
+        var salesBefore = revenue(MONTH);
+        var totalBefore = rangesRevenue(reportJson(MONTH));
+        createSale("STORE", List.of(soap, cream), List.of("1", "2"));
+
+        // Act
+        var json = reportJson(MONTH);
+
+        // Assert: 8500 for the soap range, 17000 for the cream range, the same total as the report
+        assertThat(rangeRevenue(MONTH, soapRange) - soapBefore).isEqualTo(8500.0);
+        assertThat(rangeRevenue(MONTH, creamRange) - creamBefore).isEqualTo(17000.0);
+        assertThat(rangesRevenue(json) - totalBefore).isEqualTo(revenue(MONTH) - salesBefore);
+        assertThat(itemsSum(json, "revenue")).isCloseTo(rangesRevenue(json), within(0.01));
+        assertThat(itemsSum(json, "share")).isCloseTo(100.0, within(0.0001));
+    }
+
+    @Test
+    void getReport_ranges_areSortedByDescendingRevenue() throws Exception {
+        // Arrange
+        createSale("STORE", List.of(soap, cream), List.of("1", "2"));
+
+        // Act
+        var values = (List<?>) JsonPath.read(reportJson(MONTH), "$.ranges.items[*].revenue");
+
+        // Assert
+        var amounts =
+                values.stream().map(value -> ((Number) value).doubleValue()).toList();
+        assertThat(amounts).isSortedAccordingTo(Comparator.reverseOrder());
+    }
+
+    @Test
+    void getReport_ranges_channelFilterAppliesButRangeFilterIsIgnored() throws Exception {
+        // Arrange
+        var facebook = MONTH + "&salesChannelId=" + channel("FACEBOOK");
+        var facebookSoap = facebook + "&rangeId=" + soapRange;
+        var soapBefore = rangeRevenue(facebook, soapRange);
+        var creamBefore = rangeRevenue(facebookSoap, creamRange);
+        createSale("FACEBOOK", List.of(soap, cream), List.of("1", "1"));
+        createSale("STORE", soap, "3");
+
+        // Act + Assert: the store sale is out, and the soap filter still shows the cream range
+        assertThat(rangeRevenue(facebook, soapRange) - soapBefore).isEqualTo(8500.0);
+        assertThat(rangeRevenue(facebookSoap, creamRange) - creamBefore).isEqualTo(8500.0);
+    }
+
+    @Test
+    void getReport_ranges_cancelledSaleIsNotCounted() throws Exception {
+        // Arrange
+        var before = rangeRevenue(MONTH, soapRange);
+        var saleId = createSale("STORE", soap, "1");
+        jdbcTemplate.update("update sales set status = 'CANCELLED' where id = ?", saleId);
+
+        // Act + Assert
+        assertThat(rangeRevenue(MONTH, soapRange)).isEqualTo(before);
+    }
+
+    @Test
+    void getReport_ranges_pastPeriodWithoutSale_isEmptyWithoutDividingByZero() throws Exception {
+        report(adminToken(), "?granularity=YEAR&date=2000-06-15")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ranges.revenue").value(0.0))
+                .andExpect(jsonPath("$.ranges.items.length()").value(0));
+    }
+
+    @Test
     void getReport_withoutToken_returns401() throws Exception {
         mockMvc.perform(get(REPORTS))
                 .andExpect(status().isUnauthorized())
@@ -411,6 +480,24 @@ class ReportIT extends StockApiTestSupport {
 
     private double trendSum(String json) {
         var values = (List<?>) JsonPath.read(json, "$.trend[*].revenue");
+        return values.stream()
+                .mapToDouble(value -> ((Number) value).doubleValue())
+                .sum();
+    }
+
+    /** Turnover of one range in the ranges block, 0 when the range sold nothing (it has no row). */
+    private double rangeRevenue(String parameters, UUID rangeId) throws Exception {
+        var path = "$.ranges.items[?(@.rangeId=='" + rangeId + "')].revenue";
+        var values = (List<?>) JsonPath.read(reportJson(parameters), path);
+        return values.isEmpty() ? 0.0 : ((Number) values.get(0)).doubleValue();
+    }
+
+    private double rangesRevenue(String json) {
+        return ((Number) JsonPath.read(json, "$.ranges.revenue")).doubleValue();
+    }
+
+    private double itemsSum(String json, String field) {
+        var values = (List<?>) JsonPath.read(json, "$.ranges.items[*]." + field);
         return values.stream()
                 .mapToDouble(value -> ((Number) value).doubleValue())
                 .sum();

@@ -23,7 +23,7 @@ circle {
   stroke: var(--gris-fond);
 }
 .slice {
-  stroke: var(--range-color);
+  stroke: var(--range-color, var(--gris-moyen));
 }
 .center {
   position: absolute;
@@ -52,9 +52,22 @@ circle {
 }
 .legend li {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(96px, auto) minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-3);
+}
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+}
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--range-color, var(--gris-moyen));
 }
 .amount {
   color: var(--gris-moyen);

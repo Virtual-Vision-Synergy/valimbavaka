@@ -19,7 +19,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.vvs.valimbavaka.feature.report.domain.ReportFilter;
 import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 import org.vvs.valimbavaka.feature.report.domain.ReportPeriod;
+import org.vvs.valimbavaka.feature.report.dto.ReportRangeRDto;
 import org.vvs.valimbavaka.feature.report.repository.DailyRevenue;
+import org.vvs.valimbavaka.feature.report.repository.RangeRevenue;
 import org.vvs.valimbavaka.feature.report.repository.ReportSaleRepository;
 import org.vvs.valimbavaka.feature.report.repository.SalesTotal;
 
@@ -172,5 +174,67 @@ class ReportSalesServiceImplTest {
         assertThat(result.get(0).revenue()).isEqualByComparingTo("4250");
         verify(reportSaleRepository).dailyRevenueByRange(FIRST, LAST, STORE, BOTANIKA);
         verifyNoMoreInteractions(reportSaleRepository);
+    }
+
+    @Test
+    void getRanges_twoRanges_givesRevenueAndSharesThatAddUpTo100() {
+        // Arrange
+        var botanika = new RangeRevenue(BOTANIKA, "BOTANIKA", "Botanika", new BigDecimal("17000.00"));
+        var zezika = new RangeRevenue(UUID.randomUUID(), "ZEZIKA", "Zezika", new BigDecimal("8500.00"));
+        when(reportSaleRepository.revenueByRange(FIRST, LAST, STORE)).thenReturn(List.of(botanika, zezika));
+
+        // Act
+        var result = sut.getRanges(new ReportFilter(NOVEMBER, STORE, null));
+
+        // Assert
+        assertThat(result.revenue()).isEqualByComparingTo("25500");
+        assertThat(result.items()).extracting(ReportRangeRDto::code).containsExactly("BOTANIKA", "ZEZIKA");
+        assertThat(result.items().get(0).share()).isEqualByComparingTo("66.7");
+        assertThat(result.items().get(1).share()).isEqualByComparingTo("33.3");
+        verify(reportSaleRepository).revenueByRange(FIRST, LAST, STORE);
+        verifyNoMoreInteractions(reportSaleRepository);
+    }
+
+    @Test
+    void getRanges_rangeFilterIsIgnored_readsEveryRangeInOneQuery() {
+        // Arrange
+        var botanika = new RangeRevenue(BOTANIKA, "BOTANIKA", "Botanika", new BigDecimal("500.00"));
+        when(reportSaleRepository.revenueByRange(FIRST, LAST, null)).thenReturn(List.of(botanika));
+
+        // Act
+        var result = sut.getRanges(new ReportFilter(NOVEMBER, null, UUID.randomUUID()));
+
+        // Assert
+        assertThat(result.items()).hasSize(1);
+        assertThat(result.items().getFirst().share()).isEqualByComparingTo("100.0");
+        verify(reportSaleRepository).revenueByRange(FIRST, LAST, null);
+        verifyNoMoreInteractions(reportSaleRepository);
+    }
+
+    @Test
+    void getRanges_noSale_isEmptyWithZeroRevenue() {
+        // Arrange
+        when(reportSaleRepository.revenueByRange(FIRST, LAST, null)).thenReturn(List.of());
+
+        // Act
+        var result = sut.getRanges(new ReportFilter(NOVEMBER, null, null));
+
+        // Assert
+        assertThat(result.items()).isEmpty();
+        assertThat(result.revenue()).isEqualByComparingTo("0");
+    }
+
+    @Test
+    void getRanges_rangesWithoutRevenue_haveZeroShares() {
+        // Arrange
+        var botanika = new RangeRevenue(BOTANIKA, "BOTANIKA", "Botanika", BigDecimal.ZERO);
+        when(reportSaleRepository.revenueByRange(FIRST, LAST, null)).thenReturn(List.of(botanika));
+
+        // Act
+        var result = sut.getRanges(new ReportFilter(NOVEMBER, null, null));
+
+        // Assert
+        assertThat(result.items().getFirst().share()).isEqualByComparingTo("0.0");
+        assertThat(result.revenue()).isEqualByComparingTo("0");
     }
 }

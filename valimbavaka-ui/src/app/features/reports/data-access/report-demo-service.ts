@@ -7,8 +7,8 @@ import { ReportDemoFilter, ReportDemoRDto } from './report-models';
 const PERIOD_SCALE = { DAY: 0.045, MONTH: 1, YEAR: 9.4 } as const;
 
 /**
- * Sections de démonstration de la page des rapports (gammes RPT-04, classement RPT-05) : les montants sont mis à
- * l'échelle selon la période. Chaque ticket remplace sa section par l'API.
+ * Section de démonstration de la page des rapports (classement RPT-05) : les montants sont mis à l'échelle selon
+ * la période. Le ticket RPT-05 la remplace par l'API.
  */
 @Injectable({ providedIn: 'root' })
 export class ReportDemoService {
@@ -16,7 +16,6 @@ export class ReportDemoService {
     const k = PERIOD_SCALE[filter.granularity];
     const base = REPORT_FIXTURE;
     return demo({
-      ranges: base.ranges.map((item) => ({ ...item, amount: item.amount * k })),
       top: base.top.map((item) => ({
         ...item,
         units: Math.round(item.units * k),

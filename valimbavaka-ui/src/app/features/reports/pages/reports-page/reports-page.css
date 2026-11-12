@@ -109,3 +109,9 @@ h2 {
 .summary .kpis {
   margin-bottom: 0;
 }
+
+.note {
+  margin: var(--space-3) 0 0;
+  color: var(--gris-moyen);
+  font-size: var(--text-xs);
+}

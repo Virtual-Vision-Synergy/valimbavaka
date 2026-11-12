@@ -1,45 +1,44 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AriaryPipe } from '../../../../shared/pipes/ariary-pipe';
-import { RangeTag } from '../../../../shared/components/range-tag/range-tag';
-import { ReportRangeRDto } from '../../data-access/report-models';
+import { ReportRangeRDto, ReportRangesRDto } from '../../data-access/report-models';
 
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 interface Arc {
   readonly item: ReportRangeRDto;
-  readonly percent: number;
+  /** Part en %, à une décimale, avec la virgule française : « 66,7 ». */
+  readonly percent: string;
   readonly dash: string;
   readonly offset: number;
 }
 
-/** Répartition du chiffre d'affaires par gamme (RPT-04) : anneau SVG + légende chiffrée. */
+/**
+ * Répartition du chiffre d'affaires par gamme (RPT-04) : anneau SVG + légende chiffrée. Les parts viennent de l'API
+ * (une décimale, total exactement 100,0) : le composant ne les recalcule pas.
+ */
 @Component({
   selector: 'vvs-range-donut',
-  imports: [TranslatePipe, AriaryPipe, RangeTag],
+  imports: [TranslatePipe, AriaryPipe],
   templateUrl: './range-donut.html',
   styleUrl: './range-donut.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RangeDonut {
-  readonly ranges = input.required<readonly ReportRangeRDto[]>();
+  readonly ranges = input.required<ReportRangesRDto>();
 
-  protected readonly total = computed(() =>
-    this.ranges().reduce((sum, item) => sum + item.amount, 0),
-  );
   protected readonly arcs = computed<readonly Arc[]>(() => {
-    const total = this.total() || 1;
     let consumed = 0;
-    return this.ranges().map((item) => {
-      const share = item.amount / total;
+    return this.ranges().items.map((item) => {
+      const fraction = item.share / 100;
       const arc: Arc = {
         item,
-        percent: Math.round(share * 100),
-        dash: `${share * CIRCUMFERENCE} ${CIRCUMFERENCE}`,
+        percent: item.share.toFixed(1).replace('.', ','),
+        dash: `${fraction * CIRCUMFERENCE} ${CIRCUMFERENCE}`,
         offset: -consumed * CIRCUMFERENCE,
       };
-      consumed += share;
+      consumed += fraction;
       return arc;
     });
   });

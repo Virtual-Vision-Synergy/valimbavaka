@@ -27,10 +27,17 @@ const REPORT: ReportRDto = {
     { date: '2026-11-02', revenue: 8500 },
     { date: '2026-11-03', revenue: 17000 },
   ],
+  ranges: {
+    revenue: 25500,
+    items: [
+      { rangeId: 'r-zez', code: 'ZEZIKA', label: 'Zezika', revenue: 17000, share: 66.7 },
+      { rangeId: 'r-bot', code: 'BOTANIKA', label: 'Botanika', revenue: 8500, share: 33.3 },
+    ],
+  },
 };
 const page = (items: object[]) => ({ items, page: 1, pageSize: 100, totalCount: 1, totalPages: 1 });
 
-/** Rapports (RPT-01 à RPT-03) : la synthèse, sa comparaison et la courbe du CA suivent la période et les filtres. */
+/** Rapports (RPT-01 à RPT-04) : synthèse, comparaison, courbe et gammes suivent la période et les filtres. */
 describe('ReportsPage', () => {
   let httpMock: HttpTestingController;
   let fixture: ComponentFixture<ReportsPage>;
@@ -215,5 +222,78 @@ describe('ReportsPage', () => {
 
     expect(element.querySelectorAll('.chart .column')).toHaveLength(12);
     expect(element.querySelector('.chart thead th')?.textContent).toContain('Mois');
+  });
+
+  it('should list each range with its revenue and its share, the biggest first', async () => {
+    const element = await open();
+
+    const rows = Array.from(element.querySelectorAll('.legend li')).map((row) =>
+      (row.textContent ?? '').replace(/\s+/g, ' ').trim(),
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toContain('Zezika');
+    expect(rows[0]).toContain('66,7 %');
+    expect(rows[1]).toContain('Botanika');
+    expect(rows[1]).toContain('33,3 %');
+    expect(element.querySelectorAll('circle.slice')).toHaveLength(2);
+    expect(element.querySelector('.legend li')?.getAttribute('data-range')).toBe('ZEZIKA');
+  });
+
+  it('should show an empty state and no ring when no range sold anything', async () => {
+    const element = await open();
+    const [channel] = Array.from(element.querySelectorAll('select')) as HTMLSelectElement[];
+
+    change(channel, 'c-fb');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((req) => req.url === REPORTS)
+      .flush({ ...REPORT, ranges: { revenue: 0, items: [] } });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(element.querySelector('vvs-range-donut')).toBeNull();
+    const section = element.querySelector('[aria-labelledby="range-title"]');
+    expect(section?.textContent).toContain('Aucune vente sur la période');
+    expect(section?.textContent).not.toContain('NaN');
+  });
+
+  it('should say that the range filter does not apply to the split', async () => {
+    const element = await open();
+    const [, range] = Array.from(element.querySelectorAll('select')) as HTMLSelectElement[];
+
+    change(range, 'r-bot');
+    fixture.detectChanges();
+    httpMock.expectOne((req) => req.url === REPORTS).flush({ ...REPORT, rangeId: 'r-bot' });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const section = element.querySelector('[aria-labelledby="range-title"]');
+    expect(section?.textContent).toContain("Le filtre gamme ne s'applique pas ici");
+    expect(element.querySelectorAll('.legend li')).toHaveLength(2);
+  });
+
+  it('should explain the gap when the sale discounts make the summary lower than the ranges', async () => {
+    const element = await open();
+    const [channel] = Array.from(element.querySelectorAll('select')) as HTMLSelectElement[];
+
+    change(channel, 'c-fb');
+    fixture.detectChanges();
+    httpMock
+      .expectOne((req) => req.url === REPORTS)
+      .flush({ ...REPORT, sales: { ...REPORT.sales, revenue: 25000 } });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const section = (
+      element.querySelector('[aria-labelledby="range-title"]')?.textContent ?? ''
+    ).replace(/\s+/g, ' ');
+    expect(section).toContain('Écart avec le CA de la synthèse');
+    expect(section).toContain('500');
+  });
+
+  it('should not mention a gap when the ranges add up to the summary', async () => {
+    const element = await open();
+
+    expect(element.querySelector('[aria-labelledby="range-title"] .note')).toBeNull();
   });
 });

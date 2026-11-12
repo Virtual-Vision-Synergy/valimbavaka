@@ -71,6 +71,7 @@ const answerApiCalls = async (): Promise<void> => {
                 { date: '2026-11-01', revenue: 0 },
                 { date: '2026-11-02', revenue: 8500 },
               ],
+              ranges: { revenue: 0, items: [] },
             }
           : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
     );

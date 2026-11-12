@@ -18,6 +18,10 @@ const REPORT: ReportRDto = {
     variation: { revenue: null, salesCount: null, averageBasket: null },
   },
   trend: [{ date: '2026-11-01', revenue: 25500 }],
+  ranges: {
+    revenue: 25500,
+    items: [{ rangeId: 'r-bot', code: 'BOTANIKA', label: 'Botanika', revenue: 25500, share: 100 }],
+  },
 };
 
 /** Rapports (RPT-01) : `GET /api/v1/reports` avec la période et les filtres canal et gamme. */

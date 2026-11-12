@@ -69,4 +69,23 @@ public interface ReportSaleRepository extends Repository<Sale, UUID> {
             order by s.businessDate
             """)
     List<DailyRevenue> dailyRevenueByRange(LocalDate from, LocalDate to, @Nullable UUID salesChannelId, UUID rangeId);
+
+    /**
+     * Turnover of every product range in one query (same {@code where} as {@link #totalsByRange}, without the range
+     * restriction), biggest first; the line totals are before the discount of the whole sale.
+     */
+    @Query("""
+            select new org.vvs.valimbavaka.feature.report.repository.RangeRevenue(
+                pr.id, pr.code, pr.label, sum(l.lineTotal))
+            from Sale s
+            join s.lines l
+            join Article a on a.id = l.articleId
+            join ProductRange pr on pr.id = a.rangeId
+            where s.businessDate between :from and :to
+              and s.status = org.vvs.valimbavaka.shared.operation.OperationStatus.VALIDATED
+              and (:salesChannelId is null or s.salesChannelId = :salesChannelId)
+            group by pr.id, pr.code, pr.label
+            order by sum(l.lineTotal) desc, pr.label
+            """)
+    List<RangeRevenue> revenueByRange(LocalDate from, LocalDate to, @Nullable UUID salesChannelId);
 }
