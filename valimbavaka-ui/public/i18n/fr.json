@@ -361,7 +361,11 @@
     "split": {
       "title": "Répartition du CA",
       "subtitle": "Par gamme et par canal, aujourd'hui",
-      "byChannel": "Par canal"
+      "byChannel": "Par canal",
+      "empty": {
+        "title": "Aucune vente validée aujourd'hui",
+        "message": "La répartition par gamme et par canal apparaîtra dès la première vente."
+      }
     },
     "stockAlerts": {
       "title": "Alertes de stock",

@@ -70,7 +70,11 @@
                 [failed]="revenueTrendFailed()"
                 (retry)="revenueTrend.reload()"
               />
-              <vvs-revenue-split-card [data]="data.demo" />
+              <vvs-revenue-split-card
+                [split]="revenueSplitValue()"
+                [failed]="revenueSplitFailed()"
+                (retry)="revenueSplit.reload()"
+              />
             </div>
             <vvs-top-articles-card
               [articles]="data.demo.topArticles"
