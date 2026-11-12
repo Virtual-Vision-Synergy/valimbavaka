@@ -1,6 +1,6 @@
 # Guide d'intégration — RPT-06 · Export des rapports en PDF/XLSX
 
-Statut : ✅ rédigé le 2026-11-12 (tests à lancer, voir « Résultat de l'exécution » du scénario) · Ticket : [#103](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/103) · [description](description.md) · [scénario de test](scenario-test.md)
+Statut : ✅ livré le 2026-11-12, tests verts en CI (voir « Résultat de l'exécution » du scénario) · Ticket : [#103](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/103) · [description](description.md) · [scénario de test](scenario-test.md)
 
 ## En bref
 
@@ -82,6 +82,7 @@ this.reportService.export(toQuery(this.filter()), 'pdf').subscribe({ error: () =
 
 - **Pas de `@ExcelExport`** : l'annotation de SYS-01 exporte une liste tabulaire d'un seul type ; un rapport a plusieurs blocs. Les deux routes sont donc écrites à la main (`ResponseEntity<Resource>`, comme `GET /api/v1/invoices/{id}/pdf`), sans l'événement `ExcelExportedEvent` ni le plafond de 10 000 lignes (le classement est borné à 10 articles et la courbe à 31 points au plus).
 - **PDF à un seul tableau** : `PdfExporter` n'écrit qu'un tableau par document. L'évolution, les gammes et le classement s'enchaînent donc dans la même table (colonnes Bloc, Libellé, Quantité, CA, Marge, Part) ; les filtres et les trois indicateurs avec leur comparaison sont en lignes d'information sous le titre. Le xlsx, lui, garde un onglet par bloc, avec des cellules numériques. Hypothèse retenue : le plus simple qui contient tous les chiffres de l'écran.
+- **Bloc « Gammes » et filtre gamme** : la répartition par gamme ignore le filtre gamme (règle de RPT-04, identique à l'écran) ; l'onglet « Gammes » et les lignes « Gamme » du PDF listent donc toutes les gammes vendues, même quand le rapport est filtré sur une seule.
 - **Courbe annuelle** : le xlsx garde la date du premier jour du mois (`01/03/2026`), le PDF écrit `03/2026`.
 - **Polices du PDF** : Helvetica, Latin-1 : le français passe, pas les caractères hors Latin-1 (voir SYS-01).
 - **Journal** : aucun enregistrement d'export (voir « Données »).
