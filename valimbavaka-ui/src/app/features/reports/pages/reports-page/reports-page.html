@@ -126,58 +126,63 @@
     }
   </section>
 
-  <div aria-live="polite">
+  <div class="grid" aria-live="polite">
+    <section class="card wide" aria-labelledby="rev-title">
+      <h2 id="rev-title">
+        {{ 'reports.revenueTitle' | translate }}
+        <span class="code-chip" aria-hidden="true">RPT-03</span>
+      </h2>
+      @if (summary.value(); as data) {
+        <vvs-revenue-trend-chart
+          [caption]="'reports.revenueTitle' | translate"
+          [points]="data.trend"
+          [granularity]="data.granularity"
+          [today]="today"
+          [revenueLabel]="'reports.kpi.revenue' | translate"
+        />
+      } @else if (summary.error()) {
+        <vvs-list-state kind="error" (retry)="summary.reload()" />
+      } @else {
+        <vvs-list-state kind="loading" [rows]="6" />
+      }
+    </section>
+
     @if (report.value(); as data) {
-      <div class="grid">
-        <section class="card wide" aria-labelledby="rev-title">
-          <h2 id="rev-title">
-            {{ 'reports.revenueTitle' | translate }}
-            <span class="code-chip" aria-hidden="true">RPT-03</span>
-          </h2>
-          <vvs-revenue-compare-chart
-            [caption]="'reports.revenueTitle' | translate"
-            [points]="data.points"
-            [currentLabel]="'reports.current' | translate"
-            [previousLabel]="'reports.previous' | translate"
-          />
-        </section>
+      <section class="card" aria-labelledby="range-title">
+        <h2 id="range-title">
+          {{ 'reports.ranges.title' | translate }}
+          <span class="code-chip" aria-hidden="true">RPT-04</span>
+        </h2>
+        <vvs-range-donut [ranges]="data.ranges" />
+      </section>
 
-        <section class="card" aria-labelledby="range-title">
-          <h2 id="range-title">
-            {{ 'reports.ranges.title' | translate }}
-            <span class="code-chip" aria-hidden="true">RPT-04</span>
-          </h2>
-          <vvs-range-donut [ranges]="data.ranges" />
-        </section>
-
-        <section class="card" aria-labelledby="top-title">
-          <h2 id="top-title">
-            {{ 'reports.top.title' | translate }}
-            <span class="code-chip" aria-hidden="true">RPT-05</span>
-          </h2>
-          <ol class="top">
-            @for (item of data.top; track item.name; let rank = $index) {
-              <li>
-                <span class="rank num" aria-hidden="true">{{ rank + 1 }}</span>
-                <span class="name">
-                  <strong>{{ item.name }}</strong>
-                  <span class="muted num">{{
-                    'reports.top.units' | translate: { count: item.units }
-                  }}</span>
-                </span>
-                <strong class="num">{{ compact(item.revenue) }} Ar</strong>
-              </li>
-            }
-          </ol>
-          <button class="link" type="button" (click)="exportAs('Top 20')">
-            {{ 'reports.top.all' | translate }}
-          </button>
-        </section>
-      </div>
+      <section class="card" aria-labelledby="top-title">
+        <h2 id="top-title">
+          {{ 'reports.top.title' | translate }}
+          <span class="code-chip" aria-hidden="true">RPT-05</span>
+        </h2>
+        <ol class="top">
+          @for (item of data.top; track item.name; let rank = $index) {
+            <li>
+              <span class="rank num" aria-hidden="true">{{ rank + 1 }}</span>
+              <span class="name">
+                <strong>{{ item.name }}</strong>
+                <span class="muted num">{{
+                  'reports.top.units' | translate: { count: item.units }
+                }}</span>
+              </span>
+              <strong class="num">{{ compact(item.revenue) }} Ar</strong>
+            </li>
+          }
+        </ol>
+        <button class="link" type="button" (click)="exportAs('Top 20')">
+          {{ 'reports.top.all' | translate }}
+        </button>
+      </section>
     } @else if (report.error()) {
-      <div class="card"><vvs-list-state kind="error" (retry)="report.reload()" /></div>
+      <div class="card wide"><vvs-list-state kind="error" (retry)="report.reload()" /></div>
     } @else {
-      <div class="card"><vvs-list-state kind="loading" [rows]="6" /></div>
+      <div class="card wide"><vvs-list-state kind="loading" [rows]="6" /></div>
     }
   </div>
 </div>

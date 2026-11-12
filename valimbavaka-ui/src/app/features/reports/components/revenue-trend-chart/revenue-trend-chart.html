@@ -1,0 +1,50 @@
+<figure class="chart">
+  <figcaption class="legend" aria-hidden="true">
+    <span class="key current">{{ revenueLabel() }}</span>
+  </figcaption>
+  <div class="scroll">
+    <div class="plot" aria-hidden="true" [style.min-width.px]="bars().length * 28 + 56">
+      <div class="axis">
+        @for (tick of ticks(); track tick.ratio) {
+          <span class="tick" [style.bottom.%]="tick.ratio">{{ tick.label }}</span>
+        }
+      </div>
+      <div class="area">
+        @for (tick of ticks(); track tick.ratio) {
+          <span class="gridline" [style.bottom.%]="tick.ratio"></span>
+        }
+        @for (bar of bars(); track bar.key) {
+          <div class="column" [class.today]="bar.today">
+            <div class="pair">
+              <span class="bar current" [style.height.%]="percent(bar.revenue)"></span>
+            </div>
+            <span class="label">{{ bar.short }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  <table class="sr-only">
+    <caption>
+      {{
+        caption()
+      }}
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">
+          {{ (granularity() === 'YEAR' ? 'reports.chart.month' : 'reports.chart.day') | translate }}
+        </th>
+        <th scope="col">{{ revenueLabel() }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (bar of bars(); track bar.key) {
+        <tr>
+          <th scope="row">{{ bar.long }}</th>
+          <td>{{ format(bar.revenue) }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</figure>

@@ -1,22 +1,6 @@
-import { ReportDemoRDto, ReportPointRDto } from './report-models';
-
-/** Chiffre d'affaires d'un jour de démonstration : creux en début de semaine, pic le week-end. */
-function dayRevenue(day: number, seed: number): number {
-  const wave = 0.72 + 0.28 * Math.sin(day * 0.9 + seed);
-  return Math.round((1_050_000 * wave) / 1000) * 1000;
-}
-
-function points(count: number, todayIndex: number): readonly ReportPointRDto[] {
-  return Array.from({ length: count }, (_, index) => ({
-    label: String(index + 1),
-    current: dayRevenue(index + 1, 0),
-    previous: dayRevenue(index + 1, 1.6) * 0.92,
-    today: index === todayIndex,
-  }));
-}
+import { ReportDemoRDto } from './report-models';
 
 export const REPORT_FIXTURE: ReportDemoRDto = {
-  points: points(22, 21),
   ranges: [
     { range: 'BOTANIKA', amount: 11_300_000 },
     { range: 'ZEZIKA', amount: 7_900_000 },
