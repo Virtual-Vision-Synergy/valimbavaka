@@ -1,6 +1,7 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HttpHeaders, provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { ToastService } from '../../../shared/components/toast/toast-service';
 import { ReportRDto } from './report-models';
 import { ReportService } from './report-service';
 
@@ -78,5 +79,58 @@ describe('ReportService', () => {
     expect(request.request.params.has('rangeId')).toBe(false);
     expect(request.request.params.has('date')).toBe(false);
     request.flush(REPORT);
+  });
+
+  describe('export (RPT-06)', () => {
+    let anchorClick: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      URL.createObjectURL = vi.fn(() => 'blob:export');
+      URL.revokeObjectURL = vi.fn();
+      anchorClick = vi
+        .spyOn(HTMLAnchorElement.prototype, 'click')
+        .mockImplementation(() => undefined);
+    });
+
+    afterEach(() => anchorClick.mockRestore());
+
+    it('downloads the xlsx of the displayed report with the same criteria, then confirms it', () => {
+      let filename: string | undefined;
+
+      service
+        .export(
+          { granularity: 'YEAR', date: '2026-11-11', salesChannelId: 'c-1', rangeId: '' },
+          'xlsx',
+        )
+        .subscribe((name) => (filename = name));
+
+      const request = httpMock.expectOne((req) => req.url === '/api/v1/reports/export');
+      expect(request.request.params.get('granularity')).toBe('YEAR');
+      expect(request.request.params.get('date')).toBe('2026-11-11');
+      expect(request.request.params.get('salesChannelId')).toBe('c-1');
+      expect(request.request.params.has('rangeId')).toBe(false);
+      request.flush(new Blob(['xlsx']), {
+        headers: new HttpHeaders({
+          'Content-Disposition': 'attachment; filename="rapport-annuel-2026.xlsx"',
+        }),
+      });
+      expect(filename).toBe('rapport-annuel-2026.xlsx');
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+      expect(TestBed.inject(ToastService).toasts()).toEqual([
+        expect.objectContaining({
+          messageKey: 'export.done',
+          params: { filename: 'rapport-annuel-2026.xlsx' },
+        }),
+      ]);
+    });
+
+    it('calls the PDF route', () => {
+      service.export({ granularity: 'DAY', date: '2026-11-12' }, 'pdf').subscribe();
+
+      const request = httpMock.expectOne((req) => req.url === '/api/v1/reports/export/pdf');
+      expect(request.request.params.get('granularity')).toBe('DAY');
+      request.flush(new Blob(['%PDF']));
+      expect(anchorClick).toHaveBeenCalledTimes(1);
+    });
   });
 });
