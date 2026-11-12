@@ -6,6 +6,8 @@ export interface ChartBar {
   /** Valeur affichée au-dessus de la barre et dans le tableau accessible. */
   readonly display: string;
   readonly highlight?: boolean;
+  /** Infobulle affichée au survol de la colonne (valeur exacte) ; absente = pas d'infobulle. */
+  readonly tooltip?: string;
 }
 
 export interface ChartTick {
