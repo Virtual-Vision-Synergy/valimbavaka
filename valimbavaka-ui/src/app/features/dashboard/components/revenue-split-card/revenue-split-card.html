@@ -9,32 +9,47 @@
     </div>
   </header>
 
-  <ul class="ranges">
-    @for (item of ranges(); track item.range) {
-      <li class="range">
-        <div class="range-head">
-          <vvs-range-tag [range]="item.range" />
-          <span class="amount num">{{ item.amount | ariary }} · {{ item.share }} %</span>
-        </div>
-        <div class="bar" aria-hidden="true">
-          <span [attr.data-range]="item.range" [style.width.%]="item.share"></span>
-        </div>
-      </li>
-    }
-  </ul>
+  @if (failed()) {
+    <vvs-list-state kind="error" (retry)="retry.emit()" />
+  } @else if (!split()) {
+    <vvs-list-state kind="loading" [rows]="4" />
+  } @else if (empty()) {
+    <vvs-list-state
+      kind="empty"
+      titleKey="dashboard.split.empty.title"
+      messageKey="dashboard.split.empty.message"
+    />
+  } @else {
+    <ul class="ranges">
+      @for (item of ranges(); track item.rangeId) {
+        <li class="range">
+          <div class="range-head">
+            <span class="tag" [attr.data-range]="item.code">{{ item.label }}</span>
+            <span class="amount num">{{ item.revenue | ariary }} · {{ item.percent }} %</span>
+          </div>
+          <div class="bar" aria-hidden="true">
+            <span [attr.data-range]="item.code" [style.width.%]="item.sharePercent"></span>
+          </div>
+        </li>
+      }
+    </ul>
 
-  <h3 class="channels-title">{{ 'dashboard.split.byChannel' | translate }}</h3>
-  <div class="stack" aria-hidden="true">
-    @for (item of channels(); track item.channel) {
-      <span [attr.data-channel]="item.channel" [style.width.%]="item.share"></span>
-    }
-  </div>
-  <dl class="channels">
-    @for (item of channels(); track item.channel) {
-      <div [attr.data-channel]="item.channel">
-        <dt>{{ 'dashboard.channel.' + item.channel | translate }}</dt>
-        <dd class="num">{{ item.amount | ariary: 'kilo' }}</dd>
-      </div>
-    }
-  </dl>
+    <h3 class="channels-title">{{ 'dashboard.split.byChannel' | translate }}</h3>
+    <div class="stack" aria-hidden="true">
+      @for (item of channels(); track item.salesChannelId) {
+        <span [attr.data-slot]="item.slot" [style.width.%]="item.sharePercent"></span>
+      }
+    </div>
+    <dl class="channels">
+      @for (item of channels(); track item.salesChannelId) {
+        <div [attr.data-slot]="item.slot">
+          <dt>{{ item.label ?? ('dashboard.kpi.unknownChannel' | translate) }}</dt>
+          <dd class="num">
+            {{ item.revenue | ariary: 'kilo' }}
+            <span class="share">{{ item.percent }} %</span>
+          </dd>
+        </div>
+      }
+    </dl>
+  }
 </section>

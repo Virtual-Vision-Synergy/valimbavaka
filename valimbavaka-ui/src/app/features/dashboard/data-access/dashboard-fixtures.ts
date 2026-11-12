@@ -17,16 +17,6 @@ export const DASHBOARD_DEMO_FIXTURE: DashboardDemoRDto = {
     { code: 'DELIVERIES', state: 'current', params: { done: 9, total: 14 } },
     { code: 'CLOSING', state: 'upcoming', params: { time: '19:00' } },
   ],
-  revenueByRange: [
-    { range: 'BOTANIKA', amount: 562_000 },
-    { range: 'ZEZIKA', amount: 436_000 },
-    { range: 'SOLIKA', amount: 286_000 },
-  ],
-  revenueByChannel: [
-    { channel: 'SHOP', amount: 668_000 },
-    { channel: 'FACEBOOK', amount: 398_000 },
-    { channel: 'PHONE', amount: 218_000 },
-  ],
   activity: [
     {
       id: 'a1',
