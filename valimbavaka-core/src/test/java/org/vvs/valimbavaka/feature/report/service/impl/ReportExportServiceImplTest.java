@@ -60,7 +60,8 @@ class ReportExportServiceImplTest {
         var channelId = UUID.randomUUID();
         var rangeId = UUID.randomUUID();
         var report = report(channelId, rangeId);
-        when(reportService.getReport(ReportGranularity.DAY, DAY, channelId, rangeId)).thenReturn(report);
+        when(reportService.getReport(ReportGranularity.DAY, DAY, channelId, rangeId))
+                .thenReturn(report);
         when(reportSaleRepository.salesChannelLabel(channelId)).thenReturn(Optional.of("Boutique"));
         when(reportSaleRepository.productRangeLabel(rangeId)).thenReturn(Optional.of("Soins"));
         when(writer.xlsx(report, new ReportLabels("Boutique", "Soins"))).thenReturn(new byte[] {1, 2, 3});

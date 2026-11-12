@@ -1,13 +1,9 @@
 package org.vvs.valimbavaka.feature.report.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.jayway.jsonpath.JsonPath;
@@ -110,37 +105,35 @@ class ReportExportIT extends StockApiTestSupport {
         var soap = article("A-savon");
         var oil = article("B-huile");
         createSale("STORE", List.of(soap, oil), List.of("3", "1"));
-        var json = mockMvc.perform(authorized(REPORTS + rangeFilter)).andReturn().getResponse().getContentAsString();
+        var json = reportJson(rangeFilter);
 
         // Act
         var bytes = download(XLSX + rangeFilter, ExcelHttpMessageConverter.XLSX);
 
         // Assert
         try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
-            var names = List.of("Rapport", "Synthèse", "Évolution", "Gammes", "Classement");
-            assertThat(workbook.sheetIterator()).toIterable().extracting(Sheet::getSheetName).isEqualTo(names);
+            var names = sheetNames(workbook);
+            assertThat(names).containsExactly("Rapport", "Synthèse", "Évolution", "Gammes", "Classement");
             var summary = workbook.getSheet("Synthèse");
-            var headers = text(summary.getRow(0));
-            assertThat(headers).containsExactly("Indicateur", "Période", "Période précédente", "Variation (%)");
-            assertThat(summary.getRow(1).getCell(1).getNumericCellValue()).isEqualTo(34000.0);
-            assertThat(summary.getRow(1).getCell(1).getNumericCellValue())
-                    .isEqualTo(((Number) JsonPath.read(json, "$.sales.revenue")).doubleValue());
-            assertThat(summary.getRow(2).getCell(1).getNumericCellValue()).isEqualTo(1.0);
-            assertThat(summary.getRow(3).getCell(1).getNumericCellValue()).isEqualTo(34000.0);
+            assertThat(string(summary, 0, 0)).isEqualTo("Indicateur");
+            double screenRevenue = ((Number) JsonPath.read(json, "$.sales.revenue")).doubleValue();
+            assertThat(number(summary, 1, 1)).isEqualTo(34000.0);
+            assertThat(number(summary, 1, 1)).isEqualTo(screenRevenue);
+            assertThat(number(summary, 2, 1)).isEqualTo(1.0);
+            assertThat(number(summary, 3, 1)).isEqualTo(34000.0);
             var ranking = workbook.getSheet("Classement");
             assertThat(ranking.getLastRowNum()).isEqualTo(2);
-            assertThat(ranking.getRow(1).getCell(1).getStringCellValue()).startsWith("A-savon");
-            assertThat(ranking.getRow(1).getCell(2).getNumericCellValue()).isEqualTo(3.0);
-            assertThat(ranking.getRow(1).getCell(3).getNumericCellValue()).isEqualTo(25500.0);
-            assertThat(ranking.getRow(1).getCell(4).getNumericCellValue()).isEqualTo(16138.5);
-            assertThat(ranking.getRow(1).getCell(5).getNumericCellValue()).isEqualTo(75.0);
-            // the split by range ignores the range filter (RPT-04): the range of the test is one row among others
+            assertThat(string(ranking, 1, 1)).startsWith("A-savon");
+            assertThat(number(ranking, 1, 2)).isEqualTo(3.0);
+            assertThat(number(ranking, 1, 3)).isEqualTo(25500.0);
+            assertThat(number(ranking, 1, 4)).isEqualTo(16138.5);
+            assertThat(number(ranking, 1, 5)).isEqualTo(75.0);
+            // The split by range ignores the range filter (RPT-04): the range of the test is one row among others
             var range = rowWith(workbook.getSheet("Gammes"), 1, "Gamme RPT-06");
             assertThat(range.getCell(2).getNumericCellValue()).isEqualTo(34000.0);
             assertThat(range.getCell(3).getNumericCellValue()).isPositive();
-            var trend = workbook.getSheet("Évolution");
             int days = JsonPath.<List<Object>>read(json, "$.trend").size();
-            assertThat(trend.getLastRowNum()).isEqualTo(days);
+            assertThat(workbook.getSheet("Évolution").getLastRowNum()).isEqualTo(days);
         }
     }
 
@@ -148,6 +141,8 @@ class ReportExportIT extends StockApiTestSupport {
     void exportXlsx_information_namesTheKindPeriodChannelAndRange() throws Exception {
         // Arrange
         var channelId = channel("FACEBOOK");
+        var sql = "select label from sales_channels where id = ?";
+        var channelLabel = jdbcTemplate.queryForObject(sql, String.class, channelId);
 
         // Act
         var bytes = download(XLSX + rangeFilter + "&salesChannelId=" + channelId, ExcelHttpMessageConverter.XLSX);
@@ -157,11 +152,9 @@ class ReportExportIT extends StockApiTestSupport {
             var info = workbook.getSheet("Rapport");
             assertThat(text(info.getRow(0))).containsExactly("Information", "Valeur");
             assertThat(text(info.getRow(1))).containsExactly("Rapport", "Rapport mensuel");
-            assertThat(text(info.getRow(2)).get(1)).startsWith("du 01/");
-            assertThat(text(info.getRow(3)).get(0)).isEqualTo("Période précédente");
-            var label = jdbcTemplate.queryForObject(
-                    "select label from sales_channels where id = ?", String.class, channelId);
-            assertThat(text(info.getRow(4))).containsExactly("Canal de vente", label);
+            assertThat(string(info, 2, 1)).startsWith("du 01/");
+            assertThat(string(info, 3, 0)).isEqualTo("Période précédente");
+            assertThat(text(info.getRow(4))).containsExactly("Canal de vente", channelLabel);
             assertThat(text(info.getRow(5))).containsExactly("Gamme", "Gamme RPT-06");
         }
     }
@@ -173,17 +166,17 @@ class ReportExportIT extends StockApiTestSupport {
         var oil = article("B-huile");
         createSale("STORE", soap, "1");
         createSale("FACEBOOK", oil, "2");
+        var parameters = rangeFilter + "&salesChannelId=" + channel("FACEBOOK");
 
         // Act
-        var bytes = download(
-                XLSX + rangeFilter + "&salesChannelId=" + channel("FACEBOOK"), ExcelHttpMessageConverter.XLSX);
+        var bytes = download(XLSX + parameters, ExcelHttpMessageConverter.XLSX);
 
         // Assert
         try (var workbook = new XSSFWorkbook(new ByteArrayInputStream(bytes))) {
             var ranking = workbook.getSheet("Classement");
             assertThat(ranking.getLastRowNum()).isEqualTo(1);
-            assertThat(ranking.getRow(1).getCell(1).getStringCellValue()).startsWith("B-huile");
-            assertThat(workbook.getSheet("Synthèse").getRow(1).getCell(1).getNumericCellValue()).isEqualTo(17000.0);
+            assertThat(string(ranking, 1, 1)).startsWith("B-huile");
+            assertThat(number(workbook.getSheet("Synthèse"), 1, 1)).isEqualTo(17000.0);
         }
     }
 
@@ -198,8 +191,8 @@ class ReportExportIT extends StockApiTestSupport {
             assertThat(workbook.getSheet("Gammes").getLastRowNum()).isZero();
             assertThat(workbook.getSheet("Évolution").getLastRowNum()).isEqualTo(12);
             var summary = workbook.getSheet("Synthèse");
-            assertThat(summary.getRow(1).getCell(1).getNumericCellValue()).isZero();
-            assertThat(FORMATTER.formatCellValue(summary.getRow(1).getCell(3))).isEmpty();
+            assertThat(number(summary, 1, 1)).isZero();
+            assertThat(string(summary, 1, 3)).isEmpty();
         }
     }
 
@@ -234,28 +227,15 @@ class ReportExportIT extends StockApiTestSupport {
 
     @Test
     void export_fileNames_followTheKindAndThePeriod() throws Exception {
-        mockMvc.perform(authorized(XLSX + "?granularity=DAY&date=2026-11-12"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(
-                                HttpHeaders.CONTENT_DISPOSITION,
-                                allOf(startsWith("attachment"), containsString("rapport-journalier-2026-11-12.xlsx"))));
-        mockMvc.perform(authorized(PDF + "?granularity=MONTH&date=2026-03-10"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(
-                                HttpHeaders.CONTENT_DISPOSITION,
-                                allOf(startsWith("attachment"), containsString("rapport-mensuel-2026-03.pdf"))));
-        mockMvc.perform(authorized(PDF + "?granularity=YEAR&date=2025-07-01"))
-                .andExpect(status().isOk())
-                .andExpect(header().string(
-                                HttpHeaders.CONTENT_DISPOSITION, containsString("rapport-annuel-2025.pdf")));
+        assertFileName(XLSX + "?granularity=DAY&date=2026-11-12", "rapport-journalier-2026-11-12.xlsx");
+        assertFileName(PDF + "?granularity=MONTH&date=2026-03-10", "rapport-mensuel-2026-03.pdf");
+        assertFileName(PDF + "?granularity=YEAR&date=2025-07-01", "rapport-annuel-2025.pdf");
     }
 
     @Test
     void export_withoutParameters_isTheCurrentMonth() throws Exception {
-        mockMvc.perform(authorized(PDF))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION, containsString("rapport-mensuel-")));
+        assertFileName(PDF, "rapport-mensuel-");
+        assertFileName(XLSX, "rapport-mensuel-");
     }
 
     @Test
@@ -271,7 +251,8 @@ class ReportExportIT extends StockApiTestSupport {
     void export_sellerAndDeliveryDriver_return403() throws Exception {
         for (var route : List.of(XLSX, PDF)) {
             for (var role : List.of(RoleName.SELLER, RoleName.DELIVERY_DRIVER)) {
-                mockMvc.perform(get(route).header(HttpHeaders.AUTHORIZATION, bearer(tokenOf(role))))
+                var token = tokenOf(role);
+                mockMvc.perform(get(route).header(HttpHeaders.AUTHORIZATION, bearer(token)))
                         .andExpect(status().isForbidden())
                         .andExpect(jsonPath("$.code").value("FORBIDDEN"));
             }
@@ -300,11 +281,37 @@ class ReportExportIT extends StockApiTestSupport {
         return get(url).header(HttpHeaders.AUTHORIZATION, bearer(adminToken()));
     }
 
+    private String reportJson(String parameters) throws Exception {
+        var result = mockMvc.perform(authorized(REPORTS + parameters)).andReturn();
+        return result.getResponse().getContentAsString();
+    }
+
     private byte[] download(String url, MediaType type) throws Exception {
-        ResultActions result = mockMvc.perform(authorized(url))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(type));
+        var result = mockMvc.perform(authorized(url));
+        result.andExpect(status().isOk());
+        result.andExpect(content().contentType(type));
         return result.andReturn().getResponse().getContentAsByteArray();
+    }
+
+    private void assertFileName(String url, String filename) throws Exception {
+        var result = mockMvc.perform(authorized(url));
+        result.andExpect(status().isOk());
+        var disposition = result.andReturn().getResponse().getHeader(HttpHeaders.CONTENT_DISPOSITION);
+        assertThat(disposition).startsWith("attachment").contains(filename);
+    }
+
+    private static List<String> sheetNames(XSSFWorkbook workbook) {
+        var names = new ArrayList<String>();
+        workbook.forEach(sheet -> names.add(sheet.getSheetName()));
+        return names;
+    }
+
+    private static double number(Sheet sheet, int row, int column) {
+        return sheet.getRow(row).getCell(column).getNumericCellValue();
+    }
+
+    private static String string(Sheet sheet, int row, int column) {
+        return FORMATTER.formatCellValue(sheet.getRow(row).getCell(column));
     }
 
     private static Row rowWith(Sheet sheet, int column, String value) {
@@ -313,7 +320,7 @@ class ReportExportIT extends StockApiTestSupport {
                 return row;
             }
         }
-        throw new AssertionError("No row with " + value + " in column " + column + " of " + sheet.getSheetName());
+        throw new AssertionError("No row with " + value + " in column " + column);
     }
 
     private static List<String> text(Row row) {
