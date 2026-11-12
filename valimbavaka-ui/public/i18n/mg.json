@@ -352,15 +352,11 @@
       "PHONE": "Telefaonina"
     },
     "chart": {
-      "week": "7 andro",
-      "month": "4 herinandro",
-      "window": "Fe-potoanan'ny sary",
       "today": "Androany",
-      "thisWeek": "Ity herinandro ity",
       "titleWeek": "Vola niditra · 7 andro farany",
-      "titleMonth": "Vola niditra · 4 herinandro farany",
       "summary": "Totaliny {{total}} · salany {{average}}",
-      "previous": "Fe-potoana teo aloha"
+      "previous": "Andro teo aloha",
+      "tooltip": "{{date}} : {{amount}} · {{count}} varotra"
     },
     "split": {
       "title": "Fizarana ny vola niditra",

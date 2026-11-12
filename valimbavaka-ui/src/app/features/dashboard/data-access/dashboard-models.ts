@@ -55,10 +55,19 @@ export interface StockGapKpiRDto {
   readonly articles: number;
 }
 
-export interface DailyRevenueRDto {
+/** Un jour du graphique du CA (DSH-02) : chiffre d'affaires des ventes validées, 0 sans vente. */
+export interface RevenueTrendPointRDto {
   /** Date ISO (yyyy-MM-dd). */
   readonly date: string;
-  readonly amount: number;
+  readonly revenue: number;
+  readonly salesCount: number;
+}
+
+/** CA des 7 derniers jours lu sur `GET /api/v1/dashboard/revenue-trend` : un point par jour, le plus ancien d'abord. */
+export interface RevenueTrendRDto {
+  readonly from: string;
+  readonly to: string;
+  readonly points: readonly RevenueTrendPointRDto[];
 }
 
 export interface RangeRevenueRDto {
@@ -110,7 +119,7 @@ export interface DashboardRDto {
 }
 
 /**
- * Zones du cockpit encore simulées : graphiques (DSH-02), répartition (DSH-04), flux d'activité, meilleurs articles,
+ * Zones du cockpit encore simulées : répartition (DSH-04), flux d'activité, meilleurs articles,
  * vendeuses, objectif mensuel et étapes. Chaque zone sortira d'ici quand son API existera ; elles ne contiennent plus
  * aucun des 4 indicateurs.
  */
@@ -122,15 +131,9 @@ export interface DashboardDemoRDto {
   readonly monthlyTarget: number;
   readonly monthlyRevenue: number;
   readonly steps: readonly DayStepRDto[];
-  readonly revenueLast7Days: readonly DailyRevenueRDto[];
-  /** Chiffre d'affaires des 4 dernières semaines, `date` = lundi de la semaine. */
-  readonly revenueLast4Weeks: readonly DailyRevenueRDto[];
   readonly revenueByRange: readonly RangeRevenueRDto[];
   readonly revenueByChannel: readonly ChannelRevenueRDto[];
   readonly activity: readonly ActivityRDto[];
   readonly topArticles: readonly TopArticleRDto[];
   readonly sellers: readonly SellerPerformanceRDto[];
 }
-
-/** Fenêtre du graphique de chiffre d'affaires. */
-export type RevenueWindow = 'WEEK' | 'MONTH';

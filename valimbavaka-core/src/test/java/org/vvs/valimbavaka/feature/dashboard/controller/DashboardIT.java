@@ -34,12 +34,14 @@ import org.vvs.valimbavaka.feature.user.repository.RoleRepository;
 import org.vvs.valimbavaka.feature.user.repository.UserRepository;
 
 /**
- * DSH-01: daily cockpit (turnover, sales, deliveries, stock gap), administrator only. The database is shared with the
- * other test classes: every test reads the cockpit before and after its own operations and compares.
+ * DSH-01: daily cockpit (turnover, sales, deliveries, stock gap), administrator only; DSH-02: its seven-day turnover
+ * trend. The database is shared with the other test classes: every test reads the cockpit before and after its own
+ * operations and compares.
  */
 class DashboardIT extends StockApiTestSupport {
 
     private static final String DASHBOARD = "/api/v1/dashboard";
+    private static final String TREND = DASHBOARD + "/revenue-trend";
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Indian/Antananarivo");
 
     @Autowired
@@ -178,6 +180,83 @@ class DashboardIT extends StockApiTestSupport {
         assertThat(after.gapUnits() - before.gapUnits()).isEqualTo(7.0);
         assertThat(after.gapArticles() - before.gapArticles()).isEqualTo(1);
     }
+
+    @Test
+    void getRevenueTrend_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get(TREND))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
+    }
+
+    @Test
+    void getRevenueTrend_sellerAndDeliveryDriver_return403() throws Exception {
+        mockMvc.perform(get(TREND).header(HttpHeaders.AUTHORIZATION, bearer(tokenOf(RoleName.SELLER))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+        mockMvc.perform(get(TREND).header(HttpHeaders.AUTHORIZATION, bearer(tokenOf(RoleName.DELIVERY_DRIVER))))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("FORBIDDEN"));
+    }
+
+    @Test
+    void getRevenueTrend_administrator_returnsSevenConsecutiveDaysEndingToday() throws Exception {
+        var today = LocalDate.now(BUSINESS_ZONE);
+
+        trend().andExpect(status().isOk())
+                .andExpect(jsonPath("$.from").value(today.minusDays(6).toString()))
+                .andExpect(jsonPath("$.to").value(today.toString()))
+                .andExpect(jsonPath("$.points.length()").value(7))
+                .andExpect(jsonPath("$.points[0].date").value(today.minusDays(6).toString()))
+                .andExpect(jsonPath("$.points[6].date").value(today.toString()))
+                .andExpect(jsonPath("$.points[3].revenue").isNumber())
+                .andExpect(jsonPath("$.points[3].salesCount").isNumber());
+    }
+
+    @Test
+    void getRevenueTrend_newSaleToday_raisesOnlyTheLastPoint() throws Exception {
+        // Arrange
+        var before = trendReading();
+
+        // Act
+        createSale("2");
+        var after = trendReading();
+
+        // Assert
+        assertThat(after.revenues().get(6) - before.revenues().get(6)).isEqualTo(17000.0);
+        assertThat(after.counts().get(6) - before.counts().get(6)).isEqualTo(1);
+        assertThat(after.revenues().subList(0, 6)).isEqualTo(before.revenues().subList(0, 6));
+    }
+
+    @Test
+    void getRevenueTrend_cancelledSaleToday_leavesTheLastPoint() throws Exception {
+        // Arrange
+        var number = createSale("1");
+        var before = trendReading();
+
+        // Act
+        jdbcTemplate.update("update sales set status = 'CANCELLED' where number = ?", number);
+        var after = trendReading();
+
+        // Assert
+        assertThat(before.revenues().get(6) - after.revenues().get(6)).isEqualTo(8500.0);
+        assertThat(before.counts().get(6) - after.counts().get(6)).isEqualTo(1);
+    }
+
+    private ResultActions trend() throws Exception {
+        return mockMvc.perform(get(TREND).header(HttpHeaders.AUTHORIZATION, bearer(adminToken())));
+    }
+
+    private TrendReading trendReading() throws Exception {
+        var json = trend().andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        List<Number> revenues = JsonPath.read(json, "$.points[*].revenue");
+        List<Number> counts = JsonPath.read(json, "$.points[*].salesCount");
+        return new TrendReading(
+                revenues.stream().map(Number::doubleValue).toList(),
+                counts.stream().map(Number::longValue).toList());
+    }
+
+    /** Revenue and sales count of the seven points of one reading of the trend, oldest first. */
+    private record TrendReading(List<Double> revenues, List<Long> counts) {}
 
     private ResultActions dashboard() throws Exception {
         return mockMvc.perform(get(DASHBOARD).header(HttpHeaders.AUTHORIZATION, bearer(adminToken())));
