@@ -91,7 +91,7 @@ jobs:
           min-versions-to-keep: 0
 
   # Release publiee -> staging mis a jour tout de suite sur l'EliteBook (runner self-hosted).
-  # La prod suit automatiquement 3 jours plus tard (voir deploy-prod-auto.yml).
+  # La prod n'est jamais automatique : Randy lance « Deployer » a la main (voir deploy/README.md).
   deploy-staging:
     needs: build
     if: ${{ always() && needs.build.result == 'success' && github.event_name == 'release' }}

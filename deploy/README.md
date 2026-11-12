@@ -13,14 +13,14 @@ release vX.Y.Z publiée (Randy, après validation de Njara)
         │
         ├─► CI complète + images :vX.Y.Z ──► STAGING sur l'EliteBook (ton oncle teste)
         │
-        └─► 3 jours plus tard, si la release n'est pas bloquée ──► PROD sur l'EliteBook
+        └─► après validation du client, Randy lance « Deployer » à la main ──► PROD sur l'EliteBook
 ```
 
 | Environnement | Qui teste | Mis à jour | Où | Adresse |
 |---|---|---|---|---|
 | QA | Njara | à chaque merge sur `develop` (elle tire les images) | poste de Njara | http://localhost:8090 |
 | Staging (UAT) | le client | à chaque release, puis figé | EliteBook | http://localhost:8081 |
-| Prod | usage réel | 3 jours après la release | EliteBook | http://localhost |
+| Prod | usage réel | à la main, par Randy, après validation du client | EliteBook | http://localhost |
 
 Règles :
 
@@ -36,15 +36,14 @@ Règles :
 |---|---|---|
 | `ci.yml` | chaque PR vers `develop` ou `main` | `mvn verify` (tests + checkstyle) sur Postgres 16, lint + tests + build Angular |
 | `images.yml` | merge sur `develop`, release publiée | images `:develop` ; pour une release : CI, images `:vX.Y.Z`, déploiement du staging |
-| `deploy-prod-auto.yml` | lun-sam à 9 h, 12 h, 15 h, 18 h (Madagascar) | met en prod la dernière release si elle a 3 jours, tourne en staging et n'est pas bloquée |
-| `deploy.yml` | appelé par les deux précédents, ou à la main | déploie une version précise sur `staging` ou `prod` via le runner `workstation` |
+| `deploy.yml` | appelé par `images.yml` (staging), ou à la main (prod, retour arrière) | déploie une version précise sur `staging` ou `prod` via le runner `workstation` |
 
 ### Pourquoi pas les « Environments » GitHub avec un délai d'attente ?
 
 Sur un dépôt **privé** avec le plan gratuit, GitHub ne fournit ni les délais d'attente
-(wait timer), ni les validations obligatoires, ni les secrets d'environnement. Le délai de 3 jours
-est donc géré par `deploy-prod-auto.yml`, et les mots de passe restent dans les fichiers
-`.env.staging` / `.env.prod` de l'EliteBook, jamais sur GitHub.
+(wait timer), ni les validations obligatoires, ni les secrets d'environnement. La mise en prod
+n'est donc jamais automatique : Randy la lance à la main (voir « Mettre en prod »), et les mots de
+passe restent dans les fichiers `.env.staging` / `.env.prod` de l'EliteBook, jamais sur GitHub.
 
 ## Publier une release (Randy)
 
@@ -52,18 +51,17 @@ est donc géré par `deploy-prod-auto.yml`, et les mots de passe restent dans le
 2. Merger `develop` dans `main` (PR de release).
 3. GitHub → Releases → *Draft a new release* → tag `vX.Y.Z` sur `main` → **Publish release**.
 4. Le staging est mis à jour dans les minutes qui suivent (onglet Actions → « Images Docker »).
-5. Prévenir le client : 3 jours pour tester sur http://localhost:8081.
+5. Prévenir le client : il teste sur http://localhost:8081.
 
-Ne pas cocher « Set as a pre-release » à la publication : une pre-release est considérée comme
-bloquée et ne partira jamais en prod.
+## Mettre en prod (Randy, à la main)
 
-## Bloquer une mise en prod
+Rien ne part en prod tout seul. Quand le client a validé la version qui tourne en staging :
 
-Le client a trouvé un problème pendant ses 3 jours de test ? Éditer la release sur GitHub et
-cocher **Set as a pre-release**. Elle reste en staging mais ne partira pas en prod.
-Pour la débloquer, décocher la case : elle partira au prochain passage (si les 3 jours sont écoulés).
+- Actions → **Deployer** → *Run workflow* → environnement `prod` + version (ex. `v1.0.0`) ;
+- ou, en ligne de commande : `gh workflow run deploy.yml -f environment=prod -f tag=v1.0.0`.
 
-Publier une nouvelle release remet le compteur à zéro : c'est la nouvelle qui devra attendre 3 jours.
+Le client a trouvé un problème ? Ne pas lancer la mise en prod : corriger, publier une nouvelle
+release (`v1.0.1`), la faire valider en staging, puis la mettre en prod.
 
 ## Retour arrière
 
@@ -77,7 +75,7 @@ restent. Avec des changesets additifs (nouvelles tables ou colonnes), l'ancienne
 fonctionne quand même, car `ddl-auto=validate` accepte les tables et colonnes en plus. Si une
 release a supprimé ou renommé quelque chose, il faut aussi restaurer une sauvegarde.
 
-Le même workflow sert à mettre en prod tout de suite un correctif urgent, sans attendre 3 jours.
+Le même workflow sert à la mise en prod (voir « Mettre en prod »).
 
 L'EliteBook garde en local les images de ses 10 dernières versions. Si la version visée y est
 encore, rien n'est téléchargé : un retour arrière fonctionne même sans connexion internet.

@@ -1,10 +1,9 @@
 name: Deployer
 
 # Deploie une version sur l'EliteBook via le runner self-hosted "workstation".
-#   - appele automatiquement : staging a chaque release (images.yml), prod apres 3 jours
-#     (deploy-prod-auto.yml) ;
-#   - lance a la main (Actions -> Deployer -> Run workflow) : retour arriere vers une version
-#     precedente, ou mise en prod immediate d'un correctif urgent.
+#   - appele automatiquement : staging a chaque release (images.yml) ;
+#   - lance a la main (Actions -> Deployer -> Run workflow, ou `gh workflow run deploy.yml`) :
+#     mise en prod, toujours decidee par Randy, et retour arriere vers une version precedente.
 # Le runner ne recupere que le dossier deploy/ (sparse checkout) : aucun code source sur le poste.
 
 on:
