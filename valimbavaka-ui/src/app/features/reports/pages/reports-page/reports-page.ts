@@ -13,7 +13,7 @@ import {
 import { ToastService } from '../../../../shared/components/toast/toast-service';
 import { AriaryPipe, formatAriary } from '../../../../shared/pipes/ariary-pipe';
 import { RangeDonut } from '../../components/range-donut/range-donut';
-import { RevenueCompareChart } from '../../components/revenue-compare-chart/revenue-compare-chart';
+import { RevenueTrendChart } from '../../components/revenue-trend-chart/revenue-trend-chart';
 import { ReferentialService } from '../../../referential/data-access/referential-service';
 import { localIsoDate } from '../../../sales/data-access/sales-mapping';
 import { ReportDemoService } from '../../data-access/report-demo-service';
@@ -42,9 +42,9 @@ const initialFilter = (): ReportFilter => ({
 });
 
 /**
- * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen), sa comparaison à la période précédente et les
- * filtres période, canal et gamme sont branchés sur l'API (RPT-01, RPT-02) ; la courbe, les gammes et le classement
- * restent des données de démonstration jusqu'à RPT-03 à RPT-05.
+ * Rapports (RPT-01 à RPT-06). La synthèse (CA, ventes, panier moyen), sa comparaison à la période précédente, la
+ * courbe d'évolution du CA et les filtres période, canal et gamme sont branchés sur l'API (RPT-01 à RPT-03) ; les
+ * gammes et le classement restent des données de démonstration jusqu'à RPT-04 et RPT-05.
  */
 @Component({
   selector: 'vvs-reports-page',
@@ -57,7 +57,7 @@ const initialFilter = (): ReportFilter => ({
     PageHeader,
     SegmentedControl,
     RangeDonut,
-    RevenueCompareChart,
+    RevenueTrendChart,
   ],
   templateUrl: './reports-page.html',
   styleUrl: './reports-page.css',

@@ -59,6 +59,7 @@ const answerApiCalls = async (): Promise<void> => {
         ? DASHBOARD_TEST_VIEW
         : request.request.url === '/api/v1/reports'
           ? {
+              granularity: 'MONTH',
               sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
               comparison: {
                 from: '2026-10-01',
@@ -66,6 +67,10 @@ const answerApiCalls = async (): Promise<void> => {
                 sales: { revenue: 0, salesCount: 0, averageBasket: 0 },
                 variation: { revenue: null, salesCount: null, averageBasket: null },
               },
+              trend: [
+                { date: '2026-11-01', revenue: 0 },
+                { date: '2026-11-02', revenue: 8500 },
+              ],
             }
           : { items: [], page: 1, pageSize: 10, totalCount: 0, totalPages: 0 },
     );
