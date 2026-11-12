@@ -52,8 +52,17 @@ public class ReportServiceImpl implements ReportService {
         var sales = reportSalesService.getSales(filter);
         var comparison = compare(sales, new ReportFilter(period.previous(), salesChannelId, rangeId));
         var trend = reportSalesService.getTrend(filter);
+        var ranges = reportSalesService.getRanges(filter);
         return new ReportRDto(
-                period.granularity(), period.from(), period.to(), salesChannelId, rangeId, sales, comparison, trend);
+                period.granularity(),
+                period.from(),
+                period.to(),
+                salesChannelId,
+                rangeId,
+                sales,
+                comparison,
+                trend,
+                ranges);
     }
 
     private ReportComparisonRDto compare(ReportSalesRDto current, ReportFilter previousFilter) {
