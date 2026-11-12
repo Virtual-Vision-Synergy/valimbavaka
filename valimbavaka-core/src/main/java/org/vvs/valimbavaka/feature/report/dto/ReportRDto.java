@@ -11,7 +11,7 @@ import org.vvs.valimbavaka.feature.report.domain.ReportGranularity;
 /**
  * Report of a period (RPT-01): the effective period {@code [from, to]}, the filters applied (null = all) and the
  * sales indicators, their comparison with the previous period (RPT-02), the turnover curve (RPT-03) and the split by
- * product range (RPT-04). The later reports add their sections here (ranking).
+ * product range (RPT-04) and the ranking of the best-selling articles (RPT-05).
  */
 public record ReportRDto(
         ReportGranularity granularity,
@@ -22,4 +22,5 @@ public record ReportRDto(
         ReportSalesRDto sales,
         ReportComparisonRDto comparison,
         List<ReportTrendPointRDto> trend,
-        ReportRangesRDto ranges) {}
+        ReportRangesRDto ranges,
+        ReportRankingRDto ranking) {}

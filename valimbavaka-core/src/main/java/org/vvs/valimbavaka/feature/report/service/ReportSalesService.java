@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.vvs.valimbavaka.feature.report.domain.ReportFilter;
 import org.vvs.valimbavaka.feature.report.dto.ReportRangesRDto;
+import org.vvs.valimbavaka.feature.report.dto.ReportRankingRDto;
 import org.vvs.valimbavaka.feature.report.dto.ReportSalesRDto;
 import org.vvs.valimbavaka.feature.report.dto.ReportTrendPointRDto;
 
@@ -29,4 +30,12 @@ public interface ReportSalesService {
      * apply: the range of the filter is ignored, since a single range would always be 100 %.
      */
     ReportRangesRDto getRanges(ReportFilter filter);
+
+    /**
+     * Best-selling articles (RPT-05), one SQL aggregate cut in the database: at most
+     * {@code ReportSaleRepository.RANKING_SIZE} articles, biggest turnover first (ties: name, then code), with the
+     * quantity, the margin and the share of the turnover of all the lines of the period. Period, channel and range
+     * of the filter all apply.
+     */
+    ReportRankingRDto getRanking(ReportFilter filter);
 }
