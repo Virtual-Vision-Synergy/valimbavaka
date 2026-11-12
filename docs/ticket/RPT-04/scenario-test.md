@@ -1,6 +1,6 @@
 # Scénarios de test — RPT-04 · Répartition du CA par gamme
 
-Statut : ✅ rédigé le 2026-11-12, tests à lancer · Ticket : [#101](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/101) · [description](description.md) · [guide](guide.md)
+Statut : ✅ rédigé et exécuté le 2026-11-12 · Ticket : [#101](https://github.com/Virtual-Vision-Synergy/valimbavaka/issues/101) · [description](description.md) · [guide](guide.md)
 
 Convention (VVS V2.1) : tests backend `methode_scenario_resultatAttendu`, SUT nommé `sut`, Arrange / Act / Assert, Testcontainers PostgreSQL ; tests frontend Vitest sur le comportement visible.
 
@@ -18,22 +18,22 @@ Les tests d'intégration partagent la base avec d'autres classes : aucune assert
 
 | # | Critère d'acceptation | Étant donné / Quand / Alors | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|---|
-| 1 | La somme par gamme correspond au CA total de la période. | Une vente boutique : 1 savon (8 500) et 2 crèmes (17 000), sans remise globale | Le CA de la gamme savon augmente de 8 500, celui de la gamme crème de 17 000 ; `ranges.revenue` augmente comme `sales.revenue` ; la somme des `items[].revenue` = `ranges.revenue` ; la somme des parts = 100,0 | `ReportIT.getReport_ranges_splitTheRevenueOfEachRangeAndTheSharesAddUpTo100` | ☐ |
-| 2 | Idem, calcul de la part | Deux gammes à 17 000 et 8 500 | Parts 66,7 % et 33,3 % ; `ranges.revenue` = 25 500 ; une seule requête SQL | `ReportSalesServiceImplTest.getRanges_twoRanges_givesRevenueAndSharesThatAddUpTo100` | ☐ |
-| 3 | Les parts totalisent exactement 100,0 | 3 montants égaux ; 1/2/4 ; un montant minuscule face à un énorme | 33,4 + 33,3 + 33,3 ; 14,3 + 28,6 + 57,1 ; total 100,0 dans tous les cas | `ReportShareTest.distribute_threeEqualAmounts_giveTheMissingTenthToTheFirst`, `distribute_missingTenthsGoToTheLargestRemainders`, `distribute_tinyAmountNextToHugeOne_isZeroPointZeroAndTheTotalStays100`, `distribute_manyAmounts_alwaysAddUpTo100` | ☐ |
-| 4 | Gammes triées | Une vente savon + crème | Le CA des gammes est décroissant | `ReportIT.getReport_ranges_areSortedByDescendingRevenue` | ☐ |
-| 5 | Le rapport expose le bloc | `getReport` | `ranges` = résultat de `getRanges` avec la même période et le même canal | `ReportServiceImplTest.getReport_ranges_isTheSplitOfThePeriodWithTheSameFilters` | ☐ |
-| 6 | Écran : anneau et légende | L'API renvoie Zezika 17 000 (66,7) et Botanika 8 500 (33,3) | Légende : libellé, montant, part avec virgule (« 66,7 % »), plus forte gamme d'abord ; 2 arcs ; couleur par `data-range` | `reports-page.spec.ts` « should list each range with its revenue and its share, the biggest first » | ☐ |
+| 1 | La somme par gamme correspond au CA total de la période. | Une vente boutique : 1 savon (8 500) et 2 crèmes (17 000), sans remise globale | Le CA de la gamme savon augmente de 8 500, celui de la gamme crème de 17 000 ; `ranges.revenue` augmente comme `sales.revenue` ; la somme des `items[].revenue` = `ranges.revenue` ; la somme des parts = 100,0 | `ReportIT.getReport_ranges_splitTheRevenueOfEachRangeAndTheSharesAddUpTo100` | ✅ auto |
+| 2 | Idem, calcul de la part | Deux gammes à 17 000 et 8 500 | Parts 66,7 % et 33,3 % ; `ranges.revenue` = 25 500 ; une seule requête SQL | `ReportSalesServiceImplTest.getRanges_twoRanges_givesRevenueAndSharesThatAddUpTo100` | ✅ auto |
+| 3 | Les parts totalisent exactement 100,0 | 3 montants égaux ; 1/2/4 ; un montant minuscule face à un énorme | 33,4 + 33,3 + 33,3 ; 14,3 + 28,6 + 57,1 ; total 100,0 dans tous les cas | `ReportShareTest.distribute_threeEqualAmounts_giveTheMissingTenthToTheFirst`, `distribute_missingTenthsGoToTheLargestRemainders`, `distribute_tinyAmountNextToHugeOne_isZeroPointZeroAndTheTotalStays100`, `distribute_manyAmounts_alwaysAddUpTo100` | ✅ auto |
+| 4 | Gammes triées | Une vente savon + crème | Le CA des gammes est décroissant | `ReportIT.getReport_ranges_areSortedByDescendingRevenue` | ✅ auto |
+| 5 | Le rapport expose le bloc | `getReport` | `ranges` = résultat de `getRanges` avec la même période et le même canal | `ReportServiceImplTest.getReport_ranges_isTheSplitOfThePeriodWithTheSameFilters` | ✅ auto |
+| 6 | Écran : anneau et légende | L'API renvoie Zezika 17 000 (66,7) et Botanika 8 500 (33,3) | Légende : libellé, montant, part avec virgule (« 66,7 % »), plus forte gamme d'abord ; 2 arcs ; couleur par `data-range` | `reports-page.spec.ts` « should list each range with its revenue and its share, the biggest first » | ✅ auto |
 
 ## Règles métier
 
 | Règle | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|---|
-| Ventes annulées exclues | Vente `CANCELLED` | Le CA de la gamme ne bouge pas | `ReportIT.getReport_ranges_cancelledSaleIsNotCounted` | ☐ |
-| Filtre canal appliqué | Vente Facebook (savon + crème) et vente boutique (savon) ; canal Facebook | Seule la vente Facebook compte : savon +8 500 | `ReportIT.getReport_ranges_channelFilterAppliesButRangeFilterIsIgnored` | ☐ |
-| Filtre gamme ignoré pour cette section | `rangeId` = savon | La gamme crème figure toujours dans la répartition (+8 500 dans la même lecture) ; l'écran le dit | `ReportIT.getReport_ranges_channelFilterAppliesButRangeFilterIsIgnored`, `ReportSalesServiceImplTest.getRanges_rangeFilterIsIgnored_readsEveryRangeInOneQuery`, `reports-page.spec.ts` « should say that the range filter does not apply to the split » | ☐ |
-| CA d'une gamme avant la remise globale | Vente avec remise globale | La somme des gammes dépasse `sales.revenue` du montant des remises ; l'écran affiche l'écart | `reports-page.spec.ts` « should explain the gap when the sale discounts make the summary lower than the ranges », « should not mention a gap when the ranges add up to the summary » | ☐ |
-| Un seul agrégat | Lecture des gammes | Un seul appel `revenueByRange` (pas une requête par gamme) | `ReportSalesServiceImplTest.getRanges_twoRanges_givesRevenueAndSharesThatAddUpTo100` (`verifyNoMoreInteractions`) | ☐ |
+| Ventes annulées exclues | Vente `CANCELLED` | Le CA de la gamme ne bouge pas | `ReportIT.getReport_ranges_cancelledSaleIsNotCounted` | ✅ auto |
+| Filtre canal appliqué | Vente Facebook (savon + crème) et vente boutique (savon) ; canal Facebook | Seule la vente Facebook compte : savon +8 500 | `ReportIT.getReport_ranges_channelFilterAppliesButRangeFilterIsIgnored` | ✅ auto |
+| Filtre gamme ignoré pour cette section | `rangeId` = savon | La gamme crème figure toujours dans la répartition (+8 500 dans la même lecture) ; l'écran le dit | `ReportIT.getReport_ranges_channelFilterAppliesButRangeFilterIsIgnored`, `ReportSalesServiceImplTest.getRanges_rangeFilterIsIgnored_readsEveryRangeInOneQuery`, `reports-page.spec.ts` « should say that the range filter does not apply to the split » | ✅ auto |
+| CA d'une gamme avant la remise globale | Vente avec remise globale | La somme des gammes dépasse `sales.revenue` du montant des remises ; l'écran affiche l'écart | `reports-page.spec.ts` « should explain the gap when the sale discounts make the summary lower than the ranges », « should not mention a gap when the ranges add up to the summary » | ✅ auto |
+| Un seul agrégat | Lecture des gammes | Un seul appel `revenueByRange` (pas une requête par gamme) | `ReportSalesServiceImplTest.getRanges_twoRanges_givesRevenueAndSharesThatAddUpTo100` (`verifyNoMoreInteractions`) | ✅ auto |
 
 ## Sécurité et erreurs
 
@@ -41,8 +41,8 @@ Même endpoint que RPT-01, aucun nouveau paramètre ni corps : `ReportIT.getRepo
 
 | Cas | Résultat attendu | Test auto | OK |
 |---|---|---|---|
-| Période qui n'a pas commencé | 422, aucune répartition lue | `ReportServiceImplTest.getReport_dayInTheFuture_doesNotReadTheCurve` | ☐ |
-| Sans jeton, vendeuse, livreur | 401, 403 | `ReportIT` (RPT-01) | ☐ |
+| Période qui n'a pas commencé | 422, aucune répartition lue | `ReportServiceImplTest.getReport_dayInTheFuture_doesNotReadTheCurve` | ✅ auto |
+| Sans jeton, vendeuse, livreur | 401, 403 | `ReportIT` (RPT-01) | ✅ auto |
 | Mass assignment, 404, 409 | Sans objet : lecture seule | — | — |
 
 ## Cas limites et hors ligne
@@ -65,6 +65,6 @@ Même endpoint que RPT-01, aucun nouveau paramètre ni corps : `ReportIT.getRepo
 
 ## Résultat de l'exécution
 
-- Date : à lancer (CI ou local)
-- Environnement : à lancer (CI ou local)
+- Date : 2026-11-12
+- Environnement : CI GitHub Actions sur la branche (ci.yml, conventions.yml, Qodana : verts, 0 annotation Qodana) ; backend 1019 tests dont `ReportIT` 29, frontend 140 fichiers de test, tous passés. Recette manuelle 🧪 : à passer par Njara après le merge
 - Anomalies ouvertes : aucune connue
